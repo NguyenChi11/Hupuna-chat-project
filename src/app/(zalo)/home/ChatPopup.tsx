@@ -46,6 +46,7 @@ import ShareMessageModal from '@/components/(chatPopup)/ShareMessageModal';
 import { stopGlobalRingTone } from '@/utils/callRing';
 import { useCallSession } from '@/hooks/useCallSession';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
+import { HiChevronDoubleDown } from 'react-icons/hi2';
 
 const STICKERS = [
   'https://cdn-icons-png.flaticon.com/512/9408/9408176.png',
@@ -53,6 +54,7 @@ const STICKERS = [
 ];
 
 const SCROLL_BUMP_PX = 80;
+const BUTTON_SHOW_THRESHOLD_PX = 60;
 
 interface ChatWindowProps {
   selectedChat: ChatItem;
@@ -138,6 +140,10 @@ export default function ChatWindow({
   const [pickerTab, setPickerTab] = useState<'emoji' | 'sticker'>('emoji');
   const [highlightedMsgId, setHighlightedMsgId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [showScrollDown, setShowScrollDown] = useState(false);
+  const [pendingNewCount, setPendingNewCount] = useState(0);
+  const pendingNewCountRef = useRef(0);
+  const hasScrolledUpRef = useRef(false);
   const isGroup = 'isGroup' in selectedChat && selectedChat.isGroup === true;
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [, setPinnedMessage] = useState<Message | null>(null);
@@ -363,6 +369,10 @@ export default function ChatWindow({
     if (end && typeof end.scrollIntoView === 'function') {
       end.scrollIntoView({ block: 'end' });
     }
+    setPendingNewCount(0);
+    pendingNewCountRef.current = 0;
+    hasScrolledUpRef.current = false;
+    setShowScrollDown(false);
   }, []);
 
   const { uploadingFiles, handleUploadAndSend } = useChatUpload({
@@ -742,6 +752,7 @@ export default function ChatWindow({
     if (!roomId || loadingMore || !hasMore || oldestTs == null) return;
     const container = messagesContainerRef.current;
     setLoadingMore(true);
+    setShowScrollDown(true);
     const prevHeight = container ? container.scrollHeight : 0;
     let added = false;
     try {
@@ -784,11 +795,21 @@ export default function ChatWindow({
         void loadMoreMessages();
       }
       const bottomGap = el.scrollHeight - el.scrollTop - el.clientHeight;
-      isAtBottomRef.current = bottomGap <= SCROLL_BUMP_PX;
+      const atBottom = bottomGap <= SCROLL_BUMP_PX;
+      isAtBottomRef.current = atBottom;
+      if (!atBottom && bottomGap > BUTTON_SHOW_THRESHOLD_PX) {
+        hasScrolledUpRef.current = true;
+      }
+      if (atBottom && !loadingMore) {
+        hasScrolledUpRef.current = false;
+        setPendingNewCount(0);
+        pendingNewCountRef.current = 0;
+      }
+      setShowScrollDown(hasScrolledUpRef.current || pendingNewCountRef.current > 0 || loadingMore);
     };
     el.addEventListener('scroll', handler);
     return () => el.removeEventListener('scroll', handler);
-  }, [loadMoreMessages]);
+  }, [loadMoreMessages, loadingMore]);
 
   const handleReplyTo = useCallback((message: Message) => {
     setReplyingTo(message);
@@ -1056,6 +1077,19 @@ export default function ChatWindow({
             el.scrollTop = el.scrollHeight;
           }
         }, 0);
+        setPendingNewCount(0);
+        pendingNewCountRef.current = 0;
+        hasScrolledUpRef.current = false;
+        setShowScrollDown(false);
+      } else {
+        if (data.sender !== currentUser._id) {
+          setPendingNewCount((c) => {
+            const next = c + 1;
+            pendingNewCountRef.current = next;
+            return next;
+          });
+          setShowScrollDown(hasScrolledUpRef.current || pendingNewCountRef.current > 0);
+        }
       }
     });
 
@@ -1913,10 +1947,10 @@ export default function ChatWindow({
           )}
 
           {/* Messages Area */}
-          <div
-            ref={messagesContainerRef}
-            className="flex-1 overflow-y-auto p-4 sm:p-4 bg-gray-100 flex flex-col custom-scrollbar"
-          >
+  <div
+    ref={messagesContainerRef}
+    className="relative flex-1 overflow-y-auto p-4 sm:p-4 bg-gray-100 flex flex-col custom-scrollbar"
+  >
             {(initialLoading || loadingMore) && (
               <div className="sticky top-0 z-20 flex items-center justify-center py-2">
                 <div className="h-4 w-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin mr-2" />
@@ -1949,8 +1983,25 @@ export default function ChatWindow({
               onToggleReaction={handleToggleReaction}
               contextMenu={contextMenu}
             />
-            <div ref={messagesEndRef} />
-          </div>
+    <div ref={messagesEndRef} />
+  </div>
+
+          <button
+            onClick={scrollToBottom}
+            aria-label="Cuộn xuống cuối"
+            className={`absolute cursor-pointer hover:bg-gray-100 bottom-50 right-4 z-30 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
+              showScrollDown ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+          >
+            <div className="relative">
+              <HiChevronDoubleDown className="w-6 h-6 text-gray-700" />
+              {pendingNewCount > 0 && (
+                <span className="absolute -top-6  w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+                  {pendingNewCount}
+                </span>
+              )}
+            </div>
+          </button>
 
           {/* Phần Footer (Input Chat) */}
           <div className="bg-white p-0  border-t rounded-t-xl border-gray-200 relative space-y-1">
