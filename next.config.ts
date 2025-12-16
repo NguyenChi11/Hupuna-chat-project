@@ -1,7 +1,40 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
+import path from 'path';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Các cấu hình khác giữ nguyên ở đây nếu có
+  images: {
+    localPatterns: [
+      {
+        pathname: '/api/mega-stream',
+      },
+      {
+        pathname: '/imgs/**',
+      },
+      {
+        pathname: '/icons/**',
+      },
+      {
+        pathname: '/logo/**',
+      },
+    ],
+    // Cho phép load ảnh từ MEGA (avatar sau khi upload)
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'mega.nz',
+        pathname: '/file/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.jsdelivr.net',
+      },
+    ],
+  },
+  // Khai báo root cho Turbopack để tránh chọn sai workspace
+  turbopack: {
+    root: path.join(__dirname),
+  },
 };
 
 export default nextConfig;
