@@ -1534,6 +1534,18 @@ export default function ChatWindow({
         return [];
       });
     }
+    try {
+      const el = editableRef.current;
+      if (el) {
+        el.focus();
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      }
+    } catch {}
   };
   // 🔥 Helper function để normalize ID
   function normalizeId(value: unknown): string {

@@ -12,6 +12,7 @@ import {
   HiPaperAirplane,
   HiSparkles,
   HiFolder,
+  HiEllipsisHorizontal,
 } from 'react-icons/hi2';
 import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
 import Image from 'next/image';
@@ -71,6 +72,7 @@ export default function ChatInput({
   const [slashSelectedIndex, setSlashSelectedIndex] = useState<number>(0);
   const [showFolderDashboard, setShowFolderDashboard] = useState(false);
   const [showChatFlashDashboard, setShowChatFlashDashboard] = useState(false);
+  const [showMobileActions, setShowMobileActions] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -198,11 +200,11 @@ export default function ChatInput({
         </div>
       )}
       {/* Toolbar trái – Sang trọng như Zalo Premium */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 md:mb-2 mb-0">
         {/* Emoji */}
         <button
           onClick={onToggleEmojiPicker}
-          className="group p-3 rounded-2xl cursor-pointer bg-gradient-to-br from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+          className="hidden md:block group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
           aria-label="Chọn emoji"
         >
           <HiFaceSmile className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform" />
@@ -223,7 +225,7 @@ export default function ChatInput({
 
         <button
           onClick={() => setShowFolderDashboard(true)}
-          className="group p-3 rounded-2xl cursor-pointer bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+          className="md:block hidden group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
           aria-label="Mở dashboard Folder"
         >
           <div className="flex items-center gap-1">
@@ -234,7 +236,7 @@ export default function ChatInput({
 
         {/* Ảnh/Video */}
         <label
-          className="group relative p-3 rounded-2xl cursor-pointer bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+          className="md:block hidden group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
           aria-label="Gửi ảnh hoặc video"
         >
           <HiPhoto className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" />
@@ -253,7 +255,7 @@ export default function ChatInput({
 
         {/* File */}
         <label
-          className="group relative p-3 rounded-2xl cursor-pointer bg-gradient-to-br from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+          className="md:block hidden group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
           aria-label="Gửi file"
         >
           <HiPaperClip className="w-6 h-6 text-green-600 group-hover:scale-110 transition-transform rotate-12" />
@@ -272,7 +274,7 @@ export default function ChatInput({
         {/* Voice – Hiệu ứng pulse đỏ đẹp hơn Zalo */}
         <button
           onClick={onVoiceInput}
-          className={`relative p-3 rounded-3xl cursor-pointer transition-all duration-500 shadow-2xl ${
+          className={`md:block hidden relative p-2 rounded-3xl cursor-pointer transition-all duration-500 shadow-2xl ${
             isListening
               ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white animate-pulse ring-4 ring-red-300/50 scale-110'
               : 'bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 hover:scale-105'
@@ -286,6 +288,13 @@ export default function ChatInput({
 
       {/* Input Area + Send Button */}
       <div className="flex items-end gap-3">
+        <button
+          onClick={onToggleEmojiPicker}
+          className="md:hidden block group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+          aria-label="Chọn emoji"
+        >
+          <HiFaceSmile className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform" />
+        </button>
         {/* Input contentEditable – Đẹp như iMessage */}
         <div className="relative flex-1 min-w-0">
           <div
@@ -341,6 +350,20 @@ export default function ChatInput({
               }
               onKeyDownEditable(e);
               updateSlashState();
+              if (e.key === 'Enter' && !e.shiftKey) {
+                try {
+                  const el = editableRef.current;
+                  if (el) {
+                    el.focus();
+                    const range = document.createRange();
+                    range.selectNodeContents(el);
+                    range.collapse(false);
+                    const sel = window.getSelection();
+                    sel?.removeAllRanges();
+                    sel?.addRange(range);
+                  }
+                } catch {}
+              }
             }}
             onFocus={() => {
               onFocusEditable();
@@ -350,7 +373,7 @@ export default function ChatInput({
               onPasteEditable(e);
               updateSlashState();
             }}
-            className="min-h-10 max-h-40 px-6 py-4 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-base text-gray-800 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 w-full max-w-full break-words whitespace-pre-wrap"
+            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-base text-gray-800 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 w-full max-w-full break-words whitespace-pre-wrap"
             data-placeholder="Nhập tin nhắn..."
           />
 
@@ -363,15 +386,140 @@ export default function ChatInput({
           </div>
         </div>
 
-        {/* Send Button – Gradient + hover scale */}
+        <div className="md:hidden relative flex items-center gap-2">
+          <button
+            onClick={() => setShowMobileActions((v) => !v)}
+            className="p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90"
+            aria-label="Mở thêm hành động"
+          >
+            <HiEllipsisHorizontal className="w-6 h-6" />
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.preventDefault()}
+            onClick={() => {
+              onSendMessage();
+              try {
+                const el = editableRef.current;
+                if (el) {
+                  el.focus();
+                  const range = document.createRange();
+                  range.selectNodeContents(el);
+                  range.collapse(false);
+                  const sel = window.getSelection();
+                  sel?.removeAllRanges();
+                  sel?.addRange(range);
+                }
+              } catch {}
+            }}
+            className="p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90 group"
+            aria-label="Gửi tin nhắn"
+          >
+            <HiPaperAirplane className="w-6 h-6 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
+          </button>
+        </div>
+        {/* Desktop: always show send */}
         <button
-          onClick={onSendMessage}
-          className=" p-4 rounded-3xl cursor-pointer bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90 group"
+          onMouseDown={(e) => e.preventDefault()}
+          onTouchStart={(e) => e.preventDefault()}
+          onClick={() => {
+            onSendMessage();
+            try {
+              const el = editableRef.current;
+              if (el) {
+                el.focus();
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                range.collapse(false);
+                const sel = window.getSelection();
+                sel?.removeAllRanges();
+                sel?.addRange(range);
+              }
+            } catch {}
+          }}
+          className="hidden md:block p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90 group"
           aria-label="Gửi tin nhắn"
         >
           <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
         </button>
       </div>
+
+      {showMobileActions && (
+        <div className="md:hidden w-full mt-2 flex items-center justify-between mx-auto">
+          <button
+            onClick={() => {
+              setShowFolderDashboard(true);
+              setShowMobileActions(false);
+            }}
+            className="group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+            aria-label="Mở dashboard Folder"
+          >
+            <div className="flex items-center gap-2">
+              <HiFolder className="w-6 h-6 text-orange-600 group-hover:scale-110 transition-transform" />
+              <span className="text-xs text-gray-700 truncate">Folder</span>
+            </div>
+          </button>
+          <label
+            className="group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+            aria-label="Gửi ảnh hoặc video"
+          >
+            <div className="flex items-center gap-2">
+              <HiPhoto className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" />
+              <span className="text-xs text-gray-700 truncate">Ảnh/Video</span>
+            </div>
+            <input
+              type="file"
+              accept="image/*,video/*"
+              className="sr-only"
+              onChange={(e) => {
+                const files = e.target.files ? Array.from(e.target.files) : [];
+                files.forEach((f) => onSelectImage(f));
+                e.target.value = '';
+                setShowMobileActions(false);
+              }}
+              multiple
+            />
+          </label>
+          <label
+            className="group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+            aria-label="Gửi file"
+          >
+            <div className="flex items-center gap-2">
+              <HiPaperClip className="w-6 h-6 text-green-600 group-hover:scale-110 transition-transform rotate-12" />
+              <span className="text-xs text-gray-700 truncate">File</span>
+            </div>
+            <input
+              type="file"
+              className="sr-only"
+              multiple
+              onChange={(e) => {
+                const files = e.target.files ? Array.from(e.target.files) : [];
+                files.forEach((f) => onSelectFile(f));
+                e.target.value = '';
+                setShowMobileActions(false);
+              }}
+            />
+          </label>
+          <button
+            onClick={() => {
+              onVoiceInput();
+              setShowMobileActions(false);
+            }}
+            className={`relative p-2 rounded-3xl cursor-pointer transition-all duration-500 shadow-2xl ${
+              isListening
+                ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white animate-pulse ring-4 ring-red-300/50 scale-110'
+                : 'bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 hover:scale-105'
+            }`}
+            aria-label="Nhập bằng giọng nói"
+          >
+            <div className="flex items-center gap-2">
+              <HiMicrophone className="w-6 h-6" />
+              <span className="text-xs text-gray-700 truncate">Voice</span>
+            </div>
+            {isListening && <div className="absolute inset-0 rounded-3xl bg-red-500/30 animate-ping" />}
+          </button>
+        </div>
+      )}
 
       {/* Custom CSS cho placeholder */}
       <style jsx>{`
