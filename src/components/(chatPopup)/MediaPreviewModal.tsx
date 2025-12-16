@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
-import { HiX, HiDownload, HiPhotograph, HiVideoCamera, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
+import { HiX, HiDownload, HiPhotograph, HiVideoCamera, HiChevronLeft, HiChevronRight, HiPlay } from 'react-icons/hi';
 import { getProxyUrl } from '@/utils/utils';
 
 interface MediaPreviewModalProps {
@@ -205,6 +205,9 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
                         ) : (
                           <video src={getProxyUrl(it.url)} className="w-full h-full object-cover" preload="metadata" />
                         )}
+                        <div className="absolute inset-0  hover:bg-black/30 transition-opacity duration-300 flex items-center justify-center">
+                          {it.type === 'video' && <HiPlay className="w-10 h-10 text-white drop-shadow-lg" />}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -215,9 +218,6 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
         )}
 
         {/* Hướng dẫn chạm (chỉ hiện trên mobile) */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center text-white/60 text-xs sm:hidden">
-          Chạm để đóng
-        </div>
       </div>
     </div>
   );

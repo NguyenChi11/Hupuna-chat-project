@@ -314,6 +314,7 @@ export async function POST(req: NextRequest) {
             'user-agent': req.headers.get('user-agent') || '',
             'accept-language': req.headers.get('accept-language') || '',
           },
+          ttlDays: 3650,
         });
         const token = await signJWT({
           _id: String(found._id),
@@ -355,7 +356,7 @@ export async function POST(req: NextRequest) {
           secure: process.env.NODE_ENV === 'production',
           path: '/',
           sameSite: 'lax',
-          maxAge: 7 * 24 * 3600,
+          maxAge: 3650 * 24 * 3600,
         });
 
         const refreshToken = await signEphemeralJWT(
@@ -366,14 +367,14 @@ export async function POST(req: NextRequest) {
             name: String(found.name || ''),
             fp,
           },
-          90 * 24 * 3600,
+          3650 * 24 * 3600,
         );
         res.cookies.set('refresh_token', refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           path: '/',
           sameSite: 'lax',
-          maxAge: 90 * 24 * 3600,
+          maxAge: 3650 * 24 * 3600,
         });
 
         return res;

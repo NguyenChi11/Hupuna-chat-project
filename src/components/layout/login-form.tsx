@@ -127,47 +127,31 @@ export default function LoginForm() {
       </div>
 
       <div className="relative z-10 w-full max-w-6xl">
-        {/* Logo */}
-        <div className="mb-6 text-center">
-          <div className="inline-flex flex-col sm:flex-row gap-3 items-center">
-            <div className="bg-white/20 backdrop-blur-md p-3 rounded-3xl shadow-xl border border-white/40">
-              <div className="bg-gradient-to-br from-blue-600 to-cyan-500 p-3 rounded-2xl shadow-lg">
-                <span className="text-4xl sm:text-5xl font-black text-white">H</span>
-              </div>
-            </div>
-
-            <div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold text-white drop-shadow-lg">Hupuna</h1>
-              <p className="text-white/90 text-sm sm:text-base font-medium">Kết nối mọi người</p>
-            </div>
-          </div>
-
-          <p className="text-white/70 mt-2 text-xs sm:text-sm">Phiên bản {APP_VERSION}</p>
-        </div>
-
+        
         {/* Card */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white/10 backdrop-blur-2xl rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
           {/* Left Side */}
-          <div className="hidden lg:flex flex-col justify-center p-10 xl:p-12 text-white bg-gradient-to-br from-blue-600/80 to-cyan-500/80 space-y-10">
+          <div className="hidden  lg:flex flex-col justify-center items-center p-10 xl:p-12 text-white bg-gradient-to-br from-blue-600/80 to-cyan-500/80 space-y-10">
+            <div className=" text-center">
+              <div className="inline-flex flex-col sm:flex-row gap-3 items-center">
+                <div className="bg-white/20 backdrop-blur-md p-3 rounded-3xl shadow-xl border border-white/40">
+                  <div className="bg-gradient-to-br from-blue-600 to-cyan-500 p-3 rounded-2xl shadow-lg">
+                    <span className="text-4xl sm:text-5xl font-black text-white">H</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h1 className="text-3xl sm:text-5xl font-extrabold text-white drop-shadow-lg">Hupuna</h1>
+                  <p className="text-white/90 text-sm sm:text-base font-medium">Kết nối mọi người</p>
+                </div>
+              </div>
+
+              <p className="text-white/70 mt-2 text-xs sm:text-sm">Phiên bản {APP_VERSION}</p>
+            </div>
             <h2 className="text-4xl xl:text-5xl font-black leading-tight">
               Nhắn gửi <span className="text-cyan-200">yêu thương</span>,<br />
               kết nối <span className="text-cyan-200">mọi người</span>
             </h2>
-
-            <div className="space-y-6">
-              {[
-                { icon: HiSparkles, text: 'Gửi tin nhắn, file, ảnh video cực nhanh', color: 'cyan' },
-                { icon: HiShieldCheck, text: 'Bảo mật tuyệt đối với mã hóa đầu cuối', color: 'emerald' },
-                { icon: HiCheckCircle, text: 'Đồng bộ liền mạch trên mọi thiết bị', color: 'blue' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                    <item.icon className={`w-7 h-7 text-${item.color}-300`} />
-                  </div>
-                  <p className="text-base font-medium">{item.text}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Right Side */}

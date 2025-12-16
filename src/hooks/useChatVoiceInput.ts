@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import { insertTextAtCursor } from '@/utils/chatInput';
 
 interface UseChatVoiceInputParams {
   editableRef: React.RefObject<HTMLDivElement | null>;
@@ -11,7 +12,7 @@ export function useChatVoiceInput({ editableRef, handleInputChangeEditable }: Us
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
-  const handleVoiceInput = useCallback(() => {
+  const handleVoiceInput = useCallback(async () => {
     const SpeechRecognition =
       typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
 
@@ -25,6 +26,26 @@ export function useChatVoiceInput({ editableRef, handleInputChangeEditable }: Us
         recognitionRef.current.stop();
       }
       setIsListening(false);
+      return;
+    }
+
+    const isLocal =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const isSecure =
+      typeof window !== 'undefined' && (window.isSecureContext || window.location.protocol === 'https:');
+    if (!isSecure && !isLocal) {
+      alert('Vui lòng truy cập qua HTTPS hoặc localhost để sử dụng nhập bằng giọng nói.');
+      return;
+    }
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop());
+      }
+    } catch {
+      alert('Vui lòng cấp quyền microphone cho trình duyệt để sử dụng nhập bằng giọng nói.');
       return;
     }
 
@@ -43,16 +64,18 @@ export function useChatVoiceInput({ editableRef, handleInputChangeEditable }: Us
 
     recognition.onresult = (event: SpeechRecognitionEventLike) => {
       const transcript = event.results[0][0].transcript;
-
-      if (editableRef.current) {
-        editableRef.current.focus();
-        document.execCommand('insertText', false, transcript);
+      const el = editableRef.current;
+      if (el) {
+        el.focus();
+        insertTextAtCursor(el, transcript);
         handleInputChangeEditable();
       }
     };
 
     recognition.onerror = (event: SpeechRecognitionEventLike) => {
-      console.error('Voice error:', event.error);
+      if ((event.error || '').toLowerCase() === 'not-allowed') {
+        alert('Truy cập microphone bị từ chối. Vui lòng cấp quyền trong cài đặt trình duyệt.');
+      }
       setIsListening(false);
     };
 

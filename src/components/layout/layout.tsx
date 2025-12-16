@@ -61,6 +61,45 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     return () => window.removeEventListener('mobile-footer', handler);
   }, []);
 
+  // Redirect khi chưa đăng nhập hoặc khi API trả về 401
+  useEffect(() => {
+    const orig: typeof fetch = window.fetch;
+    const wrapped: typeof fetch = async (input, init) => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input instanceof Request
+              ? input.url
+              : '';
+      const res = await orig(input, init);
+      if (res.status !== 401) return res;
+      if (url.includes('/api/auth/refresh')) {
+        if (pathname !== '/login') router.push('/login');
+        return res;
+      }
+      try {
+        const r = await orig('/api/auth/refresh', { credentials: 'include' });
+        if (r.ok) {
+          return await orig(input, init);
+        }
+      } catch {}
+      if (pathname !== '/login') router.push('/login');
+      return res;
+    };
+    window.fetch = wrapped;
+    return () => {
+      window.fetch = orig;
+    };
+  }, [router, pathname]);
+
+  useEffect(() => {
+    if (checked && !isAuthed && pathname !== '/login') {
+      router.push('/login');
+    }
+  }, [checked, isAuthed, pathname, router]);
+
   // Xác định tab active
   const isActive = (paths: string[]) => {
     return paths.some(

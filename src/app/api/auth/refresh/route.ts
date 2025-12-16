@@ -30,16 +30,13 @@ export async function GET(req: NextRequest) {
     maxAge: 30 * 24 * 3600,
   });
 
-  const rotateRefresh = await signEphemeralJWT(
-    { purpose: 'refresh', sub: userId, username, name, fp },
-    90 * 24 * 3600,
-  );
+  const rotateRefresh = await signEphemeralJWT({ purpose: 'refresh', sub: userId, username, name, fp }, 3650 * 24 * 3600);
   res.cookies.set('refresh_token', rotateRefresh, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     sameSite: 'lax',
-    maxAge: 90 * 24 * 3600,
+    maxAge: 3650 * 24 * 3600,
   });
 
   return res;
