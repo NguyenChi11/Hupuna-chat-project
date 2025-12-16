@@ -210,7 +210,7 @@ export default function FolderSidebar({
   onlyGlobal?: boolean;
 }) {
   return (
-    <div className="w-full space-y-4 overflow-auto h-[32rem]">
+    <div className="w-full space-y-4 ">
       {!onlyGlobal && (
         <div className="overflow-hidden ">
           <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
@@ -231,7 +231,7 @@ export default function FolderSidebar({
                 Tạo
               </button>
             </div>
-            <div className="space-y-1 h-[12rem] overflow-y-auto">
+            <div className="space-y-1  h-[10rem] overflow-y-auto">
               {folders.map((n) => (
                 <NodeRow
                   key={n.id}
@@ -274,7 +274,7 @@ export default function FolderSidebar({
               Tạo
             </button>
           </div>
-          <div className="space-y-1 h-[12rem] overflow-y-auto">
+          <div className="space-y-1 md:h-[15rem]  h-[10rem] overflow-y-auto">
             {foldersGlobal.map((n) => (
               <NodeRow
                 key={n.id}
@@ -316,7 +316,7 @@ export default function FolderSidebar({
               Tạo
             </button>
           </div>
-          <div className="space-y-1 h-[12rem] overflow-y-auto">
+          <div className="space-y-1 md:h-[15rem] h-[10rem] overflow-y-auto">
             {foldersShared.map((n) => (
               <NodeRow
                 key={n.id}
