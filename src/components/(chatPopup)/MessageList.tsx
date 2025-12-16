@@ -551,7 +551,7 @@ export default function MessageList({
                   onReplyMessage?.(msg);
                 }}
                 className={`
-                  w-full  sm:max-w-[22rem]
+                  w-full  sm:max-w-[15rem]
                   flex gap-2 group relative
                   ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
                   ${isGrouped ? 'mt-1' : 'mt-4'}
@@ -603,7 +603,7 @@ export default function MessageList({
                   {/* MAIN BUBBLE */}
                   <div
                     className={`  
-                      px-4 py-2 rounded-lg shadow-md max-w-[50vw] sm:max-w-[20rem] break-words
+                      px-4 py-2 rounded-lg shadow-md max-w-[50vw] sm:max-w-[17rem] break-words 
                       ${isMe ? 'bg-[#E5F1FF] text-white' : 'bg-white text-gray-800 border border-gray-200'}
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
                       ${!isGrouped && !isMe ? 'rounded-tl-md' : ''}
