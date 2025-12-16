@@ -981,7 +981,7 @@ export default function MessageList({
                     {/* FILE – FIX SIZE MOBILE */}
                     {msg.type === 'file' && msg.fileUrl && !isVideo && !isRecalled && (
                       <a
-                        href={getProxyUrl(msg.fileUrl)}
+                        href={getProxyUrl(msg.fileUrl, true)}
                         download={msg.fileName || 'download'}
                         target="_blank"
                         rel="noreferrer"

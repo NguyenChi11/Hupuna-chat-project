@@ -130,12 +130,12 @@ export default function SidebarMenu() {
   return (
     <>
       {/* Sidebar Gradient */}
-      <div className="h-screen w-20 bg-gradient-to-b from-sky-500 via-blue-500 to-blue-500 flex flex-col items-center py-6 text-white shadow-2xl">
+      <div className="h-screen w-12 bg-gradient-to-b from-sky-500 via-blue-500 to-blue-500 flex flex-col items-center py-6 text-white shadow-2xl">
         {/* Avatar Dropdown */}
         <div ref={avatarRef} className="mb-10 relative">
           <button
             onClick={() => toggleMenu('avatar')}
-            className="group cursor-pointer relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-white/30 hover:ring-yellow-400 transition-all duration-300 shadow-2xl"
+            className="group cursor-pointer relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/30 hover:ring-yellow-400 transition-all duration-300 shadow-2xl"
           >
             {userInfo?.avatar ? (
               <Image
@@ -155,7 +155,7 @@ export default function SidebarMenu() {
 
           {/* Avatar Menu */}
           {openMenu.avatar && userInfo && (
-            <div className="absolute left-20 top-0 w-80 bg-white text-gray-800 rounded-3xl shadow-2xl  z-50 animate-in fade-in slide-in-from-left-4 duration-300">
+            <div className="absolute left-13 top-0 w-70 bg-white text-gray-800 rounded-3xl shadow-2xl  z-50 animate-in fade-in slide-in-from-left-4 duration-300">
               {/* Header */}
               <div
                 className="px-4 py-3 rounded-t-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white cursor-pointer hover:from-indigo-700 hover:to-purple-700 transition-all"
@@ -299,7 +299,7 @@ export default function SidebarMenu() {
         <nav className="flex-1 flex flex-col items-center gap-4 mt-4">
           <button
             onClick={() => navigate('/home', 'home')}
-            className={`p-4 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'home' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'home' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <HiHome className="w-5 h-5" />
           </button>

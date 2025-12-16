@@ -126,6 +126,8 @@ function nodeToWebStream(nodeStream: NodeJS.ReadableStream, abortSignal?: AbortS
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get('url');
+  const dlParam = req.nextUrl.searchParams.get('download');
+  const forceDownload = dlParam === '1' || String(dlParam).toLowerCase() === 'true';
 
   if (!url) {
     return NextResponse.json({ error: 'Missing URL' }, { status: 400 });
@@ -209,7 +211,7 @@ export async function GET(req: NextRequest) {
           'Accept-Ranges': 'bytes',
           'Content-Length': chunksize.toString(),
           'Content-Type': contentType,
-          'Content-Disposition': `inline; filename="${encodeURIComponent(fileName)}"`,
+          'Content-Disposition': `${forceDownload ? 'attachment' : 'inline'}; filename="${encodeURIComponent(fileName)}"`,
         },
       });
     } else {
@@ -242,7 +244,7 @@ export async function GET(req: NextRequest) {
         headers: {
           'Content-Length': fileSize.toString(),
           'Content-Type': contentType,
-          'Content-Disposition': `inline; filename="${encodeURIComponent(fileName)}"`,
+          'Content-Disposition': `${forceDownload ? 'attachment' : 'inline'}; filename="${encodeURIComponent(fileName)}"`,
           // Cache ảnh lâu dài, nhưng video thì cẩn thận cache
           'Cache-Control': contentType.startsWith('image') ? 'public, max-age=31536000, immutable' : 'no-cache',
         },

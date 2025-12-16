@@ -73,7 +73,7 @@ export default function PinnedMessagesSection({
             if (msg.type === 'file')
               return (
                 <a
-                  href={getProxyUrl(msg.fileUrl)}
+                  href={getProxyUrl(msg.fileUrl, true)}
                   download={msg.fileName || 'download'}
                   target="_blank"
                   rel="noreferrer"

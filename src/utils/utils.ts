@@ -1,9 +1,10 @@
-export const getProxyUrl = (url?: string) => {
+export const getProxyUrl = (url?: string, download?: boolean) => {
   if (!url) return '';
 
   // Nếu là link Mega -> Chuyển qua API Stream của mình
   if (url.includes('mega.nz')) {
-    return `/api/mega-stream?url=${encodeURIComponent(url)}`;
+    const base = `/api/mega-stream?url=${encodeURIComponent(url)}`;
+    return download ? `${base}&download=1` : base;
   }
 
   // Các link khác (S3, Firebase, External...) -> Giữ nguyên

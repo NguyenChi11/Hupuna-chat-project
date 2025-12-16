@@ -97,7 +97,7 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
           <div className="flex items-center gap-3 ml-4">
             {/* Tải xuống */}
             <a
-              href={getProxyUrl(current.url)}
+              href={getProxyUrl(current.url, true)}
               download
               target="_blank"
               rel="noopener noreferrer"
