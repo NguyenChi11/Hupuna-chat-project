@@ -79,7 +79,7 @@ export default function MediaSection({
                     {group.items.map((item) => (
                       <div
                         key={item.id}
-                        className={`relative aspect-square rounded-xl cursor-pointer group bg-gray-100 ${
+                        className={`relative aspect-square rounded-xl cursor-pointer ${item.type === 'video' ? " w-[5rem] h-[5rem] flex gap-2" : "" }  group bg-gray-100 ${
                           activeMenuId === item.id ? 'z-50' : 'z-0'
                         }`}
                         onClick={() => {
@@ -92,7 +92,7 @@ export default function MediaSection({
                         ) : (
                           <Image width={200} height={200} src={getProxyUrl(item.url)} alt="Media" className="w-full h-full object-cover" />
                         )}
-                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <div className="absolute inset-0  hover:bg-black/30 transition-opacity duration-300 flex items-center justify-center">
                           {item.type === 'video' && <HiPlay className="w-10 h-10 text-white drop-shadow-lg" />}
                         </div>
                         <button
@@ -111,6 +111,12 @@ export default function MediaSection({
                           activeMenuId={activeMenuId}
                           onClose={closeMenu}
                           onJumpToMessage={onJumpToMessage}
+                          onShareById={(mid) => {
+                            try {
+                              const evt = new CustomEvent('shareMessage', { detail: { messageId: mid } });
+                              window.dispatchEvent(evt);
+                            } catch {}
+                          }}
                         />
                       </div>
                     ))}

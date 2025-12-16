@@ -1820,6 +1820,34 @@ export default function ChatWindow({
     },
     [currentUser, groups, getSenderName],
   );
+  useEffect(() => {
+    const handler = async (e: Event) => {
+      try {
+        const d = (e as CustomEvent).detail || {};
+        const mid = String(d.messageId || '');
+        if (!mid) return;
+        const local = messages.find((mm) => String(mm._id) === mid);
+        if (local) {
+          handleShareMessage(local);
+          return;
+        }
+        try {
+          const r = await fetch('/api/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getById', _id: mid }),
+          });
+          const j = await r.json();
+          const row = (j && (j.row?.row || j.row)) as Message | undefined;
+          if (row && String(row.roomId) === roomId) {
+            handleShareMessage(row);
+          }
+        } catch {}
+      } catch {}
+    };
+    window.addEventListener('shareMessage', handler as EventListener);
+    return () => window.removeEventListener('shareMessage', handler as EventListener);
+  }, [messages, handleShareMessage, roomId]);
 
   return (
     <ChatProvider value={chatContextValue}>

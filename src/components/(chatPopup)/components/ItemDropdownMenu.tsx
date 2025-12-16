@@ -8,6 +8,7 @@ interface ItemDropdownMenuProps {
   onClose: () => void;
   onJumpToMessage: (messageId: string) => void;
   onRemoveFromFolder?: (messageId: string) => void;
+  onShareById?: (messageId: string) => void;
 }
 
 export default function ItemDropdownMenu({
@@ -18,6 +19,7 @@ export default function ItemDropdownMenu({
   onClose,
   onJumpToMessage,
   onRemoveFromFolder,
+  onShareById,
 }: ItemDropdownMenuProps) {
   if (activeMenuId !== itemId) return null;
 
@@ -57,6 +59,27 @@ export default function ItemDropdownMenu({
           </svg>
           Xem tin nhắn
         </button>
+
+        {/* Option: Chia sẻ tin nhắn */}
+        {typeof onShareById === 'function' && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              try {
+                onShareById(itemId);
+              } finally {
+                onClose();
+              }
+            }}
+            className="cursor-pointer w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-500">
+              <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path fillRule="evenodd" d="M2 13a6 6 0 1112 0v3a1 1 0 01-1 1H3a1 1 0 01-1-1v-3zm6-4a4 4 0 00-4 4v2h8v-2a4 4 0 00-4-4z" clipRule="evenodd" />
+            </svg>
+            Chia sẻ tin nhắn
+          </button>
+        )}
 
         {/* Option 2: Tải xuống */}
         {itemUrl && itemUrl.trim() && (

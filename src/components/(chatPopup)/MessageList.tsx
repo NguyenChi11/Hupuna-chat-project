@@ -631,8 +631,7 @@ export default function MessageList({
                               absolute top-1/2 -translate-y-1/2 z-10
                               cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50
                               ${isMe ? 'right-full mr-2' : 'left-full ml-2'}
-                              ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
-                              sm:pointer-events-auto sm:opacity-0 sm:group-hover:opacity-100
+                              opacity-100 pointer-events-auto
                             `}
                           aria-label="Mở menu"
                           title="Thêm"

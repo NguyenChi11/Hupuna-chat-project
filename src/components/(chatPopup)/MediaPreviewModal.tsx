@@ -128,7 +128,7 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
                   alt="Xem ảnh lớn"
                   width={1600}
                   height={1200}
-                  className="max-h-[85vh] w-auto max-w-full object-contain rounded-2xl shadow-2xl select-none pointer-events-none"
+                  className="max-h-[65vh] w-auto max-w-full object-contain rounded-2xl shadow-2xl select-none pointer-events-none"
                   priority
                 />
               </div>
@@ -140,7 +140,7 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
                   autoPlay
                   loop
                   muted={false}
-                  className="max-h-[85vh] w-auto max-w-full rounded-2xl select-none"
+                  className="max-h-[65vh] w-auto max-w-full rounded-2xl select-none"
                   playsInline
                 />
               </div>

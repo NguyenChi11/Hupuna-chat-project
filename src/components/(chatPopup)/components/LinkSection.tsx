@@ -37,7 +37,7 @@ export default function LinkSection({
   const showToggle = typeof totalCount === 'number' && totalCount > 6;
   const toggleHandler = onToggleExpanded || (() => {});
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 ">
       {/* Header: Link + mũi tên */}
       <button
         onClick={onToggle}
@@ -116,6 +116,12 @@ export default function LinkSection({
                       activeMenuId={activeMenuId}
                       onClose={closeMenu}
                       onJumpToMessage={onJumpToMessage}
+                      onShareById={(mid) => {
+                        try {
+                          const evt = new CustomEvent('shareMessage', { detail: { messageId: mid } });
+                          window.dispatchEvent(evt);
+                        } catch {}
+                      }}
                     />
                   </div>
                 );

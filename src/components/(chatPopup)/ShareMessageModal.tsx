@@ -111,15 +111,44 @@ export default function ShareMessageModal({
     }
   };
 
-  const getMessagePreview = () => {
+  const renderMessagePreview = () => {
     if (message.type === 'text') {
-      return message.content?.slice(0, 50) + (message.content && message.content.length > 50 ? '...' : '');
+      const text =
+        (message.content || '').slice(0, 120) +
+        ((message.content || '').length > 120 ? '...' : '');
+      return <p className="text-sm text-gray-700 leading-relaxed">{text}</p>;
     }
-
-    if (message.type === 'image') return '🖼️ Hình ảnh';
-    if (message.type === 'video') return '🎥 Video';
-
-    if (message.type === 'file')
+ 
+    const mediaUrl = getProxyUrl(message.fileUrl || message.previewUrl);
+ 
+    if (message.type === 'image' && mediaUrl) {
+      return (
+        <div className="w-full max-w-[5rem]">
+          <Image
+            src={mediaUrl}
+            alt="Ảnh chia sẻ"
+            width={300}
+            height={200}
+            className="w-full max-h-20 object-contain rounded-xl border border-gray-100"
+          />
+        </div>
+      );
+    }
+ 
+    if (message.type === 'video' && mediaUrl) {
+      return (
+        <div className="w-full max-w-[7rem]">
+          <video
+            src={mediaUrl}
+            controls
+            preload="metadata"
+            className="w-full max-h-20 rounded-xl border border-gray-100 bg-black"
+          />
+        </div>
+      );
+    }
+ 
+    if (message.type === 'file') {
       return (
         <a
           href={getProxyUrl(message.fileUrl)}
@@ -130,16 +159,21 @@ export default function ShareMessageModal({
           <div className="p-2 bg-blue-600 rounded-xl">
             <HiOutlineDocumentText className="w-6 h-6 text-white" />
           </div>
-
+ 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800 truncate">{message.fileName || 'Tệp đính kèm'}</p>
+            <p className="text-sm font-semibold text-gray-800 truncate">
+              {message.fileName || 'Tệp đính kèm'}
+            </p>
             <p className="text-xs text-gray-500 truncate">Nhấn để tải xuống</p>
           </div>
         </a>
       );
-
-    if (message.type === 'sticker') return '😊 Sticker';
-    return 'Tin nhắn';
+    }
+ 
+    if (message.type === 'sticker') {
+      return <p className="text-sm text-gray-700">😊 Sticker</p>;
+    }
+    return <p className="text-sm text-gray-700">Tin nhắn</p>;
   };
 
   if (!isOpen) return null;
@@ -166,7 +200,7 @@ export default function ShareMessageModal({
           </div>
         </div>
 
-        <div className="p-3  bg-white">
+        <div className="py-1.5 px-3 bg-white">
           <input
             type="text"
             placeholder="Nhập tin nhắn đính kèm (tùy chọn)"
@@ -177,15 +211,13 @@ export default function ShareMessageModal({
         </div>
 
         {/* Message Preview - Enhanced */}
-        <div className="p-3 bg-gradient-to-br from-gray-50 to-blue-50/30 ">
+        <div className="py-1.5 px-3 bg-gradient-to-br from-gray-50 to-blue-50/30 ">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nội dung chia sẻ</p>
-          <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
-            <p className="text-sm text-gray-700 leading-relaxed">{getMessagePreview()}</p>
-          </div>
+          <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm">{renderMessagePreview()}</div>
         </div>
 
         {/* Search - Modern design */}
-        <div className="p-3  bg-white">
+        <div className="px-3 py-1.5  bg-white">
           <div className="relative">
             <IoSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
