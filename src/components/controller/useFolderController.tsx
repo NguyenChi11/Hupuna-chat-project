@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FolderItem, FolderNode, Scope } from '@/types/folderTypes';
 import { findNodeById, findPath } from '@/utils/folderHelpers';
 import { folderRoomApi } from '@/services/folderRoom.service';
-import { folderGlobalApi } from '@/services/folderGlobal.service';
+import { folderUserApi } from '@/services/folderUser.service';
 import { useUploadTracking } from '@/hooks/useUploadTracking';
 import { useFolderSocket } from '@/hooks/useFolderSocket';
 import type { Message } from '@/types/Message';
@@ -25,17 +25,34 @@ export function useFolderController({
   onAttachFromFolder?: (att: { url: string; type: 'image' | 'video' | 'file'; fileName?: string }) => void;
 }) {
   const GLOBAL_ID = '__global__';
+  const ROOMS_SHARED_ID = useMemo(() => `__rooms_shared__:${String(currentUserId || '')}`, [currentUserId]);
+  const folderPublicApi = async (payload: Record<string, unknown>) => {
+    try {
+      const res = await fetch('/api/folders-global', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  };
 
   const storageKey = useMemo(() => `chatFolders:${roomId}`, [roomId]);
   const itemsKey = useMemo(() => `chatFolderItems:${roomId}`, [roomId]);
 
   const globalStorageKey = useMemo(() => `chatFolders:${GLOBAL_ID}:${String(currentUserId || '')}`, [currentUserId]);
   const globalItemsKey = useMemo(() => `chatFolderItems:${GLOBAL_ID}:${String(currentUserId || '')}`, [currentUserId]);
+  const sharedStorageKey = useMemo(() => `chatFolders:${ROOMS_SHARED_ID}`, [ROOMS_SHARED_ID]);
+  const sharedItemsKey = useMemo(() => `chatFolderItems:${ROOMS_SHARED_ID}`, [ROOMS_SHARED_ID]);
 
   const [folders, setFolders] = useState<FolderNode[]>([]);
   const [itemsMap, setItemsMap] = useState<Record<string, FolderItem[]>>({});
   const [foldersGlobal, setFoldersGlobal] = useState<FolderNode[]>([]);
   const [itemsMapGlobal, setItemsMapGlobal] = useState<Record<string, FolderItem[]>>({});
+  const [foldersShared, setFoldersShared] = useState<FolderNode[]>([]);
+  const [itemsMapShared, setItemsMapShared] = useState<Record<string, FolderItem[]>>({});
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
@@ -78,26 +95,32 @@ export function useFolderController({
   }, []);
 
   const getItemCountById = (nodeId: string): number => {
-    const map = selectedScope === 'room' ? itemsMap : itemsMapGlobal;
+    const map = selectedScope === 'room' ? itemsMap : selectedScope === 'global' ? itemsMapGlobal : itemsMapShared;
     return map[nodeId]?.length || 0;
   };
 
   // derived: children + breadcrumb + current items
   const selectedChildren = useMemo(() => {
-    const source = selectedScope === 'room' ? folders : foldersGlobal;
+    const source = selectedScope === 'room' ? folders : selectedScope === 'global' ? foldersGlobal : foldersShared;
     const node = findNodeById(source, selectedFolderId);
     return node?.children || [];
-  }, [selectedScope, folders, foldersGlobal, selectedFolderId]);
+  }, [selectedScope, folders, foldersGlobal, foldersShared, selectedFolderId]);
 
   const breadcrumbNodes = useMemo(() => {
-    const source = selectedScope === 'room' ? folders : foldersGlobal;
+    const source = selectedScope === 'room' ? folders : selectedScope === 'global' ? foldersGlobal : foldersShared;
     return findPath(source, selectedFolderId);
-  }, [selectedScope, folders, foldersGlobal, selectedFolderId]);
+  }, [selectedScope, folders, foldersGlobal, foldersShared, selectedFolderId]);
 
   const currentItems = useMemo(() => {
     if (!selectedFolderId) return [];
-    return (selectedScope === 'room' ? itemsMap[selectedFolderId] : itemsMapGlobal[selectedFolderId]) || [];
-  }, [selectedFolderId, selectedScope, itemsMap, itemsMapGlobal]);
+    return (
+      (selectedScope === 'room'
+        ? itemsMap[selectedFolderId]
+        : selectedScope === 'global'
+          ? itemsMapGlobal[selectedFolderId]
+          : itemsMapShared[selectedFolderId]) || []
+    );
+  }, [selectedFolderId, selectedScope, itemsMap, itemsMapGlobal, itemsMapShared]);
 
   const toggleNode = (id: string) => setExpanded((p) => ({ ...p, [id]: !p[id] }));
 
@@ -136,7 +159,20 @@ export function useFolderController({
     } catch {
       setItemsMapGlobal({});
     }
-  }, [storageKey, itemsKey, globalStorageKey, globalItemsKey]);
+    try {
+      const rawS = localStorage.getItem(sharedStorageKey);
+      setFoldersShared(rawS ? (JSON.parse(rawS) as FolderNode[]) : []);
+    } catch {
+      setFoldersShared([]);
+    }
+    try {
+      const rawSI = localStorage.getItem(sharedItemsKey);
+      const parsedS = rawSI ? JSON.parse(rawSI) : {};
+      setItemsMapShared(typeof parsedS === 'object' && parsedS ? parsedS : {});
+    } catch {
+      setItemsMapShared({});
+    }
+  }, [storageKey, itemsKey, globalStorageKey, globalItemsKey, sharedStorageKey, sharedItemsKey]);
 
   // fetch room tree on mount
   useEffect(() => {
@@ -162,7 +198,7 @@ export function useFolderController({
   useEffect(() => {
     const run = async () => {
       if (!currentUserId) return;
-      const json = await folderGlobalApi({ action: 'read', ownerId: String(currentUserId) });
+      const json = await folderUserApi({ action: 'read', ownerId: String(currentUserId || '') });
       if (json?.success) {
         const nextFolders: FolderNode[] = Array.isArray(json.folders) ? json.folders : [];
         const nextItemsMap: Record<string, FolderItem[]> =
@@ -178,15 +214,34 @@ export function useFolderController({
     run();
   }, [currentUserId, globalStorageKey, globalItemsKey]);
 
+  // fetch rooms-shared tree on mount
+  useEffect(() => {
+    const run = async () => {
+      const json = await folderPublicApi({ action: 'read', ownerId: String(currentUserId || '') });
+      if (json?.success) {
+        const nextFolders: FolderNode[] = Array.isArray(json.folders) ? json.folders : [];
+        const nextItemsMap: Record<string, FolderItem[]> =
+          typeof json.itemsMap === 'object' && json.itemsMap ? json.itemsMap : {};
+        setFoldersShared(nextFolders);
+        setItemsMapShared(nextItemsMap);
+        try {
+          localStorage.setItem(sharedStorageKey, JSON.stringify(nextFolders));
+          localStorage.setItem(sharedItemsKey, JSON.stringify(nextItemsMap));
+        } catch {}
+      }
+    };
+    run();
+  }, [currentUserId, ROOMS_SHARED_ID, sharedStorageKey, sharedItemsKey]);
+
   // when global folder selected -> list items
   useEffect(() => {
     const run = async () => {
       if (selectedScope !== 'global') return;
       if (!currentUserId) return;
       if (!selectedFolderId) return;
-      const json = await folderGlobalApi({
+      const json = await folderUserApi({
         action: 'listItems',
-        ownerId: String(currentUserId),
+        ownerId: String(currentUserId || ''),
         folderId: selectedFolderId,
       });
       if (json?.success) {
@@ -202,6 +257,30 @@ export function useFolderController({
     };
     run();
   }, [selectedScope, selectedFolderId, currentUserId, globalItemsKey]);
+
+  // when rooms-shared folder selected -> list items
+  useEffect(() => {
+    const run = async () => {
+      if (selectedScope !== 'rooms_shared') return;
+      if (!selectedFolderId) return;
+      const json = await folderPublicApi({
+        action: 'listItems',
+        ownerId: String(currentUserId || ''),
+        folderId: selectedFolderId,
+      });
+      if (json?.success) {
+        const arr: FolderItem[] = Array.isArray(json.items) ? json.items : [];
+        setItemsMapShared((p) => ({ ...p, [selectedFolderId]: arr }));
+        try {
+          const raw = localStorage.getItem(sharedItemsKey);
+          const map = raw ? JSON.parse(raw) : {};
+          map[selectedFolderId] = arr;
+          localStorage.setItem(sharedItemsKey, JSON.stringify(map));
+        } catch {}
+      }
+    };
+    run();
+  }, [currentUserId, ROOMS_SHARED_ID, selectedScope, selectedFolderId, sharedItemsKey]);
 
   // socket (room only)
   const socketRef = useFolderSocket({
@@ -266,9 +345,9 @@ export function useFolderController({
     const targetParent = parentId || createParentId || 'root';
 
     if (selectedScope === 'global') {
-      const json = await folderGlobalApi({
+      const json = await folderUserApi({
         action: 'createFolder',
-        ownerId: String(currentUserId),
+        ownerId: String(currentUserId || ''),
         parentId: targetParent,
         name: trimmed,
       });
@@ -279,6 +358,24 @@ export function useFolderController({
         setFoldersGlobal(next);
         if (json.itemsMap) setItemsMapGlobal(nextItems);
         persistGlobal(next, nextItems);
+      }
+    } else if (selectedScope === 'rooms_shared') {
+      const json = await folderPublicApi({
+        action: 'createFolder',
+        ownerId: String(currentUserId || ''),
+        parentId: targetParent,
+        name: trimmed,
+      });
+      if (json?.success) {
+        const next: FolderNode[] = Array.isArray(json.folders) ? json.folders : [];
+        const nextItems: Record<string, FolderItem[]> =
+          typeof json.itemsMap === 'object' && json.itemsMap ? json.itemsMap : {};
+        setFoldersShared(next);
+        if (json.itemsMap) setItemsMapShared(nextItems);
+        try {
+          localStorage.setItem(sharedStorageKey, JSON.stringify(next));
+          localStorage.setItem(sharedItemsKey, JSON.stringify(nextItems));
+        } catch {}
       }
     } else {
       const json = await folderRoomApi({
@@ -306,9 +403,9 @@ export function useFolderController({
     if (!name || !renameTarget) return;
 
     if (renameTarget.scope === 'global') {
-      const json = await folderGlobalApi({
+      const json = await folderUserApi({
         action: 'renameFolder',
-        ownerId: String(currentUserId),
+        ownerId: String(currentUserId || ''),
         folderId: renameTarget.id,
         name,
       });
@@ -319,6 +416,24 @@ export function useFolderController({
         setFoldersGlobal(next);
         if (json.itemsMap) setItemsMapGlobal(nextItems);
         persistGlobal(next, nextItems);
+      }
+    } else if (renameTarget.scope === 'rooms_shared') {
+      const json = await folderPublicApi({
+        action: 'renameFolder',
+        ownerId: String(currentUserId || ''),
+        folderId: renameTarget.id,
+        name,
+      });
+      if (json?.success) {
+        const next: FolderNode[] = Array.isArray(json.folders) ? json.folders : [];
+        const nextItems: Record<string, FolderItem[]> =
+          typeof json.itemsMap === 'object' && json.itemsMap ? json.itemsMap : {};
+        setFoldersShared(next);
+        if (json.itemsMap) setItemsMapShared(nextItems);
+        try {
+          localStorage.setItem(sharedStorageKey, JSON.stringify(next));
+          localStorage.setItem(sharedItemsKey, JSON.stringify(nextItems));
+        } catch {}
       }
     } else {
       const json = await folderRoomApi({ action: 'renameFolder', roomId, folderId: renameTarget.id, name });
@@ -343,9 +458,9 @@ export function useFolderController({
     if (!deleteTarget) return;
 
     if (deleteTarget.scope === 'global') {
-      const json = await folderGlobalApi({
+      const json = await folderUserApi({
         action: 'deleteFolder',
-        ownerId: String(currentUserId),
+        ownerId: String(currentUserId || ''),
         folderId: deleteTarget.id,
       });
       if (json?.success) {
@@ -355,6 +470,23 @@ export function useFolderController({
         setFoldersGlobal(next);
         setItemsMapGlobal(nextItems);
         persistGlobal(next, nextItems);
+      }
+    } else if (deleteTarget.scope === 'rooms_shared') {
+      const json = await folderPublicApi({
+        action: 'deleteFolder',
+        ownerId: String(currentUserId || ''),
+        folderId: deleteTarget.id,
+      });
+      if (json?.success) {
+        const next: FolderNode[] = Array.isArray(json.folders) ? json.folders : [];
+        const nextItems: Record<string, FolderItem[]> =
+          typeof json.itemsMap === 'object' && json.itemsMap ? json.itemsMap : {};
+        setFoldersShared(next);
+        setItemsMapShared(nextItems);
+        try {
+          localStorage.setItem(sharedStorageKey, JSON.stringify(next));
+          localStorage.setItem(sharedItemsKey, JSON.stringify(nextItems));
+        } catch {}
       }
     } else {
       const json = await folderRoomApi({ action: 'deleteFolder', roomId, folderId: deleteTarget.id });
@@ -379,9 +511,9 @@ export function useFolderController({
     if (!folderId || !messageId) return;
 
     if (selectedScope === 'global') {
-      const json = await folderGlobalApi({
+      const json = await folderUserApi({
         action: 'deleteItem',
-        ownerId: String(currentUserId),
+        ownerId: String(currentUserId || ''),
         folderId,
         itemId: messageId,
       });
@@ -393,6 +525,23 @@ export function useFolderController({
           const map = raw ? JSON.parse(raw) : {};
           map[folderId] = next;
           localStorage.setItem(globalItemsKey, JSON.stringify(map));
+        } catch {}
+      }
+    } else if (selectedScope === 'rooms_shared') {
+      const json = await folderPublicApi({
+        action: 'deleteItem',
+        ownerId: String(currentUserId || ''),
+        folderId,
+        itemId: messageId,
+      });
+      if (json?.success) {
+        const next: FolderItem[] = Array.isArray(json.items) ? json.items : [];
+        setItemsMapShared((p) => ({ ...p, [folderId]: next }));
+        try {
+          const raw = localStorage.getItem(sharedItemsKey);
+          const map = raw ? JSON.parse(raw) : {};
+          map[folderId] = next;
+          localStorage.setItem(sharedItemsKey, JSON.stringify(map));
         } catch {}
       }
     } else {
@@ -418,7 +567,8 @@ export function useFolderController({
     const name = newName.trim();
     if (!name) return;
 
-    const map = selectedScope === 'global' ? itemsMapGlobal : itemsMap;
+    const map =
+      selectedScope === 'global' ? itemsMapGlobal : selectedScope === 'rooms_shared' ? itemsMapShared : itemsMap;
     const arr = map[folderId] || [];
     const it = arr.find((x) => String(x.id) === String(itemId));
     const msg = messages.find((m: Message) => String(m._id) === String(itemId));
@@ -432,9 +582,9 @@ export function useFolderController({
       t === 'image' ? 'updateImage' : t === 'video' ? 'updateVideo' : t === 'file' ? 'updateFile' : 'updateText';
 
     if (selectedScope === 'global') {
-      const json = await folderGlobalApi({
+      const json = await folderUserApi({
         action,
-        ownerId: String(currentUserId),
+        ownerId: String(currentUserId || ''),
         folderId,
         itemId,
         name,
@@ -450,6 +600,27 @@ export function useFolderController({
           const m = raw ? JSON.parse(raw) : {};
           m[folderId] = next;
           localStorage.setItem(globalItemsKey, JSON.stringify(m));
+        } catch {}
+      }
+    } else if (selectedScope === 'rooms_shared') {
+      const json = await folderPublicApi({
+        action,
+        ownerId: String(currentUserId || ''),
+        folderId,
+        itemId,
+        name,
+        url: t === 'text' ? undefined : url,
+        fileName,
+        content: t === 'text' ? c : undefined,
+      });
+      if (json?.success) {
+        const next: FolderItem[] = Array.isArray(json.items) ? json.items : [];
+        setItemsMapShared((p) => ({ ...p, [folderId]: next }));
+        try {
+          const raw = localStorage.getItem(sharedItemsKey);
+          const m = raw ? JSON.parse(raw) : {};
+          m[folderId] = next;
+          localStorage.setItem(sharedItemsKey, JSON.stringify(m));
         } catch {}
       }
     } else {
@@ -484,9 +655,9 @@ export function useFolderController({
     if (!content || !selectedFolderId) return;
 
     if (selectedScope === 'global') {
-      const json = await folderGlobalApi({
+      const json = await folderUserApi({
         action: 'updateText',
-        ownerId: String(currentUserId),
+        ownerId: String(currentUserId || ''),
         folderId: selectedFolderId,
         name: (nameOverride ?? nameInput.trim()) || undefined,
         content,
@@ -499,6 +670,24 @@ export function useFolderController({
           const map = raw ? JSON.parse(raw) : {};
           map[selectedFolderId] = arr;
           localStorage.setItem(globalItemsKey, JSON.stringify(map));
+        } catch {}
+      }
+    } else if (selectedScope === 'rooms_shared') {
+      const json = await folderPublicApi({
+        action: 'updateText',
+        ownerId: String(currentUserId || ''),
+        folderId: selectedFolderId,
+        name: (nameOverride ?? nameInput.trim()) || undefined,
+        content,
+      });
+      if (json?.success) {
+        const arr: FolderItem[] = Array.isArray(json.items) ? json.items : [];
+        setItemsMapShared((p) => ({ ...p, [selectedFolderId]: arr }));
+        try {
+          const raw = localStorage.getItem(sharedItemsKey);
+          const map = raw ? JSON.parse(raw) : {};
+          map[selectedFolderId] = arr;
+          localStorage.setItem(sharedItemsKey, JSON.stringify(map));
         } catch {}
       }
     } else {
@@ -534,9 +723,9 @@ export function useFolderController({
 
     // same as text update in your backend (kept)
     if (selectedScope === 'global') {
-      const json = await folderGlobalApi({
+      const json = await folderUserApi({
         action: 'updateText',
-        ownerId: String(currentUserId),
+        ownerId: String(currentUserId || ''),
         folderId: selectedFolderId,
         name: (nameOverride ?? nameInput.trim()) || undefined,
         content: url,
@@ -549,6 +738,24 @@ export function useFolderController({
           const map = raw ? JSON.parse(raw) : {};
           map[selectedFolderId] = arr;
           localStorage.setItem(globalItemsKey, JSON.stringify(map));
+        } catch {}
+      }
+    } else if (selectedScope === 'rooms_shared') {
+      const json = await folderPublicApi({
+        action: 'updateText',
+        ownerId: String(currentUserId || ''),
+        folderId: selectedFolderId,
+        name: (nameOverride ?? nameInput.trim()) || undefined,
+        content: url,
+      });
+      if (json?.success) {
+        const arr: FolderItem[] = Array.isArray(json.items) ? json.items : [];
+        setItemsMapShared((p) => ({ ...p, [selectedFolderId]: arr }));
+        try {
+          const raw = localStorage.getItem(sharedItemsKey);
+          const map = raw ? JSON.parse(raw) : {};
+          map[selectedFolderId] = arr;
+          localStorage.setItem(sharedItemsKey, JSON.stringify(map));
         } catch {}
       }
     } else {
@@ -602,9 +809,9 @@ export function useFolderController({
     const action = isVideo ? 'updateVideo' : kind === 'media' ? 'updateImage' : 'updateFile';
 
     if (selectedScope === 'global') {
-      const json = await folderGlobalApi({
+      const json = await folderUserApi({
         action,
-        ownerId: String(currentUserId),
+        ownerId: String(currentUserId || ''),
         folderId: selectedFolderId,
         name: (nameOverride ?? nameInput.trim()) || undefined,
         url: payload.fileUrl,
@@ -618,6 +825,25 @@ export function useFolderController({
           const map = raw ? JSON.parse(raw) : {};
           map[selectedFolderId] = arr;
           localStorage.setItem(globalItemsKey, JSON.stringify(map));
+        } catch {}
+      }
+    } else if (selectedScope === 'rooms_shared') {
+      const json = await folderPublicApi({
+        action,
+        ownerId: String(currentUserId || ''),
+        folderId: selectedFolderId,
+        name: (nameOverride ?? nameInput.trim()) || undefined,
+        url: payload.fileUrl,
+        fileName: payload.fileName,
+      });
+      if (json?.success) {
+        const arr: FolderItem[] = Array.isArray(json.items) ? json.items : [];
+        setItemsMapShared((p) => ({ ...p, [selectedFolderId]: arr }));
+        try {
+          const raw = localStorage.getItem(sharedItemsKey);
+          const map = raw ? JSON.parse(raw) : {};
+          map[selectedFolderId] = arr;
+          localStorage.setItem(sharedItemsKey, JSON.stringify(map));
         } catch {}
       }
     } else {
@@ -716,6 +942,10 @@ export function useFolderController({
     setFoldersGlobal,
     itemsMapGlobal,
     setItemsMapGlobal,
+    foldersShared,
+    setFoldersShared,
+    itemsMapShared,
+    setItemsMapShared,
     expanded,
     setExpanded,
     selectedFolderId,

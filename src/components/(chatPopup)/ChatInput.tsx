@@ -464,8 +464,8 @@ export default function ChatInput({
       {showFolderDashboard &&
         createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-            <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden h-[85vh]">
-              <div className="flex items-center justify-between px-4 py-3 bg-[#f3f6fb] border-b">
+            <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200  ">
+              <div className="flex items-center justify-between px-4 py-3 border-b">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center">
                     <HiFolder className="w-4 h-4" />
@@ -510,7 +510,7 @@ export default function ChatInput({
       {showChatFlashDashboard && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
           <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden h-[90vh]">
-            <div className="flex items-center justify-between px-4 py-3 bg-[#f3f6fb] border-b">
+            <div className="flex items-center justify-between px-4 py-3  border-b">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center">
                   <HiLightningBolt className="w-4 h-4" />
