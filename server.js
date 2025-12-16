@@ -121,9 +121,7 @@ io.on('connection', (socket) => {
     const nextMembers = members;
     const merged = [...prevMembers, ...nextMembers];
     const recipients = new Set(
-      merged
-        .map((m) => (typeof m === 'object' && m?._id ? String(m._id) : String(m)))
-        .filter((id) => !!id),
+      merged.map((m) => (typeof m === 'object' && m?._id ? String(m._id) : String(m))).filter((id) => !!id),
     );
 
     recipients.forEach((id) => {
@@ -152,9 +150,7 @@ io.on('connection', (socket) => {
     };
 
     const recipients = new Set(
-      members
-        .map((m) => (typeof m === 'object' && m?._id ? String(m._id) : String(m)))
-        .filter(Boolean),
+      members.map((m) => (typeof m === 'object' && m?._id ? String(m._id) : String(m))).filter(Boolean),
     );
 
     // Gửi cho tất cả thành viên (bao gồm người tạo)
@@ -166,9 +162,6 @@ io.on('connection', (socket) => {
     }
   });
 
-
-  
-
   socket.on('pin_message', (data) => {
     const roomId = String(data.roomId);
     io.in(roomId).emit('message_pinned', {
@@ -178,40 +171,39 @@ io.on('connection', (socket) => {
     });
   });
   socket.on('toggle_reaction', (data) => {
-  
-  const roomId = String(data.roomId);
-  
-  // ✅ Broadcast reaction update tới tất cả clients trong room
-  const payload = {
-    _id: data._id,
-    roomId: data.roomId,
-    reactions: data.reactions, // ✅ QUAN TRỌNG: Phải có field này
-    editedAt: data.editedAt || Date.now(),
-  };
-  
-  // Emit tới tất cả clients trong room (bao gồm cả sender)
-  io.in(roomId).emit('reaction_updated', payload);
-  
-  // ✅ Optional: Update sidebar nếu cần
-  if (data.isGroup && data.members) {
-    data.members.forEach((memberId) => {
-      const idRaw = typeof memberId === 'object' ? memberId._id : memberId;
-      io.to(String(idRaw)).emit('update_sidebar', {
+    const roomId = String(data.roomId);
+
+    // ✅ Broadcast reaction update tới tất cả clients trong room
+    const payload = {
+      _id: data._id,
+      roomId: data.roomId,
+      reactions: data.reactions, // ✅ QUAN TRỌNG: Phải có field này
+      editedAt: data.editedAt || Date.now(),
+    };
+
+    // Emit tới tất cả clients trong room (bao gồm cả sender)
+    io.in(roomId).emit('reaction_updated', payload);
+
+    // ✅ Optional: Update sidebar nếu cần
+    if (data.isGroup && data.members) {
+      data.members.forEach((memberId) => {
+        const idRaw = typeof memberId === 'object' ? memberId._id : memberId;
+        io.to(String(idRaw)).emit('update_sidebar', {
+          ...data,
+          lastMessage: `${data.senderName || 'Ai đó'}: [Đã thả cảm xúc]`,
+          type: 'reaction',
+          timestamp: data.editedAt || Date.now(),
+        });
+      });
+    } else if (data.receiver) {
+      io.to(String(data.receiver)).emit('update_sidebar', {
         ...data,
         lastMessage: `${data.senderName || 'Ai đó'}: [Đã thả cảm xúc]`,
         type: 'reaction',
         timestamp: data.editedAt || Date.now(),
       });
-    });
-  } else if (data.receiver) {
-    io.to(String(data.receiver)).emit('update_sidebar', {
-      ...data,
-      lastMessage: `${data.senderName || 'Ai đó'}: [Đã thả cảm xúc]`,
-      type: 'reaction',
-      timestamp: data.editedAt || Date.now(),
-    });
-  }
-});
+    }
+  });
   // 🔥 THÊM SOCKET EVENT CHO EDIT MESSAGE
   socket.on('edit_message', (data) => {
     const payload = {
@@ -234,7 +226,7 @@ io.on('connection', (socket) => {
       timestamp: data.timestamp,
       // other flags
       isPinned: data.isPinned,
-      reactions: data.reactions
+      reactions: data.reactions,
     };
 
     io.in(String(data.roomId)).emit('edit_message', payload);
@@ -395,7 +387,13 @@ io.on('connection', (socket) => {
           }
         }
         roomCalls.set(roomId, rc);
-        io.in(roomId).emit('call_state', { roomId, type: rc.type, participants: Array.from(rc.participants), active: rc.active, startAt: rc.startAt || null });
+        io.in(roomId).emit('call_state', {
+          roomId,
+          type: rc.type,
+          participants: Array.from(rc.participants),
+          active: rc.active,
+          startAt: rc.startAt || null,
+        });
       }
     });
   });
@@ -405,12 +403,32 @@ io.on('connection', (socket) => {
     io.in(roomId).emit('call_offer', data);
     if (data?.target) io.to(String(data.target)).emit('call_offer', data);
     const key = `${roomId}|${String(data.from)}|${String(data.target)}`;
-    callSessions.set(key, { roomId, callerId: String(data.from), calleeId: String(data.target), type: data.type, offerAt: Date.now() });
-    const rc = roomCalls.get(roomId) || { type: data.type || 'voice', participants: new Set(), active: false, startAt: null };
+    const session = {
+      roomId,
+      callerId: String(data.from),
+      calleeId: String(data.target),
+      type: data.type,
+      offerAt: Date.now(),
+    };
+    callSessions.set(key, session);
+    const reversedKey = `${roomId}|${String(data.target)}|${String(data.from)}`;
+    callSessions.set(reversedKey, session);
+    const rc = roomCalls.get(roomId) || {
+      type: data.type || 'voice',
+      participants: new Set(),
+      active: false,
+      startAt: null,
+    };
     rc.type = data.type || rc.type;
     rc.participants.add(String(data.from));
     roomCalls.set(roomId, rc);
-    io.in(roomId).emit('call_state', { roomId, type: rc.type, participants: Array.from(rc.participants), active: rc.active, startAt: rc.startAt || null });
+    io.in(roomId).emit('call_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+    });
   });
 
   socket.on('call_answer', (data) => {
@@ -418,11 +436,21 @@ io.on('connection', (socket) => {
     io.in(roomId).emit('call_answer', data);
     if (data?.target) io.to(String(data.target)).emit('call_answer', data);
     if (data?.from) io.to(String(data.from)).emit('call_answer', data);
-    const key = `${roomId}|${String(data.target)}|${String(data.from)}`;
-    const s = callSessions.get(key);
-    if (s) callSessions.set(key, { ...s, startAt: Date.now() });
-    const rc = roomCalls.get(roomId) || { type: s?.type || 'voice', participants: new Set(), active: false, startAt: null };
-    rc.type = (s?.type || rc.type);
+    const key1 = `${roomId}|${String(data.target)}|${String(data.from)}`;
+    const key2 = `${roomId}|${String(data.from)}|${String(data.target)}`;
+    const s = callSessions.get(key1) || callSessions.get(key2);
+    if (s) {
+      s.startAt = Date.now();
+      callSessions.set(key1, s);
+      callSessions.set(key2, s);
+    }
+    const rc = roomCalls.get(roomId) || {
+      type: s?.type || 'voice',
+      participants: new Set(),
+      active: false,
+      startAt: null,
+    };
+    rc.type = s?.type || rc.type;
     rc.active = true;
     rc.participants.add(String(data.target));
     rc.participants.add(String(data.from));
@@ -430,7 +458,13 @@ io.on('connection', (socket) => {
       rc.startAt = s?.startAt || Date.now();
     }
     roomCalls.set(roomId, rc);
-    io.in(roomId).emit('call_state', { roomId, type: rc.type, participants: Array.from(rc.participants), active: rc.active, startAt: rc.startAt || null });
+    io.in(roomId).emit('call_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+    });
   });
 
   socket.on('call_candidate', (data) => {
@@ -451,24 +485,48 @@ io.on('connection', (socket) => {
       io.in(roomId).emit('call_end', { roomId });
       targets.forEach((t) => io.to(String(t)).emit('call_end', { roomId }));
       for (const t of targets) {
-        const key = `${roomId}|${fromId}|${String(t)}`;
-        const s = callSessions.get(key);
+        const keyA = `${roomId}|${fromId}|${String(t)}`;
+        const keyB = `${roomId}|${String(t)}|${fromId}`;
+        const s = callSessions.get(keyA) || callSessions.get(keyB);
         if (!s) continue;
         const started = typeof s.startAt === 'number' ? s.startAt : null;
         const ended = Date.now();
         if (started) {
           const durSec = Math.max(0, Math.floor((ended - started) / 1000));
-          await createCallNotify({ roomId, sender: fromId, callerId: s.callerId, calleeId: s.calleeId, type: s.type, status: 'answered', durationSec: durSec });
+          await createCallNotify({
+            roomId,
+            sender: fromId,
+            callerId: s.callerId,
+            calleeId: s.calleeId,
+            type: s.type,
+            status: 'answered',
+            durationSec: durSec,
+          });
         } else {
-          await createCallNotify({ roomId, sender: fromId, callerId: s.callerId, calleeId: s.calleeId, type: s.type, status: 'timeout', durationSec: 0 });
+          await createCallNotify({
+            roomId,
+            sender: fromId,
+            callerId: s.callerId,
+            calleeId: s.calleeId,
+            type: s.type,
+            status: 'timeout',
+            durationSec: 0,
+          });
         }
-        callSessions.delete(key);
+        callSessions.delete(keyA);
+        callSessions.delete(keyB);
       }
       rc.active = false;
       rc.participants.clear();
       rc.startAt = null;
       roomCalls.set(roomId, rc);
-      io.in(roomId).emit('call_state', { roomId, type: rc.type, participants: Array.from(rc.participants), active: rc.active, startAt: rc.startAt });
+      io.in(roomId).emit('call_state', {
+        roomId,
+        type: rc.type,
+        participants: Array.from(rc.participants),
+        active: rc.active,
+        startAt: rc.startAt,
+      });
     } else {
       if (rc.participants.size === 0) {
         io.in(roomId).emit('call_end', { roomId });
@@ -476,10 +534,22 @@ io.on('connection', (socket) => {
         rc.active = false;
         rc.startAt = null;
         roomCalls.set(roomId, rc);
-        io.in(roomId).emit('call_state', { roomId, type: rc.type, participants: [], active: false, startAt: rc.startAt });
+        io.in(roomId).emit('call_state', {
+          roomId,
+          type: rc.type,
+          participants: [],
+          active: false,
+          startAt: rc.startAt,
+        });
       } else {
         io.in(roomId).emit('call_leave', { roomId, userId: fromId });
-        io.in(roomId).emit('call_state', { roomId, type: rc.type, participants: Array.from(rc.participants), active: true, startAt: rc.startAt || null });
+        io.in(roomId).emit('call_state', {
+          roomId,
+          type: rc.type,
+          participants: Array.from(rc.participants),
+          active: true,
+          startAt: rc.startAt || null,
+        });
       }
     }
   });
@@ -495,13 +565,15 @@ io.on('connection', (socket) => {
       io.in(roomId).emit('call_leave', { roomId, userId: fromId });
     }
     for (const t of targets) {
-      const key = `${roomId}|${String(t)}|${fromId}`;
-      const s = callSessions.get(key);
+      const keyA = `${roomId}|${String(t)}|${fromId}`;
+      const keyB = `${roomId}|${fromId}|${String(t)}`;
+      const s = callSessions.get(keyA) || callSessions.get(keyB);
       const type = s?.type || 'voice';
       const callerId = s?.callerId || String(t);
       const calleeId = s?.calleeId || fromId;
       await createCallNotify({ roomId, sender: fromId, callerId, calleeId, type, status: 'rejected', durationSec: 0 });
-      callSessions.delete(key);
+      callSessions.delete(keyA);
+      callSessions.delete(keyB);
     }
     const rc = roomCalls.get(roomId) || { type: 'voice', participants: new Set(), active: false, startAt: null };
     rc.participants.delete(fromId);
@@ -511,6 +583,12 @@ io.on('connection', (socket) => {
       rc.startAt = null;
     }
     roomCalls.set(roomId, rc);
-    io.in(roomId).emit('call_state', { roomId, type: rc.type, participants: Array.from(rc.participants), active: rc.active, startAt: rc.startAt || null });
+    io.in(roomId).emit('call_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+    });
   });
 });

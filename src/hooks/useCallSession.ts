@@ -171,7 +171,8 @@ export function useCallSession({
         } else {
           const isSecure = typeof window !== 'undefined' ? window.isSecureContext : false;
           const host = typeof window !== 'undefined' ? window.location.hostname : '';
-          const hint = isSecure || host === 'localhost' ? '' : ' Truy cập bằng HTTPS hoặc localhost để cấp quyền mic/camera.';
+          const hint =
+            isSecure || host === 'localhost' ? '' : ' Truy cập bằng HTTPS hoặc localhost để cấp quyền mic/camera.';
           throw new Error('MediaDevices API is unavailable.' + hint);
         }
       } catch {
@@ -214,7 +215,6 @@ export function useCallSession({
     },
     [micEnabled, camEnabled],
   );
-
 
   const resetCallLocal = useCallback(() => {
     try {
@@ -335,10 +335,22 @@ export function useCallSession({
       if (endingRef.current || endedRef.current) return;
       endingRef.current = true;
       if (source === 'local' && socketRef.current?.connected) {
+        let targets = receiversRef.current;
+        if (!targets || targets.length === 0) {
+          const other = counterpartId
+            ? String(counterpartId)
+            : (() => {
+                const parts = String(activeRoomIdRef.current).split('_').filter(Boolean);
+                const me = String(currentUserId);
+                const t = parts.length === 2 ? parts.find((id) => String(id) !== me) : undefined;
+                return t ? String(t) : undefined;
+              })();
+          targets = other ? [other] : [];
+        }
         socketRef.current.emit('call_end', {
           roomId: activeRoomIdRef.current,
           from: String(currentUserId),
-          targets: receiversRef.current,
+          targets,
         });
         const parts = String(activeRoomIdRef.current).split('_').filter(Boolean);
         const isDirect = parts.length === 2;
@@ -456,7 +468,7 @@ export function useCallSession({
         // Không gọi lại những thành viên chưa tham gia khi Accept trong nhóm
         // Việc kết nối bổ sung sẽ dựa vào danh sách participants từ server
         setIncomingCall(null);
-      } catch  {
+      } catch {
         setIncomingCall(null);
       }
     },
@@ -501,7 +513,12 @@ export function useCallSession({
       setIncomingCall({ from: String(data.from), type: data.type, roomId: data.roomId, sdp: data.sdp });
       playGlobalRingTone();
     };
-    const handleCallAnswer = async (data: { roomId: string; target: string; from: string; sdp: RTCSessionDescriptionInit }) => {
+    const handleCallAnswer = async (data: {
+      roomId: string;
+      target: string;
+      from: string;
+      sdp: RTCSessionDescriptionInit;
+    }) => {
       if (String(data.target) !== String(currentUserId)) return;
       stopGlobalRingTone();
       if (ringTimeoutRef.current) {
@@ -520,11 +537,16 @@ export function useCallSession({
           setCallStartAt(Date.now());
           callStartAtRef.current = Date.now();
         }
-      } catch  {
+      } catch {
         stopGlobalRingTone();
       }
     };
-    const handleCallCandidate = async (data: { roomId: string; target: string; from: string; candidate: RTCIceCandidateInit }) => {
+    const handleCallCandidate = async (data: {
+      roomId: string;
+      target: string;
+      from: string;
+      candidate: RTCIceCandidateInit;
+    }) => {
       if (String(data.target) !== String(currentUserId)) return;
       const pc = peerConnectionsRef.current.get(String(data.from));
       if (!pc) return;
@@ -587,7 +609,13 @@ export function useCallSession({
         setRemoteStreamsState(new Map(remoteStreamsRef.current));
       }
     };
-    const handleCallState = (data: { roomId: string; type: CallType; participants: string[]; active: boolean; startAt?: number | null }) => {
+    const handleCallState = (data: {
+      roomId: string;
+      type: CallType;
+      participants: string[];
+      active: boolean;
+      startAt?: number | null;
+    }) => {
       if (String(data.roomId) !== String(roomId)) return;
       setRoomCallActive(!!data.active);
       setRoomCallType(data.type);

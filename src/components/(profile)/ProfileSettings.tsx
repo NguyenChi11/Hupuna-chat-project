@@ -38,7 +38,7 @@ function ProfileSettings() {
 
           <div className="hidden md:flex absolute inset-0 items-center justify-center p-4">
             <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b">
+              <div className="flex items-center justify-between px-4 py-3 border-b-gray-300">
                 <span className="font-semibold text-gray-800">{titleMap[open]}</span>
                 <button
                   onClick={() => setOpen(null)}
@@ -55,9 +55,9 @@ function ProfileSettings() {
             </div>
           </div>
 
-          <div className="md:hidden absolute inset-x-0 bottom-0 p-0">
+          <div className="md:hidden absolute inset-x-0 bottom-0 p-5">
             <div className="bg-white rounded-t-2xl shadow-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b">
+              <div className="flex items-center justify-between px-4 py-3 border-b-gray-300 border-b">
                 <span className="font-semibold text-gray-800">{titleMap[open]}</span>
                 <button
                   onClick={() => setOpen(null)}
