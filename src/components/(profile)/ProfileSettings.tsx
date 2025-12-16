@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import PasswordChange from '@/components/(profile)/profile-setting/PasswordChange';
 import PrivacySettings from '@/components/(profile)/profile-setting/PrivacySettings';
 import NotificationSettings from '@/components/(profile)/profile-setting/NotificationSettings';
+import { HiOutlineLogout } from 'react-icons/hi';
 
 function ProfileSettings() {
   const [open, setOpen] = useState<null | 'password' | 'privacy' | 'notifications'>(null);
+  const router = useRouter();
 
   const items: Array<{ key: 'password' | 'privacy' | 'notifications'; label: string }> = [
     { key: 'password', label: 'Đổi mật khẩu' },
@@ -20,6 +23,21 @@ function ProfileSettings() {
     notifications: 'Cài đặt thông báo',
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'logout' }),
+      });
+    } catch {}
+    try {
+      localStorage.removeItem('info_user');
+      localStorage.removeItem('remember_login');
+    } catch {}
+    router.push('/login');
+  };
+
   return (
     <div className="space-y-3">
       {items.map((item) => (
@@ -31,6 +49,12 @@ function ProfileSettings() {
           {item.label}
         </button>
       ))}
+      <button
+        onClick={handleLogout}
+        className="cursor-pointer w-full px-4 py-3 text-left bg-red-50 hover:bg-red-100 rounded-lg md:text-lg text-red-600 inline-flex items-center gap-2"
+      >
+        <HiOutlineLogout className="w-5 h-5" /> Đăng xuất
+      </button>
 
       {open && (
         <div className="fixed inset-0 z-[9999]">
