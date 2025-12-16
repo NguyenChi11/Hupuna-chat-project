@@ -67,7 +67,7 @@ export default function ContentToolbar({
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-3">
+    <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0">
       <div className="flex flex-wrap items-center gap-2">
         <div className="ml-0 flex items-center gap-2">
           <button

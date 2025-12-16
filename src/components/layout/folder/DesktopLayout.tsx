@@ -18,8 +18,10 @@ type DesktopLayoutProps = {
 
   folders: FolderNode[];
   foldersGlobal: FolderNode[];
+  foldersShared: FolderNode[];
   itemsMap: Record<string, FolderItem[]>;
   itemsMapGlobal: Record<string, FolderItem[]>;
+  itemsMapShared: Record<string, FolderItem[]>;
   expanded: Record<string, boolean>;
   selectedFolderId: string | null;
   selectedScope: Scope;
@@ -77,8 +79,10 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
     compact,
     folders,
     foldersGlobal,
+    foldersShared,
     itemsMap,
     itemsMapGlobal,
+    itemsMapShared,
     expanded,
     selectedFolderId,
     selectedScope,
@@ -232,8 +236,10 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
           <FolderSidebar
             folders={folders}
             foldersGlobal={foldersGlobal}
+            foldersShared={foldersShared}
             itemsMap={itemsMap}
             itemsMapGlobal={itemsMapGlobal}
+            itemsMapShared={itemsMapShared}
             expanded={expanded}
             selectedFolderId={selectedFolderId}
             selectedScope={selectedScope}

@@ -168,8 +168,10 @@ function NodeRow({
 export default function FolderSidebar({
   folders,
   foldersGlobal,
+  foldersShared,
   itemsMap,
   itemsMapGlobal,
+  itemsMapShared,
   expanded,
   selectedFolderId,
   selectedScope,
@@ -185,8 +187,10 @@ export default function FolderSidebar({
 }: {
   folders: FolderNode[];
   foldersGlobal: FolderNode[];
+  foldersShared: FolderNode[];
   itemsMap: Record<string, FolderItem[]>;
   itemsMapGlobal: Record<string, FolderItem[]>;
+  itemsMapShared: Record<string, FolderItem[]>;
 
   expanded: Record<string, boolean>;
   selectedFolderId: string | null;
@@ -208,7 +212,7 @@ export default function FolderSidebar({
   return (
     <div className="w-full space-y-4">
       {!onlyGlobal && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-3">
+        <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0">
           <div className="mb-2 flex items-center justify-between">
             <button
               onClick={() => onSelect(null, 'room')}
@@ -249,7 +253,7 @@ export default function FolderSidebar({
         </div>
       )}
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-3">
+      <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0">
         <div className="mb-2 flex items-center justify-between">
           <button
             onClick={() => onSelect(null, 'global')}
@@ -286,6 +290,46 @@ export default function FolderSidebar({
             />
           ))}
           {!foldersGlobal.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0">
+        <div className="mb-2 flex items-center justify-between">
+          <button
+            onClick={() => onSelect(null, 'rooms_shared')}
+            className={`text-sm font-semibold hover:text-indigo-600 ${
+              selectedScope === 'rooms_shared' ? 'text-indigo-700' : 'text-gray-900'
+            }`}
+          >
+            Dùng chung nhiều phòng
+          </button>
+          <button
+            onClick={() => onCreateRoot('rooms_shared')}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-purple-600 px-3 py-2 text-xs font-semibold text-white hover:bg-purple-700"
+          >
+            <HiPlus className="h-4 w-4" />
+            Tạo
+          </button>
+        </div>
+        <div className="space-y-1">
+          {foldersShared.map((n) => (
+            <NodeRow
+              key={n.id}
+              node={n}
+              scope="rooms_shared"
+              expanded={expanded}
+              onToggle={onToggle}
+              onSelect={(id) => onSelect(id, 'rooms_shared')}
+              itemsMap={itemsMapShared}
+              selectedFolderId={selectedScope === 'rooms_shared' ? selectedFolderId : null}
+              onCreateChild={onCreateChild}
+              onRename={onRename}
+              onDelete={onDelete}
+              openFolderMenuId={openFolderMenuId}
+              setOpenFolderMenuId={setOpenFolderMenuId}
+            />
+          ))}
+          {!foldersShared.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
         </div>
       </div>
     </div>

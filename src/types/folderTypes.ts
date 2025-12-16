@@ -1,4 +1,4 @@
-export type Scope = 'room' | 'global';
+export type Scope = 'room' | 'global' | 'rooms_shared';
 
 export type FolderItem = {
   id: string;

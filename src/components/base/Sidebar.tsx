@@ -150,6 +150,7 @@ export default function Sidebar({
   const pathname = usePathname();
   const isWidgetIframe = pathname === '/chat-iframe' || (pathname?.startsWith('/chat-iframe') ?? false);
   const [showGlobalFolder, setShowGlobalFolder] = useState(false);
+  const [showRoomsSharedFolder, setShowRoomsSharedFolder] = useState(false);
 
   // === TẤT CẢ LOGIC GIỮ NGUYÊN NHƯ BẠN ĐÃ VIẾT ===
   const handleGlobalSearch = useCallback(
@@ -465,7 +466,7 @@ export default function Sidebar({
                 {filterType === 'all' && <p className="text-sm mt-2 text-gray-400">Nhấn vào nút tạo nhóm để bắt đầu</p>}
               </div>
             ) : (
-              <div className={`space-y-1 px-1 py-1 pb-[5rem] ${styleWidget}`}>
+              <div className={`space-y-1 px-1 py-1 pb-20 ${styleWidget}`}>
                 {filteredAndSortedChats.map((item: ChatItemType) => {
                   const isGroupItem = item.isGroup === true || Array.isArray(item.members);
                   return (
@@ -487,10 +488,16 @@ export default function Sidebar({
       </div>
 
       {/* Fade Bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-100 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-gray-100 to-transparent pointer-events-none" />
 
       {showGlobalFolder && (
         <GlobalFolderModal currentUserId={String(currentUser._id)} onClose={() => setShowGlobalFolder(false)} />
+      )}
+      {showRoomsSharedFolder && (
+        <RoomsSharedFolderModal
+          currentUserId={String(currentUser._id)}
+          onClose={() => setShowRoomsSharedFolder(false)}
+        />
       )}
     </aside>
   );
@@ -509,9 +516,9 @@ function GlobalFolderModal({ currentUserId, onClose }: { currentUserId: string; 
   }, []);
 
   const modal = (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden h-[85vh]">
-        <div className="flex items-center justify-between px-4 py-3 bg-[#f3f6fb] border-b">
+    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 ">
+        <div className="flex items-center justify-between px-4 py-3  border-b">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
               <HiFolder className="w-4 h-4" />
@@ -534,6 +541,76 @@ function GlobalFolderModal({ currentUserId, onClose }: { currentUserId: string; 
         <FolderCreateModal
           isOpen={controller.showCreateModal}
           folders={controller.foldersGlobal}
+          defaultParentId={controller.createParentId || undefined}
+          lockParent={!!controller.createParentId}
+          onClose={() => {
+            controller.setShowCreateModal(false);
+            controller.setCreateParentId(null);
+          }}
+          onCreate={(name: string, parentId?: string) => {
+            controller.createFolder(name, parentId);
+            controller.setShowCreateModal(false);
+            controller.setCreateParentId(null);
+          }}
+        />
+      )}
+      <RenameModal
+        open={!!controller.renameTarget}
+        name={controller.renameInput}
+        onChangeName={(v) => controller.setRenameInput(v)}
+        onCancel={() => controller.setRenameTarget(null)}
+        onSave={controller.saveRename}
+      />
+      <DeleteModal
+        open={!!controller.deleteTarget}
+        name={controller.deleteTarget?.name || ''}
+        onCancel={() => controller.setDeleteTarget(null)}
+        onConfirm={controller.confirmDeleteFolder}
+      />
+    </div>
+  );
+  if (typeof document === 'undefined') return null;
+  return ReactDOM.createPortal(modal, document.body);
+}
+
+function RoomsSharedFolderModal({ currentUserId, onClose }: { currentUserId: string; onClose: () => void }) {
+  const controller = useFolderController({
+    roomId: '__shared_rooms__sidebar__',
+    currentUserId,
+    messages: [],
+  });
+
+  React.useEffect(() => {
+    controller.setSelectedScope('rooms_shared');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const modal = (
+    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 ">
+        <div className="flex items-center justify-between px-4 py-3  border-b">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
+              <HiFolder className="w-4 h-4" />
+            </div>
+            <h3 className="text-lg font-bold">Folder dùng chung các đoạn chat</h3>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-white/20 cursor-pointer">
+            <HiXMark className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-4">
+          {controller.compact ? (
+            <MobileLayout {...controller} onClose={onClose} />
+          ) : (
+            <DesktopLayout {...controller} onClose={onClose} />
+          )}
+        </div>
+      </div>
+      {controller.showCreateModal && (
+        <FolderCreateModal
+          isOpen={controller.showCreateModal}
+          folders={controller.folders}
           defaultParentId={controller.createParentId || undefined}
           lockParent={!!controller.createParentId}
           onClose={() => {

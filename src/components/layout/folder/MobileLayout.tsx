@@ -21,8 +21,10 @@ type MobileLayoutProps = {
 
   folders: FolderNode[];
   foldersGlobal: FolderNode[];
+  foldersShared: FolderNode[];
   itemsMap: Record<string, FolderItem[]>;
   itemsMapGlobal: Record<string, FolderItem[]>;
+  itemsMapShared: Record<string, FolderItem[]>;
   expanded: Record<string, boolean>;
   selectedFolderId: string | null;
   selectedScope: Scope;
@@ -89,8 +91,10 @@ export default function MobileLayout(props: MobileLayoutProps) {
 
     folders,
     foldersGlobal,
+    foldersShared,
     itemsMap,
     itemsMapGlobal,
+    itemsMapShared,
     expanded,
     selectedFolderId,
     selectedScope,
@@ -270,8 +274,10 @@ export default function MobileLayout(props: MobileLayoutProps) {
             <FolderSidebar
               folders={folders}
               foldersGlobal={foldersGlobal}
+              foldersShared={foldersShared}
               itemsMap={itemsMap}
               itemsMapGlobal={itemsMapGlobal}
+              itemsMapShared={itemsMapShared}
               expanded={expanded}
               selectedFolderId={selectedFolderId}
               selectedScope={selectedScope}
@@ -409,7 +415,7 @@ export default function MobileLayout(props: MobileLayoutProps) {
               </div>
             </div>
 
-            <div className="flex flex-col w-full h-[50vh] overflow-auto custom-scrollbar">
+            <div className="flex flex-col w-full h-[20rem] overflow-auto custom-scrollbar">
               {selectedFolderId && selectedChildren.length > 0 && (
                 <div className="mt-3 p-3 rounded-xl bg-white border border-gray-200 shadow-sm">
                   <div className="flex items-center justify-between mb-2">

@@ -4,7 +4,8 @@ import { verifyJWT } from '@/lib/auth';
 import { getSession, fingerprintFromHeaders } from '@/lib/session';
 export const runtime = 'nodejs';
 
-const CHAT_PUBLIC_FOLDER_COLLECTION = 'ChatFolderPublic';
+const CHAT_USER_FOLDER_COLLECTION = 'ChatUserFoldersShared';
+const SHARED_OWNER_ID = '__shared__';
 
 type ItemType = 'video' | 'image' | 'file' | 'text';
 type Item = {
@@ -25,7 +26,7 @@ type FolderNode = {
   createdAt?: number;
   updatedAt?: number;
 };
-type GlobalFolderDoc = {
+type SharedFolderDoc = {
   _id?: string;
   ownerId: string;
   root: FolderNode;
@@ -70,38 +71,14 @@ function updateFolderById(root: FolderNode, folderId: string, updater: (f: Folde
   return { ...root, children: root.children.map((c) => updateFolderById(c, folderId, updater)) };
 }
 
-async function resolveOwnerId(req: NextRequest, fallback?: string): Promise<string> {
-  const provided = String(fallback || '').trim();
-  if (provided) return provided;
-  const fp = fingerprintFromHeaders({
-    'user-agent': req.headers.get('user-agent') || '',
-    'accept-language': req.headers.get('accept-language') || '',
-  });
-  const sid = req.cookies.get('sid')?.value || '';
-  if (sid) {
-    const session = await getSession(sid);
-    if (session && session.deviceFingerprint === fp) return session.userId;
-  }
-  const token = req.cookies.get('session_token')?.value || '';
-  if (token) {
-    const payload = await verifyJWT(token);
-    const pid = payload && typeof payload['_id'] === 'string' ? (payload['_id'] as string) : '';
-    const tfp = payload && typeof payload['fp'] === 'string' ? (payload['fp'] as string) : '';
-    if (pid && tfp && tfp === fp) return pid;
-  }
-  return `anon:${fp}`;
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const action = String(body.action || '').trim();
-    const ownerIdInput = String(body.ownerId || '').trim();
     if (!action) return NextResponse.json({ error: 'Missing action' }, { status: 400 });
 
-    const ownerId = await resolveOwnerId(req, ownerIdInput);
-
-    const collection = await getCollection<GlobalFolderDoc>(CHAT_PUBLIC_FOLDER_COLLECTION);
+    const ownerId = SHARED_OWNER_ID;
+    const collection = await getCollection<SharedFolderDoc>(CHAT_USER_FOLDER_COLLECTION);
 
     const toUiFolder = (
       n: FolderNode,
