@@ -36,13 +36,33 @@ export const isLink = (str: string | undefined): boolean => {
 
 export const resolveSocketUrl = (): string => {
   const envUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || '').trim();
-  const envPort = (process.env.NEXT_PUBLIC_SOCKET_PORT || process.env.NEXT_PUBLIC_SERVER_PORT || '').trim();
+  const envPort = (process.env.NEXT_PUBLIC_SOCKET_PORT || '').trim();
+  
   if (typeof window === 'undefined') return envUrl || '';
+  
   const host = window.location.hostname;
   const protocol = window.location.protocol;
+  
   if (envUrl) {
-    return envUrl.includes('localhost') ? envUrl.replace('localhost', host) : envUrl;
+    if (
+      envUrl.startsWith('http://') || 
+      envUrl.startsWith('https://') || 
+      envUrl.startsWith('ws://') || 
+      envUrl.startsWith('wss://')
+    ) {
+      if (envUrl.includes('localhost') || envUrl.includes('127.0.0.1')) {
+        return envUrl
+          .replace('localhost', host)
+          .replace('127.0.0.1', host);
+      }
+      return envUrl;
+    }
+    const proto = protocol === 'https:' ? 'https:' : 'http:';
+    return `${proto}//${envUrl}`;
   }
   const port = envPort || '3002';
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return `http://localhost:${port}`;
+  }
   return `${protocol}//${host}:${port}`;
 };
