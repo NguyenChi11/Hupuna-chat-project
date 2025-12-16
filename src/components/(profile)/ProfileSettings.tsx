@@ -26,7 +26,7 @@ function ProfileSettings() {
         <button
           key={item.key}
           onClick={() => setOpen(item.key)}
-          className="w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg md:text-lg"
+          className="cursor-pointer w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg md:text-lg"
         >
           {item.label}
         </button>
@@ -42,7 +42,7 @@ function ProfileSettings() {
                 <span className="font-semibold text-gray-800">{titleMap[open]}</span>
                 <button
                   onClick={() => setOpen(null)}
-                  className="px-3 py-1 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200"
+                  className="cursor-pointer px-3 py-1 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200"
                 >
                   Đóng
                 </button>
@@ -61,7 +61,7 @@ function ProfileSettings() {
                 <span className="font-semibold text-gray-800">{titleMap[open]}</span>
                 <button
                   onClick={() => setOpen(null)}
-                  className="px-3 py-1 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200"
+                  className="cursor-pointer px-3 py-1 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200"
                 >
                   Đóng
                 </button>

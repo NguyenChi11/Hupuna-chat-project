@@ -37,8 +37,8 @@ export default function EditInfoView({
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h3 className="text-3xl font-black text-gray-900 flex items-center justify-center gap-3">
-          <HiUser className="w-10 h-10 text-indigo-600" />
+        <h3 className="text-xl font-black text-gray-900 flex items-center justify-center gap-3">
+          <HiUser className="w-8 h-8 text-indigo-600" />
           Cập nhật thông tin cá nhân
         </h3>
         <p className="text-gray-500 mt-2">Thông tin sẽ hiển thị trên hồ sơ và danh bạ</p>
@@ -179,11 +179,11 @@ export default function EditInfoView({
       </div>
 
       {/* Buttons */}
-      <div className="flex gap-4 pt-8">
+      <div className="flex gap-4 ">
         <button
           onClick={onSubmit}
           disabled={loading}
-          className="flex-1 py-5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xl shadow-xl hover:shadow-2xl transition-all active:scale-98 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+          className="cursor-pointer flex-1 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xl shadow-xl hover:shadow-2xl transition-all active:scale-98 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
         >
           {loading ? (
             'Đang lưu...'
@@ -197,7 +197,7 @@ export default function EditInfoView({
 
         <button
           onClick={onCancel}
-          className="flex-1 py-3 rounded-2xl border-2 border-gray-300 bg-white hover:bg-gray-50 text-gray-800 font-bold text-xl transition-all active:scale-98"
+          className="cursor-pointer flex-1 py-3 rounded-2xl border-2 border-gray-300 bg-white hover:bg-gray-50 text-gray-800 font-bold text-xl transition-all active:scale-98"
         >
           Hủy bỏ
         </button>

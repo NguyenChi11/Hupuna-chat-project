@@ -67,7 +67,7 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl h-[80vh] overflow-auto no-scrollbar relative"
+        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl h-[90vh] overflow-auto no-scrollbar relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -163,9 +163,9 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
           }}
         />
 
-        <div className="pt-20 pb-8 px-8">
+        <div className="pt-10 pb-5 px-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold">{displayName}</h2>
+            <h2 className="text-3xl pt-11 font-bold">{displayName}</h2>
             <p className="text-lg text-gray-500 mt-2">@{displayId}</p>
           </div>
 

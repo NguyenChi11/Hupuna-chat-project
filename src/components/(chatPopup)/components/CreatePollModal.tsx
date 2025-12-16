@@ -12,11 +12,12 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState<string[]>(['', '']);
   const [saving, setSaving] = useState(false);
+  const maxOptions = 10;
 
   if (!isOpen) return null;
 
   const handleAddOption = () => {
-    setOptions((prev) => [...prev, '']);
+    setOptions((prev) => (prev.length >= maxOptions ? prev : [...prev, '']));
   };
 
   const handleChangeOption = (index: number, value: string) => {
@@ -24,11 +25,14 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
   };
 
   const handleSubmit = async () => {
-    const cleanOptions = options.map((o) => o.trim()).filter((o) => o);
-    if (!question.trim() || cleanOptions.length < 2) return;
+    const trimmedQuestion = question.trim();
+    const raw = options.map((o) => o.trim()).filter((o) => o);
+    const lowerSet = Array.from(new Set(raw.map((o) => o.toLowerCase())));
+    const unique = lowerSet.map((lo) => raw.find((x) => x.toLowerCase() === lo) as string);
+    if (!trimmedQuestion || unique.length < 2) return;
     setSaving(true);
     try {
-      await onCreate({ question: question.trim(), options: cleanOptions });
+      await onCreate({ question: trimmedQuestion, options: unique });
     } finally {
       setSaving(false);
     }
@@ -47,18 +51,58 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
         </div>
         <div className="px-6 py-5 space-y-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           <label className="block text-sm font-medium text-gray-700 mb-2">Câu hỏi *</label>
-          <textarea value={question} onChange={(e) => setQuestion(e.target.value)} rows={3} className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white" />
+          <textarea
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            rows={3}
+            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white"
+          />
           <label className="block text-sm font-medium text-gray-700 mb-2">Tùy chọn *</label>
           <div className="space-y-2">
             {options.map((opt, idx) => (
-              <input key={idx} type="text" value={opt} onChange={(e) => handleChangeOption(idx, e.target.value)} className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white" />
+              <input
+                key={idx}
+                type="text"
+                value={opt}
+                onChange={(e) => handleChangeOption(idx, e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-500 focus:bg-white"
+              />
             ))}
           </div>
-          <button onClick={handleAddOption} className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl">Thêm option</button>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">Cần tối thiểu 2 lựa chọn. Tối đa {maxOptions} lựa chọn.</p>
+            <button
+              onClick={handleAddOption}
+              disabled={options.length >= maxOptions}
+              className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Thêm option
+            </button>
+          </div>
+          {(() => {
+            const raw = options.map((o) => o.trim()).filter((o) => o);
+            const uniqueCount = new Set(raw.map((o) => o.toLowerCase())).size;
+            const notEnough = uniqueCount < 2;
+            const hasDup = uniqueCount !== raw.length;
+            return (
+              <>
+                {notEnough && <p className="text-xs text-gray-500">Cần ít nhất 2 lựa chọn hợp lệ</p>}
+                {hasDup && <p className="text-xs text-gray-500">Các lựa chọn trùng lặp sẽ được tự loại bỏ</p>}
+              </>
+            );
+          })()}
         </div>
         <div className="flex gap-3 px-6 pb-6 flex-shrink-0">
           <button onClick={onClose} disabled={saving} className="flex-1 cursor-pointer py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl">Hủy</button>
-          <button onClick={handleSubmit} disabled={saving} className="flex-1 cursor-pointer py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl">
+          <button
+            onClick={handleSubmit}
+            disabled={
+              saving ||
+              !question.trim() ||
+              new Set(options.map((o) => o.trim()).filter((o) => o).map((o) => o.toLowerCase())).size < 2
+            }
+            className="flex-1 cursor-pointer py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <span className="inline-flex items-center justify-center gap-2">
               <HiCheck className="w-5 h-5" /> {saving ? 'Đang lưu...' : 'Lưu'}
             </span>

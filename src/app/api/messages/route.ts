@@ -164,19 +164,40 @@ export async function POST(req: NextRequest) {
   try {
     switch (action) {
       case 'create': {
-        const newData = {
+        const t = String((data?.type || '')).toLowerCase();
+        let newData = {
           ...data,
-          // Dùng server timestamp để đảm bảo đồng bộ
           timestamp: Date.now(),
-          // Người tạo tin nhắn mặc định đã đọc
           readBy: [data.sender],
-        };
+        } as Record<string, unknown>;
+
+        if (t === 'poll') {
+          const qRaw = String((data?.['pollQuestion'] ?? data?.['content'] ?? '')).trim();
+          const arrRaw = Array.isArray((data as Record<string, unknown>)['pollOptions'])
+            ? ((data as Record<string, unknown>)['pollOptions'] as unknown[])
+            : [];
+          const cleaned = arrRaw.map((o) => String(o || '').trim()).filter((o) => o);
+          const lowers = Array.from(new Set(cleaned.map((o) => o.toLowerCase())));
+          const unique = lowers.map((lo) => cleaned.find((x) => x.toLowerCase() === lo) as string);
+          if (!qRaw || unique.length < 2) {
+            return NextResponse.json({ error: 'Invalid poll' }, { status: 400 });
+          }
+          newData = {
+            ...newData,
+            type: 'poll',
+            content: qRaw,
+            pollQuestion: qRaw,
+            pollOptions: unique,
+            pollVotes: {},
+            isPollLocked: !!(data as Record<string, unknown>)['isPollLocked'] ? true : false,
+          };
+        }
 
         // Xóa _id (nếu có) để MongoDB tự sinh ObjectId mới
-        if (newData._id) delete newData._id;
-        if (newData.id) delete newData.id;
+        if ((newData as Record<string, unknown>)['_id']) delete (newData as Record<string, unknown>)['_id'];
+        if ((newData as Record<string, unknown>)['id']) delete (newData as Record<string, unknown>)['id'];
 
-        const newId = await addRow<Message>(collectionName, newData);
+        const newId = await addRow<Record<string, unknown>>(collectionName, newData);
         try {
           await sendPushOnMessage({
             roomId: String(newData.roomId),

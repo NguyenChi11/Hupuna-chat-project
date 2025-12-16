@@ -1,4 +1,3 @@
-import React from 'react';
 import { getProxyUrl } from '@/utils/utils';
 import Image from 'next/image';
 
@@ -9,10 +8,10 @@ interface UserAvatarSectionProps {
 
 export default function UserAvatarSection({ userName, userAvatar }: UserAvatarSectionProps) {
   return (
-    <div className="flex flex-col items-center py-6 px-4">
+    <div className="flex flex-col items-center">
       {/* Avatar người dùng */}
       <div className="relative group">
-        <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-white shadow-2xl bg-gray-200 transition-all duration-500 group-hover:scale-105 group-hover:shadow-3xl">
+        <div className="w-20 h-20 rounded-full overflow-hidden ring-4 ring-white shadow-2xl bg-gray-200 transition-all duration-500 group-hover:scale-105 group-hover:shadow-3xl">
           {userAvatar ? (
             <Image
               width={100}
@@ -43,7 +42,7 @@ export default function UserAvatarSection({ userName, userAvatar }: UserAvatarSe
 
       {/* Tên người dùng */}
       <div className="mt-6 text-center">
-        <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{userName || 'Người dùng'}</h3>
+        <h3 className="text-xl font-bold text-gray-900 tracking-tight">{userName || 'Người dùng'}</h3>
         <p className="mt-1 text-sm text-gray-500 font-medium">Đang trò chuyện riêng</p>
       </div>
     </div>

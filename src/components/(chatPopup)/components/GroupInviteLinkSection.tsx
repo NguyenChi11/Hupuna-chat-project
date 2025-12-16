@@ -205,7 +205,7 @@ export default function GroupInviteLinkSection({
           ) : (
             // Đã có link
             <>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0.5">
                 <input
                   type="text"
                   value={inviteLink}

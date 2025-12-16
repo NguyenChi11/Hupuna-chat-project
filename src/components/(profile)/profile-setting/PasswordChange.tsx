@@ -65,7 +65,7 @@ export default function PasswordChange() {
       <button
         onClick={handleSubmit}
         disabled={loading}
-        className="w-full px-4 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-70"
+        className="cursor-pointer w-full px-4 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-70"
       >
         {loading ? "Đang đổi..." : "Đổi mật khẩu"}
       </button>

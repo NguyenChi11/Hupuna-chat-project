@@ -28,7 +28,7 @@ export default function Header({
   onSelectBackgroundFile?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
-    <div className="h-40 relative">
+    <div className="h-30 relative">
       {backgroundUrl ? (
         <Image src={getProxyUrl(backgroundUrl)} alt="bg" fill className="object-cover" />
       ) : (
@@ -56,7 +56,7 @@ export default function Header({
         />
       </label>
 
-      <button onClick={onClose} className="absolute top-4 right-4 p-3 bg-white/20 rounded-full">
+      <button onClick={onClose} className="cursor-pointer absolute top-4 right-4 p-3 bg-white/20 rounded-full">
         <HiX className="text-white w-6 h-6" />
       </button>
 

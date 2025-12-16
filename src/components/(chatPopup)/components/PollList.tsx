@@ -153,17 +153,20 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
   }, [roomId, load]); // ✅ BỎ SOCKET_URL khỏi dependencies
 
   const handleCreate = async ({ question, options }: { question: string; options: string[] }) => {
-    const cleanOptions = options.map((o) => o.trim()).filter((o) => o);
-    if (!question.trim() || cleanOptions.length < 2) return;
+    const q = question.trim();
+    const raw = options.map((o) => o.trim()).filter((o) => o);
+    const lowers = Array.from(new Set(raw.map((o) => o.toLowerCase())));
+    const unique = lowers.map((lo) => raw.find((x) => x.toLowerCase() === lo) as string);
+    if (!q || unique.length < 2) return;
     try {
       const createRes = await createMessageApi({
         roomId,
         sender: String(currentUser._id),
         type: 'poll',
-        content: question.trim(),
+        content: q,
         timestamp: Date.now(),
-        pollQuestion: question.trim(),
-        pollOptions: cleanOptions,
+        pollQuestion: q,
+        pollOptions: unique,
         pollVotes: {},
         isPollLocked: false,
       });
@@ -184,10 +187,10 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
             ...sockBase,
             _id: createRes._id,
             type: 'poll',
-            content: question.trim(),
+            content: q,
             timestamp: Date.now(),
-            pollQuestion: question.trim(),
-            pollOptions: cleanOptions,
+            pollQuestion: q,
+            pollOptions: unique,
             pollVotes: {},
             isPollLocked: false,
           });
@@ -195,7 +198,7 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
             roomId,
             sender: String(currentUser._id),
             type: 'notify',
-            content: `${name} tạo cuộc bình chọn mới: "${question.trim()}"`,
+            content: `${name} tạo cuộc bình chọn mới: "${q}"`,
             timestamp: Date.now(),
             replyToMessageId: createRes._id,
           });
@@ -204,7 +207,7 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
               ...sockBase,
               _id: notify._id,
               type: 'notify',
-              content: `${name} tạo cuộc bình chọn mới: "${question.trim()}"`,
+              content: `${name} tạo cuộc bình chọn mới: "${q}"`,
               timestamp: Date.now(),
               replyToMessageId: createRes._id,
             });

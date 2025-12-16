@@ -18,7 +18,7 @@ export default function ChatQuickActions({
   onCreateGroup,
 }: ChatQuickActionsProps) {
   return (
-    <div className="flex justify-around items-center py-6 px-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+    <div className="flex justify-around items-center py-2 px-4 bg-white rounded-2xl shadow-sm border border-gray-100">
       {/* Ghim / Bỏ ghim */}
       <button
         onClick={onPinToggle}
