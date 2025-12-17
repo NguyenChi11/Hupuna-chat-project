@@ -2029,7 +2029,7 @@ export default function ChatWindow({
           {/* Messages Area */}
           <div
             ref={messagesContainerRef}
-            className="relative flex-1 overflow-y-auto p-4 sm:p-4 bg-gray-100 flex flex-col custom-scrollbar"
+            className="relative flex-1 overflow-y-auto overflow-x-hidden p-4 pb-0 bg-gray-100 flex flex-col custom-scrollbar overscroll-y-contain"
           >
             {(initialLoading || loadingMore) && (
               <div className="sticky top-0 z-20 flex items-center justify-center py-2">

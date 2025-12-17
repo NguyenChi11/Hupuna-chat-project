@@ -203,7 +203,7 @@ export default function ChatInput({
   return (
     <div className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50">
       {isUploading ? (
-        <div className="mb-2">
+        <div className="mb-2 w-full overflow-hidden rounded-xl">
           <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallUploadPercent} />
         </div>
       ) : attachments && attachments.length > 0 ? (
