@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ClipboardEvent, KeyboardEvent, RefObject, useEffect, useState } from 'react';
+import React, { ClipboardEvent, KeyboardEvent, RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 // React Icons hi2 – Đỉnh cao nhất 2025
@@ -83,6 +83,8 @@ export default function ChatInput({
   } | null>(null);
   const [showChatFlashDashboard, setShowChatFlashDashboard] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
+  const mobileActionsRef = useRef<HTMLDivElement | null>(null);
+  const toggleMobileActionsBtnRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -116,6 +118,22 @@ export default function ChatInput({
     };
     if (roomId) init();
   }, [roomId]);
+
+  useEffect(() => {
+    if (!showMobileActions) return;
+    const onDoc = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node | null;
+      if (mobileActionsRef.current && target && mobileActionsRef.current.contains(target)) return;
+      if (toggleMobileActionsBtnRef.current && target && toggleMobileActionsBtnRef.current.contains(target)) return;
+      setShowMobileActions(false);
+    };
+    document.addEventListener('mousedown', onDoc, true);
+    document.addEventListener('touchstart', onDoc, true);
+    return () => {
+      document.removeEventListener('mousedown', onDoc, true);
+      document.removeEventListener('touchstart', onDoc, true);
+    };
+  }, [showMobileActions]);
 
   useEffect(() => {
     const loadKV = async () => {
@@ -390,6 +408,7 @@ export default function ChatInput({
             onFocus={() => {
               onFocusEditable();
               updateSlashState();
+              setShowMobileActions(false);
             }}
             onPaste={(e) => {
               onPasteEditable(e);
@@ -422,6 +441,7 @@ export default function ChatInput({
 
         <div className="md:hidden relative flex items-center gap-2">
           <button
+            ref={toggleMobileActionsBtnRef}
             onClick={() => setShowMobileActions((v) => !v)}
             className="p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90"
             aria-label="Mở thêm hành động"
@@ -479,7 +499,7 @@ export default function ChatInput({
       </div>
 
       {showMobileActions && (
-        <div className="md:hidden w-full mt-2 flex items-center justify-between mx-auto">
+        <div ref={mobileActionsRef} className="md:hidden w-full mt-2 flex items-center justify-between mx-auto">
           <button
             onClick={() => {
               setShowFolderDashboard(true);

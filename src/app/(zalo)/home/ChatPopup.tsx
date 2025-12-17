@@ -131,6 +131,7 @@ export default function ChatWindow({
   const [openMember, setOpenMember] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const footerRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const markedReadRef = useRef<string | null>(null);
   const initialScrolledRef = useRef(false);
@@ -1403,6 +1404,30 @@ export default function ChatWindow({
       })();
     } catch {}
   }, [roomId, incomingCall, callActive, callConnecting, acceptIncomingCallWith_s2]);
+
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const allowDefault = (target: EventTarget | null) => {
+      const t = target as HTMLElement | null;
+      if (!t) return false;
+      return !!(t.closest('[contenteditable="true"]') || t.closest('.overflow-y-auto'));
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (allowDefault(e.target)) return;
+      e.preventDefault();
+    };
+    const onWheel = (e: WheelEvent) => {
+      if (allowDefault(e.target)) return;
+      e.preventDefault();
+    };
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('wheel', onWheel);
+    };
+  }, []);
   const handleRecallMessage = async (messageId: string) => {
     if (!confirm('Bạn có chắc chắn muốn thu hồi tin nhắn này?')) return;
 
@@ -2048,24 +2073,7 @@ export default function ChatWindow({
           </button>
 
           {/* Phần Footer (Input Chat) */}
-          <div
-            className="bg-white p-0  border-t rounded-t-xl border-gray-200 relative space-y-1"
-            onTouchMove={(e) => {
-              const target = e.target as HTMLElement;
-              // Cho phép scroll nếu đang thao tác trong vùng contenteditable hoặc vùng có scroll
-              if (target.closest('[contenteditable="true"]') || target.closest('.overflow-y-auto')) {
-                return;
-              }
-              e.preventDefault();
-            }}
-            onWheel={(e) => {
-              const target = e.target as HTMLElement;
-              if (target.closest('[contenteditable="true"]') || target.closest('.overflow-y-auto')) {
-                return;
-              }
-              e.preventDefault();
-            }}
-          >
+          <div ref={footerRef} className="bg-white p-0  border-t rounded-t-xl border-gray-200 relative space-y-1">
             {/* ... Popup Picker & Inputs ... */}
             <EmojiStickerPicker
               showEmojiPicker={showEmojiPicker}

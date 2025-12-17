@@ -256,32 +256,39 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
         </div>
 
         <div className="col-span-8">
-          <div className="mb-2 mt-2 flex items-center flex-wrap gap-2 text-sm">
+          <div className="mb-3 mt-2 flex items-center flex-wrap gap-3 text-sm">
+            {/* Nút "Gốc" */}
             <button
               onClick={() => onSelectFolder(null, selectedScope)}
-              className="cursor-pointer px-2 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-2 py-1.5 font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md hover:bg-gray-50 cursor-pointer"
             >
+              <span className="text-lg">🏠</span>
               Gốc
             </button>
 
+            {/* Các node trong breadcrumb */}
             {breadcrumbNodes.map((node: FolderNode, idx: number) => (
               <React.Fragment key={node.id}>
-                <span className="text-gray-400">›</span>
+                <span className="text-gray-400 select-none px-1">/</span>
                 <button
                   onClick={() => onSelectFolder(node.id, selectedScope)}
-                  className={`cursor-pointer px-2 py-1 rounded-lg ${
-                    idx === breadcrumbNodes.length - 1
-                      ? 'bg-indigo-50 text-indigo-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`
+          inline-flex items-center gap-2 rounded-xl px-2 py-1.5 font-medium transition-all cursor-pointer
+          ${
+            idx === breadcrumbNodes.length - 1
+              ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md hover:shadow-lg'
+              : 'bg-white text-gray-700 shadow-sm ring-1 ring-gray-200 hover:shadow-md hover:bg-gray-50'
+          }
+        `}
                 >
+                  <span className="text-lg">📁</span>
                   {node.name}
                 </button>
               </React.Fragment>
             ))}
           </div>
 
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3">
             <div className="flex-1">
               <ContentToolbar
                 selectedFolderId={selectedFolderId}
@@ -301,73 +308,53 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
                 }}
                 nameInput={nameInput}
                 onNameInputChange={setNameInput}
+                searchInput={searchInput}
+                onSearchInputChange={setSearchInput}
+                searchResults={searchResults}
+                onClickSearchResult={(id, type) => {
+                  setActiveNav(type);
+                  onToggleSelect(id);
+                }}
               />
-            </div>
-            <div className="relative ml-auto">
-              <input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Tìm kiếm từ khóa..."
-                className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm"
-              />
-              {searchInput && searchResults.length > 0 && (
-                <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-gray-200 bg-white shadow-xl">
-                  {searchResults.map((r) => (
-                    <button
-                      key={r.id}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50"
-                      onClick={() => {
-                        setActiveNav(
-                          r.type === 'media'
-                            ? 'media'
-                            : r.type === 'file'
-                              ? 'file'
-                              : r.type === 'link'
-                                ? 'link'
-                                : 'text',
-                        );
-                        onToggleSelect(r.id);
-                      }}
-                    >
-                      <span className="inline-flex min-w-14 items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
-                        {r.type}
-                      </span>
-                      <span className="truncate">{r.label || r.id}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
-          <div className="mt-2 flex items-center gap-2 text-sm">
+          <div className="mt-3 flex items-center gap-2">
             <button
-              className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                activeNav === 'media' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeNav === 'media'
+                  ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
               }`}
               onClick={() => setActiveNav('media')}
             >
               Ảnh/Video
             </button>
             <button
-              className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                activeNav === 'text' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeNav === 'text'
+                  ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
               }`}
               onClick={() => setActiveNav('text')}
             >
               Text
             </button>
             <button
-              className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                activeNav === 'link' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeNav === 'link'
+                  ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
               }`}
               onClick={() => setActiveNav('link')}
             >
               Link
             </button>
             <button
-              className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                activeNav === 'file' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeNav === 'file'
+                  ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
               }`}
               onClick={() => setActiveNav('file')}
             >

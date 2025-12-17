@@ -219,7 +219,7 @@ export default function FolderSidebar({
   return (
     <div className="w-full space-y-4 mb-4">
       {!onlyGlobal && (
-        <div className="overflow-hidden ">
+        <div className="overflow-hidden mr-4 ">
           <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
             <div className="mb-2 flex items-center justify-between">
               <button
@@ -265,7 +265,7 @@ export default function FolderSidebar({
         </div>
       )}
 
-      <div className="overflow-hidden ">
+      <div className="overflow-hidden mr-4 ">
         <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
           <div className="mb-2 flex items-center justify-between">
             <button
@@ -310,7 +310,7 @@ export default function FolderSidebar({
         </div>
       </div>
 
-      <div className="overflow-hidden ">
+      <div className="overflow-hidden mr-4 ">
         <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
           <div className="mb-2 flex items-center justify-between">
             <button

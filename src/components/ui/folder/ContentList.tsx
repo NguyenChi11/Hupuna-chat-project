@@ -64,7 +64,7 @@ export default function ContentList({
 
   if (!selectedFolderId) {
     return (
-      <div className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-600">
+      <div className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-600 mr-2">
         Chọn 1 thư mục để xem nội dung.
       </div>
     );
@@ -72,7 +72,7 @@ export default function ContentList({
 
   if (!items.length) {
     return (
-      <div className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-600">
+      <div className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-600 mr-2">
         Thư mục trống.
       </div>
     );
