@@ -120,14 +120,14 @@ export default function ContentList({
       return (
         <div
           key={`media-${id}`}
-          className="relative w-40 overflow-hidden rounded-2xl border border-gray-200 bg-white cursor-pointer"
+          className="relative w-40 h-[12rem] overflow-hidden rounded-2xl border border-gray-200 bg-white cursor-pointer"
           onClick={() => onToggleSelect(id)}
         >
-          <div className="relative aspect-square w-full">
+          <div className="relative aspect-square w-full h-[10rem]">
             {resolvedType === 'video' ? (
               <video
                 src={getProxyUrl(resolvedUrl)}
-                className="h-full w-full object-cover"
+                className="!h-[10rem] w-full object-cover"
                 controls
                 preload="metadata"
               />
@@ -241,7 +241,7 @@ export default function ContentList({
 
   return (
     <>
-      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">{items.map(renderTile)}</div>
+      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 mr-2">{items.map(renderTile)}</div>
       {renameOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl">

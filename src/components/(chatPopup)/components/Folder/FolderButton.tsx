@@ -281,7 +281,18 @@ export default function FolderButton({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            setOpen((v) => !v);
+            setOpen(false);
+            const ev = new CustomEvent('openFolderSaveWizard', {
+              detail: {
+                roomId,
+                messageId,
+                content: content ?? preview ?? '',
+                type: type || 'text',
+                fileUrl,
+                fileName,
+              },
+            });
+            window.dispatchEvent(ev);
           }}
           className="w-8 h-8 hover:cursor-pointer rounded-full bg-white border border-gray-300 shadow-sm flex items-center justify-center text-base hover:scale-110 active:scale-95 transition-all"
           aria-label="Lưu vào thư mục"
@@ -289,89 +300,7 @@ export default function FolderButton({
         >
           <HiFolder className="w-4 h-4 text-gray-700" />
         </button>
-        <div
-          ref={popupRef}
-          className={`absolute ${pickerSideCls} z-50 ${placeBelow ? 'top-full mt-2 origin-top' : 'bottom-full mb-2 origin-bottom'} min-w-[14rem] bg-white rounded-2xl shadow-xl border border-gray-200 transition-all ${open ? 'opacity-100 visible pointer-events-auto scale-100' : 'opacity-0 invisible pointer-events-none scale-95'}`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="px-1 py-1">
-            <div className="text-xs text-gray-500 pb-2 flex items-center gap-2">
-              <button
-                className={`cursor-pointer px-2 py-1 rounded-lg text-xs border ${scope === 'global' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300'}`}
-                onClick={() => setScope('global')}
-              >
-                Dùng nhiều đoạn chat
-              </button>
-              <button
-                className={`cursor-pointer px-2 py-1 rounded-lg text-xs border ${scope === 'room' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300'}`}
-                onClick={() => setScope('room')}
-              >
-                Đoạn chat hiện tại
-              </button>
-            </div>
-            {(scope === 'global' ? flatListGlobal.length : flatListRoom.length) > 0 ? (
-              <div className="max-h-[16rem] overflow-y-auto custom-scrollbar">
-                {(scope === 'global' ? flatListGlobal : flatListRoom).map(({ node, depth }) => (
-                  <button
-                    key={node.id}
-                    onClick={() => {
-                      setPendingFolderId(node.id);
-                      const suggested = (type === 'file' ? fileName || '' : '') || content || '' || preview || '' || '';
-                      setNameInput(String(suggested).slice(0, 100));
-                    }}
-                    className="cursor-pointer w-full text-left px-1 py-1.5 rounded-lg hover:bg-gray-50 text-sm text-gray-800"
-                  >
-                    <div className="flex items-center gap-2" style={{ paddingLeft: depth * 16 }}>
-                      <div className="p-1.5 rounded-lg bg-gradient-to-br from-sky-500 via-blue-500 to-blue-500 text-white shadow">
-                        <HiFolder className="w-3 h-3" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-900 truncate">{node.name}</span>
-                      {((scope === 'global' ? itemsMapGlobal[node.id] : itemsMap[node.id])?.length || 0) > 0 && (
-                        <span className="ml-auto px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600 border border-blue-200">
-                          {(scope === 'global' ? itemsMapGlobal[node.id] : itemsMap[node.id])?.length || 0}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="text-xs text-gray-500">Chưa có thư mục, hãy tạo trong mục Folder</div>
-            )}
-            {pendingFolderId && (
-              <div className="mt-2 border-t border-gray-200 pt-2">
-                <div className="text-xs text-gray-600 mb-1">Đặt tên nội dung</div>
-                <input
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  placeholder="Nhập tên hiển thị"
-                  className="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-400"
-                />
-                <div className="flex items-center gap-2 mt-2">
-                  <button
-                    className="cursor-pointer px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs hover:bg-blue-700"
-                    onClick={() => {
-                      if (!pendingFolderId) return;
-                      const name = nameInput.trim();
-                      handleSave(pendingFolderId, name || undefined);
-                    }}
-                  >
-                    Xác nhận
-                  </button>
-                  <button
-                    className="cursor-pointer px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs hover:bg-gray-200 border border-gray-200"
-                    onClick={() => {
-                      setPendingFolderId(null);
-                      setNameInput('');
-                    }}
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <div className="hidden" />
       </div>
     </div>
   );

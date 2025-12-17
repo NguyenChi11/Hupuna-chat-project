@@ -18,6 +18,7 @@ import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
 import Image from 'next/image';
 import { useChatContext } from '@/context/ChatContext';
 import FolderDashboard from '@/components/(chatPopup)/components/Folder/FolderDashboard';
+import FolderSaveWizard from '@/components/(chatPopup)/components/Folder/FolderSaveWizard';
 import ChatFlashDashboard from '@/components/(chatPopup)/components/Chat-Flash/ChatFlashDashboard';
 
 interface ChatInputProps {
@@ -71,6 +72,15 @@ export default function ChatInput({
   const [slashQuery, setSlashQuery] = useState('');
   const [slashSelectedIndex, setSlashSelectedIndex] = useState<number>(0);
   const [showFolderDashboard, setShowFolderDashboard] = useState(false);
+  const [showFolderSaveWizard, setShowFolderSaveWizard] = useState(false);
+  const [pendingSaveMessage, setPendingSaveMessage] = useState<{
+    roomId: string;
+    messageId: string;
+    content: string;
+    type: string;
+    fileUrl?: string;
+    fileName?: string;
+  } | null>(null);
   const [showChatFlashDashboard, setShowChatFlashDashboard] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
 
@@ -137,6 +147,18 @@ export default function ChatInput({
     };
     loadKV();
   }, [selectedFlashFolder?.id, roomId]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const anyE = e as CustomEvent;
+      if (anyE.detail) {
+        setPendingSaveMessage(anyE.detail);
+        setShowFolderSaveWizard(true);
+      }
+    };
+    window.addEventListener('openFolderSaveWizard', handler as EventListener);
+    return () => window.removeEventListener('openFolderSaveWizard', handler as EventListener);
+  }, []);
 
   const handleSelectFlashFolder = (f: { id: string; name: string }) => {
     setSelectedFlashFolder(f);
@@ -624,7 +646,7 @@ export default function ChatInput({
       {showFolderDashboard &&
         createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-            <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden md:h-[46rem] h-[45rem] overflow-y-scroll">
+            <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden md:h-[46rem] h-[45rem] ">
               <div className="flex items-center justify-between px-4 py-3 border-b">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center">
@@ -661,6 +683,36 @@ export default function ChatInput({
                   }}
                   onAttachFromFolder={(att) => onAttachFromFolder(att)}
                 />
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {showFolderSaveWizard &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-h-[85vh] flex flex-col">
+              <div className="relative w-full">
+                <button
+                  onClick={() => {
+                    setShowFolderSaveWizard(false);
+                    setPendingSaveMessage(null);
+                  }}
+                  className="absolute right-4 top-3 p-2 rounded-full hover:bg-gray-100 cursor-pointer z-10"
+                >
+                  <HiX className="w-5 h-5 text-gray-500" />
+                </button>
+                {pendingSaveMessage && (
+                  <FolderSaveWizard
+                    roomId={roomId}
+                    pending={pendingSaveMessage}
+                    onClose={() => {
+                      setShowFolderSaveWizard(false);
+                      setPendingSaveMessage(null);
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>,

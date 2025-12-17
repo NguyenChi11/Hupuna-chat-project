@@ -232,7 +232,7 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
   return (
     <div className="w-full">
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-4 pr-2">
+        <div className="col-span-4 pr-2 h-[40rem] overflow-y-scroll custom-scrollbar">
           <FolderSidebar
             folders={folders}
             foldersGlobal={foldersGlobal}
@@ -375,9 +375,9 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
             </button>
           </div>
 
-          <div className="flex flex-col w-full h-[63vh] overflow-auto custom-scrollbar">
+          <div className="flex flex-col w-full h-[30rem] overflow-y-scroll custom-scrollbar">
             {selectedFolderId && selectedChildren.length > 0 && (
-              <div className="mt-3 p-3 rounded-xl bg-white border border-gray-200 shadow-sm">
+              <div className="mt-3 p-3 rounded-xl bg-white border border-gray-200 shadow-sm mr-2">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-semibold text-gray-800">Thư mục con</p>
                 </div>
@@ -402,7 +402,7 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
             )}
 
             {selectedIds.size > 0 && (
-              <div className="mt-3 p-3 rounded-xl bg-white border border-green-200 shadow-sm">
+              <div className="mt-3 p-3 rounded-xl bg-white border border-green-200 shadow-sm mr-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-gray-800">Lựa chọn</p>
                   <div className="flex items-center gap-2">
