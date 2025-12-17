@@ -210,37 +210,81 @@ export default function FolderSidebar({
   onlyGlobal?: boolean;
 }) {
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 ">
       {!onlyGlobal && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0">
+        <div className="overflow-hidden ">
+          <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
+            <div className="mb-2 flex items-center justify-between">
+              <button
+                onClick={() => onSelect(null, 'room')}
+                className={`text-sm font-semibold hover:text-indigo-600 ${
+                  selectedScope === 'room' ? 'text-indigo-700' : 'text-gray-900'
+                }`}
+              >
+                Phòng hiện tại
+              </button>
+              <button
+                onClick={() => onCreateRoot('room')}
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+              >
+                <HiPlus className="h-4 w-4" />
+                Tạo
+              </button>
+            </div>
+            <div className="space-y-1  h-[10rem] overflow-y-auto">
+              {folders.map((n) => (
+                <NodeRow
+                  key={n.id}
+                  node={n}
+                  scope="room"
+                  expanded={expanded}
+                  onToggle={onToggle}
+                  onSelect={(id) => onSelect(id, 'room')}
+                  itemsMap={itemsMap}
+                  selectedFolderId={selectedScope === 'room' ? selectedFolderId : null}
+                  onCreateChild={onCreateChild}
+                  onRename={onRename}
+                  onDelete={onDelete}
+                  openFolderMenuId={openFolderMenuId}
+                  setOpenFolderMenuId={setOpenFolderMenuId}
+                />
+              ))}
+              {!folders.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="overflow-hidden ">
+        <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
           <div className="mb-2 flex items-center justify-between">
             <button
-              onClick={() => onSelect(null, 'room')}
+              onClick={() => onSelect(null, 'global')}
               className={`text-sm font-semibold hover:text-indigo-600 ${
-                selectedScope === 'room' ? 'text-indigo-700' : 'text-gray-900'
+                selectedScope === 'global' ? 'text-indigo-700' : 'text-gray-900'
               }`}
             >
-              Phòng hiện tại
+              Dùng chung (Global)
             </button>
             <button
-              onClick={() => onCreateRoot('room')}
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+              onClick={() => onCreateRoot('global')}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
             >
               <HiPlus className="h-4 w-4" />
               Tạo
             </button>
           </div>
-          <div className="space-y-1">
-            {folders.map((n) => (
+          <div className="space-y-1 md:h-[15rem]  h-[10rem] overflow-y-auto">
+            {foldersGlobal.map((n) => (
               <NodeRow
                 key={n.id}
                 node={n}
-                scope="room"
+                scope="global"
                 expanded={expanded}
                 onToggle={onToggle}
-                onSelect={(id) => onSelect(id, 'room')}
-                itemsMap={itemsMap}
-                selectedFolderId={selectedScope === 'room' ? selectedFolderId : null}
+                onSelect={(id) => onSelect(id, 'global')}
+                itemsMap={itemsMapGlobal}
+                selectedFolderId={selectedScope === 'global' ? selectedFolderId : null}
                 onCreateChild={onCreateChild}
                 onRename={onRename}
                 onDelete={onDelete}
@@ -248,88 +292,50 @@ export default function FolderSidebar({
                 setOpenFolderMenuId={setOpenFolderMenuId}
               />
             ))}
-            {!folders.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
+            {!foldersGlobal.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
           </div>
-        </div>
-      )}
-
-      <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0">
-        <div className="mb-2 flex items-center justify-between">
-          <button
-            onClick={() => onSelect(null, 'global')}
-            className={`text-sm font-semibold hover:text-indigo-600 ${
-              selectedScope === 'global' ? 'text-indigo-700' : 'text-gray-900'
-            }`}
-          >
-            Dùng chung (Global)
-          </button>
-          <button
-            onClick={() => onCreateRoot('global')}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
-          >
-            <HiPlus className="h-4 w-4" />
-            Tạo
-          </button>
-        </div>
-        <div className="space-y-1">
-          {foldersGlobal.map((n) => (
-            <NodeRow
-              key={n.id}
-              node={n}
-              scope="global"
-              expanded={expanded}
-              onToggle={onToggle}
-              onSelect={(id) => onSelect(id, 'global')}
-              itemsMap={itemsMapGlobal}
-              selectedFolderId={selectedScope === 'global' ? selectedFolderId : null}
-              onCreateChild={onCreateChild}
-              onRename={onRename}
-              onDelete={onDelete}
-              openFolderMenuId={openFolderMenuId}
-              setOpenFolderMenuId={setOpenFolderMenuId}
-            />
-          ))}
-          {!foldersGlobal.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0">
-        <div className="mb-2 flex items-center justify-between">
-          <button
-            onClick={() => onSelect(null, 'rooms_shared')}
-            className={`text-sm font-semibold hover:text-indigo-600 ${
-              selectedScope === 'rooms_shared' ? 'text-indigo-700' : 'text-gray-900'
-            }`}
-          >
-            Dùng chung nhiều phòng
-          </button>
-          <button
-            onClick={() => onCreateRoot('rooms_shared')}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-purple-600 px-3 py-2 text-xs font-semibold text-white hover:bg-purple-700"
-          >
-            <HiPlus className="h-4 w-4" />
-            Tạo
-          </button>
-        </div>
-        <div className="space-y-1">
-          {foldersShared.map((n) => (
-            <NodeRow
-              key={n.id}
-              node={n}
-              scope="rooms_shared"
-              expanded={expanded}
-              onToggle={onToggle}
-              onSelect={(id) => onSelect(id, 'rooms_shared')}
-              itemsMap={itemsMapShared}
-              selectedFolderId={selectedScope === 'rooms_shared' ? selectedFolderId : null}
-              onCreateChild={onCreateChild}
-              onRename={onRename}
-              onDelete={onDelete}
-              openFolderMenuId={openFolderMenuId}
-              setOpenFolderMenuId={setOpenFolderMenuId}
-            />
-          ))}
-          {!foldersShared.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
+      <div className="overflow-hidden ">
+        <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
+          <div className="mb-2 flex items-center justify-between">
+            <button
+              onClick={() => onSelect(null, 'rooms_shared')}
+              className={`text-sm font-semibold hover:text-indigo-600 ${
+                selectedScope === 'rooms_shared' ? 'text-indigo-700' : 'text-gray-900'
+              }`}
+            >
+              Dùng chung nhiều phòng
+            </button>
+            <button
+              onClick={() => onCreateRoot('rooms_shared')}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-purple-600 px-3 py-2 text-xs font-semibold text-white hover:bg-purple-700"
+            >
+              <HiPlus className="h-4 w-4" />
+              Tạo
+            </button>
+          </div>
+          <div className="space-y-1 md:h-[15rem] h-[10rem] overflow-y-auto">
+            {foldersShared.map((n) => (
+              <NodeRow
+                key={n.id}
+                node={n}
+                scope="rooms_shared"
+                expanded={expanded}
+                onToggle={onToggle}
+                onSelect={(id) => onSelect(id, 'rooms_shared')}
+                itemsMap={itemsMapShared}
+                selectedFolderId={selectedScope === 'rooms_shared' ? selectedFolderId : null}
+                onCreateChild={onCreateChild}
+                onRename={onRename}
+                onDelete={onDelete}
+                openFolderMenuId={openFolderMenuId}
+                setOpenFolderMenuId={setOpenFolderMenuId}
+              />
+            ))}
+            {!foldersShared.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
+          </div>
         </div>
       </div>
     </div>

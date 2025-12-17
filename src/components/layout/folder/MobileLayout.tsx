@@ -248,9 +248,9 @@ export default function MobileLayout(props: MobileLayoutProps) {
   if (!compact) return null;
 
   return (
-    <div className="w-full">
-      <div className="flex flex-col">
-        <div className="flex flex-nowrap overflow-x-auto border-b border-gray-200 bg-white/80 backdrop-blur-sm -mx-4 px-4">
+    <div className="w-full ">
+      <div className="flex flex-col  ">
+        <div className="flex flex-nowrap  border-b border-gray-200 bg-white/80 backdrop-blur-sm -mx-4 px-4">
           <button
             onClick={() => setActiveTab('sidebar')}
             className={`cursor-pointer flex-shrink-0 flex items-center justify-center gap-2 py-3 px-3 text-sm font-semibold transition-all ${
