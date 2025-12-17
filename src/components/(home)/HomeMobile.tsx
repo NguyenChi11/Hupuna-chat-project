@@ -78,7 +78,7 @@ export default function HomeMobile({
   return (
     <div className="block md:hidden relative w-full h-full">
       {selectedChat ? (
-        <div className="absolute inset-0 w-full h-full bg-white flex flex-col z-50">
+        <div className="fixed inset-0 w-full h-full bg-white flex flex-col z-50 overscroll-none touch-none">
           <ChatWindow
             reLoad={fetchAllData}
             allUsers={allUsers}

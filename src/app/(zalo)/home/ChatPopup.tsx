@@ -1895,9 +1895,53 @@ export default function ChatWindow({
     return () => window.removeEventListener('shareMessage', handler as EventListener);
   }, [messages, handleShareMessage, roomId]);
 
+  const viewportRef = useRef<HTMLElement>(null);
+
+  // Fix keyboard overlapping on mobile using VisualViewport API
+  useEffect(() => {
+    const handleVisualViewport = () => {
+      if (!viewportRef.current || !window.visualViewport) return;
+
+      // Trên iOS Safari, khi bàn phím hiện lên, visualViewport.height giảm.
+      // Layout Viewport (body) không đổi kích thước, nhưng visualViewport dịch chuyển.
+      // Ta cần set height của container bằng đúng visualViewport.height để tránh bị che.
+
+      const vv = window.visualViewport;
+
+      // Force scroll to top to prevent document scrolling
+      window.scrollTo(0, 0);
+
+      // Cập nhật height
+      viewportRef.current.style.height = `${vv.height}px`;
+
+      // QUAN TRỌNG: Nếu offsetTop > 0 (bị đẩy lên), ta cần dịch ngược lại
+      // hoặc đảm bảo container nằm đúng vị trí trong visual viewport.
+      // Với position: fixed ở parent (HomeMobile), top luôn là 0 của layout viewport.
+      // Nhưng nếu visual viewport bị pan xuống (offsetTop > 0), ta có thể cần điều chỉnh top?
+      // Thực tế với body fixed + window.scrollTo(0,0), offsetTop thường về 0.
+
+      scrollToBottom();
+    };
+
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener('resize', handleVisualViewport);
+      vv.addEventListener('scroll', handleVisualViewport);
+      // Init
+      handleVisualViewport();
+    }
+
+    return () => {
+      if (vv) {
+        vv.removeEventListener('resize', handleVisualViewport);
+        vv.removeEventListener('scroll', handleVisualViewport);
+      }
+    };
+  }, [scrollToBottom]);
+
   return (
     <ChatProvider value={chatContextValue}>
-      <main className="flex h-full bg-gray-700 sm:overflow-y-hidden overflow-y-auto no-scrollbar">
+      <main ref={viewportRef} className="flex h-full bg-gray-700 overflow-hidden no-scrollbar">
         <div
           className={`flex flex-col h-full relative z-10 bg-gray-100 transition-all duration-300 ${showPopup ? 'sm:w-[calc(100%-21.875rem)]' : 'w-full'} border-r border-gray-200`}
         >
@@ -1947,10 +1991,10 @@ export default function ChatWindow({
           )}
 
           {/* Messages Area */}
-  <div
-    ref={messagesContainerRef}
-    className="relative flex-1 overflow-y-auto p-4 sm:p-4 bg-gray-100 flex flex-col custom-scrollbar"
-  >
+          <div
+            ref={messagesContainerRef}
+            className="relative flex-1 overflow-y-auto p-4 sm:p-4 bg-gray-100 flex flex-col custom-scrollbar"
+          >
             {(initialLoading || loadingMore) && (
               <div className="sticky top-0 z-20 flex items-center justify-center py-2">
                 <div className="h-4 w-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin mr-2" />
@@ -1983,8 +2027,8 @@ export default function ChatWindow({
               onToggleReaction={handleToggleReaction}
               contextMenu={contextMenu}
             />
-    <div ref={messagesEndRef} />
-  </div>
+            <div ref={messagesEndRef} />
+          </div>
 
           <button
             onClick={scrollToBottom}
@@ -2004,7 +2048,24 @@ export default function ChatWindow({
           </button>
 
           {/* Phần Footer (Input Chat) */}
-          <div className="bg-white p-0  border-t rounded-t-xl border-gray-200 relative space-y-1">
+          <div
+            className="bg-white p-0  border-t rounded-t-xl border-gray-200 relative space-y-1"
+            onTouchMove={(e) => {
+              const target = e.target as HTMLElement;
+              // Cho phép scroll nếu đang thao tác trong vùng contenteditable hoặc vùng có scroll
+              if (target.closest('[contenteditable="true"]') || target.closest('.overflow-y-auto')) {
+                return;
+              }
+              e.preventDefault();
+            }}
+            onWheel={(e) => {
+              const target = e.target as HTMLElement;
+              if (target.closest('[contenteditable="true"]') || target.closest('.overflow-y-auto')) {
+                return;
+              }
+              e.preventDefault();
+            }}
+          >
             {/* ... Popup Picker & Inputs ... */}
             <EmojiStickerPicker
               showEmojiPicker={showEmojiPicker}
@@ -2106,7 +2167,15 @@ export default function ChatWindow({
                   );
                 } catch {}
               }}
-              onFocusEditable={() => setShowEmojiPicker(false)}
+              onFocusEditable={() => {
+                setShowEmojiPicker(false);
+                scrollToBottom();
+                setTimeout(scrollToBottom, 0);
+                setTimeout(scrollToBottom, 200);
+                try {
+                  editableRef.current?.scrollIntoView({ block: 'end' });
+                } catch {}
+              }}
               attachments={attachments.map((a) => ({ previewUrl: a.previewUrl, type: a.type, fileName: a.fileName }))}
               onRemoveAttachment={(index) => {
                 setAttachments((prev) => {
