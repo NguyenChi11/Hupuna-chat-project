@@ -364,65 +364,77 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
 
           <div className="flex flex-col w-full h-[30rem] overflow-y-scroll custom-scrollbar">
             {selectedFolderId && selectedChildren.length > 0 && (
-              <div className="mt-3 p-3 rounded-xl bg-white border border-gray-200 shadow-sm mr-2">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold text-gray-800">Thư mục con</p>
+              <div className="mt-3 rounded-xl bg-white border border-gray-200 shadow-sm mr-2">
+                <div className="bg-gradient-to-r rounded-t-xl from-sky-500 via-blue-500 to-blue-500 px-5 py-3.5">
+                  <p className="text-sm font-semibold text-white">Thư mục con</p>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {selectedChildren.map((child: FolderNode) => (
-                    <button
-                      key={child.id}
-                      onClick={() => onSelectFolder(child.id, selectedScope)}
-                      className="cursor-pointer flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm text-gray-800"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FaFolder className="w-5 h-5 text-gray-500" />
-                        <span className="truncate font-semibold">{child.name}</span>
-                      </div>
-                      <span className="ml-2 inline-flex items-center justify-center text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">
-                        {getItemCountById(child.id)}
-                      </span>
-                    </button>
-                  ))}
+                <div className="p-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3  gap-4">
+                    {selectedChildren.map((child: FolderNode) => (
+                      <button
+                        key={child.id}
+                        onClick={() => onSelectFolder(child.id, selectedScope)}
+                        className="group flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-2 py-1.5 text-left transition-all hover:bg-sky-50 hover:shadow hover:ring-1 hover:ring-sky-300"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 transition-colors group-hover:bg-sky-200">
+                            <FaFolder className="h-5 w-5" />
+                          </div>
+                          <span className="truncate text-sm font-medium text-gray-800">{child.name}</span>
+                        </div>
+
+                        <span className="flex-shrink-0 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-medium text-sky-700">
+                          {getItemCountById(child.id)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
             {selectedIds.size > 0 && (
-              <div className="mt-3 p-3 rounded-xl bg-white border border-green-200 shadow-sm mr-2">
+              <div className="mt-2 p-1.5 rounded-xl bg-white border border-green-200 shadow-sm mr-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-800">Lựa chọn</p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs hover:bg-green-700"
-                      onClick={() => {
-                        applySelection();
-                        setShowComplete(true);
-                        props.onClose?.();
-                      }}
-                    >
-                      Đồng ý lựa chọn
-                    </button>
-                    <button
-                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs hover:bg-red-700"
-                      onClick={() => {
-                        if (!selectedFolderId) return;
-                        Array.from(selectedIds).forEach((id) => removeItemFromFolder(selectedFolderId, id));
-                        clearSelection();
-                        setShowComplete(true);
-                      }}
-                    >
-                      Xóa lựa chọn
-                    </button>
-                    <button
-                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs hover:bg-gray-200 border border-gray-200"
-                      onClick={() => {
-                        clearSelection();
-                        setShowComplete(true);
-                      }}
-                    >
-                      Bỏ chọn tất cả
-                    </button>
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-2.5 rounded-xl">
+                    <p className="text-sm font-semibold text-white">Lựa chọn ({selectedIds.size})</p>
+                  </div>
+                  {/* Nút hành động */}
+                  <div className="p-1">
+                    <div className="flex flex-wrap items-center justify-end gap-3">
+                      <button
+                        onClick={() => {
+                          applySelection();
+                          setShowComplete(true);
+                          props.onClose?.();
+                        }}
+                        className="rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg transition-all"
+                      >
+                        Đồng ý lựa chọn
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (!selectedFolderId) return;
+                          Array.from(selectedIds).forEach((id) => removeItemFromFolder(selectedFolderId, id));
+                          clearSelection();
+                          setShowComplete(true);
+                        }}
+                        className="rounded-xl bg-gradient-to-r from-red-500 to-rose-600 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg transition-all"
+                      >
+                        Xóa lựa chọn
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          clearSelection();
+                          setShowComplete(true);
+                        }}
+                        className="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:shadow-sm transition-all"
+                      >
+                        Bỏ chọn tất cả
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

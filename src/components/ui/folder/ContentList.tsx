@@ -243,30 +243,40 @@ export default function ContentList({
     <>
       <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 mr-2">{items.map(renderTile)}</div>
       {renameOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl">
-            <h3 className="text-base font-semibold text-gray-900">Đổi tên mục</h3>
-            <input
-              value={renameInput}
-              onChange={(e) => setRenameInput(e.target.value)}
-              className="mt-3 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
-              placeholder="Tên mới..."
-              autoFocus
-            />
-            <div className="mt-4 flex items-center justify-end gap-2">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+            {/* Header với gradient */}
+            <div className="bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 px-6 py-5">
+              <h3 className="text-xl font-bold text-white">Đổi tên mục</h3>
+              <p className="mt-1 text-sm text-sky-100">Nhập tên mới cho mục này</p>
+            </div>
+
+            {/* Body */}
+            <div className="p-6">
+              <input
+                value={renameInput}
+                onChange={(e) => setRenameInput(e.target.value)}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-shadow placeholder:text-gray-400"
+                placeholder="Tên mới..."
+                autoFocus
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4">
               <button
                 onClick={() => {
                   setRenameOpen(false);
                   setRenameItemId(null);
                 }}
-                className="rounded-xl border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
+                className="rounded-xl px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
               >
                 Hủy
               </button>
               <button
                 onClick={confirmRename}
                 disabled={!renameInput.trim()}
-                className="rounded-xl bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+                className="rounded-xl bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 px-6 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 Xác nhận
               </button>
