@@ -20,6 +20,7 @@ import { useChatContext } from '@/context/ChatContext';
 import FolderDashboard from '@/components/(chatPopup)/components/Folder/FolderDashboard';
 import FolderSaveWizard from '@/components/(chatPopup)/components/Folder/FolderSaveWizard';
 import ChatFlashDashboard from '@/components/(chatPopup)/components/Chat-Flash/ChatFlashDashboard';
+import UploadProgressBar from '@/components/(chatPopup)/UploadProgressBar';
 
 interface ChatInputProps {
   showEmojiPicker: boolean;
@@ -38,6 +39,9 @@ interface ChatInputProps {
   attachments: { previewUrl: string; type: 'image' | 'video' | 'file'; fileName?: string }[];
   onRemoveAttachment: (index: number) => void;
   onClearAttachments: () => void;
+  isUploading?: boolean;
+  uploadingCount?: number;
+  overallUploadPercent?: number;
 }
 
 export default function ChatInput({
@@ -56,6 +60,9 @@ export default function ChatInput({
   attachments,
   onRemoveAttachment,
   onClearAttachments,
+  isUploading = false,
+  uploadingCount = 0,
+  overallUploadPercent = 0,
 }: ChatInputProps) {
   const { currentUser, selectedChat, isGroup } = useChatContext();
   const getId = (u: unknown): string => {
@@ -195,7 +202,11 @@ export default function ChatInput({
   };
   return (
     <div className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50">
-      {attachments && attachments.length > 0 && (
+      {isUploading ? (
+        <div className="mb-2">
+          <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallUploadPercent} />
+        </div>
+      ) : attachments && attachments.length > 0 ? (
         <div className="mb-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600">
@@ -238,7 +249,7 @@ export default function ChatInput({
             ))}
           </div>
         </div>
-      )}
+      ) : null}
       {/* Toolbar trái – Sang trọng như Zalo Premium */}
       <div className="flex items-center gap-2 md:mb-2 mb-0">
         {/* Emoji */}

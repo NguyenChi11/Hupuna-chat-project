@@ -223,6 +223,27 @@ export default function ChatWindow({
     return { online, text };
   }, [isGroup, selectedChat, allUsers]);
 
+  const scrollToBottom = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    const end = messagesEndRef.current;
+    if (end && typeof end.scrollIntoView === 'function') {
+      end.scrollIntoView({ block: 'end' });
+    }
+    setPendingNewCount(0);
+    pendingNewCountRef.current = 0;
+    hasScrolledUpRef.current = false;
+    setShowScrollDown(false);
+  }, []);
+
+  const ensureBottom = useCallback(() => {
+    scrollToBottom();
+    setTimeout(scrollToBottom, 0);
+    setTimeout(scrollToBottom, 100);
+    setTimeout(scrollToBottom, 300);
+  }, [scrollToBottom]);
+
   const sendMessageProcess = useCallback(
     async (msgData: MessageCreate) => {
       try {
@@ -231,12 +252,7 @@ export default function ChatWindow({
         if (json.success && typeof json._id === 'string') {
           const newId = json._id;
           setMessages((prev) => [...prev, { ...msgData, _id: newId } as Message]);
-          setTimeout(() => {
-            const el = messagesContainerRef.current;
-            if (el) {
-              el.scrollTop = el.scrollHeight;
-            }
-          }, 0);
+          ensureBottom();
           const socketData = {
             ...msgData,
             _id: newId,
@@ -254,7 +270,7 @@ export default function ChatWindow({
         console.error('Save message error:', error);
       }
     },
-    [roomId, currentUser, isGroup, selectedChat],
+    [roomId, currentUser, isGroup, selectedChat, ensureBottom],
   );
 
   const startCall = useCallback(
@@ -361,20 +377,6 @@ export default function ChatWindow({
     },
     [roomId, currentUser._id, sendMessageProcess],
   );
-
-  const scrollToBottom = useCallback(() => {
-    const el = messagesContainerRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-    const end = messagesEndRef.current;
-    if (end && typeof end.scrollIntoView === 'function') {
-      end.scrollIntoView({ block: 'end' });
-    }
-    setPendingNewCount(0);
-    pendingNewCountRef.current = 0;
-    hasScrolledUpRef.current = false;
-    setShowScrollDown(false);
-  }, []);
 
   const { uploadingFiles, handleUploadAndSend } = useChatUpload({
     roomId,
@@ -926,6 +928,14 @@ export default function ChatWindow({
     return () => clearTimeout(timer);
   }, [scrollToMessageId, initialLoading, oldestTs, messages.length, handleJumpToMessage, onScrollComplete]);
 
+  // Khi giao diện footer thay đổi (mở emoji, reply, mention...), cuộn xuống để tránh bị che
+  useEffect(() => {
+    scrollToBottom();
+    // Thêm delay nhỏ để đảm bảo DOM đã cập nhật height của footer
+    setTimeout(scrollToBottom, 50);
+    setTimeout(scrollToBottom, 150);
+  }, [showEmojiPicker, pickerTab, replyingTo, showMentionMenu, attachments.length, scrollToBottom]);
+
   const { isListening, handleVoiceInput } = useChatVoiceInput({
     editableRef,
     handleInputChangeEditable,
@@ -959,6 +969,7 @@ export default function ChatWindow({
 
   const handleSendSticker = useCallback(
     async (url: string) => {
+      ensureBottom();
       const newMsg: MessageCreate = {
         roomId,
         sender: currentUser._id,
@@ -969,7 +980,7 @@ export default function ChatWindow({
       await sendMessageProcess(newMsg);
       setShowEmojiPicker(false);
     },
-    [roomId, currentUser._id, sendMessageProcess],
+    [roomId, currentUser._id, sendMessageProcess, ensureBottom],
   );
 
   const fetchPinnedMessages = useCallback(async () => {
@@ -2052,7 +2063,7 @@ export default function ChatWindow({
               onToggleReaction={handleToggleReaction}
               contextMenu={contextMenu}
             />
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>
 
           <button
@@ -2095,11 +2106,6 @@ export default function ChatWindow({
                 mentionMenuRef={mentionMenuRef}
                 onSelectMention={selectMention}
               />
-            )}
-
-            {/* Thanh loading tổng khi đang tải ảnh / video */}
-            {hasUploading && (
-              <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallUploadPercent} />
             )}
 
             <ChatInput
@@ -2207,6 +2213,9 @@ export default function ChatWindow({
                   return [];
                 });
               }}
+              isUploading={hasUploading}
+              uploadingCount={uploadingCount}
+              overallUploadPercent={overallUploadPercent}
             />
           </div>
         </div>

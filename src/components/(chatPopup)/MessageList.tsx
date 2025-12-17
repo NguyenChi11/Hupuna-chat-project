@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { Message } from '@/types/Message';
 import type { User } from '@/types/User';
@@ -86,6 +86,24 @@ export default function MessageList({
   const [activeMoreId, setActiveMoreId] = useState<string | null>(null);
   const [detailMsg, setDetailMsg] = useState<Message | null>(null);
   const [reactionDetail, setReactionDetail] = useState<{ msgId: string; emoji: string } | null>(null);
+
+  // Đóng menu reaction/folder khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (activeMoreId) {
+        const activeWrapper = document.getElementById(`msg-${activeMoreId}`);
+        // Nếu click không nằm trong wrapper của tin nhắn đang active thì đóng lại
+        if (activeWrapper && !activeWrapper.contains(event.target as Node)) {
+          setActiveMoreId(null);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [activeMoreId]);
 
   const formatTimestamp = (ts: number) => {
     const d = new Date(ts);
