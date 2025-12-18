@@ -176,7 +176,6 @@ export function useCall(currentUser: User | null, socket: Socket | null) {
         if (peerConnection.connectionState === 'failed') {
           console.error('❌ Connection failed with:', userId);
         } else if (peerConnection.connectionState === 'connected') {
-          console.log('✅ Connected with:', userId);
         }
       };
 

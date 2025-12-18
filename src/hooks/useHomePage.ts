@@ -371,61 +371,51 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
 
   // Thay thế hàm handleNavigateToMessage trong useHomePage.ts
 
-const handleNavigateToMessage = useCallback(
-  (message: GlobalSearchMessage) => {
-    let targetChat: ChatItem | null = null;
-    const myId = String(currentUser?._id);
+    const handleNavigateToMessage = useCallback(
+      (message: GlobalSearchMessage) => {
+        let targetChat: ChatItem | null = null;
+        const myId = String(currentUser?._id);
 
-    // 1. Tìm chat target
-    if (message.isGroupChat === true && message.roomId) {
-      targetChat = groups.find((g) => String(g._id) === String(message.roomId)) ?? null;
-    } else if (message.isGroupChat === false) {
-      let partnerId: string | null = null;
-      if (message.partnerId) {
-        partnerId = String(message.partnerId);
-      } else if (message.roomId && message.roomId.includes('_')) {
-        const parts = message.roomId.split('_');
-        partnerId = parts[0] === myId ? parts[1] : parts[0];
-      } else {
-        const senderId = String(message.sender);
-        const receiverId = message.receiver ? String(message.receiver) : null;
-        partnerId = senderId === myId ? receiverId : senderId;
-      }
+        // 1. Tìm chat target
+        if (message.isGroupChat === true && message.roomId) {
+          targetChat = groups.find((g) => String(g._id) === String(message.roomId)) ?? null;
+        } else if (message.isGroupChat === false) {
+          let partnerId: string | null = null;
+          if (message.partnerId) {
+            partnerId = String(message.partnerId);
+          } else if (message.roomId && message.roomId.includes('_')) {
+            const parts = message.roomId.split('_');
+            partnerId = parts[0] === myId ? parts[1] : parts[0];
+          } else {
+            const senderId = String(message.sender);
+            const receiverId = message.receiver ? String(message.receiver) : null;
+            partnerId = senderId === myId ? receiverId : senderId;
+          }
 
-      if (partnerId) {
-        targetChat = allUsers.find((u) => String(u._id) === partnerId) ?? null;
-      }
-    }
+          if (partnerId) {
+            targetChat = allUsers.find((u) => String(u._id) === partnerId) ?? null;
+          }
+        }
 
-    // 2. Nếu tìm thấy chat, mở và scroll đến tin nhắn
-    if (targetChat) {
-      console.log('🎯 [GLOBAL SEARCH] Navigating to message:', {
-        messageId: message._id,
-        roomId: message.roomId,
-        chatName: targetChat.name,
-        isGroup: message.isGroupChat,
-      });
+        // 2. Nếu tìm thấy chat, mở và scroll đến tin nhắn
+        if (targetChat) {
+          setShowGlobalSearchModal(false);
+          handleSelectChat(targetChat);
 
-      setShowGlobalSearchModal(false);
+          setTimeout(() => {
+            setScrollToMessageId(String(message._id));
+          }, 200);
+        } else {
+          // Fallback: Refetch data và thử lại
+          console.warn('❌ Chat not found locally. Refetching data...');
+          fetchAllData().then(() => {
+            alert('Không tìm thấy cuộc trò chuyện. Đã tải lại dữ liệu, vui lòng thử lại.');
+          });
+        }
+      },
+      [groups, allUsers, currentUser, fetchAllData, handleSelectChat],
+    );
 
-      handleSelectChat(targetChat);
-
-      setTimeout(() => {
-        setScrollToMessageId(String(message._id));
-      }, 200);
-    } else {
-      // Fallback: Refetch data và thử lại
-      console.warn('❌ Chat not found locally. Refetching data...');
-      fetchAllData().then(() => {
-        alert('Không tìm thấy cuộc trò chuyện. Đã tải lại dữ liệu, vui lòng thử lại.');
-      });
-    }
-  },
-  [groups, allUsers, currentUser, fetchAllData, handleSelectChat],
-);
-  // ============================================================
-  // 🔥 FETCH CURRENT USER
-  // ============================================================
   useEffect(() => {
     const fetchCurrentUser = async () => {
       setIsLoading(true);

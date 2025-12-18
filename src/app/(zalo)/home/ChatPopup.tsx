@@ -841,8 +841,6 @@ export default function ChatWindow({
 
   const handleJumpToMessage = useCallback(
     async (messageId: string) => {
-      console.log('🚀 [JUMP] Starting jump to message:', messageId);
-
       jumpLoadingRef.current = true;
       const container = messagesContainerRef.current;
 
@@ -872,7 +870,6 @@ export default function ChatWindow({
         const element = document.getElementById(elementId);
 
         if (element) {
-          console.log(`✅ [JUMP] Element found (attempt ${attempt + 1}), scrolling...`);
           centerElement(element as HTMLElement);
 
           setHighlightedMsgId(messageId);
@@ -892,7 +889,6 @@ export default function ChatWindow({
         }
 
         if (attempt < 10) {
-          console.log(`⏳ [JUMP] Element not found, retry ${attempt + 1}/10...`);
           setTimeout(() => scrollToElement(elementId, attempt + 1), 200);
           return false;
         }
@@ -905,7 +901,6 @@ export default function ChatWindow({
       // 1️⃣ Check nếu message đã có trong DOM
       const existingElement = document.getElementById(`msg-${messageId}`);
       if (existingElement) {
-        console.log('✅ [JUMP] Message already in DOM');
         scrollToElement(`msg-${messageId}`);
         return;
       }
@@ -913,14 +908,10 @@ export default function ChatWindow({
       // 2️⃣ Check nếu message đã có trong state (đã load nhưng chưa render)
       const messageInState = messages.find((m) => String(m._id) === String(messageId));
       if (messageInState) {
-        console.log('✅ [JUMP] Message in state, waiting for render...');
         // Wait for render then scroll
         setTimeout(() => scrollToElement(`msg-${messageId}`), 100);
         return;
       }
-
-      // 3️⃣ Load message from server
-      console.log('📡 [JUMP] Loading message from server...');
 
       try {
         // Get target message info
@@ -941,7 +932,6 @@ export default function ChatWindow({
         }
 
         const targetTs = Number(targetMessage.timestamp);
-        console.log('✅ [JUMP] Target message found:', { messageId, timestamp: targetTs });
 
         // Load surrounding messages (100 messages before + 50 after)
         const [olderRes, newerRes] = await Promise.all([
@@ -964,11 +954,7 @@ export default function ChatWindow({
         const olderAsc = olderMessages.reverse();
         const allNewMessages = [...olderAsc, ...newerMessages];
 
-        console.log('📊 [JUMP] Loaded messages:', {
-          older: olderMessages.length,
-          newer: newerMessages.length,
-          total: allNewMessages.length,
-        });
+      
 
         // Update messages state
         const existingIds = new Set(messages.map((m) => String(m._id)));
@@ -985,7 +971,6 @@ export default function ChatWindow({
               return ta - tb;
             });
 
-            console.log('✅ [JUMP] Messages updated, total:', combined.length);
             return combined;
           });
 
