@@ -23,6 +23,7 @@ interface SidebarMobileMenuProps {
   onOpenGlobalFolder: () => void;
   buttonRef: React.RefObject<HTMLButtonElement | null>;
   onlyGroups?: boolean;
+  onlyPersonal?: boolean;
 }
 
 export default function SidebarMobileMenu({
@@ -35,6 +36,7 @@ export default function SidebarMobileMenu({
   onOpenGlobalFolder,
   buttonRef,
   onlyGroups = false,
+  onlyPersonal = false,
 }: SidebarMobileMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -65,7 +67,12 @@ export default function SidebarMobileMenu({
       ? ['all', 'group', 'personal', 'unread', 'read', 'hidden']
       : ['all', 'group', 'personal', 'unread', 'read'];
 
-  const displayedFilters = onlyGroups ? filters.filter((f) => f !== 'personal') : filters;
+  let displayedFilters = filters;
+  if (onlyGroups) {
+    displayedFilters = filters.filter((f) => f !== 'personal');
+  } else if (onlyPersonal) {
+    displayedFilters = filters.filter((f) => f !== 'group');
+  }
 
   return (
     <div
@@ -74,18 +81,20 @@ export default function SidebarMobileMenu({
     >
       <div className="space-y-1">
         {/* Actions */}
-        <button
-          onClick={() => {
-            onOpenCreateGroup();
-            onClose();
-          }}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/50 transition-colors text-gray-700 font-medium"
-        >
-          <div className="p-1.5 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-md">
-            <FaPlus className="w-4 h-4" />
-          </div>
-          <span>Tạo nhóm mới</span>
-        </button>
+        {!onlyPersonal && (
+          <button
+            onClick={() => {
+              onOpenCreateGroup();
+              onClose();
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/50 transition-colors text-gray-700 font-medium"
+          >
+            <div className="p-1.5 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-md">
+              <FaPlus className="w-4 h-4" />
+            </div>
+            <span>Tạo nhóm mới</span>
+          </button>
+        )}
 
         <button
           onClick={() => {
