@@ -92,16 +92,30 @@ export default function MessageList({
     const handleClickOutside = (event: MouseEvent) => {
       if (activeMoreId) {
         const activeWrapper = document.getElementById(`msg-${activeMoreId}`);
-        // Nếu click không nằm trong wrapper của tin nhắn đang active thì đóng lại
         if (activeWrapper && !activeWrapper.contains(event.target as Node)) {
           setActiveMoreId(null);
         }
       }
     };
+    const handleVisibilityChange = () => {
+      if (document.hidden) setActiveMoreId(null);
+    };
+    const handleWindowBlur = () => {
+      setActiveMoreId(null);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveMoreId(null);
+    };
 
     document.addEventListener('click', handleClickOutside);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [activeMoreId]);
 
@@ -582,7 +596,7 @@ export default function MessageList({
                   flex gap-2 group relative
                   ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
                   ${isGrouped ? 'mt-1' : 'mt-4'}
-                  ${isLastMsg ? 'mb-4' : ''}
+                  ${isLastMsg ? 'mb-8' : ''}
                   ${highlightedMsgId === msg._id ? 'bg-yellow-50 rounded-xl' : ''}
                 `}
               >
