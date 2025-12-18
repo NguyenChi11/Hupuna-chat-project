@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Message } from '@/types/Message';
 import { User } from '@/types/User';
 import Image from 'next/image';
@@ -17,6 +17,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Message[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchSearchResults = useCallback(
     async (query: string) => {
@@ -77,8 +78,16 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
 
   const handleJump = (messageId: string) => {
     onJumpToMessage(messageId);
-    // Tùy chọn: Đóng sidebar tìm kiếm sau khi nhảy
-    onClose();
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+    if (isMobile) {
+      setTimeout(() => {
+        onClose();
+      }, 0);
+    } else {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 900);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -120,7 +129,8 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
             className="flex-1 border-b outline-none p-2  text-sm "
-            disabled={isSearching}
+            ref={inputRef}
+            autoFocus
           />
           <button
             onClick={() => fetchSearchResults(searchTerm)}
