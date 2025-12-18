@@ -13,6 +13,10 @@ import {
   HiSparkles,
   HiFolder,
   HiEllipsisHorizontal,
+  HiMapPin,
+  HiChartBar,
+  HiIdentification,
+  HiPencil,
 } from 'react-icons/hi2';
 import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
 import Image from 'next/image';
@@ -92,6 +96,7 @@ export default function ChatInput({
   const [showMobileActions, setShowMobileActions] = useState(false);
   const mobileActionsRef = useRef<HTMLDivElement | null>(null);
   const toggleMobileActionsBtnRef = useRef<HTMLButtonElement | null>(null);
+  const pendingFocusRef = useRef(false);
 
   useEffect(() => {
     const init = async () => {
@@ -132,7 +137,32 @@ export default function ChatInput({
       const target = e.target as Node | null;
       if (mobileActionsRef.current && target && mobileActionsRef.current.contains(target)) return;
       if (toggleMobileActionsBtnRef.current && target && toggleMobileActionsBtnRef.current.contains(target)) return;
+      const el = editableRef.current;
       setShowMobileActions(false);
+      try {
+        window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+      } catch {}
+      if (el) {
+        try {
+          el.focus();
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          range.collapse(false);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        } catch {}
+        setTimeout(() => {
+          try {
+            el.focus();
+          } catch {}
+        }, 80);
+        setTimeout(() => {
+          try {
+            el.focus();
+          } catch {}
+        }, 160);
+      }
     };
     document.addEventListener('mousedown', onDoc, true);
     document.addEventListener('touchstart', onDoc, true);
@@ -140,6 +170,33 @@ export default function ChatInput({
       document.removeEventListener('mousedown', onDoc, true);
       document.removeEventListener('touchstart', onDoc, true);
     };
+  }, [showMobileActions]);
+
+  useEffect(() => {
+    if (!showMobileActions && pendingFocusRef.current) {
+      pendingFocusRef.current = false;
+      const el = editableRef.current;
+      if (el) {
+        try {
+          requestAnimationFrame(() => {
+            try {
+              el.focus();
+              const range = document.createRange();
+              range.selectNodeContents(el);
+              range.collapse(false);
+              const sel = window.getSelection();
+              sel?.removeAllRanges();
+              sel?.addRange(range);
+            } catch {}
+            setTimeout(() => {
+              try {
+                el.focus();
+              } catch {}
+            }, 120);
+          });
+        } catch {}
+      }
+    }
   }, [showMobileActions]);
 
   useEffect(() => {
@@ -351,6 +408,50 @@ export default function ChatInput({
           <div
             ref={editableRef}
             contentEditable
+            inputMode="text"
+            role="textbox"
+            aria-multiline="true"
+            onMouseDown={() => {
+              if (showMobileActions) {
+                pendingFocusRef.current = true;
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }
+            }}
+            onTouchStart={() => {
+              if (showMobileActions) {
+                pendingFocusRef.current = true;
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }
+            }}
+            onClick={() => {
+              setShowMobileActions(false);
+              try {
+                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+              } catch {}
+              const el = editableRef.current;
+              if (el) {
+                try {
+                  el.focus();
+                  const range = document.createRange();
+                  range.selectNodeContents(el);
+                  range.collapse(false);
+                  const sel = window.getSelection();
+                  sel?.removeAllRanges();
+                  sel?.addRange(range);
+                } catch {}
+                setTimeout(() => {
+                  try {
+                    el.focus();
+                  } catch {}
+                }, 100);
+              }
+            }}
             onInput={() => {
               onInputEditable();
               updateSlashState();
@@ -453,7 +554,15 @@ export default function ChatInput({
         <div className="md:hidden relative flex items-center gap-2">
           <button
             ref={toggleMobileActionsBtnRef}
-            onClick={() => setShowMobileActions((v) => !v)}
+            onClick={() =>
+              setShowMobileActions((v) => {
+                const next = !v;
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: next } }));
+                } catch {}
+                return next;
+              })
+            }
             className="p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90"
             aria-label="Mở thêm hành động"
           >
@@ -510,28 +619,39 @@ export default function ChatInput({
       </div>
 
       {showMobileActions && (
-        <div ref={mobileActionsRef} className="md:hidden w-full mt-2 flex items-center justify-between mx-auto">
-          <button
-            onClick={() => {
-              setShowFolderDashboard(true);
-              setShowMobileActions(false);
-            }}
-            className="group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
-            aria-label="Mở dashboard Folder"
-          >
-            <div className="flex items-center gap-2">
-              <HiFolder className="w-6 h-6 text-orange-600 group-hover:scale-110 transition-transform" />
-              <span className="text-xs text-gray-700 truncate">Folder</span>
+        <div
+          ref={mobileActionsRef}
+          className="md:hidden w-full mt-2 grid grid-cols-4 gap-2 items-center justify-between mx-auto"
+        >
+          <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiFolder className="w-6 h-6 text-orange-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
-          </button>
-          <label
-            className="group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
-            aria-label="Gửi ảnh hoặc video"
-          >
-            <div className="flex items-center gap-2">
-              <HiPhoto className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" />
-              <span className="text-xs text-gray-700 truncate">Ảnh/Video</span>
+            <span className="text-sm font-medium text-gray-800">Thư Mục</span>
+            <input
+              type="button"
+              className="sr-only"
+              onClick={() => {
+                setShowFolderDashboard(true);
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }}
+            />
+          </label>
+          <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Gửi ảnh hoặc video">
+            {/* Background tròn bao quanh icon */}
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200  shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiPhoto className="w-6 h-6 text-blue-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              {/* Tùy chọn: thêm hiệu ứng nổi nhẹ cho icon */}
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
+
+            {/* Chữ bên dưới */}
+            <span className="text-sm font-medium text-gray-800">Ảnh/Video</span>
+
             <input
               type="file"
               accept="image/*,video/*"
@@ -541,18 +661,19 @@ export default function ChatInput({
                 files.forEach((f) => onSelectImage(f));
                 e.target.value = '';
                 setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
               }}
               multiple
             />
           </label>
-          <label
-            className="group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
-            aria-label="Gửi file"
-          >
-            <div className="flex items-center gap-2">
-              <HiPaperClip className="w-6 h-6 text-green-600 group-hover:scale-110 transition-transform rotate-12" />
-              <span className="text-xs text-gray-700 truncate">File</span>
+          <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Gửi file">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiPaperClip className="w-6 h-6 text-green-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200 rotate-12" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
+            <span className="text-sm font-medium text-gray-800">File</span>
             <input
               type="file"
               className="sr-only"
@@ -562,6 +683,9 @@ export default function ChatInput({
                 files.forEach((f) => onSelectFile(f));
                 e.target.value = '';
                 setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
               }}
             />
           </label>
@@ -569,19 +693,72 @@ export default function ChatInput({
             onClick={() => {
               onVoiceInput();
               setShowMobileActions(false);
+              try {
+                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+              } catch {}
             }}
-            className={`relative p-2 rounded-3xl cursor-pointer transition-all duration-500 shadow-2xl ${
-              isListening
-                ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white animate-pulse ring-4 ring-red-300/50 scale-110'
-                : 'bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 hover:scale-105'
-            }`}
+            className="group relative cursor-pointer flex flex-col items-center"
             aria-label="Nhập bằng giọng nói"
           >
-            <div className="flex items-center gap-2">
-              <HiMicrophone className="w-6 h-6" />
-              <span className="text-xs text-gray-700 truncate">Voice</span>
+            <div
+              className={`relative w-12 h-12 mb-3 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl ${
+                isListening
+                  ? 'bg-gradient-to-br from-red-500 to-pink-600 ring-4 ring-red-300/50 scale-110'
+                  : 'bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300'
+              }`}
+            >
+              <HiMicrophone
+                className={`w-6 h-6 ${
+                  isListening ? 'text-white' : 'text-gray-700'
+                } drop-shadow-md group-hover:scale-110 transition-transform duration-200`}
+              />
+              {isListening && <div className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
             </div>
-            {isListening && <div className="absolute inset-0 rounded-3xl bg-red-500/30 animate-ping" />}
+            <span className="text-sm font-medium text-gray-800">Voice</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Vị trí">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 hover:from-rose-200 hover:to-pink-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiMapPin className="w-6 h-6 text-rose-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Vị trí</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Bình chọn">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 hover:from-indigo-200 hover:to-blue-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiChartBar className="w-6 h-6 text-blue-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Bình chọn</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Chat nhanh">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 hover:from-violet-200 hover:to-purple-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiLightningBolt className="w-6 h-6 text-yellow-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Chat nhanh</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Danh thiếp">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 hover:from-teal-200 hover:to-cyan-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiIdentification className="w-6 h-6 text-teal-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Danh thiếp</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Vẽ hình">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-purple-100 to-fuchsia-100 hover:from-purple-200 hover:to-fuchsia-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiPencil className="w-6 h-6 text-purple-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Vẽ hình</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="@GIF">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-slate-100 to-gray-100 hover:from-slate-200 hover:to-gray-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <span className="text-xs font-black text-gray-700 drop-shadow-md group-hover:scale-110 transition-transform duration-200">
+                @GIF
+              </span>
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">@GIF</span>
           </button>
         </div>
       )}

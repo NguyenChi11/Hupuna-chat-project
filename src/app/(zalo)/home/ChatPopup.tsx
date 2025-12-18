@@ -936,6 +936,16 @@ export default function ChatWindow({
     setTimeout(scrollToBottom, 150);
   }, [showEmojiPicker, pickerTab, replyingTo, showMentionMenu, attachments.length, scrollToBottom]);
 
+  useEffect(() => {
+    const handler = () => {
+      scrollToBottom();
+      setTimeout(scrollToBottom, 50);
+      setTimeout(scrollToBottom, 150);
+    };
+    window.addEventListener('mobileActionsToggle', handler);
+    return () => window.removeEventListener('mobileActionsToggle', handler);
+  }, [scrollToBottom]);
+
   const { isListening, handleVoiceInput } = useChatVoiceInput({
     editableRef,
     handleInputChangeEditable,
