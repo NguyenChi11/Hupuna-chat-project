@@ -5,7 +5,15 @@ import SidebarMenu from '../(menu)/menu';
 import { useRouter, usePathname } from 'next/navigation';
 
 // React Icons – Bộ hiện đại nhất 2025
-import { HiChatBubbleLeftRight, HiUserGroup, HiPhoto, HiUserCircle, HiCog6Tooth, HiSparkles } from 'react-icons/hi2';
+import {
+  HiChatBubbleLeftRight,
+  HiUserGroup,
+  HiPhoto,
+  HiUserCircle,
+  HiCog6Tooth,
+  HiSparkles,
+  HiRectangleGroup,
+} from 'react-icons/hi2';
 
 const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [isAuthed, setIsAuthed] = useState<boolean>(false);
@@ -112,8 +120,9 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
 
   const mobileTabs = [
     { key: 'home', label: 'Tin nhắn', paths: ['/home', '/chat', '/'], icon: HiChatBubbleLeftRight },
-    // { key: 'directory', label: 'Danh bạ', paths: ['/directory'], icon: HiUserGroup },
-    // { key: 'moments', label: 'Tường', paths: ['/moments', '/timeline'], icon: HiPhoto },
+    { key: 'group', label: 'Nhóm', paths: ['/group'], icon: HiRectangleGroup },
+    { key: 'directory', label: 'Danh bạ', paths: ['/directory'], icon: HiUserGroup },
+    { key: 'moments', label: 'Tường', paths: ['/moments', '/timeline'], icon: HiPhoto },
     { key: 'profile', label: 'Cá nhân', paths: ['/profile', '/me'], icon: HiUserCircle },
   ];
 

@@ -20,7 +20,7 @@ interface MessageFilterProps {
   };
 }
 
-const FILTER_CONFIG: Record<FilterType, { label: string; icon: React.ElementType; color: string }> = {
+export const FILTER_CONFIG: Record<FilterType, { label: string; icon: React.ElementType; color: string }> = {
   all: { label: 'Tất cả', icon: HiChatBubbleLeftRight, color: 'indigo' },
   group: { label: 'Nhóm', icon: HiUsers, color: 'purple' },
   personal: { label: 'Cá nhân', icon: HiUserCircle, color: 'pink' },
