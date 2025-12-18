@@ -27,6 +27,11 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [item.avatar]);
 
   const unreadCount = item.unreadCount || 0;
   const isPinned = !!item.isPinned;
@@ -48,7 +53,6 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
     return user.name || user.username || 'Người dùng';
   }, [item, isGroup]);
 
-  const avatarChar = displayName.charAt(0).toUpperCase();
   const lastMessage = item.lastMessage || (isGroup ? 'Nhóm mới tạo' : 'Bắt đầu trò chuyện');
   const timeDisplay = formatTimeAgo(item.lastMessageAt);
 
@@ -166,16 +170,23 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
                 }
               `}
             >
-              {item.avatar ? (
+              {item.avatar && !imgError ? (
                 <Image
                   src={getProxyUrl(item.avatar)}
                   alt={displayName}
                   width={64}
                   height={64}
                   className="w-full h-full object-cover"
+                  onError={() => setImgError(true)}
                 />
               ) : (
-                <span>{avatarChar}</span>
+                <Image
+                  src="/logo/avata.webp"
+                  alt={displayName}
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-cover"
+                />
               )}
             </div>
 

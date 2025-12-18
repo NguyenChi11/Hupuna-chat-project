@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { getProxyUrl } from '../../utils/utils';
 
@@ -48,6 +48,11 @@ export default function ChatHeader({
   onVideoCall,
 }: ChatHeaderProps) {
   const avatarChar = chatName?.trim()?.charAt(0)?.toUpperCase() || (isGroup ? 'N' : 'U');
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [avatar]);
 
   return (
     <div className="flex items-center cursor-pointer justify-between px-2 bg-white border-b border-gray-200 shadow-sm">
@@ -72,16 +77,23 @@ export default function ChatHeader({
             ${isGroup ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gradient-to-br from-gray-400 to-gray-600'}
           `}
           >
-            {avatar ? (
+            {avatar && !imgError ? (
               <Image
                 src={getProxyUrl(avatar)}
                 alt={chatName}
                 width={40}
                 height={40}
                 className="w-full h-full object-cover"
+                onError={() => setImgError(true)}
               />
             ) : (
-              <span className="text-xl">{avatarChar}</span>
+              <Image
+                src="/logo/avata.webp"
+                alt={chatName}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+              />
             )}
           </div>
 

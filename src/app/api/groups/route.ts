@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
           isGroup: true,
           createdBy: data.createdBy as string,
           createdAt: Date.now(),
+          avatar: data.avatar,
         };
 
         const newId = await addRow<GroupConversationCreate>(GROUP_COLLECTION_NAME, finalData);
