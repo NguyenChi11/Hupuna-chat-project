@@ -7,11 +7,20 @@ import { User } from '../../types/User';
 import type { GroupConversation, ChatItem as ChatItemType } from '../../types/Group';
 import { getProxyUrl } from '../../utils/utils';
 import MessageFilter, { FilterType } from '../(chatPopup)/MessageFilter';
+import SidebarMobileMenu from './SidebarMobileMenu';
+
 import Image from 'next/image';
 import { FaPlus } from 'react-icons/fa6';
 
 // React Icons – Bộ hiện đại nhất 2025
-import { HiMagnifyingGlass, HiXMark, HiUserCircle, HiChatBubbleLeftRight, HiFolder } from 'react-icons/hi2';
+import {
+  HiMagnifyingGlass,
+  HiXMark,
+  HiUserCircle,
+  HiChatBubbleLeftRight,
+  HiFolder,
+  HiEllipsisVertical,
+} from 'react-icons/hi2';
 import { useRouter, usePathname } from 'next/navigation';
 import { useFolderController } from '@/components/controller/useFolderController';
 import DesktopLayout from '@/components/layout/folder/DesktopLayout';
@@ -33,6 +42,8 @@ interface SidebarProps {
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroup: boolean) => void;
   onNavigateToMessage: (message: Message) => void;
   styleWidget?: string;
+  onlyGroups?: boolean;
+  onlyPersonal?: boolean;
 }
 
 interface Message {
@@ -135,6 +146,8 @@ export default function Sidebar({
   onChatAction,
   onNavigateToMessage,
   styleWidget = '',
+  onlyGroups = false,
+  onlyPersonal = false,
 }: SidebarProps) {
   const currentUserId = currentUser._id;
   const [activeTab, setActiveTab] = useState<'all' | 'contacts' | 'messages' | 'files'>('all');
@@ -151,6 +164,8 @@ export default function Sidebar({
   const isWidgetIframe = pathname === '/chat-iframe' || (pathname?.startsWith('/chat-iframe') ?? false);
   const [showGlobalFolder, setShowGlobalFolder] = useState(false);
   const [showRoomsSharedFolder, setShowRoomsSharedFolder] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
 
   // === TẤT CẢ LOGIC GIỮ NGUYÊN NHƯ BẠN ĐÃ VIẾT ===
   const handleGlobalSearch = useCallback(
@@ -161,7 +176,13 @@ export default function Sidebar({
       }
 
       const lowerCaseTerm = term.toLowerCase();
-      const allChats: ChatItemType[] = [...groups, ...allUsers];
+      let allChats: ChatItemType[] = [...groups, ...allUsers];
+      if (onlyGroups) {
+        allChats = [...groups];
+      } else if (onlyPersonal) {
+        allChats = [...allUsers];
+      }
+
       const contactResults = allChats
         .filter((c) => getChatDisplayName(c).toLowerCase().includes(lowerCaseTerm))
         .slice(0, 10);
@@ -177,16 +198,24 @@ export default function Sidebar({
         });
 
         const messageData = await res.json();
+        const rawMessages = messageData.data || [];
+        let messages = rawMessages;
+        if (onlyGroups) {
+          messages = rawMessages.filter((m: Message) => m.isGroupChat);
+        } else if (onlyPersonal) {
+          messages = rawMessages.filter((m: Message) => !m.isGroupChat);
+        }
+
         setGlobalSearchResults({
           contacts: contactResults,
-          messages: messageData.data || [],
+          messages: messages,
         });
       } catch (e) {
         console.error('Global search error:', e);
         setGlobalSearchResults({ contacts: contactResults, messages: [] });
       }
     },
-    [currentUser, groups, allUsers],
+    [currentUser, groups, allUsers, onlyGroups],
   );
 
   const handleSearchChange = (value: string) => {
@@ -263,7 +292,15 @@ export default function Sidebar({
     setGlobalSearchResults({ contacts: [], messages: [] });
   };
 
-  const mixedChats = useMemo<ChatItemType[]>(() => [...groups, ...allUsers], [groups, allUsers]);
+  const mixedChats = useMemo<ChatItemType[]>(() => {
+    if (onlyGroups) {
+      return [...groups];
+    }
+    if (onlyPersonal) {
+      return [...allUsers];
+    }
+    return [...groups, ...allUsers];
+  }, [groups, allUsers, onlyGroups, onlyPersonal]);
 
   const filteredAndSortedChats = useMemo(() => {
     let filtered = mixedChats.filter((chat: ChatItemType) => {
@@ -397,22 +434,28 @@ export default function Sidebar({
             </div>
 
             {!isWidgetIframe && (
-              <button
-                onClick={() => setShowCreateGroupModal(true)}
-                className="cursor-pointer p-2 bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 rounded-3xl shadow-xl transition-all duration-300 active:scale-95"
-                title="Tạo nhóm mới"
-              >
-                <FaPlus className="w-5 h-5 text-white" />
-              </button>
-            )}
-            {!isWidgetIframe && (
-              <button
-                onClick={() => setShowGlobalFolder(true)}
-                className="cursor-pointer p-2 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-3xl shadow-xl transition-all duration-300 active:scale-95"
-                title="Folder dùng chung"
-              >
-                <HiFolder className="w-5 h-5 text-white" />
-              </button>
+              <div className="relative">
+                <button
+                  ref={mobileMenuButtonRef}
+                  onClick={() => setShowMobileMenu(!showMobileMenu)}
+                  className="cursor-pointer p-2 bg-white/20 hover:bg-white/30 rounded-3xl backdrop-blur-sm transition-all active:scale-95"
+                >
+                  <HiEllipsisVertical className="w-6 h-6 text-white" />
+                </button>
+
+                <SidebarMobileMenu
+                  isOpen={showMobileMenu}
+                  onClose={() => setShowMobileMenu(false)}
+                  filterType={filterType}
+                  setFilterType={setFilterType}
+                  counts={filterCounts}
+                  onOpenCreateGroup={() => setShowCreateGroupModal(true)}
+                  onOpenGlobalFolder={() => setShowGlobalFolder(true)}
+                  buttonRef={mobileMenuButtonRef}
+                  onlyGroups={onlyGroups}
+                  onlyPersonal={onlyPersonal}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -421,12 +464,12 @@ export default function Sidebar({
       {/* Filter Tabs */}
       {!isSearchActive && !isWidgetIframe && (
         <>
-          <div className="px-2 pt-2 hidden sm:block bg-white/70 backdrop-blur-sm border-b border-gray-200">
+          {/* <div className="px-2 pt-2 hidden lg:block bg-white/70 backdrop-blur-sm border-b border-gray-200">
             <MessageFilter filterType={filterType} setFilterType={setFilterType} counts={filterCounts} />
-          </div>
-          <div className="px-2 pt-2 sm:hidden block bg-white/70 backdrop-blur-sm border-b border-gray-200">
+          </div> */}
+          {/* <div className="px-2 pt-2 sm:hidden block bg-white/70 backdrop-blur-sm border-b border-gray-200">
             <MessageFilter filterType={filterType} setFilterType={setFilterType} counts={filterCounts} />
-          </div>
+          </div> */}
         </>
       )}
 
@@ -488,7 +531,7 @@ export default function Sidebar({
       </div>
 
       {/* Fade Bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-gray-100 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-100 to-transparent pointer-events-none" />
 
       {showGlobalFolder && (
         <GlobalFolderModal currentUserId={String(currentUser._id)} onClose={() => setShowGlobalFolder(false)} />

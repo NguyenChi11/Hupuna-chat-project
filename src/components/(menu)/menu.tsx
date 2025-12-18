@@ -38,6 +38,8 @@ import {
   HiBookOpen,
   HiCheck,
 } from 'react-icons/hi';
+import { FaPager } from 'react-icons/fa6';
+import { HiRectangleGroup } from 'react-icons/hi2';
 // import { FaPager } from 'react-icons/fa6';
 
 export default function SidebarMenu() {
@@ -303,18 +305,24 @@ export default function SidebarMenu() {
           >
             <HiHome className="w-5 h-5" />
           </button>
-          {/* <button
+          <button
+            onClick={() => navigate('/group', 'group')}
+            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'group' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+          >
+            <HiRectangleGroup className="w-5 h-5" />
+          </button>
+          <button
             onClick={() => navigate('/moments', 'moments')}
-            className={`p-4 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'moments' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'moments' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <FaPager className="w-5 h-5" />
-          </button> */}
-          {/* <button
+          </button>
+          <button
             onClick={() => navigate('/directory', 'directory')}
-            className={`p-4 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'directory' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'directory' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <HiUserGroup className="w-5 h-5" />
-          </button> */}
+          </button>
         </nav>
 
         {/* Bottom Actions */}
@@ -323,7 +331,7 @@ export default function SidebarMenu() {
           <div className="relative">
             <button
               onClick={() => toggleMenu('cloud')}
-              className={`p-4 cursor-pointer rounded-2xl transition-all duration-300 ${openMenu.cloud ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+              className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${openMenu.cloud ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
             >
               <HiUpload className="w-5 h-5" />
             </button>
@@ -334,7 +342,7 @@ export default function SidebarMenu() {
             )}
           </div>
 
-          <button className="p-4 cursor-pointer rounded-2xl hover:bg-white/10 hover:scale-110 transition-all">
+          <button className="p-2 cursor-pointer rounded-2xl hover:bg-white/10 hover:scale-110 transition-all">
             <HiDeviceMobile className="w-5 h-5" />
           </button>
 
@@ -342,7 +350,7 @@ export default function SidebarMenu() {
           <div ref={businessRef} className="relative">
             <button
               onClick={() => toggleMenu('business')}
-              className={`p-4 cursor-pointer rounded-2xl transition-all duration-300 ${openMenu.business ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+              className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${openMenu.business ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
             >
               <HiBriefcase className="w-5 h-5" />
             </button>
@@ -379,7 +387,7 @@ export default function SidebarMenu() {
 
           <button
             onClick={() => navigate('/setting', 'setting')}
-            className={`p-4 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'setting' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'setting' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <HiCog className="w-5 h-5" />
           </button>

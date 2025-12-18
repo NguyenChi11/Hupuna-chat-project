@@ -39,6 +39,8 @@ interface HomeMobileProps {
   fetchAllData: () => Promise<void> | void;
   onShowGlobalSearch: () => void;
   onNavigateToMessage: (message: Message) => void;
+  onlyGroups?: boolean;
+  onlyPersonal?: boolean;
 }
 
 export default function HomeMobile({
@@ -56,6 +58,8 @@ export default function HomeMobile({
   onScrollComplete,
   fetchAllData,
   onNavigateToMessage,
+  onlyGroups = false,
+  onlyPersonal = false,
 }: HomeMobileProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -78,7 +82,7 @@ export default function HomeMobile({
   return (
     <div className="block md:hidden relative w-full h-full">
       {selectedChat ? (
-        <div className="absolute inset-0 w-full h-full bg-white flex flex-col z-50">
+        <div className="fixed inset-0 w-full h-full bg-white flex flex-col z-50 overscroll-none touch-none">
           <ChatWindow
             reLoad={fetchAllData}
             allUsers={allUsers}
@@ -105,6 +109,8 @@ export default function HomeMobile({
           onSelectChat={onSelectChat}
           onChatAction={onChatAction}
           onNavigateToMessage={onNavigateToMessage}
+          onlyGroups={onlyGroups}
+          onlyPersonal={onlyPersonal}
         />
       )}
     </div>

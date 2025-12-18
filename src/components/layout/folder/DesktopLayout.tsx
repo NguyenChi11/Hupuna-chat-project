@@ -232,7 +232,7 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
   return (
     <div className="w-full">
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-4 pr-2">
+        <div className="col-span-4 pr-2 h-[40rem] overflow-y-scroll custom-scrollbar">
           <FolderSidebar
             folders={folders}
             foldersGlobal={foldersGlobal}
@@ -256,32 +256,39 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
         </div>
 
         <div className="col-span-8">
-          <div className="mb-2 mt-2 flex items-center flex-wrap gap-2 text-sm">
+          <div className="mb-3 mt-2 flex items-center flex-wrap gap-3 text-sm">
+            {/* Nút "Gốc" */}
             <button
               onClick={() => onSelectFolder(null, selectedScope)}
-              className="cursor-pointer px-2 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-2 py-1.5 font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md hover:bg-gray-50 cursor-pointer"
             >
+              <span className="text-lg">🏠</span>
               Gốc
             </button>
 
+            {/* Các node trong breadcrumb */}
             {breadcrumbNodes.map((node: FolderNode, idx: number) => (
               <React.Fragment key={node.id}>
-                <span className="text-gray-400">›</span>
+                <span className="text-gray-400 select-none px-1">/</span>
                 <button
                   onClick={() => onSelectFolder(node.id, selectedScope)}
-                  className={`cursor-pointer px-2 py-1 rounded-lg ${
-                    idx === breadcrumbNodes.length - 1
-                      ? 'bg-indigo-50 text-indigo-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`
+          inline-flex items-center gap-2 rounded-xl px-2 py-1.5 font-medium transition-all cursor-pointer
+          ${
+            idx === breadcrumbNodes.length - 1
+              ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md hover:shadow-lg'
+              : 'bg-white text-gray-700 shadow-sm ring-1 ring-gray-200 hover:shadow-md hover:bg-gray-50'
+          }
+        `}
                 >
+                  <span className="text-lg">📁</span>
                   {node.name}
                 </button>
               </React.Fragment>
             ))}
           </div>
 
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3">
             <div className="flex-1">
               <ContentToolbar
                 selectedFolderId={selectedFolderId}
@@ -301,73 +308,53 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
                 }}
                 nameInput={nameInput}
                 onNameInputChange={setNameInput}
+                searchInput={searchInput}
+                onSearchInputChange={setSearchInput}
+                searchResults={searchResults}
+                onClickSearchResult={(id, type) => {
+                  setActiveNav(type);
+                  onToggleSelect(id);
+                }}
               />
-            </div>
-            <div className="relative ml-auto">
-              <input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Tìm kiếm từ khóa..."
-                className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm"
-              />
-              {searchInput && searchResults.length > 0 && (
-                <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-gray-200 bg-white shadow-xl">
-                  {searchResults.map((r) => (
-                    <button
-                      key={r.id}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50"
-                      onClick={() => {
-                        setActiveNav(
-                          r.type === 'media'
-                            ? 'media'
-                            : r.type === 'file'
-                              ? 'file'
-                              : r.type === 'link'
-                                ? 'link'
-                                : 'text',
-                        );
-                        onToggleSelect(r.id);
-                      }}
-                    >
-                      <span className="inline-flex min-w-14 items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
-                        {r.type}
-                      </span>
-                      <span className="truncate">{r.label || r.id}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
-          <div className="mt-2 flex items-center gap-2 text-sm">
+          <div className="mt-3 flex items-center gap-2">
             <button
-              className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                activeNav === 'media' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeNav === 'media'
+                  ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
               }`}
               onClick={() => setActiveNav('media')}
             >
               Ảnh/Video
             </button>
             <button
-              className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                activeNav === 'text' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeNav === 'text'
+                  ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
               }`}
               onClick={() => setActiveNav('text')}
             >
               Text
             </button>
             <button
-              className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                activeNav === 'link' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeNav === 'link'
+                  ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
               }`}
               onClick={() => setActiveNav('link')}
             >
               Link
             </button>
             <button
-              className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                activeNav === 'file' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeNav === 'file'
+                  ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
               }`}
               onClick={() => setActiveNav('file')}
             >
@@ -375,67 +362,79 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
             </button>
           </div>
 
-          <div className="flex flex-col w-full h-[63vh] overflow-auto custom-scrollbar">
+          <div className="flex flex-col w-full h-[30rem] overflow-y-scroll custom-scrollbar">
             {selectedFolderId && selectedChildren.length > 0 && (
-              <div className="mt-3 p-3 rounded-xl bg-white border border-gray-200 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold text-gray-800">Thư mục con</p>
+              <div className="mt-3 rounded-xl bg-white border border-gray-200 shadow-sm mr-2">
+                <div className="bg-gradient-to-r rounded-t-xl from-sky-500 via-blue-500 to-blue-500 px-5 py-3.5">
+                  <p className="text-sm font-semibold text-white">Thư mục con</p>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {selectedChildren.map((child: FolderNode) => (
-                    <button
-                      key={child.id}
-                      onClick={() => onSelectFolder(child.id, selectedScope)}
-                      className="cursor-pointer flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm text-gray-800"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FaFolder className="w-5 h-5 text-gray-500" />
-                        <span className="truncate font-semibold">{child.name}</span>
-                      </div>
-                      <span className="ml-2 inline-flex items-center justify-center text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">
-                        {getItemCountById(child.id)}
-                      </span>
-                    </button>
-                  ))}
+                <div className="p-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3  gap-4">
+                    {selectedChildren.map((child: FolderNode) => (
+                      <button
+                        key={child.id}
+                        onClick={() => onSelectFolder(child.id, selectedScope)}
+                        className="group flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-2 py-1.5 text-left transition-all hover:bg-sky-50 hover:shadow hover:ring-1 hover:ring-sky-300"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 transition-colors group-hover:bg-sky-200">
+                            <FaFolder className="h-5 w-5" />
+                          </div>
+                          <span className="truncate text-sm font-medium text-gray-800">{child.name}</span>
+                        </div>
+
+                        <span className="flex-shrink-0 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-medium text-sky-700">
+                          {getItemCountById(child.id)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
             {selectedIds.size > 0 && (
-              <div className="mt-3 p-3 rounded-xl bg-white border border-green-200 shadow-sm">
+              <div className="mt-2 p-1.5 rounded-xl bg-white border border-green-200 shadow-sm mr-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-800">Lựa chọn</p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs hover:bg-green-700"
-                      onClick={() => {
-                        applySelection();
-                        setShowComplete(true);
-                        props.onClose?.();
-                      }}
-                    >
-                      Đồng ý lựa chọn
-                    </button>
-                    <button
-                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs hover:bg-red-700"
-                      onClick={() => {
-                        if (!selectedFolderId) return;
-                        Array.from(selectedIds).forEach((id) => removeItemFromFolder(selectedFolderId, id));
-                        clearSelection();
-                        setShowComplete(true);
-                      }}
-                    >
-                      Xóa lựa chọn
-                    </button>
-                    <button
-                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs hover:bg-gray-200 border border-gray-200"
-                      onClick={() => {
-                        clearSelection();
-                        setShowComplete(true);
-                      }}
-                    >
-                      Bỏ chọn tất cả
-                    </button>
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-2.5 rounded-xl">
+                    <p className="text-sm font-semibold text-white">Lựa chọn ({selectedIds.size})</p>
+                  </div>
+                  {/* Nút hành động */}
+                  <div className="p-1">
+                    <div className="flex flex-wrap items-center justify-end gap-3">
+                      <button
+                        onClick={() => {
+                          applySelection();
+                          setShowComplete(true);
+                          props.onClose?.();
+                        }}
+                        className="rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg transition-all"
+                      >
+                        Đồng ý lựa chọn
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (!selectedFolderId) return;
+                          Array.from(selectedIds).forEach((id) => removeItemFromFolder(selectedFolderId, id));
+                          clearSelection();
+                          setShowComplete(true);
+                        }}
+                        className="rounded-xl bg-gradient-to-r from-red-500 to-rose-600 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:shadow-lg transition-all"
+                      >
+                        Xóa lựa chọn
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          clearSelection();
+                          setShowComplete(true);
+                        }}
+                        className="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:shadow-sm transition-all"
+                      >
+                        Bỏ chọn tất cả
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -36,7 +36,7 @@ interface GlobalSearchMessageApi {
 
 import { resolveSocketUrl } from '@/utils/utils';
 
-export function useHomePage() {
+export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: boolean }) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -168,7 +168,13 @@ export function useHomePage() {
       const lowerCaseTerm = term.toLowerCase();
 
       // 1. Lọc liên hệ/nhóm (Local - Instant)
-      const allChats = [...groups, ...allUsers];
+      let allChats = [...groups, ...allUsers];
+      if (config?.onlyGroups) {
+        allChats = [...groups];
+      } else if (config?.onlyPersonal) {
+        allChats = [...allUsers];
+      }
+
       const contactResults: GlobalSearchContact[] = allChats
         .filter((c) => c.name?.toLowerCase().includes(lowerCaseTerm))
         .filter((c) => !c.isHidden)
@@ -199,7 +205,10 @@ export function useHomePage() {
         const allMessages = (messageData.data || []) as GlobalSearchMessageApi[];
 
         const messages: GlobalSearchMessage[] = allMessages
-          .filter((msg: GlobalSearchMessageApi) => ['text', 'image', 'file', 'sticker', 'video', 'reminder'].includes(msg.type))
+          .filter((msg: GlobalSearchMessageApi) =>
+            ['text', 'image', 'file', 'sticker', 'video', 'reminder'].includes(msg.type),
+          )
+          .filter((msg) => !config?.onlyGroups || msg.isGroupChat)
           .map((msg: GlobalSearchMessageApi) => ({
             _id: msg._id,
             content: msg.content,
@@ -227,7 +236,7 @@ export function useHomePage() {
         setGlobalSearchResults({ contacts: contactResults, messages: [] });
       }
     },
-    [currentUser, groups, allUsers],
+    [currentUser, groups, allUsers, config?.onlyGroups],
   );
 
   const getSocketBaseForRoom = useCallback(
@@ -275,10 +284,10 @@ export function useHomePage() {
           const res = await fetch('/api/messages', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              action: 'fireReminder', 
-              messageId: msg._id, 
-              userId: String(currentUser?._id || '') 
+            body: JSON.stringify({
+              action: 'fireReminder',
+              messageId: msg._id,
+              userId: String(currentUser?._id || ''),
             }),
           });
           const json = await res.json();
@@ -617,22 +626,19 @@ const handleNavigateToMessage = useCallback(
       },
     );
 
-    socketRef.current.on(
-      'group_members_updated',
-      (payload: { roomId: string; members: { _id: string }[] }) => {
-        const myId = String(currentUser._id);
-        const nextMemberIds = Array.isArray(payload.members)
-          ? payload.members.map((m) => String((m as { _id: string })._id))
-          : [];
-        const stillInGroup = nextMemberIds.includes(myId);
-        if (!stillInGroup) {
-          setGroups((prev) => prev.filter((g) => String(g._id) !== String(payload.roomId)));
-          if (selectedChatRef.current && String(selectedChatRef.current._id) === String(payload.roomId)) {
-            setSelectedChat(null);
-          }
+    socketRef.current.on('group_members_updated', (payload: { roomId: string; members: { _id: string }[] }) => {
+      const myId = String(currentUser._id);
+      const nextMemberIds = Array.isArray(payload.members)
+        ? payload.members.map((m) => String((m as { _id: string })._id))
+        : [];
+      const stillInGroup = nextMemberIds.includes(myId);
+      if (!stillInGroup) {
+        setGroups((prev) => prev.filter((g) => String(g._id) !== String(payload.roomId)));
+        if (selectedChatRef.current && String(selectedChatRef.current._id) === String(payload.roomId)) {
+          setSelectedChat(null);
         }
-      },
-    );
+      }
+    });
     return () => {
       try {
         clearInterval(hb);

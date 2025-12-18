@@ -270,7 +270,7 @@ export default function MobileLayout(props: MobileLayoutProps) {
         </div>
 
         {activeTab === 'sidebar' ? (
-          <div className="w-full">
+          <div className="w-full h-[36rem] overflow-y-scroll custom-scrollbar">
             <FolderSidebar
               folders={folders}
               foldersGlobal={foldersGlobal}
@@ -297,26 +297,34 @@ export default function MobileLayout(props: MobileLayoutProps) {
           </div>
         ) : (
           <div className="w-full">
-            <div className="mb-2 mt-2 flex items-center flex-wrap gap-2 text-sm">
+            <div className="mb-3 mt-3 flex items-center flex-wrap gap-4 text-sm">
+              {/* Nút "Gốc" */}
               <button
                 onClick={() => {
                   onSelectFolder(null, selectedScope);
                 }}
-                className="cursor-pointer px-2 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
+                className="inline-flex items-center gap-2.5 rounded-xl bg-white px-2 py-1.5 font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md hover:bg-gray-50 cursor-pointer"
               >
+                <span className="text-lg">🏠</span>
                 Gốc
               </button>
+
+              {/* Các thư mục trong breadcrumb */}
               {breadcrumbNodes.map((node: FolderNode, idx: number) => (
                 <React.Fragment key={node.id}>
-                  <span className="text-gray-400">›</span>
+                  <span className="text-gray-400 select-none text-lg">/</span>
                   <button
                     onClick={() => onSelectFolder(node.id, selectedScope)}
-                    className={`cursor-pointer px-2 py-1 rounded-lg ${
-                      idx === breadcrumbNodes.length - 1
-                        ? 'bg-indigo-50 text-indigo-700'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`
+          inline-flex items-center gap-2.5 rounded-xl px-2 py-1.5 font-medium transition-all cursor-pointer
+          ${
+            idx === breadcrumbNodes.length - 1
+              ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-lg hover:shadow-xl'
+              : 'bg-white text-gray-700 shadow-sm ring-1 ring-gray-200 hover:shadow-md hover:bg-gray-50'
+          }
+        `}
                   >
+                    <span className="text-lg">📁</span>
                     {node.name}
                   </button>
                 </React.Fragment>
@@ -341,81 +349,61 @@ export default function MobileLayout(props: MobileLayoutProps) {
               }}
               nameInput={nameInput}
               onNameInputChange={setNameInput}
+              searchInput={searchInput}
+              onSearchInputChange={setSearchInput}
+              searchResults={searchResults}
+              onClickSearchResult={(id, type) => {
+                setActiveNav(type);
+                onToggleSelect(id);
+              }}
             />
 
-            <div className="mt-2 flex items-start gap-2 text-sm flex-col w-full">
-              <div className="flex items-center gap-2">
+            <div className="mt-3 flex w-full flex-col items-start">
+              <div className="flex flex-wrap items-center gap-2 rounded-xl bg-gray-50 p-1.5">
                 <button
-                  className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                    activeNav === 'media' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                    activeNav === 'media'
+                      ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'
                   }`}
                   onClick={() => setActiveNav('media')}
                 >
                   Ảnh/Video
                 </button>
                 <button
-                  className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                    activeNav === 'text' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                    activeNav === 'text'
+                      ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'
                   }`}
                   onClick={() => setActiveNav('text')}
                 >
                   Text
                 </button>
                 <button
-                  className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                    activeNav === 'link' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                    activeNav === 'link'
+                      ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'
                   }`}
                   onClick={() => setActiveNav('link')}
                 >
                   Link
                 </button>
                 <button
-                  className={`cursor-pointer px-3 py-1.5 rounded-lg ${
-                    activeNav === 'file' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                    activeNav === 'file'
+                      ? 'bg-gradient-to-r from-sky-500 via-blue-500 to-blue-500 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'
                   }`}
                   onClick={() => setActiveNav('file')}
                 >
                   File
                 </button>
               </div>
-              <div className="flex items-start gap-2 w-full">
-                <input
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Tìm kiếm từ khóa..."
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm"
-                />
-                {searchInput && searchResults.length > 0 && (
-                  <div className="absolute right-0 z-50 mt-2 w-72 rounded-xl border border-gray-200 bg-white shadow-xl">
-                    {searchResults.map((r) => (
-                      <button
-                        key={r.id}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50"
-                        onClick={() => {
-                          setActiveNav(
-                            r.type === 'media'
-                              ? 'media'
-                              : r.type === 'file'
-                                ? 'file'
-                                : r.type === 'link'
-                                  ? 'link'
-                                  : 'text',
-                          );
-                          onToggleSelect(r.id);
-                        }}
-                      >
-                        <span className="inline-flex min-w-14 items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
-                          {r.type}
-                        </span>
-                        <span className="truncate">{r.label || r.id}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
 
-            <div className="flex flex-col w-full h-[20rem] overflow-auto custom-scrollbar">
+            <div className="flex flex-col w-full h-[22rem] overflow-auto custom-scrollbar">
               {selectedFolderId && selectedChildren.length > 0 && (
                 <div className="mt-3 p-3 rounded-xl bg-white border border-gray-200 shadow-sm">
                   <div className="flex items-center justify-between mb-2">

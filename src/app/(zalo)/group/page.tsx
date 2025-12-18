@@ -19,7 +19,7 @@ import {
 } from '@/lib/onesignal';
 import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
 
-export default function DirectoryPage() {
+export default function GroupPage() {
   const {
     currentUser,
     isLoading,
@@ -43,7 +43,7 @@ export default function DirectoryPage() {
     handleChatAction,
     handleSelectChat,
     setSelectedChat,
-  } = useHomePage({ onlyPersonal: true });
+  } = useHomePage({ onlyGroups: true });
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
   const [incomingCallHome, setIncomingCallHome] = useState<{
@@ -97,7 +97,7 @@ export default function DirectoryPage() {
     socket.off('call_offer');
     socket.off('call_end');
     socket.off('call_reject');
-    socket.off('call_answer');
+    socket.off('call_answer'); // ✅ THÊM LISTENER MỚI
 
     const handleOffer = (data: {
       roomId: string;
@@ -117,11 +117,11 @@ export default function DirectoryPage() {
         sdp: data.sdp,
       });
 
-      playGlobalRingTone();
+      playGlobalRingTone(); // ✅ DÙNG GLOBAL
     };
 
     const handleEnd = () => {
-      stopGlobalRingTone();
+      stopGlobalRingTone(); // ✅ DÙNG GLOBAL
       setIncomingCallHome(null);
       try {
         localStorage.removeItem('pendingIncomingCall');
@@ -129,21 +129,22 @@ export default function DirectoryPage() {
     };
 
     const handleReject = () => {
-      stopGlobalRingTone();
+      stopGlobalRingTone(); // ✅ DÙNG GLOBAL
       setIncomingCallHome(null);
       try {
         localStorage.removeItem('pendingIncomingCall');
       } catch {}
     };
 
+    // ✅ THÊM HANDLER call_answer
     const handleAnswer = () => {
-      stopGlobalRingTone();
+      stopGlobalRingTone(); // ✅ DÙNG GLOBAL
     };
 
     socket.on('call_offer', handleOffer);
     socket.on('call_end', handleEnd);
     socket.on('call_reject', handleReject);
-    socket.on('call_answer', handleAnswer);
+    socket.on('call_answer', handleAnswer); // ✅ LẮNG NGHE call_answer
 
     return () => {
       socket.off('call_offer', handleOffer);
@@ -175,7 +176,7 @@ export default function DirectoryPage() {
         onScrollComplete={() => setScrollToMessageId(null)}
         fetchAllData={fetchAllData}
         onShowGlobalSearch={handleOpenGlobalSearch}
-        onlyPersonal={true}
+        onlyGroups={true}
       />
 
       <HomeMobile
@@ -194,7 +195,7 @@ export default function DirectoryPage() {
         fetchAllData={fetchAllData}
         onShowGlobalSearch={handleOpenGlobalSearch}
         onNavigateToMessage={handleNavigateToMessage}
-        onlyPersonal={true}
+        onlyGroups={true}
       />
 
       <HomeOverlays
@@ -209,6 +210,9 @@ export default function DirectoryPage() {
         onSelectContact={handleSelectContact}
         showCreateGroupModal={showCreateGroupModal}
         onCloseCreateGroup={() => setShowCreateGroupModal(false)}
+        // Sau khi tạo nhóm:
+        // - Đóng modal
+        // - Nếu có group mới trả về -> auto chọn group đó để mở giao diện chat
         onGroupCreated={(group?: GroupConversation) => {
           if (group) {
             setSelectedChat(group);

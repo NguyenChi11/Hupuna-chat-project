@@ -24,13 +24,13 @@ export function findPath(nodes: FolderNode[], id: string | null): FolderNode[] {
   return dfs(nodes);
 }
 
-export function flatten(nodes: FolderNode[]): FolderNode[] {
+export function flatten(nodes: FolderNode[], depth = 0): FolderNode[] {
   const out: FolderNode[] = [];
-  const stack = [...nodes];
-  while (stack.length) {
-    const n = stack.shift()!;
-    out.push(n);
-    if (n.children?.length) stack.push(...n.children);
+  for (const n of nodes) {
+    out.push({ ...n, depth });
+    if (n.children?.length) {
+      out.push(...flatten(n.children, depth + 1));
+    }
   }
   return out;
 }

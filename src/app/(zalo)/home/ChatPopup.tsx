@@ -131,6 +131,7 @@ export default function ChatWindow({
   const [openMember, setOpenMember] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const footerRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const markedReadRef = useRef<string | null>(null);
   const initialScrolledRef = useRef(false);
@@ -227,6 +228,27 @@ export default function ChatWindow({
     return { online, text };
   }, [isGroup, selectedChat, allUsers]);
 
+  const scrollToBottom = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    const end = messagesEndRef.current;
+    if (end && typeof end.scrollIntoView === 'function') {
+      end.scrollIntoView({ block: 'end' });
+    }
+    setPendingNewCount(0);
+    pendingNewCountRef.current = 0;
+    hasScrolledUpRef.current = false;
+    setShowScrollDown(false);
+  }, []);
+
+  const ensureBottom = useCallback(() => {
+    scrollToBottom();
+    setTimeout(scrollToBottom, 0);
+    setTimeout(scrollToBottom, 100);
+    setTimeout(scrollToBottom, 300);
+  }, [scrollToBottom]);
+
   const sendMessageProcess = useCallback(
     async (msgData: MessageCreate) => {
       try {
@@ -235,12 +257,7 @@ export default function ChatWindow({
         if (json.success && typeof json._id === 'string') {
           const newId = json._id;
           setMessages((prev) => [...prev, { ...msgData, _id: newId } as Message]);
-          setTimeout(() => {
-            const el = messagesContainerRef.current;
-            if (el) {
-              el.scrollTop = el.scrollHeight;
-            }
-          }, 0);
+          ensureBottom();
           const socketData = {
             ...msgData,
             _id: newId,
@@ -258,7 +275,7 @@ export default function ChatWindow({
         console.error('Save message error:', error);
       }
     },
-    [roomId, currentUser, isGroup, selectedChat],
+    [roomId, currentUser, isGroup, selectedChat, ensureBottom],
   );
 
   const startCall = useCallback(
@@ -365,20 +382,6 @@ export default function ChatWindow({
     },
     [roomId, currentUser._id, sendMessageProcess],
   );
-
-  const scrollToBottom = useCallback(() => {
-    const el = messagesContainerRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-    const end = messagesEndRef.current;
-    if (end && typeof end.scrollIntoView === 'function') {
-      end.scrollIntoView({ block: 'end' });
-    }
-    setPendingNewCount(0);
-    pendingNewCountRef.current = 0;
-    hasScrolledUpRef.current = false;
-    setShowScrollDown(false);
-  }, []);
 
   const { uploadingFiles, handleUploadAndSend } = useChatUpload({
     roomId,
@@ -836,176 +839,175 @@ export default function ChatWindow({
     setReplyingTo(message);
   }, []);
 
-const handleJumpToMessage = useCallback(
-  async (messageId: string) => {
-    console.log('🚀 [JUMP] Starting jump to message:', messageId);
-    
-    jumpLoadingRef.current = true;
-    const container = messagesContainerRef.current;
-    
-    if (!container) {
-      console.error('❌ [JUMP] Container not found');
-      jumpLoadingRef.current = false;
-      return;
-    }
+  const handleJumpToMessage = useCallback(
+    async (messageId: string) => {
+      console.log('🚀 [JUMP] Starting jump to message:', messageId);
 
-    const getOffsetTop = (el: HTMLElement, parent: HTMLElement) => {
-      let top = 0;
-      let node: HTMLElement | null = el;
-      while (node && node !== parent) {
-        top += node.offsetTop;
-        node = node.offsetParent as HTMLElement | null;
-      }
-      return top;
-    };
+      jumpLoadingRef.current = true;
+      const container = messagesContainerRef.current;
 
-    const centerElement = (el: HTMLElement) => {
-      const elTopInContainer = getOffsetTop(el, container);
-      const targetTop = elTopInContainer - container.clientHeight / 2 + el.clientHeight / 2;
-      container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-    };
-
-    const scrollToElement = (elementId: string, attempt = 0): boolean => {
-      const element = document.getElementById(elementId);
-      
-      if (element) {
-        console.log(`✅ [JUMP] Element found (attempt ${attempt + 1}), scrolling...`);
-        centerElement(element as HTMLElement);
-
-        setHighlightedMsgId(messageId);
-        setTimeout(() => setHighlightedMsgId(null), 2500);
-        
-        setTimeout(() => {
-          const e1 = document.getElementById(elementId);
-          if (e1) centerElement(e1 as HTMLElement);
-        }, 250);
-        setTimeout(() => {
-          const e2 = document.getElementById(elementId);
-          if (e2) centerElement(e2 as HTMLElement);
-          jumpLoadingRef.current = false;
-        }, 800);
-
-        return true;
-      }
-      
-      if (attempt < 10) {
-        console.log(`⏳ [JUMP] Element not found, retry ${attempt + 1}/10...`);
-        setTimeout(() => scrollToElement(elementId, attempt + 1), 200);
-        return false;
-      }
-      
-      console.warn('❌ [JUMP] Element not found after 10 attempts');
-      jumpLoadingRef.current = false;
-      return false;
-    };
-
-    // 1️⃣ Check nếu message đã có trong DOM
-    const existingElement = document.getElementById(`msg-${messageId}`);
-    if (existingElement) {
-      console.log('✅ [JUMP] Message already in DOM');
-      scrollToElement(`msg-${messageId}`);
-      return;
-    }
-
-    // 2️⃣ Check nếu message đã có trong state (đã load nhưng chưa render)
-    const messageInState = messages.find((m) => String(m._id) === String(messageId));
-    if (messageInState) {
-      console.log('✅ [JUMP] Message in state, waiting for render...');
-      // Wait for render then scroll
-      setTimeout(() => scrollToElement(`msg-${messageId}`), 100);
-      return;
-    }
-
-    // 3️⃣ Load message from server
-    console.log('📡 [JUMP] Loading message from server...');
-    
-    try {
-      // Get target message info
-      const response = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getById', _id: messageId }),
-      });
-      
-      const result = await response.json();
-      const targetMessage = (result?.row?.row || result?.row) as Message | null;
-      
-      if (!targetMessage || String(targetMessage.roomId) !== String(roomId)) {
-        console.error('❌ [JUMP] Message not found or wrong room');
-        alert('Không tìm thấy tin nhắn này trong cuộc trò chuyện.');
+      if (!container) {
+        console.error('❌ [JUMP] Container not found');
         jumpLoadingRef.current = false;
         return;
       }
 
-      const targetTs = Number(targetMessage.timestamp);
-      console.log('✅ [JUMP] Target message found:', { messageId, timestamp: targetTs });
+      const getOffsetTop = (el: HTMLElement, parent: HTMLElement) => {
+        let top = 0;
+        let node: HTMLElement | null = el;
+        while (node && node !== parent) {
+          top += node.offsetTop;
+          node = node.offsetParent as HTMLElement | null;
+        }
+        return top;
+      };
 
-      // Load surrounding messages (100 messages before + 50 after)
-      const [olderRes, newerRes] = await Promise.all([
-        readMessagesApi(roomId, {
-          limit: 100,
-          sortOrder: 'desc',
-          extraFilters: { timestamp: { $lte: targetTs } },
-        }),
-        readMessagesApi(roomId, {
-          limit: 50,
-          sortOrder: 'asc',
-          extraFilters: { timestamp: { $gt: targetTs } },
-        }),
-      ]);
+      const centerElement = (el: HTMLElement) => {
+        const elTopInContainer = getOffsetTop(el, container);
+        const targetTop = elTopInContainer - container.clientHeight / 2 + el.clientHeight / 2;
+        container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+      };
 
-      // Process and merge messages
-      const olderMessages = Array.isArray(olderRes.data) ? (olderRes.data as Message[]) : [];
-      const newerMessages = Array.isArray(newerRes.data) ? (newerRes.data as Message[]) : [];
-      
-      const olderAsc = olderMessages.reverse();
-      const allNewMessages = [...olderAsc, ...newerMessages];
+      const scrollToElement = (elementId: string, attempt = 0): boolean => {
+        const element = document.getElementById(elementId);
 
-      console.log('📊 [JUMP] Loaded messages:', {
-        older: olderMessages.length,
-        newer: newerMessages.length,
-        total: allNewMessages.length,
-      });
+        if (element) {
+          console.log(`✅ [JUMP] Element found (attempt ${attempt + 1}), scrolling...`);
+          centerElement(element as HTMLElement);
 
-      // Update messages state
-      const existingIds = new Set(messages.map((m) => String(m._id)));
-      const messagesToAdd = allNewMessages.filter((m) => !existingIds.has(String(m._id)));
+          setHighlightedMsgId(messageId);
+          setTimeout(() => setHighlightedMsgId(null), 2500);
 
-      if (messagesToAdd.length > 0) {
-        setMessages((prev) => {
-          const combined = [...prev, ...messagesToAdd];
-          
-          // Sort by timestamp
-          combined.sort((a, b) => {
-            const ta = Number(a.timestamp) || 0;
-            const tb = Number(b.timestamp) || 0;
-            return ta - tb;
-          });
-          
-          console.log('✅ [JUMP] Messages updated, total:', combined.length);
-          return combined;
-        });
+          setTimeout(() => {
+            const e1 = document.getElementById(elementId);
+            if (e1) centerElement(e1 as HTMLElement);
+          }, 250);
+          setTimeout(() => {
+            const e2 = document.getElementById(elementId);
+            if (e2) centerElement(e2 as HTMLElement);
+            jumpLoadingRef.current = false;
+          }, 800);
 
-        // Update oldestTs
-        const minTimestamp = Math.min(...messagesToAdd.map((m) => Number(m.timestamp)));
-        setOldestTs((prev) => Math.min(minTimestamp, prev ?? Infinity));
-        setHasMore(olderMessages.length === 100);
+          return true;
+        }
+
+        if (attempt < 10) {
+          console.log(`⏳ [JUMP] Element not found, retry ${attempt + 1}/10...`);
+          setTimeout(() => scrollToElement(elementId, attempt + 1), 200);
+          return false;
+        }
+
+        console.warn('❌ [JUMP] Element not found after 10 attempts');
+        jumpLoadingRef.current = false;
+        return false;
+      };
+
+      // 1️⃣ Check nếu message đã có trong DOM
+      const existingElement = document.getElementById(`msg-${messageId}`);
+      if (existingElement) {
+        console.log('✅ [JUMP] Message already in DOM');
+        scrollToElement(`msg-${messageId}`);
+        return;
       }
 
-      // Wait for DOM render then scroll
-      setTimeout(() => {
-        console.log('⏳ [JUMP] Waiting for DOM render...');
-        scrollToElement(`msg-${messageId}`);
-      }, 300);
+      // 2️⃣ Check nếu message đã có trong state (đã load nhưng chưa render)
+      const messageInState = messages.find((m) => String(m._id) === String(messageId));
+      if (messageInState) {
+        console.log('✅ [JUMP] Message in state, waiting for render...');
+        // Wait for render then scroll
+        setTimeout(() => scrollToElement(`msg-${messageId}`), 100);
+        return;
+      }
 
-    } catch (error) {
-      console.error('❌ [JUMP] Error:', error);
-      alert('Có lỗi xảy ra khi tải tin nhắn.');
-      jumpLoadingRef.current = false;
-    }
-  },
-  [roomId, messages, oldestTs],
-);
+      // 3️⃣ Load message from server
+      console.log('📡 [JUMP] Loading message from server...');
+
+      try {
+        // Get target message info
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getById', _id: messageId }),
+        });
+
+        const result = await response.json();
+        const targetMessage = (result?.row?.row || result?.row) as Message | null;
+
+        if (!targetMessage || String(targetMessage.roomId) !== String(roomId)) {
+          console.error('❌ [JUMP] Message not found or wrong room');
+          alert('Không tìm thấy tin nhắn này trong cuộc trò chuyện.');
+          jumpLoadingRef.current = false;
+          return;
+        }
+
+        const targetTs = Number(targetMessage.timestamp);
+        console.log('✅ [JUMP] Target message found:', { messageId, timestamp: targetTs });
+
+        // Load surrounding messages (100 messages before + 50 after)
+        const [olderRes, newerRes] = await Promise.all([
+          readMessagesApi(roomId, {
+            limit: 100,
+            sortOrder: 'desc',
+            extraFilters: { timestamp: { $lte: targetTs } },
+          }),
+          readMessagesApi(roomId, {
+            limit: 50,
+            sortOrder: 'asc',
+            extraFilters: { timestamp: { $gt: targetTs } },
+          }),
+        ]);
+
+        // Process and merge messages
+        const olderMessages = Array.isArray(olderRes.data) ? (olderRes.data as Message[]) : [];
+        const newerMessages = Array.isArray(newerRes.data) ? (newerRes.data as Message[]) : [];
+
+        const olderAsc = olderMessages.reverse();
+        const allNewMessages = [...olderAsc, ...newerMessages];
+
+        console.log('📊 [JUMP] Loaded messages:', {
+          older: olderMessages.length,
+          newer: newerMessages.length,
+          total: allNewMessages.length,
+        });
+
+        // Update messages state
+        const existingIds = new Set(messages.map((m) => String(m._id)));
+        const messagesToAdd = allNewMessages.filter((m) => !existingIds.has(String(m._id)));
+
+        if (messagesToAdd.length > 0) {
+          setMessages((prev) => {
+            const combined = [...prev, ...messagesToAdd];
+
+            // Sort by timestamp
+            combined.sort((a, b) => {
+              const ta = Number(a.timestamp) || 0;
+              const tb = Number(b.timestamp) || 0;
+              return ta - tb;
+            });
+
+            console.log('✅ [JUMP] Messages updated, total:', combined.length);
+            return combined;
+          });
+
+          // Update oldestTs
+          const minTimestamp = Math.min(...messagesToAdd.map((m) => Number(m.timestamp)));
+          setOldestTs((prev) => Math.min(minTimestamp, prev ?? Infinity));
+          setHasMore(olderMessages.length === 100);
+        }
+
+        // Wait for DOM render then scroll
+        setTimeout(() => {
+          console.log('⏳ [JUMP] Waiting for DOM render...');
+          scrollToElement(`msg-${messageId}`);
+        }, 300);
+      } catch (error) {
+        console.error('❌ [JUMP] Error:', error);
+        alert('Có lỗi xảy ra khi tải tin nhắn.');
+        jumpLoadingRef.current = false;
+      }
+    },
+    [roomId, messages, oldestTs],
+  );
   useEffect(() => {
     if (!scrollToMessageId) return;
     const timer = setTimeout(() => {
@@ -1013,7 +1015,25 @@ const handleJumpToMessage = useCallback(
       onScrollComplete?.();
     }, 0);
     return () => clearTimeout(timer);
-  }, [scrollToMessageId, handleJumpToMessage, onScrollComplete]);
+  }, [scrollToMessageId, initialLoading, oldestTs, messages.length, handleJumpToMessage, onScrollComplete]);
+
+  // Khi giao diện footer thay đổi (mở emoji, reply, mention...), cuộn xuống để tránh bị che
+  useEffect(() => {
+    scrollToBottom();
+    // Thêm delay nhỏ để đảm bảo DOM đã cập nhật height của footer
+    setTimeout(scrollToBottom, 50);
+    setTimeout(scrollToBottom, 150);
+  }, [showEmojiPicker, pickerTab, replyingTo, showMentionMenu, attachments.length, scrollToBottom]);
+
+  useEffect(() => {
+    const handler = () => {
+      scrollToBottom();
+      setTimeout(scrollToBottom, 50);
+      setTimeout(scrollToBottom, 150);
+    };
+    window.addEventListener('mobileActionsToggle', handler);
+    return () => window.removeEventListener('mobileActionsToggle', handler);
+  }, [scrollToBottom]);
 
   const { isListening, handleVoiceInput } = useChatVoiceInput({
     editableRef,
@@ -1048,6 +1068,7 @@ const handleJumpToMessage = useCallback(
 
   const handleSendSticker = useCallback(
     async (url: string) => {
+      ensureBottom();
       const newMsg: MessageCreate = {
         roomId,
         sender: currentUser._id,
@@ -1058,7 +1079,7 @@ const handleJumpToMessage = useCallback(
       await sendMessageProcess(newMsg);
       setShowEmojiPicker(false);
     },
-    [roomId, currentUser._id, sendMessageProcess],
+    [roomId, currentUser._id, sendMessageProcess, ensureBottom],
   );
 
   const fetchPinnedMessages = useCallback(async () => {
@@ -1538,6 +1559,30 @@ const handleJumpToMessage = useCallback(
       })();
     } catch {}
   }, [roomId, incomingCall, callActive, callConnecting, acceptIncomingCallWith_s2]);
+
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const allowDefault = (target: EventTarget | null) => {
+      const t = target as HTMLElement | null;
+      if (!t) return false;
+      return !!(t.closest('[contenteditable="true"]') || t.closest('.overflow-y-auto'));
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (allowDefault(e.target)) return;
+      e.preventDefault();
+    };
+    const onWheel = (e: WheelEvent) => {
+      if (allowDefault(e.target)) return;
+      e.preventDefault();
+    };
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('wheel', onWheel);
+    };
+  }, []);
   const handleRecallMessage = async (messageId: string) => {
     if (!confirm('Bạn có chắc chắn muốn thu hồi tin nhắn này?')) return;
 
@@ -2030,9 +2075,53 @@ const handleJumpToMessage = useCallback(
     return () => window.removeEventListener('shareMessage', handler as EventListener);
   }, [messages, handleShareMessage, roomId]);
 
+  const viewportRef = useRef<HTMLElement>(null);
+
+  // Fix keyboard overlapping on mobile using VisualViewport API
+  useEffect(() => {
+    const handleVisualViewport = () => {
+      if (!viewportRef.current || !window.visualViewport) return;
+
+      // Trên iOS Safari, khi bàn phím hiện lên, visualViewport.height giảm.
+      // Layout Viewport (body) không đổi kích thước, nhưng visualViewport dịch chuyển.
+      // Ta cần set height của container bằng đúng visualViewport.height để tránh bị che.
+
+      const vv = window.visualViewport;
+
+      // Force scroll to top to prevent document scrolling
+      window.scrollTo(0, 0);
+
+      // Cập nhật height
+      viewportRef.current.style.height = `${vv.height}px`;
+
+      // QUAN TRỌNG: Nếu offsetTop > 0 (bị đẩy lên), ta cần dịch ngược lại
+      // hoặc đảm bảo container nằm đúng vị trí trong visual viewport.
+      // Với position: fixed ở parent (HomeMobile), top luôn là 0 của layout viewport.
+      // Nhưng nếu visual viewport bị pan xuống (offsetTop > 0), ta có thể cần điều chỉnh top?
+      // Thực tế với body fixed + window.scrollTo(0,0), offsetTop thường về 0.
+
+      scrollToBottom();
+    };
+
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener('resize', handleVisualViewport);
+      vv.addEventListener('scroll', handleVisualViewport);
+      // Init
+      handleVisualViewport();
+    }
+
+    return () => {
+      if (vv) {
+        vv.removeEventListener('resize', handleVisualViewport);
+        vv.removeEventListener('scroll', handleVisualViewport);
+      }
+    };
+  }, [scrollToBottom]);
+
   return (
     <ChatProvider value={chatContextValue}>
-      <main className="flex h-full bg-gray-700 sm:overflow-y-hidden overflow-y-auto no-scrollbar">
+      <main ref={viewportRef} className="flex h-full bg-gray-700 overflow-hidden no-scrollbar">
         <div
           className={`flex flex-col h-full relative bg-gray-100 transition-all duration-300 ${showPopup ? 'sm:w-[calc(100%-21.875rem)]' : 'w-full'} border-r border-gray-200`}
         >
@@ -2071,7 +2160,7 @@ const handleJumpToMessage = useCallback(
             pinnedHasMore={(pinnedTotal ?? 0) > allPinnedMessages.length}
             pinnedLoading={pinnedLoading}
           />
-         
+
           {isGroup && !callActive && !callConnecting && roomCallActive && (
             <div className="mx-2 mt-2 mb-0 px-3 py-2 bg-yellow-100 border border-yellow-200 text-yellow-800 rounded flex items-center justify-between">
               <span>Cuộc gọi đang diễn ra</span>
@@ -2087,7 +2176,7 @@ const handleJumpToMessage = useCallback(
           {/* Messages Area */}
           <div
             ref={messagesContainerRef}
-            className="relative flex-1 overflow-y-auto p-4 sm:p-4 bg-gray-100 flex flex-col custom-scrollbar"
+            className="relative flex-1 overflow-y-auto overflow-x-hidden p-4 pb-0 bg-gray-100 flex flex-col custom-scrollbar overscroll-y-contain"
           >
             {(initialLoading || loadingMore) && (
               <div className="sticky top-0 z-20 flex items-center justify-center py-2">
@@ -2121,7 +2210,7 @@ const handleJumpToMessage = useCallback(
               onToggleReaction={handleToggleReaction}
               contextMenu={contextMenu}
             />
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>
 
           <button
@@ -2142,7 +2231,7 @@ const handleJumpToMessage = useCallback(
           </button>
 
           {/* Phần Footer (Input Chat) */}
-          <div className="bg-white p-0  border-t rounded-t-xl border-gray-200 relative space-y-1">
+          <div ref={footerRef} className="bg-white p-0  border-t rounded-t-xl border-gray-200 relative space-y-1">
             {/* ... Popup Picker & Inputs ... */}
             <EmojiStickerPicker
               showEmojiPicker={showEmojiPicker}
@@ -2164,11 +2253,6 @@ const handleJumpToMessage = useCallback(
                 mentionMenuRef={mentionMenuRef}
                 onSelectMention={selectMention}
               />
-            )}
-
-            {/* Thanh loading tổng khi đang tải ảnh / video */}
-            {hasUploading && (
-              <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallUploadPercent} />
             )}
 
             <ChatInput
@@ -2244,7 +2328,15 @@ const handleJumpToMessage = useCallback(
                   );
                 } catch {}
               }}
-              onFocusEditable={() => setShowEmojiPicker(false)}
+              onFocusEditable={() => {
+                setShowEmojiPicker(false);
+                scrollToBottom();
+                setTimeout(scrollToBottom, 0);
+                setTimeout(scrollToBottom, 200);
+                try {
+                  editableRef.current?.scrollIntoView({ block: 'end' });
+                } catch {}
+              }}
               attachments={attachments.map((a) => ({ previewUrl: a.previewUrl, type: a.type, fileName: a.fileName }))}
               onRemoveAttachment={(index) => {
                 setAttachments((prev) => {
@@ -2268,6 +2360,9 @@ const handleJumpToMessage = useCallback(
                   return [];
                 });
               }}
+              isUploading={hasUploading}
+              uploadingCount={uploadingCount}
+              overallUploadPercent={overallUploadPercent}
             />
           </div>
         </div>

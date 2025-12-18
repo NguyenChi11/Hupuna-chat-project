@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { Message } from '@/types/Message';
 import type { User } from '@/types/User';
@@ -87,6 +87,38 @@ export default function MessageList({
   const [detailMsg, setDetailMsg] = useState<Message | null>(null);
   const [reactionDetail, setReactionDetail] = useState<{ msgId: string; emoji: string } | null>(null);
 
+  // Đóng menu reaction/folder khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (activeMoreId) {
+        const activeWrapper = document.getElementById(`msg-${activeMoreId}`);
+        if (activeWrapper && !activeWrapper.contains(event.target as Node)) {
+          setActiveMoreId(null);
+        }
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.hidden) setActiveMoreId(null);
+    };
+    const handleWindowBlur = () => {
+      setActiveMoreId(null);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveMoreId(null);
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeMoreId]);
+
   const formatTimestamp = (ts: number) => {
     const d = new Date(ts);
     const now = new Date();
@@ -138,7 +170,7 @@ export default function MessageList({
           </div>
 
           {msgs.map((msg, index) => {
-            
+            const isLastMsg = msg._id === messages[messages.length - 1]?._id;
             const senderInfo = getSenderInfo(msg.sender);
             const isMe = senderInfo._id === currentUser._id;
             const repliedToMsg = msg.replyToMessageId ? messages.find((m) => m._id === msg.replyToMessageId) : null;
@@ -215,10 +247,11 @@ export default function MessageList({
                 const timeLabel = dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                 return (
                   <div
-                   key={msg._id}
+                    key={msg._id}
                     id={`msg-${msg._id}`} // ✅ Đảm bảo ID luôn có
                     data-message-id={msg._id}
-                     className="flex justify-center my-3">
+                    className="flex justify-center my-3"
+                  >
                     <div
                       className={`px-4 p-1.5 bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
                     >
@@ -312,7 +345,11 @@ export default function MessageList({
                 );
               }
               const pillNode = (
-                <div key={`pill-${msg._id}`} id={`msg-${msg._id}`} className="flex justify-center my-3">
+                <div
+                  key={`pill-${msg._id}`}
+                  id={`msg-${msg._id}`}
+                  className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
+                >
                   <div
                     className={`px-4 p-1.5 bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
                   >
@@ -328,7 +365,7 @@ export default function MessageList({
                   return (
                     <React.Fragment key={`notify-${msg._id}-due`}>
                       {pillNode}
-                      <div className="flex justify-center -mt-2 ">
+                      <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
                         <button
                           onClick={() => setDetailMsg(related)}
                           className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
@@ -358,7 +395,7 @@ export default function MessageList({
                 return (
                   <React.Fragment key={`notify-${msg._id}-due-inline`}>
                     {pillNode}
-                    <div className="flex justify-center -mt-2">
+                    <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
                       <button
                         onClick={() => setDetailMsg(stub)}
                         className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
@@ -404,7 +441,7 @@ export default function MessageList({
                   return (
                     <React.Fragment key={`notify-${msg._id}-reminder-inline`}>
                       {pillNode}
-                      <div className="flex justify-center -mt-2">
+                      <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
                         <button
                           onClick={() => setDetailMsg(stub)}
                           className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
@@ -482,7 +519,11 @@ export default function MessageList({
               const votes = (msg.pollVotes || {}) as Record<string, string[]>;
               const locked = !!msg.isPollLocked;
               return (
-                <div key={msg._id} id={`msg-${msg._id}`} className="flex justify-center my-3">
+                <div
+                  key={msg._id}
+                  id={`msg-${msg._id}`}
+                  className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
+                >
                   <div
                     className={`w-full max-w-[22rem] p-4 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
                     onClick={() => setDetailMsg(msg)}
@@ -584,6 +625,7 @@ export default function MessageList({
                   flex gap-2 group relative
                   ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
                   ${isGrouped ? 'mt-1' : 'mt-4'}
+                  ${isLastMsg ? 'mb-8' : ''}
                   ${highlightedMsgId === msg._id ? 'bg-yellow-50 rounded-xl' : ''}
                 `}
               >

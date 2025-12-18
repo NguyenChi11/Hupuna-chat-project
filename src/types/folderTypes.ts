@@ -11,6 +11,7 @@ export type FolderItem = {
 };
 
 export type FolderNode = {
+  depth?: number;
   id: string;
   name: string;
   parentId?: string;

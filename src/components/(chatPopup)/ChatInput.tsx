@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ClipboardEvent, KeyboardEvent, RefObject, useEffect, useState } from 'react';
+import React, { ClipboardEvent, KeyboardEvent, RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 // React Icons hi2 – Đỉnh cao nhất 2025
@@ -13,12 +13,18 @@ import {
   HiSparkles,
   HiFolder,
   HiEllipsisHorizontal,
+  HiMapPin,
+  HiChartBar,
+  HiIdentification,
+  HiPencil,
 } from 'react-icons/hi2';
 import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
 import Image from 'next/image';
 import { useChatContext } from '@/context/ChatContext';
 import FolderDashboard from '@/components/(chatPopup)/components/Folder/FolderDashboard';
+import FolderSaveWizard from '@/components/(chatPopup)/components/Folder/FolderSaveWizard';
 import ChatFlashDashboard from '@/components/(chatPopup)/components/Chat-Flash/ChatFlashDashboard';
+import UploadProgressBar from '@/components/(chatPopup)/UploadProgressBar';
 
 interface ChatInputProps {
   showEmojiPicker: boolean;
@@ -37,6 +43,9 @@ interface ChatInputProps {
   attachments: { previewUrl: string; type: 'image' | 'video' | 'file'; fileName?: string }[];
   onRemoveAttachment: (index: number) => void;
   onClearAttachments: () => void;
+  isUploading?: boolean;
+  uploadingCount?: number;
+  overallUploadPercent?: number;
 }
 
 export default function ChatInput({
@@ -55,6 +64,9 @@ export default function ChatInput({
   attachments,
   onRemoveAttachment,
   onClearAttachments,
+  isUploading = false,
+  uploadingCount = 0,
+  overallUploadPercent = 0,
 }: ChatInputProps) {
   const { currentUser, selectedChat, isGroup } = useChatContext();
   const getId = (u: unknown): string => {
@@ -71,8 +83,20 @@ export default function ChatInput({
   const [slashQuery, setSlashQuery] = useState('');
   const [slashSelectedIndex, setSlashSelectedIndex] = useState<number>(0);
   const [showFolderDashboard, setShowFolderDashboard] = useState(false);
+  const [showFolderSaveWizard, setShowFolderSaveWizard] = useState(false);
+  const [pendingSaveMessage, setPendingSaveMessage] = useState<{
+    roomId: string;
+    messageId: string;
+    content: string;
+    type: string;
+    fileUrl?: string;
+    fileName?: string;
+  } | null>(null);
   const [showChatFlashDashboard, setShowChatFlashDashboard] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
+  const mobileActionsRef = useRef<HTMLDivElement | null>(null);
+  const toggleMobileActionsBtnRef = useRef<HTMLButtonElement | null>(null);
+  const pendingFocusRef = useRef(false);
 
   useEffect(() => {
     const init = async () => {
@@ -108,6 +132,74 @@ export default function ChatInput({
   }, [roomId]);
 
   useEffect(() => {
+    if (!showMobileActions) return;
+    const onDoc = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node | null;
+      if (mobileActionsRef.current && target && mobileActionsRef.current.contains(target)) return;
+      if (toggleMobileActionsBtnRef.current && target && toggleMobileActionsBtnRef.current.contains(target)) return;
+      const el = editableRef.current;
+      setShowMobileActions(false);
+      try {
+        window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+      } catch {}
+      if (el) {
+        try {
+          el.focus();
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          range.collapse(false);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        } catch {}
+        setTimeout(() => {
+          try {
+            el.focus();
+          } catch {}
+        }, 80);
+        setTimeout(() => {
+          try {
+            el.focus();
+          } catch {}
+        }, 160);
+      }
+    };
+    document.addEventListener('mousedown', onDoc, true);
+    document.addEventListener('touchstart', onDoc, true);
+    return () => {
+      document.removeEventListener('mousedown', onDoc, true);
+      document.removeEventListener('touchstart', onDoc, true);
+    };
+  }, [showMobileActions]);
+
+  useEffect(() => {
+    if (!showMobileActions && pendingFocusRef.current) {
+      pendingFocusRef.current = false;
+      const el = editableRef.current;
+      if (el) {
+        try {
+          requestAnimationFrame(() => {
+            try {
+              el.focus();
+              const range = document.createRange();
+              range.selectNodeContents(el);
+              range.collapse(false);
+              const sel = window.getSelection();
+              sel?.removeAllRanges();
+              sel?.addRange(range);
+            } catch {}
+            setTimeout(() => {
+              try {
+                el.focus();
+              } catch {}
+            }, 120);
+          });
+        } catch {}
+      }
+    }
+  }, [showMobileActions]);
+
+  useEffect(() => {
     const loadKV = async () => {
       if (!selectedFlashFolder?.id || !roomId) {
         setKvItems([]);
@@ -138,6 +230,18 @@ export default function ChatInput({
     loadKV();
   }, [selectedFlashFolder?.id, roomId]);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const anyE = e as CustomEvent;
+      if (anyE.detail) {
+        setPendingSaveMessage(anyE.detail);
+        setShowFolderSaveWizard(true);
+      }
+    };
+    window.addEventListener('openFolderSaveWizard', handler as EventListener);
+    return () => window.removeEventListener('openFolderSaveWizard', handler as EventListener);
+  }, []);
+
   const handleSelectFlashFolder = (f: { id: string; name: string }) => {
     setSelectedFlashFolder(f);
     try {
@@ -155,7 +259,11 @@ export default function ChatInput({
   };
   return (
     <div className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50">
-      {attachments && attachments.length > 0 && (
+      {isUploading ? (
+        <div className="mb-2 w-full overflow-hidden rounded-xl">
+          <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallUploadPercent} />
+        </div>
+      ) : attachments && attachments.length > 0 ? (
         <div className="mb-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600">
@@ -198,7 +306,7 @@ export default function ChatInput({
             ))}
           </div>
         </div>
-      )}
+      ) : null}
       {/* Toolbar trái – Sang trọng như Zalo Premium */}
       <div className="flex items-center gap-2 md:mb-2 mb-0">
         {/* Emoji */}
@@ -300,6 +408,50 @@ export default function ChatInput({
           <div
             ref={editableRef}
             contentEditable
+            inputMode="text"
+            role="textbox"
+            aria-multiline="true"
+            onMouseDown={() => {
+              if (showMobileActions) {
+                pendingFocusRef.current = true;
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }
+            }}
+            onTouchStart={() => {
+              if (showMobileActions) {
+                pendingFocusRef.current = true;
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }
+            }}
+            onClick={() => {
+              setShowMobileActions(false);
+              try {
+                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+              } catch {}
+              const el = editableRef.current;
+              if (el) {
+                try {
+                  el.focus();
+                  const range = document.createRange();
+                  range.selectNodeContents(el);
+                  range.collapse(false);
+                  const sel = window.getSelection();
+                  sel?.removeAllRanges();
+                  sel?.addRange(range);
+                } catch {}
+                setTimeout(() => {
+                  try {
+                    el.focus();
+                  } catch {}
+                }, 100);
+              }
+            }}
             onInput={() => {
               onInputEditable();
               updateSlashState();
@@ -368,12 +520,25 @@ export default function ChatInput({
             onFocus={() => {
               onFocusEditable();
               updateSlashState();
+              setShowMobileActions(false);
             }}
             onPaste={(e) => {
               onPasteEditable(e);
               updateSlashState();
             }}
-            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-base text-gray-800 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 w-full max-w-full break-words whitespace-pre-wrap"
+            onTouchMove={(e) => {
+              e.preventDefault();
+            }}
+            onWheel={(e) => {
+              e.preventDefault();
+            }}
+            onScroll={(e) => {
+              try {
+                (e.currentTarget as HTMLDivElement).scrollTop = 0;
+              } catch {}
+            }}
+            style={{ touchAction: 'none', overscrollBehavior: 'contain' }}
+            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-base text-gray-800 overflow-hidden no-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
             data-placeholder="Nhập tin nhắn..."
           />
 
@@ -388,7 +553,16 @@ export default function ChatInput({
 
         <div className="md:hidden relative flex items-center gap-2">
           <button
-            onClick={() => setShowMobileActions((v) => !v)}
+            ref={toggleMobileActionsBtnRef}
+            onClick={() =>
+              setShowMobileActions((v) => {
+                const next = !v;
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: next } }));
+                } catch {}
+                return next;
+              })
+            }
             className="p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90"
             aria-label="Mở thêm hành động"
           >
@@ -445,28 +619,39 @@ export default function ChatInput({
       </div>
 
       {showMobileActions && (
-        <div className="md:hidden w-full mt-2 flex items-center justify-between mx-auto">
-          <button
-            onClick={() => {
-              setShowFolderDashboard(true);
-              setShowMobileActions(false);
-            }}
-            className="group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
-            aria-label="Mở dashboard Folder"
-          >
-            <div className="flex items-center gap-2">
-              <HiFolder className="w-6 h-6 text-orange-600 group-hover:scale-110 transition-transform" />
-              <span className="text-xs text-gray-700 truncate">Folder</span>
+        <div
+          ref={mobileActionsRef}
+          className="md:hidden w-full mt-2 grid grid-cols-4 gap-2 items-center justify-between mx-auto"
+        >
+          <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiFolder className="w-6 h-6 text-orange-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
-          </button>
-          <label
-            className="group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
-            aria-label="Gửi ảnh hoặc video"
-          >
-            <div className="flex items-center gap-2">
-              <HiPhoto className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" />
-              <span className="text-xs text-gray-700 truncate">Ảnh/Video</span>
+            <span className="text-sm font-medium text-gray-800">Thư Mục</span>
+            <input
+              type="button"
+              className="sr-only"
+              onClick={() => {
+                setShowFolderDashboard(true);
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }}
+            />
+          </label>
+          <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Gửi ảnh hoặc video">
+            {/* Background tròn bao quanh icon */}
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200  shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiPhoto className="w-6 h-6 text-blue-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              {/* Tùy chọn: thêm hiệu ứng nổi nhẹ cho icon */}
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
+
+            {/* Chữ bên dưới */}
+            <span className="text-sm font-medium text-gray-800">Ảnh/Video</span>
+
             <input
               type="file"
               accept="image/*,video/*"
@@ -476,18 +661,19 @@ export default function ChatInput({
                 files.forEach((f) => onSelectImage(f));
                 e.target.value = '';
                 setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
               }}
               multiple
             />
           </label>
-          <label
-            className="group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
-            aria-label="Gửi file"
-          >
-            <div className="flex items-center gap-2">
-              <HiPaperClip className="w-6 h-6 text-green-600 group-hover:scale-110 transition-transform rotate-12" />
-              <span className="text-xs text-gray-700 truncate">File</span>
+          <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Gửi file">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiPaperClip className="w-6 h-6 text-green-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200 rotate-12" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
+            <span className="text-sm font-medium text-gray-800">File</span>
             <input
               type="file"
               className="sr-only"
@@ -497,6 +683,9 @@ export default function ChatInput({
                 files.forEach((f) => onSelectFile(f));
                 e.target.value = '';
                 setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
               }}
             />
           </label>
@@ -504,19 +693,72 @@ export default function ChatInput({
             onClick={() => {
               onVoiceInput();
               setShowMobileActions(false);
+              try {
+                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+              } catch {}
             }}
-            className={`relative p-2 rounded-3xl cursor-pointer transition-all duration-500 shadow-2xl ${
-              isListening
-                ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white animate-pulse ring-4 ring-red-300/50 scale-110'
-                : 'bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 hover:scale-105'
-            }`}
+            className="group relative cursor-pointer flex flex-col items-center"
             aria-label="Nhập bằng giọng nói"
           >
-            <div className="flex items-center gap-2">
-              <HiMicrophone className="w-6 h-6" />
-              <span className="text-xs text-gray-700 truncate">Voice</span>
+            <div
+              className={`relative w-12 h-12 mb-3 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl ${
+                isListening
+                  ? 'bg-gradient-to-br from-red-500 to-pink-600 ring-4 ring-red-300/50 scale-110'
+                  : 'bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300'
+              }`}
+            >
+              <HiMicrophone
+                className={`w-6 h-6 ${
+                  isListening ? 'text-white' : 'text-gray-700'
+                } drop-shadow-md group-hover:scale-110 transition-transform duration-200`}
+              />
+              {isListening && <div className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
             </div>
-            {isListening && <div className="absolute inset-0 rounded-3xl bg-red-500/30 animate-ping" />}
+            <span className="text-sm font-medium text-gray-800">Voice</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Vị trí">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 hover:from-rose-200 hover:to-pink-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiMapPin className="w-6 h-6 text-rose-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Vị trí</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Bình chọn">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 hover:from-indigo-200 hover:to-blue-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiChartBar className="w-6 h-6 text-blue-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Bình chọn</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Chat nhanh">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 hover:from-violet-200 hover:to-purple-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiLightningBolt className="w-6 h-6 text-yellow-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Chat nhanh</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Danh thiếp">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 hover:from-teal-200 hover:to-cyan-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiIdentification className="w-6 h-6 text-teal-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Danh thiếp</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Vẽ hình">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-purple-100 to-fuchsia-100 hover:from-purple-200 hover:to-fuchsia-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiPencil className="w-6 h-6 text-purple-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Vẽ hình</span>
+          </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="@GIF">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-slate-100 to-gray-100 hover:from-slate-200 hover:to-gray-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <span className="text-xs font-black text-gray-700 drop-shadow-md group-hover:scale-110 transition-transform duration-200">
+                @GIF
+              </span>
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">@GIF</span>
           </button>
         </div>
       )}
@@ -612,7 +854,7 @@ export default function ChatInput({
       {showFolderDashboard &&
         createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-            <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden md:h-[46rem] h-[45rem] overflow-y-scroll">
+            <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden md:h-[46rem] h-[45rem] ">
               <div className="flex items-center justify-between px-4 py-3 border-b">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center">
@@ -649,6 +891,36 @@ export default function ChatInput({
                   }}
                   onAttachFromFolder={(att) => onAttachFromFolder(att)}
                 />
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {showFolderSaveWizard &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-h-[85vh] flex flex-col">
+              <div className="relative w-full">
+                <button
+                  onClick={() => {
+                    setShowFolderSaveWizard(false);
+                    setPendingSaveMessage(null);
+                  }}
+                  className="absolute right-4 top-3 p-2 rounded-full hover:bg-gray-100 cursor-pointer z-10"
+                >
+                  <HiX className="w-5 h-5 text-gray-500" />
+                </button>
+                {pendingSaveMessage && (
+                  <FolderSaveWizard
+                    roomId={roomId}
+                    pending={pendingSaveMessage}
+                    onClose={() => {
+                      setShowFolderSaveWizard(false);
+                      setPendingSaveMessage(null);
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>,

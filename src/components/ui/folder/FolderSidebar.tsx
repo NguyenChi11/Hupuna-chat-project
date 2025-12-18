@@ -23,6 +23,7 @@ function NodeRow({
   openFolderMenuId,
   setOpenFolderMenuId,
   depth = 0,
+  readonly,
 }: {
   node: FolderNode;
   scope: Scope;
@@ -40,6 +41,7 @@ function NodeRow({
   setOpenFolderMenuId: (id: string | null) => void;
 
   depth?: number;
+  readonly?: boolean;
 }) {
   const isOpen = !!expanded[node.id];
   const isSelected = String(selectedFolderId || '') === String(node.id);
@@ -88,19 +90,21 @@ function NodeRow({
           </span>
         </button>
 
-        <button
-          type="button"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpenFolderMenuId(openFolderMenuId === node.id ? null : node.id);
-          }}
-          aria-label="Folder actions"
-        >
-          <HiDotsVertical className="h-5 w-5 text-gray-600" />
-        </button>
+        {!readonly && (
+          <button
+            type="button"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpenFolderMenuId(openFolderMenuId === node.id ? null : node.id);
+            }}
+            aria-label="Folder actions"
+          >
+            <HiDotsVertical className="h-5 w-5 text-gray-600" />
+          </button>
+        )}
 
-        {openFolderMenuId === node.id && (
+        {openFolderMenuId === node.id && !readonly && (
           <div className="absolute right-2 top-10 z-50 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
             <button
               className="cursor-pointer flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50"
@@ -157,6 +161,7 @@ function NodeRow({
               openFolderMenuId={openFolderMenuId}
               setOpenFolderMenuId={setOpenFolderMenuId}
               depth={depth + 1}
+              readonly={readonly}
             />
           ))}
         </div>
@@ -184,6 +189,7 @@ export default function FolderSidebar({
   onRename,
   onDelete,
   onlyGlobal,
+  readonly,
 }: {
   folders: FolderNode[];
   foldersGlobal: FolderNode[];
@@ -208,11 +214,12 @@ export default function FolderSidebar({
   onRename: (nodeId: string, name: string, scope: Scope) => void;
   onDelete: (nodeId: string, name: string, scope: Scope) => void;
   onlyGlobal?: boolean;
+  readonly?: boolean;
 }) {
   return (
-    <div className="w-full space-y-4 ">
+    <div className="w-full space-y-4 mb-4">
       {!onlyGlobal && (
-        <div className="overflow-hidden ">
+        <div className="overflow-hidden mr-4 ">
           <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
             <div className="mb-2 flex items-center justify-between">
               <button
@@ -223,15 +230,17 @@ export default function FolderSidebar({
               >
                 Phòng hiện tại
               </button>
-              <button
-                onClick={() => onCreateRoot('room')}
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
-              >
-                <HiPlus className="h-4 w-4" />
-                Tạo
-              </button>
+              {!readonly && (
+                <button
+                  onClick={() => onCreateRoot('room')}
+                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+                >
+                  <HiPlus className="h-4 w-4" />
+                  Tạo
+                </button>
+              )}
             </div>
-            <div className="space-y-1  h-[10rem] overflow-y-auto">
+            <div className="space-y-1 sm:h-[15rem] h-[10rem] overflow-y-auto custom-scrollbar">
               {folders.map((n) => (
                 <NodeRow
                   key={n.id}
@@ -247,6 +256,7 @@ export default function FolderSidebar({
                   onDelete={onDelete}
                   openFolderMenuId={openFolderMenuId}
                   setOpenFolderMenuId={setOpenFolderMenuId}
+                  readonly={readonly}
                 />
               ))}
               {!folders.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
@@ -255,7 +265,7 @@ export default function FolderSidebar({
         </div>
       )}
 
-      <div className="overflow-hidden ">
+      <div className="overflow-hidden mr-4 ">
         <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
           <div className="mb-2 flex items-center justify-between">
             <button
@@ -266,15 +276,17 @@ export default function FolderSidebar({
             >
               Dùng chung (Global)
             </button>
-            <button
-              onClick={() => onCreateRoot('global')}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
-            >
-              <HiPlus className="h-4 w-4" />
-              Tạo
-            </button>
+            {!readonly && (
+              <button
+                onClick={() => onCreateRoot('global')}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700"
+              >
+                <HiPlus className="h-4 w-4" />
+                Tạo
+              </button>
+            )}
           </div>
-          <div className="space-y-1 md:h-[15rem]  h-[10rem] overflow-y-auto">
+          <div className="space-y-1 md:h-[15rem]  h-[10rem] overflow-y-auto custom-scrollbar">
             {foldersGlobal.map((n) => (
               <NodeRow
                 key={n.id}
@@ -290,6 +302,7 @@ export default function FolderSidebar({
                 onDelete={onDelete}
                 openFolderMenuId={openFolderMenuId}
                 setOpenFolderMenuId={setOpenFolderMenuId}
+                readonly={readonly}
               />
             ))}
             {!foldersGlobal.length ? <p className="px-2 py-2 text-xs text-gray-500">Chưa có thư mục.</p> : null}
@@ -297,7 +310,7 @@ export default function FolderSidebar({
         </div>
       </div>
 
-      <div className="overflow-hidden ">
+      <div className="overflow-hidden mr-4 ">
         <div className="rounded-2xl border border-gray-200 bg-white p-3 mt-3 md:mt-0 ">
           <div className="mb-2 flex items-center justify-between">
             <button
@@ -308,15 +321,17 @@ export default function FolderSidebar({
             >
               Dùng chung nhiều phòng
             </button>
-            <button
-              onClick={() => onCreateRoot('rooms_shared')}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-purple-600 px-3 py-2 text-xs font-semibold text-white hover:bg-purple-700"
-            >
-              <HiPlus className="h-4 w-4" />
-              Tạo
-            </button>
+            {!readonly && (
+              <button
+                onClick={() => onCreateRoot('rooms_shared')}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-purple-600 px-3 py-2 text-xs font-semibold text-white hover:bg-purple-700"
+              >
+                <HiPlus className="h-4 w-4" />
+                Tạo
+              </button>
+            )}
           </div>
-          <div className="space-y-1 md:h-[15rem] h-[10rem] overflow-y-auto">
+          <div className="space-y-1 md:h-[15rem] h-[10rem] overflow-y-auto custom-scrollbar">
             {foldersShared.map((n) => (
               <NodeRow
                 key={n.id}

@@ -39,6 +39,8 @@ interface HomeDesktopProps {
   fetchAllData: () => Promise<void> | void;
   onShowGlobalSearch: () => void;
   onNavigateToMessage: (message: Message) => void;
+  onlyGroups?: boolean;
+  onlyPersonal?: boolean;
 }
 
 export default function HomeDesktop({
@@ -56,6 +58,8 @@ export default function HomeDesktop({
   onScrollComplete,
   fetchAllData,
   onNavigateToMessage,
+  onlyGroups = false,
+  onlyPersonal = false,
 }: HomeDesktopProps) {
   return (
     <div className="hidden md:flex h-screen w-full">
@@ -70,6 +74,8 @@ export default function HomeDesktop({
         onSelectChat={onSelectChat}
         onChatAction={onChatAction}
         onNavigateToMessage={onNavigateToMessage}
+        onlyGroups={onlyGroups}
+        onlyPersonal={onlyPersonal}
       />
 
       <div className="flex-1 flex flex-col overflow-auto border-l border-gray-200">
