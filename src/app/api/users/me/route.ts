@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
   const sid = req.cookies.get('sid')?.value || null;
   if (sid) {
     const session = await getSession(sid);
-    if (session && session.deviceFingerprint === fp) userId = session.userId;
+    if (session) userId = session.userId;
   }
 
   if (!userId) {
@@ -111,6 +111,16 @@ export async function GET(req: NextRequest) {
   const user = await db.collection<UserDocument>(USERS_COLLECTION_NAME).findOne(query);
 
   const res = NextResponse.json({ success: true, user: { ...user, password: undefined } });
+  // Nếu chưa cấp refreshedAccess (do dùng sid fallback), cấp token mới từ thông tin user hiện tại
+  if (!refreshedAccess && sid && user) {
+    const username = typeof user.username === 'string' ? user.username : '';
+    const name = typeof user.name === 'string' ? user.name : '';
+    const userIdStr =
+      typeof user._id === 'object' && 'toHexString' in (user._id as ObjectId)
+        ? (user._id as ObjectId).toHexString()
+        : String(user._id);
+    refreshedAccess = await signJWT({ _id: userIdStr, username, name, fp });
+  }
   if (refreshedAccess) {
     res.cookies.set('session_token', refreshedAccess, {
       httpOnly: true,
