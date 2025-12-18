@@ -372,7 +372,7 @@ export default function Sidebar({
   return (
     <aside className="relative flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-r border-gray-200 w-full md:w-[20rem] shadow-2xl overflow-hidden">
       {/* HEADER GRADIENT SIÊU SANG */}
-      <div className="bg-gradient-to-br from-sky-500 via-blue-500 to-blue-500 shadow-2xl">
+      <div className="bg-blue-500 shadow-2xl">
         {/* User Info */}
         <div className="px-4 py-4  items-center gap-4 hidden md:flex text-white">
           <div className="relative">
@@ -411,50 +411,66 @@ export default function Sidebar({
         <div className="px-2 pb-2 pt-2">
           <div className="flex items-center gap-4">
             <div className="relative flex-1 group">
-              <HiMagnifyingGlass className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 text-white/70 pointer-events-none z-10" />
+              {/* Icon kính lúp - mặc định trắng mờ, focus chuyển sang xanh Zalo */}
+              <HiMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 pointer-events-none z-10 transition-colors duration-300 group-focus-within:text-[#0068ff] group-focus-within:opacity-100" />
+
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Tìm kiếm tin nhắn, liên hệ, file..."
+                placeholder="Tìm kiếm"
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-10 pr-10 py-2 bg-white/20 backdrop-blur-xl border border-white/30 rounded-3xl text-white placeholder:text-white/70 focus:outline-none focus:ring-4 focus:ring-white/30 focus:bg-white/30 transition-all duration-300 text-base font-medium shadow-inner"
+                className="w-full pl-11 pr-10 py-1 bg-transparent rounded-xl focus:outline-none focus:bg-white transition-all duration-300 text-base text-white placeholder-white/70 focus:text-gray-800 focus:placeholder-gray-500"
               />
+
+              {/* Nút xóa - chỉ hiện khi có text, mặc định trắng mờ trên nền trong suốt, focus thì xám trên nền trắng */}
               {searchTerm && (
                 <button
                   onClick={() => {
                     setSearchTerm('');
                     setGlobalSearchResults({ contacts: [], messages: [] });
                   }}
-                  className="absolute cursor-pointer right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/30 hover:bg-white/50 transition-all active:scale-90"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 group-focus-within:bg-gray-300 group-focus-within:hover:bg-gray-400 transition-all duration-300 flex items-center justify-center active:scale-95"
                 >
-                  <HiXMark className="w-3 h-3 text-white" />
+                  <HiXMark className="w-4 h-4 text-white group-focus-within:text-gray-600 transition-colors duration-300" />
                 </button>
               )}
             </div>
 
             {!isWidgetIframe && (
-              <div className="relative">
-                <button
-                  ref={mobileMenuButtonRef}
-                  onClick={() => setShowMobileMenu(!showMobileMenu)}
-                  className="cursor-pointer p-2 bg-white/20 hover:bg-white/30 rounded-3xl backdrop-blur-sm transition-all active:scale-95"
-                >
-                  <HiEllipsisVertical className="w-6 h-6 text-white" />
-                </button>
+              <div className="flex items-center gap-2">
+                {!onlyPersonal && (
+                  <button
+                    onClick={() => setShowCreateGroupModal(true)}
+                    className="cursor-pointer w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-3xl backdrop-blur-sm transition-all active:scale-95"
+                    title="Tạo nhóm mới"
+                  >
+                    <FaPlus className="w-4 h-4 text-white" />
+                  </button>
+                )}
 
-                <SidebarMobileMenu
-                  isOpen={showMobileMenu}
-                  onClose={() => setShowMobileMenu(false)}
-                  filterType={filterType}
-                  setFilterType={setFilterType}
-                  counts={filterCounts}
-                  onOpenCreateGroup={() => setShowCreateGroupModal(true)}
-                  onOpenGlobalFolder={() => setShowGlobalFolder(true)}
-                  buttonRef={mobileMenuButtonRef}
-                  onlyGroups={onlyGroups}
-                  onlyPersonal={onlyPersonal}
-                />
+                <div className="relative">
+                  <button
+                    ref={mobileMenuButtonRef}
+                    onClick={() => setShowMobileMenu(!showMobileMenu)}
+                    className="cursor-pointer p-1 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-3xl backdrop-blur-sm transition-all active:scale-95"
+                  >
+                    <HiEllipsisVertical className="w-5 h-5 text-white text-sm" />
+                  </button>
+
+                  <SidebarMobileMenu
+                    isOpen={showMobileMenu}
+                    onClose={() => setShowMobileMenu(false)}
+                    filterType={filterType}
+                    setFilterType={setFilterType}
+                    counts={filterCounts}
+                    onOpenCreateGroup={() => setShowCreateGroupModal(true)}
+                    onOpenGlobalFolder={() => setShowGlobalFolder(true)}
+                    buttonRef={mobileMenuButtonRef}
+                    onlyGroups={onlyGroups}
+                    onlyPersonal={onlyPersonal}
+                  />
+                </div>
               </div>
             )}
           </div>

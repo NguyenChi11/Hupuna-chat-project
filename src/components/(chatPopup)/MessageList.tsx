@@ -645,7 +645,7 @@ export default function MessageList({
                   {/* MAIN BUBBLE */}
                   <div
                     className={`  
-                      px-4 py-2 rounded-lg shadow-md max-w-[50vw] sm:max-w-[17rem] break-words 
+                      px-4 py-2 rounded-lg shadow-md max-w-[50vw] sm:max-w-[17rem] break-words mt-1 
                       ${isMe ? 'bg-[#E5F1FF] text-white' : 'bg-white text-gray-800 border border-gray-200'}
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
                       ${!isGrouped && !isMe ? 'rounded-tl-md' : ''}
@@ -880,7 +880,7 @@ export default function MessageList({
 
                     {/* TEXT */}
                     {msg.type === 'text' && !isRecalled && !isEditing && (
-                      <div className="text-sm leading-relaxed text-black whitespace-pre-wrap">
+                      <div className="text-[1.125rem] leading-relaxed text-black whitespace-pre-wrap">
                         {renderMessageContent(msg.content || '', msg.mentions, isMe)}
                         {(() => {
                           const linkMatch = (msg.content || '').match(/(https?:\/\/|www\.)\S+/i);

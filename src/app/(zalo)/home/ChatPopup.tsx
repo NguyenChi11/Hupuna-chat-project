@@ -1512,6 +1512,35 @@ export default function ChatWindow({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showMentionMenu, mentionMenuRef, setShowMentionMenu]);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const target = e.target as Node | null;
+      const footerEl = footerRef.current;
+      const inputEl = editableRef.current;
+      if (!inputEl) return;
+      const active = document.activeElement === inputEl;
+      if (!active) return;
+      if (footerEl && target && footerEl.contains(target)) return;
+      try {
+        inputEl.blur();
+      } catch {}
+      setShowEmojiPicker(false);
+    };
+    document.addEventListener('mousedown', handler, true);
+    document.addEventListener('touchstart', handler, true);
+    return () => {
+      document.removeEventListener('mousedown', handler, true);
+      document.removeEventListener('touchstart', handler, true);
+    };
+  }, [editableRef, footerRef, setShowEmojiPicker]);
+
+  const handleToggleEmojiPicker = useCallback(() => {
+    try {
+      editableRef.current?.blur?.();
+    } catch {}
+    setTimeout(() => setShowEmojiPicker((prev) => !prev), 120);
+  }, [editableRef, setShowEmojiPicker]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const getSenderName = (sender: User | string): string => {
     if (typeof sender === 'object' && sender && 'name' in sender && (sender as User).name) {
@@ -2120,7 +2149,7 @@ export default function ChatWindow({
 
             <ChatInput
               showEmojiPicker={showEmojiPicker}
-              onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
+              onToggleEmojiPicker={handleToggleEmojiPicker}
               isListening={isListening}
               onVoiceInput={handleVoiceInput}
               editableRef={editableRef}

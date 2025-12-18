@@ -96,7 +96,9 @@ export default function ChatInput({
   const [showMobileActions, setShowMobileActions] = useState(false);
   const mobileActionsRef = useRef<HTMLDivElement | null>(null);
   const toggleMobileActionsBtnRef = useRef<HTMLButtonElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const pendingFocusRef = useRef(false);
+  const allowFocusRef = useRef(true);
 
   useEffect(() => {
     const init = async () => {
@@ -137,6 +139,7 @@ export default function ChatInput({
       const target = e.target as Node | null;
       if (mobileActionsRef.current && target && mobileActionsRef.current.contains(target)) return;
       if (toggleMobileActionsBtnRef.current && target && toggleMobileActionsBtnRef.current.contains(target)) return;
+      if (editableRef.current && target && editableRef.current.contains(target)) return;
       const el = editableRef.current;
       setShowMobileActions(false);
       try {
@@ -200,6 +203,19 @@ export default function ChatInput({
   }, [showMobileActions]);
 
   useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        allowFocusRef.current = false;
+        try {
+          editableRef.current?.blur?.();
+        } catch {}
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, []);
+
+  useEffect(() => {
     const loadKV = async () => {
       if (!selectedFlashFolder?.id || !roomId) {
         setKvItems([]);
@@ -249,6 +265,80 @@ export default function ChatInput({
     } catch {}
     setShowFlashPicker(false);
   };
+
+  const handleToggleMobileActions = () => {
+    if (showMobileActions) {
+      setShowMobileActions(false);
+      try {
+        window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+      } catch {}
+      return;
+    }
+
+    const el = editableRef.current;
+    const isFocused = document.activeElement === el;
+    const vv = (
+      window as unknown as {
+        visualViewport?: {
+          height: number;
+          addEventListener: (type: string, cb: EventListenerOrEventListenerObject) => void;
+          removeEventListener: (type: string, cb: EventListenerOrEventListenerObject) => void;
+        };
+        innerHeight: number;
+      }
+    ).visualViewport;
+
+    const hasKeyboard = isFocused || (vv && vv.height < window.innerHeight * 0.75);
+
+    if (hasKeyboard) {
+      try {
+        if (isFocused) el?.blur();
+      } catch {}
+
+      if (vv && typeof vv.addEventListener === 'function') {
+        const startH = vv.height;
+        let opened = false;
+        const open = () => {
+          if (opened) return;
+          opened = true;
+          setShowMobileActions(true);
+          try {
+            window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: true } }));
+          } catch {}
+        };
+        const onResize: EventListener = () => {
+          if (vv.height - startH > 40) {
+            try {
+              vv.removeEventListener('resize', onResize);
+            } catch {}
+            window.clearTimeout(timer as number);
+            open();
+          }
+        };
+        vv.addEventListener('resize', onResize);
+        const timer = window.setTimeout(() => {
+          try {
+            vv.removeEventListener('resize', onResize);
+          } catch {}
+          open();
+        }, 500);
+        return;
+      }
+
+      setTimeout(() => {
+        setShowMobileActions(true);
+        try {
+          window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: true } }));
+        } catch {}
+      }, 150);
+      return;
+    }
+
+    setShowMobileActions(true);
+    try {
+      window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: true } }));
+    } catch {}
+  };
   const updateSlashState = () => {
     const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
     const m = text.match(/\/\s*([\w-]*)$/);
@@ -257,8 +347,29 @@ export default function ChatInput({
     const shouldOpen = /\//.test(text);
     setSlashOpen(shouldOpen);
   };
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      if (document.activeElement !== editableRef.current) return;
+
+      const target = e.target as Node;
+      if (containerRef.current && containerRef.current.contains(target)) return;
+
+      try {
+        editableRef.current?.blur();
+      } catch {}
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, []);
+
   return (
-    <div className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50">
+    <div ref={containerRef} className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50">
       {isUploading ? (
         <div className="mb-2 w-full overflow-hidden rounded-xl">
           <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallUploadPercent} />
@@ -311,7 +422,12 @@ export default function ChatInput({
       <div className="flex items-center gap-2 md:mb-2 mb-0">
         {/* Emoji */}
         <button
-          onClick={onToggleEmojiPicker}
+          onClick={() => {
+            try {
+              editableRef.current?.blur?.();
+            } catch {}
+            setTimeout(() => onToggleEmojiPicker(), 100);
+          }}
           className="hidden md:block group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
           aria-label="Chọn emoji"
         >
@@ -397,7 +513,12 @@ export default function ChatInput({
       {/* Input Area + Send Button */}
       <div className="flex items-end gap-3">
         <button
-          onClick={onToggleEmojiPicker}
+          onClick={() => {
+            try {
+              editableRef.current?.blur?.();
+            } catch {}
+            setTimeout(() => onToggleEmojiPicker(), 100);
+          }}
           className="md:hidden block group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
           aria-label="Chọn emoji"
         >
@@ -411,24 +532,6 @@ export default function ChatInput({
             inputMode="text"
             role="textbox"
             aria-multiline="true"
-            onMouseDown={() => {
-              if (showMobileActions) {
-                pendingFocusRef.current = true;
-                setShowMobileActions(false);
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                } catch {}
-              }
-            }}
-            onTouchStart={() => {
-              if (showMobileActions) {
-                pendingFocusRef.current = true;
-                setShowMobileActions(false);
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                } catch {}
-              }
-            }}
             onClick={() => {
               setShowMobileActions(false);
               try {
@@ -554,15 +657,7 @@ export default function ChatInput({
         <div className="md:hidden relative flex items-center gap-2">
           <button
             ref={toggleMobileActionsBtnRef}
-            onClick={() =>
-              setShowMobileActions((v) => {
-                const next = !v;
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: next } }));
-                } catch {}
-                return next;
-              })
-            }
+            onClick={handleToggleMobileActions}
             className="p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90"
             aria-label="Mở thêm hành động"
           >
@@ -573,18 +668,23 @@ export default function ChatInput({
             onTouchStart={(e) => e.preventDefault()}
             onClick={() => {
               onSendMessage();
-              try {
-                const el = editableRef.current;
-                if (el) {
-                  el.focus();
-                  const range = document.createRange();
-                  range.selectNodeContents(el);
-                  range.collapse(false);
-                  const sel = window.getSelection();
-                  sel?.removeAllRanges();
-                  sel?.addRange(range);
-                }
-              } catch {}
+              if (!document.hidden && allowFocusRef.current) {
+                allowFocusRef.current = true;
+                try {
+                  requestAnimationFrame(() => {
+                    const el = editableRef.current;
+                    if (el) {
+                      el.focus();
+                      const range = document.createRange();
+                      range.selectNodeContents(el);
+                      range.collapse(false);
+                      const sel = window.getSelection();
+                      sel?.removeAllRanges();
+                      sel?.addRange(range);
+                    }
+                  });
+                } catch {}
+              }
             }}
             className="p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90 group"
             aria-label="Gửi tin nhắn"
@@ -598,18 +698,23 @@ export default function ChatInput({
           onTouchStart={(e) => e.preventDefault()}
           onClick={() => {
             onSendMessage();
-            try {
-              const el = editableRef.current;
-              if (el) {
-                el.focus();
-                const range = document.createRange();
-                range.selectNodeContents(el);
-                range.collapse(false);
-                const sel = window.getSelection();
-                sel?.removeAllRanges();
-                sel?.addRange(range);
-              }
-            } catch {}
+            if (!document.hidden && allowFocusRef.current) {
+              allowFocusRef.current = true;
+              try {
+                requestAnimationFrame(() => {
+                  const el = editableRef.current;
+                  if (el) {
+                    el.focus();
+                    const range = document.createRange();
+                    range.selectNodeContents(el);
+                    range.collapse(false);
+                    const sel = window.getSelection();
+                    sel?.removeAllRanges();
+                    sel?.addRange(range);
+                  }
+                });
+              } catch {}
+            }
           }}
           className="hidden md:block p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90 group"
           aria-label="Gửi tin nhắn"
@@ -621,7 +726,7 @@ export default function ChatInput({
       {showMobileActions && (
         <div
           ref={mobileActionsRef}
-          className="md:hidden w-full mt-2 grid grid-cols-4 gap-2 items-center justify-between mx-auto"
+          className="md:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
         >
           <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
