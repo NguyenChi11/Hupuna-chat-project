@@ -149,6 +149,10 @@ export default function ChatWindow({
   const [, setPinnedMessage] = useState<Message | null>(null);
   const [allPinnedMessages, setAllPinnedMessages] = useState<Message[]>([]);
   const [showPinnedList, setShowPinnedList] = useState(false);
+  const PINNED_PAGE_SIZE = 10;
+  const [pinnedSkip, setPinnedSkip] = useState(0);
+  const [pinnedTotal, setPinnedTotal] = useState<number | null>(null);
+  const [pinnedLoading, setPinnedLoading] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState(''); // Lưu nội dung đang chỉnh sửa
@@ -408,7 +412,9 @@ export default function ChatWindow({
     if (!el) return;
     const imgs = Array.from(el.querySelectorAll('img'));
     const handler = () => {
-      scrollToBottom();
+      if (isAtBottomRef.current) {
+        scrollToBottom();
+      }
     };
     imgs.forEach((img) => img.addEventListener('load', handler, { once: true }));
     return () => {
@@ -690,11 +696,19 @@ export default function ChatWindow({
 
       if (res.ok) {
         // 2. Cập nhật danh sách messages và pinnedMessage
-        setMessages((prev) => prev.map((m) => (m._id === message._id ? { ...m, isPinned: newPinnedStatus } : m)));
+        setMessages((prev) =>
+          prev.map((m) => (m._id === message._id ? { ...m, isPinned: newPinnedStatus, pinnedAt: newPinnedStatus ? Date.now() : null } : m)),
+        );
         setAllPinnedMessages((prev) => {
-          const updatedMsg = { ...message, isPinned: newPinnedStatus, editedAt: Date.now() } as Message;
+          const updatedMsg = {
+            ...message,
+            isPinned: newPinnedStatus,
+            editedAt: Date.now(),
+            pinnedAt: newPinnedStatus ? Date.now() : null,
+          } as Message;
           const withoutDup = prev.filter((m) => String(m._id) !== String(message._id));
-          return newPinnedStatus ? [updatedMsg, ...withoutDup] : withoutDup;
+          const next = newPinnedStatus ? [updatedMsg, ...withoutDup] : withoutDup;
+          return next.sort((a, b) => Number(b.pinnedAt ?? 0) - Number(a.pinnedAt ?? 0));
         });
 
         // 2.2. Bắn socket ngay để cập nhật realtime cho tất cả client
@@ -702,6 +716,7 @@ export default function ChatWindow({
           _id: message._id,
           roomId,
           isPinned: newPinnedStatus,
+          pinnedAt: newPinnedStatus ? Date.now() : null,
         });
 
         // 🔥 BƯỚC MỚI: GỬI THÔNG BÁO VÀO NHÓM
@@ -824,15 +839,12 @@ export default function ChatWindow({
       const messageElement = document.getElementById(`msg-${messageId}`);
       const container = messagesContainerRef.current;
 
-      if (messageElement) {
-        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-        if (container) {
-          const elRect = messageElement.getBoundingClientRect();
-          const cRect = container.getBoundingClientRect();
-          const delta = elRect.top - cRect.top - container.clientHeight / 2 + elRect.height / 2;
-          container.scrollBy({ top: delta, behavior: 'smooth' });
-        }
+      if (messageElement && container) {
+        const elRect = messageElement.getBoundingClientRect();
+        const cRect = container.getBoundingClientRect();
+        const elTopInContainer = elRect.top - cRect.top + container.scrollTop;
+        const targetTop = elTopInContainer - container.clientHeight / 2 + elRect.height / 2;
+        container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
 
         setHighlightedMsgId(messageId);
         setTimeout(() => {
@@ -892,14 +904,12 @@ export default function ChatWindow({
 
           await new Promise((r) => setTimeout(r, 60));
           const el = document.getElementById(`msg-${messageId}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            if (container) {
-              const elRect = el.getBoundingClientRect();
-              const cRect = container.getBoundingClientRect();
-              const delta = elRect.top - cRect.top - container.clientHeight / 2 + elRect.height / 2;
-              container.scrollBy({ top: delta, behavior: 'smooth' });
-            }
+          if (el && container) {
+            const elRect = el.getBoundingClientRect();
+            const cRect = container.getBoundingClientRect();
+            const elTopInContainer = elRect.top - cRect.top + container.scrollTop;
+            const targetTop = elTopInContainer - container.clientHeight / 2 + elRect.height / 2;
+            container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
             setHighlightedMsgId(messageId);
             setTimeout(() => setHighlightedMsgId(null), 2500);
             return;
@@ -973,12 +983,23 @@ export default function ChatWindow({
 
   const fetchPinnedMessages = useCallback(async () => {
     try {
-      const data = await readPinnedMessagesApi(roomId);
-      setAllPinnedMessages((data.data as Message[]) || []);
+      setPinnedLoading(true);
+      const json = await readPinnedMessagesApi(roomId, { limit: PINNED_PAGE_SIZE, skip: 0 });
+      const arr = (json.data as Message[]) || [];
+      setAllPinnedMessages(arr);
+      const totalRaw = (json as { total?: number }).total;
+      const total: number | null = typeof totalRaw === 'number' ? totalRaw : null;
+      setPinnedTotal(total);
+      setPinnedSkip(arr.length);
     } catch (error) {
       console.error('Fetch Pinned messages error:', error);
+      setAllPinnedMessages([]);
+      setPinnedTotal(null);
+      setPinnedSkip(0);
+    } finally {
+      setPinnedLoading(false);
     }
-  }, [roomId]);
+  }, [roomId, PINNED_PAGE_SIZE]);
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -1010,11 +1031,40 @@ export default function ChatWindow({
     }
   }, [roomId]);
 
+  const loadMorePinnedMessages = useCallback(async () => {
+    if (pinnedLoading) return;
+    const total = pinnedTotal ?? 0;
+    if (total > 0 && allPinnedMessages.length >= total) return;
+    try {
+      setPinnedLoading(true);
+      const json = await readPinnedMessagesApi(roomId, { limit: PINNED_PAGE_SIZE, skip: pinnedSkip });
+      const arr = (json.data as Message[]) || [];
+      if (arr.length > 0) {
+        setAllPinnedMessages((prev) => {
+          const existing = new Set(prev.map((m) => String(m._id)));
+          const merged = [...prev, ...arr.filter((m) => !existing.has(String(m._id)))];
+          return merged.sort((a, b) => Number(b.pinnedAt ?? 0) - Number(a.pinnedAt ?? 0));
+        });
+        setPinnedSkip((s) => s + arr.length);
+      }
+      const totalRaw = (json as { total?: number }).total;
+      const totalNext: number | null = typeof totalRaw === 'number' ? totalRaw : pinnedTotal;
+      setPinnedTotal(totalNext);
+    } catch (e) {
+      console.error('Load more pinned messages error:', e);
+    } finally {
+      setPinnedLoading(false);
+    }
+  }, [pinnedLoading, pinnedTotal, allPinnedMessages.length, roomId, PINNED_PAGE_SIZE, pinnedSkip]);
+
   // Chỉ load lại dữ liệu khi roomId thay đổi (tránh gọi API lại khi click cùng một group nhiều lần)
   useEffect(() => {
     if (!roomId) return;
     setMessages([]);
     void fetchMessages();
+    setAllPinnedMessages([]);
+    setPinnedSkip(0);
+    setPinnedTotal(null);
     void fetchPinnedMessages();
     initialScrolledRef.current = false;
   }, [roomId, fetchMessages, fetchPinnedMessages]);
@@ -1129,6 +1179,7 @@ export default function ChatWindow({
         pollLockedAt?: number;
         timestamp?: number;
         isPinned?: boolean;
+        pinnedAt?: number | null;
         reactions?: Record<string, string[]>;
       }) => {
         if (String(data.roomId) === String(roomId)) {
@@ -1149,6 +1200,7 @@ export default function ChatWindow({
                     pollLockedAt: data.pollLockedAt ?? msg.pollLockedAt,
                     timestamp: data.timestamp ?? msg.timestamp,
                     isPinned: typeof data.isPinned === 'boolean' ? data.isPinned : msg.isPinned,
+                    pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : msg.pinnedAt,
                     reactions: data.reactions ?? msg.reactions,
                   }
                 : msg,
@@ -1173,6 +1225,7 @@ export default function ChatWindow({
                     timestamp: data.timestamp ?? latest.timestamp,
                     editedAt: data.editedAt ?? latest.editedAt,
                     isPinned: data.isPinned,
+                    pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : latest.pinnedAt,
                   } as Message)
                 : ({
                     _id: data._id as unknown as string,
@@ -1183,9 +1236,11 @@ export default function ChatWindow({
                     timestamp: data.timestamp || Date.now(),
                     editedAt: data.editedAt || Date.now(),
                     isPinned: data.isPinned,
+                    pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : Date.now(),
                   } as Message);
               const withoutDup = prev.filter((m) => String(m._id) !== String(data._id));
-              return data.isPinned ? [updatedMsg, ...withoutDup] : withoutDup;
+              const next = data.isPinned ? [updatedMsg, ...withoutDup] : withoutDup;
+              return next.sort((a, b) => Number(b.pinnedAt ?? 0) - Number(a.pinnedAt ?? 0));
             });
           }
           const idStr = String(data._id);
@@ -1932,6 +1987,9 @@ export default function ChatWindow({
             onJumpToMessage={handleJumpToMessage}
             getSenderName={getSenderName}
             onUnpinMessage={handlePinMessage}
+            onLoadMorePinned={loadMorePinnedMessages}
+            pinnedHasMore={(pinnedTotal ?? 0) > allPinnedMessages.length}
+            pinnedLoading={pinnedLoading}
           />
 
           {isGroup && !callActive && !callConnecting && roomCallActive && (
@@ -1989,7 +2047,7 @@ export default function ChatWindow({
           <button
             onClick={scrollToBottom}
             aria-label="Cuộn xuống cuối"
-            className={`absolute cursor-pointer hover:bg-gray-100 bottom-50 right-4 z-30 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
+            className={`absolute cursor-pointer hover:bg-gray-100 md:bottom-35 bottom-30   right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
               showScrollDown ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
           >

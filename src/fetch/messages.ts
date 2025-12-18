@@ -47,14 +47,19 @@ export async function readMessagesApi(
   return res.json();
 }
 
-export async function readPinnedMessagesApi(roomId: string): Promise<MessagesApiResponse<Message[]>> {
+export async function readPinnedMessagesApi(
+  roomId: string,
+  options?: { skip?: number; limit?: number },
+): Promise<MessagesApiResponse<Message[]>> {
   const res = await fetch('/api/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       action: 'read',
       filters: { roomId, isPinned: true },
-      sort: { field: 'timestamp', order: 'desc' },
+      skip: options?.skip ?? 0,
+      limit: options?.limit ?? 10,
+      sort: { field: 'pinnedAt', order: 'desc' },
     }),
   });
   return res.json();

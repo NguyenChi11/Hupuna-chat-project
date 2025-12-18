@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJWT, signJWT, signEphemeralJWT } from '@/lib/auth';
-import { fingerprintFromHeaders } from '@/lib/session';
+import { fingerprintFromHeaders, getSession } from '@/lib/session';
 
 export const runtime = 'nodejs';
 
@@ -14,11 +14,19 @@ export async function GET(req: NextRequest) {
     'accept-language': req.headers.get('accept-language') || '',
   });
   const tfp = typeof payload['fp'] === 'string' ? (payload['fp'] as string) : '';
-  if (!tfp || tfp !== fp) return NextResponse.json({ success: false }, { status: 401 });
   const userId = typeof payload['sub'] === 'string' ? (payload['sub'] as string) : '';
   const username = typeof payload['username'] === 'string' ? (payload['username'] as string) : '';
   const name = typeof payload['name'] === 'string' ? (payload['name'] as string) : '';
   if (!userId) return NextResponse.json({ success: false }, { status: 401 });
+
+  // Nếu fingerprint không khớp (trình duyệt cập nhật hoặc thay đổi ngôn ngữ),
+  // thử fallback bằng sid hợp lệ để giữ đăng nhập.
+  if (!tfp || tfp !== fp) {
+    const sid = req.cookies.get('sid')?.value || '';
+    if (!sid) return NextResponse.json({ success: false }, { status: 401 });
+    const session = await getSession(sid);
+    if (!session || String(session.userId) !== userId) return NextResponse.json({ success: false }, { status: 401 });
+  }
 
   const accessToken = await signJWT({ _id: userId, username, name, fp });
   const res = NextResponse.json({ success: true });

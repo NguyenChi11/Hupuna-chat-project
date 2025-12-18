@@ -480,7 +480,7 @@ export async function POST(req: NextRequest) {
           collectionName,
           '_id', // Tìm theo ID
           messageId,
-          { isPinned: newPinnedStatus }, // Cập nhật trạng thái mới
+          { isPinned: newPinnedStatus, pinnedAt: newPinnedStatus ? Date.now() : null }, // Cập nhật trạng thái mới + thời điểm ghim
         );
 
         return NextResponse.json({ success: true, result });

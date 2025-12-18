@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Message } from '../../types/Message';
+import Image from 'next/image';
+import { getProxyUrl } from '@/utils/utils';
 
 // React Icons – chuẩn Zalo, đẹp, nhẹ
 import { HiMapPin, HiXMark } from 'react-icons/hi2';
@@ -14,6 +16,9 @@ interface Props {
   onGetSenderName: (sender: string | Message['sender']) => string;
   onGetContentDisplay: (msg: Message) => string | React.ReactNode;
   onUnpinMessage: (msg: Message) => void;
+  hasMore: boolean;
+  onLoadMore: () => void;
+  loadingMore?: boolean;
 }
 
 export default function PinnedMessageListModal({
@@ -23,6 +28,9 @@ export default function PinnedMessageListModal({
   onGetSenderName,
   onGetContentDisplay,
   onUnpinMessage,
+  hasMore,
+  onLoadMore,
+  loadingMore,
 }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -47,8 +55,7 @@ export default function PinnedMessageListModal({
           </button>
         </div>
 
-        {/* Danh sách tin nhắn */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
           {messages.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <HiMapPin className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -75,11 +82,13 @@ export default function PinnedMessageListModal({
                             ? 'bg-blue-100 text-blue-800'
                             : msg.type === 'image'
                               ? 'bg-pink-100 text-pink-800'
-                              : msg.type === 'file'
-                                ? 'bg-gray-100 text-gray-800'
-                                : msg.type === 'sticker'
-                                  ? 'bg-indigo-100 text-indigo-800'
-                                  : 'bg-gray-100 text-gray-700'
+                              : msg.type === 'video'
+                                ? 'bg-blue-100 text-blue-800'
+                                : msg.type === 'file'
+                                  ? 'bg-gray-100 text-gray-800'
+                                  : msg.type === 'sticker'
+                                    ? 'bg-indigo-100 text-indigo-800'
+                                    : 'bg-gray-100 text-gray-700'
                       }`}
                     >
                       {msg.type === 'poll'
@@ -88,11 +97,13 @@ export default function PinnedMessageListModal({
                           ? 'Lịch hẹn'
                           : msg.type === 'image'
                             ? 'Ảnh'
-                            : msg.type === 'file'
-                              ? 'File'
-                              : msg.type === 'sticker'
-                                ? 'Sticker'
-                                : 'Tin nhắn'}
+                            : msg.type === 'video'
+                              ? 'Video'
+                              : msg.type === 'file'
+                                ? 'File'
+                                : msg.type === 'sticker'
+                                  ? 'Sticker'
+                                  : 'Tin nhắn'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -115,14 +126,55 @@ export default function PinnedMessageListModal({
                   </div>
                 </div>
 
-                {/* Nội dung */}
-                <div className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
-                  {msg.isRecalled ? (
-                    <span className="italic text-gray-400">đã thu hồi tin nhắn</span>
-                  ) : (
-                    onGetContentDisplay(msg)
-                  )}
-                </div>
+                {/* Nội dung / Preview */}
+                {msg.isRecalled ? (
+                  <div className="text-sm text-gray-500 italic">đã thu hồi tin nhắn</div>
+                ) : (
+                  <>
+                    {msg.type === 'image' && msg.fileUrl ? (
+                      <div className="mt-1">
+                        <div className="relative  overflow-hidden border border-gray-200 shadow-sm w-full max-w-[2rem]">
+                          <Image
+                            src={getProxyUrl(msg.fileUrl)}
+                            alt="Ảnh"
+                            width={320}
+                            height={240}
+                            className="w-full h-auto object-cover"
+                          />
+                        </div>
+                        {msg.content && (
+                          <div className="mt-2 text-sm text-gray-700 line-clamp-3 leading-relaxed">{msg.content}</div>
+                        )}
+                      </div>
+                    ) : msg.type === 'video' && msg.fileUrl ? (
+                      <div className="mt-1">
+                        <div className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm w-full max-w-[6rem] bg-black">
+                          <video
+                            src={getProxyUrl(msg.fileUrl)}
+                            className="w-full h-auto object-cover"
+                            muted
+                            playsInline
+                            preload="metadata"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-6 h-6 rounded-full bg-white/80 flex items-center justify-center">
+                              <svg viewBox="0 0 24 24" className="w-5 h-5 text-gray-800">
+                                <path d="M8 5v14l11-7z" fill="currentColor" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                        {msg.content && (
+                          <div className="mt-2 text-sm text-gray-700 line-clamp-3 leading-relaxed">{msg.content}</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
+                        {onGetContentDisplay(msg)}
+                      </div>
+                    )}
+                  </>
+                )}
 
                 {/* Link preview cho tin nhắn text */}
                 {msg.type === 'text' &&
@@ -159,16 +211,25 @@ export default function PinnedMessageListModal({
                       </div>
                     );
                   })()}
-                
 
                 {/* Hiệu ứng nhấn */}
                 <div className="absolute inset-0 rounded-xl ring-2 ring-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
               </div>
             ))
           )}
+          {hasMore && (
+            <div className="flex justify-center">
+              <button
+                onClick={onLoadMore}
+                disabled={loadingMore}
+                className="px-3 py-1.5 text-xs rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-800 hover:bg-yellow-100 cursor-pointer disabled:opacity-60"
+              >
+                {loadingMore ? 'Đang tải...' : 'Xem thêm'}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Footer nhẹ (có thể để trống hoặc thêm ghi chú) */}
         <div className="p-3 text-center text-xs text-gray-400 border-t border-gray-100 bg-gray-50">
           Nhấn vào tin nhắn để nhảy đến vị trí gốc
         </div>
