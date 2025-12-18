@@ -36,9 +36,6 @@ export default function PinnedMessagesSection({
   pinnedLoading,
 }: PinnedMessagesSectionProps) {
   if (allPinnedMessages.length === 0 && !showPinnedList) return null;
-
-  const sorted = allPinnedMessages.slice().sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
-  const top5 = sorted.slice(0, 5);
   const isVideoFile = (name?: string) => /\.(mp4|webm|mov|mkv|avi)$/i.test(String(name || ''));
   const isImageFile = (name?: string) => /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(String(name || ''));
   const renderPreview = (msg: Message) => {

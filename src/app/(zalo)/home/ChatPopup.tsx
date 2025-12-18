@@ -401,6 +401,7 @@ export default function ChatWindow({
     const latest = messages[messages.length - 1];
     const mine = latest && String(latest.sender) === String(currentUser._id);
     const should = mine || uploadingCount > 0;
+    if (jumpLoadingRef.current) return;
     if (!should) return;
     scrollToBottom();
     setTimeout(scrollToBottom, 0);
@@ -832,26 +833,30 @@ export default function ChatWindow({
 
   const handleJumpToMessage = useCallback(
     async (messageId: string) => {
-      if (window.innerWidth < 640) {
-        setShowPopup(false);
-      }
-
+      jumpLoadingRef.current = true;
       const messageElement = document.getElementById(`msg-${messageId}`);
       const container = messagesContainerRef.current;
 
       if (messageElement && container) {
-        const elRect = messageElement.getBoundingClientRect();
-        const cRect = container.getBoundingClientRect();
-        const elTopInContainer = elRect.top - cRect.top + container.scrollTop;
-        const targetTop = elTopInContainer - container.clientHeight / 2 + elRect.height / 2;
-        container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+        const centerToEl = () => {
+          const elRect = messageElement.getBoundingClientRect();
+          const cRect = container.getBoundingClientRect();
+          const elTopInContainer = elRect.top - cRect.top + container.scrollTop;
+          const targetTop = elTopInContainer - container.clientHeight / 2 + elRect.height / 2;
+          container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+        };
+        centerToEl();
+        requestAnimationFrame(centerToEl);
+        setTimeout(centerToEl, 250);
 
         setHighlightedMsgId(messageId);
         setTimeout(() => {
           setHighlightedMsgId(null);
         }, 2500);
+        setTimeout(() => {
+          jumpLoadingRef.current = false;
+        }, 600);
       } else {
-        jumpLoadingRef.current = true;
         try {
           let targetTs: number | null = null;
           try {
@@ -896,22 +901,48 @@ export default function ChatWindow({
           const mergedAsc = [...olderAsc, ...newerAsc].filter((m) => !existing.has(String(m._id)));
 
           if (mergedAsc.length > 0) {
-            setMessages((prev) => [...mergedAsc, ...prev]);
-            const newOldest = mergedAsc[0]?.timestamp ?? oldestTs;
-            setOldestTs(newOldest ?? oldestTs);
+            setMessages((prev) => {
+              const prevSet = new Set(prev.map((m) => String(m._id)));
+              const toAdd = mergedAsc.filter((m) => !prevSet.has(String(m._id)));
+              const combined = [...prev, ...toAdd];
+              combined.sort((a, b) => {
+                const ta = Number(a.timestamp) || 0;
+                const tb = Number(b.timestamp) || 0;
+                if (ta !== tb) return ta - tb;
+                const ia = String(a._id);
+                const ib = String(b._id);
+                return ia < ib ? -1 : ia > ib ? 1 : 0;
+              });
+              return combined;
+            });
+            const minAdded =
+              mergedAsc.length > 0 ? Math.min(...mergedAsc.map((m) => Number(m.timestamp) || Number.POSITIVE_INFINITY)) : null;
+            const nextOldest =
+              minAdded != null && Number.isFinite(minAdded)
+                ? Math.min(minAdded, oldestTs ?? Number.POSITIVE_INFINITY)
+                : oldestTs;
+            setOldestTs(nextOldest ?? oldestTs);
             setHasMore(olderRawDesc.length === olderLimit);
           }
 
           await new Promise((r) => setTimeout(r, 60));
           const el = document.getElementById(`msg-${messageId}`);
           if (el && container) {
-            const elRect = el.getBoundingClientRect();
-            const cRect = container.getBoundingClientRect();
-            const elTopInContainer = elRect.top - cRect.top + container.scrollTop;
-            const targetTop = elTopInContainer - container.clientHeight / 2 + elRect.height / 2;
-            container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+            const centerToEl = () => {
+              const elRect = el.getBoundingClientRect();
+              const cRect = container.getBoundingClientRect();
+              const elTopInContainer = elRect.top - cRect.top + container.scrollTop;
+              const targetTop = elTopInContainer - container.clientHeight / 2 + elRect.height / 2;
+              container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+            };
+            centerToEl();
+            requestAnimationFrame(centerToEl);
+            setTimeout(centerToEl, 250);
             setHighlightedMsgId(messageId);
             setTimeout(() => setHighlightedMsgId(null), 2500);
+            setTimeout(() => {
+              jumpLoadingRef.current = false;
+            }, 600);
             return;
           }
 
