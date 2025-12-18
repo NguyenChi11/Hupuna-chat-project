@@ -561,7 +561,7 @@ function GlobalFolderModal({ currentUserId, onClose }: { currentUserId: string; 
   const modal = (
     <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
       <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 ">
-        <div className="flex items-center justify-between px-4 py-3  border-b">
+        <div className="flex items-center justify-between px-4 py-3  border-b-gray-300 border-b">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
               <HiFolder className="w-4 h-4" />
@@ -631,7 +631,7 @@ function RoomsSharedFolderModal({ currentUserId, onClose }: { currentUserId: str
   const modal = (
     <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
       <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 ">
-        <div className="flex items-center justify-between px-4 py-3  border-b">
+        <div className="flex items-center justify-between px-4 py-3  border-b-gray-300 border-b">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
               <HiFolder className="w-4 h-4" />

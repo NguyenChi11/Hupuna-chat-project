@@ -101,7 +101,7 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
               !question.trim() ||
               new Set(options.map((o) => o.trim()).filter((o) => o).map((o) => o.toLowerCase())).size < 2
             }
-            className="flex-1 cursor-pointer py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 cursor-pointer py-3.5 bg-blue-600 hover:bg-green-700 text-white font-semibold rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="inline-flex items-center justify-center gap-2">
               <HiCheck className="w-5 h-5" /> {saving ? 'Đang lưu...' : 'Lưu'}

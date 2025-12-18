@@ -21,7 +21,7 @@ export default function CreateReminderModal({ isOpen, onClose, onCreate, createL
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="relative px-6 pt-6 pb-4 bg-gradient-to-br from-amber-500 to-orange-600 text-white">
+        <div className="relative  p-3 pb-4 bg-blue-500 text-white">
           <button
             onClick={onClose}
             className="absolute cursor-pointer top-3 right-3 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200"
@@ -92,7 +92,7 @@ export default function CreateReminderModal({ isOpen, onClose, onCreate, createL
             onClick={() => onCreate({ content, dateTime, note, repeat })}
             disabled={createLoading}
             className={`flex-1 cursor-pointer py-3.5 font-bold text-white rounded-2xl shadow-lg transition-all duration-300 active:scale-95 flex items-center justify-center gap-2
-              ${canSubmit ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700' : 'bg-gray-400 cursor-not-allowed'}`}
+              ${canSubmit ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 cursor-not-allowed'}`}
           >
             {createLoading ? (
                   <div className="cursor-not-allowed flex items-center gap-2">

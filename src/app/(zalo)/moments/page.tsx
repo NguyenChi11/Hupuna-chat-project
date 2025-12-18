@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useCurrentUser } from '@/hooks/(profile)/useCurrentUser';
 import PostComposer from '@/components/(memonts)/PostComposer';
 import PostCard from '@/components/(memonts)/PostCard';
+import ComingSoonPage from '@/components/ComingSoonPage';
 
 function toMegaStream(url: string) {
   return url.startsWith('https://mega.nz/') ? `/api/mega-stream?url=${encodeURIComponent(url)}` : url;
@@ -157,18 +158,19 @@ export default function MomentsPage() {
 
   /* ------------------------------ UI ------------------------------ */
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 via-white to-indigo-50">
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4 pb-32">
-        <PostComposer
-          onPost={handleCreatePost}
-          author={
-            authorInfo ? { ...authorInfo, avatar: authorInfo.avatar ? String(authorInfo.avatar) : undefined } : null
-          }
-        />
-        {posts.map((p) => (
-          <PostCard key={p.id} post={p} onLike={handleLike} />
-        ))}
-      </div>
-    </div>
+    // <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+    //   <div className="max-w-2xl mx-auto px-4 py-6 space-y-4 pb-32">
+    //     <PostComposer
+    //       onPost={handleCreatePost}
+    //       author={
+    //         authorInfo ? { ...authorInfo, avatar: authorInfo.avatar ? String(authorInfo.avatar) : undefined } : null
+    //       }
+    //     />
+    //     {posts.map((p) => (
+    //       <PostCard key={p.id} post={p} onLike={handleLike} />
+    //     ))}
+    //   </div>
+    // </div>
+    <ComingSoonPage />
   );
 }
