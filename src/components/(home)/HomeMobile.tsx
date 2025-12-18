@@ -40,6 +40,7 @@ interface HomeMobileProps {
   onShowGlobalSearch: () => void;
   onNavigateToMessage: (message: Message) => void;
   onlyGroups?: boolean;
+  onlyPersonal?: boolean;
 }
 
 export default function HomeMobile({
@@ -58,6 +59,7 @@ export default function HomeMobile({
   fetchAllData,
   onNavigateToMessage,
   onlyGroups = false,
+  onlyPersonal = false,
 }: HomeMobileProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -108,6 +110,7 @@ export default function HomeMobile({
           onChatAction={onChatAction}
           onNavigateToMessage={onNavigateToMessage}
           onlyGroups={onlyGroups}
+          onlyPersonal={onlyPersonal}
         />
       )}
     </div>

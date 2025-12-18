@@ -43,6 +43,7 @@ interface SidebarProps {
   onNavigateToMessage: (message: Message) => void;
   styleWidget?: string;
   onlyGroups?: boolean;
+  onlyPersonal?: boolean;
 }
 
 interface Message {
@@ -146,6 +147,7 @@ export default function Sidebar({
   onNavigateToMessage,
   styleWidget = '',
   onlyGroups = false,
+  onlyPersonal = false,
 }: SidebarProps) {
   const currentUserId = currentUser._id;
   const [activeTab, setActiveTab] = useState<'all' | 'contacts' | 'messages' | 'files'>('all');
@@ -174,7 +176,13 @@ export default function Sidebar({
       }
 
       const lowerCaseTerm = term.toLowerCase();
-      const allChats: ChatItemType[] = onlyGroups ? [...groups] : [...groups, ...allUsers];
+      let allChats: ChatItemType[] = [...groups, ...allUsers];
+      if (onlyGroups) {
+        allChats = [...groups];
+      } else if (onlyPersonal) {
+        allChats = [...allUsers];
+      }
+
       const contactResults = allChats
         .filter((c) => getChatDisplayName(c).toLowerCase().includes(lowerCaseTerm))
         .slice(0, 10);
@@ -191,7 +199,12 @@ export default function Sidebar({
 
         const messageData = await res.json();
         const rawMessages = messageData.data || [];
-        const messages = onlyGroups ? rawMessages.filter((m: Message) => m.isGroupChat) : rawMessages;
+        let messages = rawMessages;
+        if (onlyGroups) {
+          messages = rawMessages.filter((m: Message) => m.isGroupChat);
+        } else if (onlyPersonal) {
+          messages = rawMessages.filter((m: Message) => !m.isGroupChat);
+        }
 
         setGlobalSearchResults({
           contacts: contactResults,
@@ -283,8 +296,11 @@ export default function Sidebar({
     if (onlyGroups) {
       return [...groups];
     }
+    if (onlyPersonal) {
+      return [...allUsers];
+    }
     return [...groups, ...allUsers];
-  }, [groups, allUsers, onlyGroups]);
+  }, [groups, allUsers, onlyGroups, onlyPersonal]);
 
   const filteredAndSortedChats = useMemo(() => {
     let filtered = mixedChats.filter((chat: ChatItemType) => {
@@ -437,6 +453,7 @@ export default function Sidebar({
                   onOpenGlobalFolder={() => setShowGlobalFolder(true)}
                   buttonRef={mobileMenuButtonRef}
                   onlyGroups={onlyGroups}
+                  onlyPersonal={onlyPersonal}
                 />
               </div>
             )}

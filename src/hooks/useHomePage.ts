@@ -36,7 +36,7 @@ interface GlobalSearchMessageApi {
 
 import { resolveSocketUrl } from '@/utils/utils';
 
-export function useHomePage(config?: { onlyGroups?: boolean }) {
+export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: boolean }) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -168,7 +168,13 @@ export function useHomePage(config?: { onlyGroups?: boolean }) {
       const lowerCaseTerm = term.toLowerCase();
 
       // 1. Lọc liên hệ/nhóm (Local - Instant)
-      const allChats = [...groups, ...allUsers];
+      let allChats = [...groups, ...allUsers];
+      if (config?.onlyGroups) {
+        allChats = [...groups];
+      } else if (config?.onlyPersonal) {
+        allChats = [...allUsers];
+      }
+
       const contactResults: GlobalSearchContact[] = allChats
         .filter((c) => c.name?.toLowerCase().includes(lowerCaseTerm))
         .filter((c) => !c.isHidden)
