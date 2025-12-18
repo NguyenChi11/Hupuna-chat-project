@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
   try {
     switch (action) {
       case 'create': {
-        const t = String((data?.type || '')).toLowerCase();
+        const t = String(data?.type || '').toLowerCase();
         let newData = {
           ...data,
           timestamp: Date.now(),
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
         } as Record<string, unknown>;
 
         if (t === 'poll') {
-          const qRaw = String((data?.['pollQuestion'] ?? data?.['content'] ?? '')).trim();
+          const qRaw = String(data?.['pollQuestion'] ?? data?.['content'] ?? '').trim();
           const arrRaw = Array.isArray((data as Record<string, unknown>)['pollOptions'])
             ? ((data as Record<string, unknown>)['pollOptions'] as unknown[])
             : [];
@@ -480,7 +480,7 @@ export async function POST(req: NextRequest) {
           collectionName,
           '_id', // Tìm theo ID
           messageId,
-          { isPinned: newPinnedStatus }, // Cập nhật trạng thái mới
+          { isPinned: newPinnedStatus, pinnedAt: newPinnedStatus ? Date.now() : null }, // Cập nhật trạng thái mới + thời điểm ghim
         );
 
         return NextResponse.json({ success: true, result });
@@ -525,6 +525,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: ok });
       }
 
+      // Thay thế case 'globalSearch' trong /api/messages/route.ts
+
       case 'globalSearch': {
         const searchTerm = data?.searchTerm;
         const searchUserId = data?.userId;
@@ -543,7 +545,6 @@ export async function POST(req: NextRequest) {
             limit: 9999,
           });
 
-          // 🔥 SỬA LẠI: Filter groups mà user là thành viên
           const getMemberId = (m: MemberInput): string | null => {
             if (!m) return null;
             if (typeof m === 'string') return m;
@@ -667,7 +668,7 @@ export async function POST(req: NextRequest) {
             partnerAvatar: null,
           };
 
-          // 🔥 CHECK GROUP TRƯỚC
+          // Check GROUP TRƯỚC
           const isInGroup = groupMap.has(msg.roomId);
 
           if (isInGroup) {
@@ -683,11 +684,14 @@ export async function POST(req: NextRequest) {
 
             let partnerId: string | null = null;
 
+            // ✅ FIX: Cải thiện logic xác định partnerId
             if (msg.roomId && msg.roomId.includes('_')) {
               const parts = msg.roomId.split('_');
               partnerId = parts[0] === searchUserId ? parts[1] : parts[0];
-            } else {
-              partnerId = senderId === searchUserId ? (msg.receiver ? String(msg.receiver) : null) : senderId;
+            } else if (isMyMessage && msg.receiver) {
+              partnerId = String(msg.receiver);
+            } else if (!isMyMessage) {
+              partnerId = senderId;
             }
 
             if (partnerId) {
@@ -699,6 +703,7 @@ export async function POST(req: NextRequest) {
               chatInfo.roomName = chatInfo.partnerName;
               chatInfo.roomAvatar = chatInfo.partnerAvatar;
 
+              // ✅ CRITICAL: Tạo roomId chuẩn cho 1-1 chat
               const ids = [searchUserId, partnerId].sort();
               chatInfo.roomId = `${ids[0]}_${ids[1]}`;
             }
@@ -712,6 +717,8 @@ export async function POST(req: NextRequest) {
             contentPreview = '🖼️ Hình ảnh';
           } else if (msg.type === 'sticker') {
             contentPreview = '😊 Sticker';
+          } else if (msg.type === 'video') {
+            contentPreview = '🎥 Video';
           } else {
             contentPreview = msg.content || 'Tin nhắn';
           }

@@ -85,7 +85,7 @@ const SearchTabs = ({
   ];
 
   return (
-    <div className="flex flex-nowrap overflow-x-auto border-b border-gray-200 custom-scrollbar bg-white/80 backdrop-blur-sm sticky top-0 z-50 -mx-4 px-4 ">
+    <div className="flex flex-nowrap overflow-x-auto border-b border-gray-200 custom-scrollbar bg-white/80 backdrop-blur-sm sticky top-0 z-5 -mx-4 px-4 ">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.key;

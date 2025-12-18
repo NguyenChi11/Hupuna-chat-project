@@ -66,10 +66,10 @@ export default function CreateGroupModal({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 sm:px-0">
       <div className="bg-white w-full max-w-2xl h-[80vh] sm:h-auto sm:max-h-[90vh] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-2 py-2 sm:px-2 sm:py-2 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white">
+        <div className="flex items-center justify-between px-2 py-2 sm:px-2 sm:py-2 bg-blue-500 text-white">
           <div className="flex items-center gap-3">
             <div className="p-1 sm:p-1 rounded-xl bg-white/20 backdrop-blur-sm">
-              <HiOutlineUserPlus className="w-4 h-4 sm:w-6 sm:h-6" />
+              <HiOutlineUserPlus className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <h2 className="text-lg sm:text-sm font-bold">{mode === 'create' ? 'Tạo nhóm mới' : 'Thêm thành viên'}</h2>
           </div>
@@ -184,7 +184,7 @@ export default function CreateGroupModal({
                     return (
                       <label
                         key={user._id}
-                        className={`flex items-center p-1 cursor-pointer transition-colors
+                        className={`flex items-center p-1 mb-1 cursor-pointer transition-colors
                           ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'} ${
                             (mode === 'add' && isAlreadyMember) || isMe
                               ? 'bg-gray-50 opacity-60 cursor-not-allowed'
@@ -276,7 +276,7 @@ export default function CreateGroupModal({
               ${
                 loading || selectedMembers.length === 0
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'
+                  : 'bg-blue-600 hover:bg-blue-700'
               }`}
           >
             {loading

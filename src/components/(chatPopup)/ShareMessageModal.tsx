@@ -182,7 +182,7 @@ export default function ShareMessageModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
         {/* Header - Modern gradient */}
-        <div className="relative p-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-2xl">
+        <div className="relative p-2 bg-blue-500 text-white rounded-t-2xl">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 hover:cursor-pointer p-2 hover:bg-white/20 rounded-full transition-all duration-200 hover:rotate-90"
@@ -257,18 +257,16 @@ export default function ShareMessageModal({
                   <button
                     key={target.id}
                     onClick={() => toggleSelect(target.id)}
-                    className={`w-full p-2 flex items-center gap-4 transition-all hover:cursor-pointer duration-200 ${
+                    className={`w-full p-2 mb-2 flex items-center gap-4 transition-all hover:cursor-pointer duration-200 ${
                       isSelected
-                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-l-2 border-blue-500 '
+                        ? 'bg-blue-50   '
                         : 'hover:bg-gray-50 border-l-2 border-transparent'
                     }`}
                   >
                     {/* Avatar with selection indicator */}
                     <div className="relative flex-shrink-0">
                       <div
-                        className={`w-10 h-10 rounded-full overflow-hidden ring-2 transition-all duration-200 ${
-                          isSelected ? 'ring-blue-500 ring-offset-2' : 'ring-gray-200'
-                        }`}
+                        className={`w-10 h-10 rounded-full overflow-hidden  transition-all duration-200 `}
                       >
                         {target.avatar ? (
                           <Image
@@ -346,7 +344,7 @@ export default function ShareMessageModal({
             <button
               onClick={handleShare}
               disabled={selectedTargets.size === 0 || isSharing}
-              className="flex-1 px-4 py-2 hover:cursor-pointer bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 hover:cursor-pointer bg-blue-400 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
               {isSharing ? (
                 <>

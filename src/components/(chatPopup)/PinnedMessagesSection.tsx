@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 import PinnedMessageListModal from '../base/PinnedMessageListModal';
 
@@ -17,6 +18,9 @@ interface PinnedMessagesSectionProps {
   onJumpToMessage: (messageId: string) => void;
   getSenderName: (sender: User | string) => string;
   onUnpinMessage: (msg: Message) => void;
+  onLoadMorePinned: () => void;
+  pinnedHasMore: boolean;
+  pinnedLoading?: boolean;
 }
 
 export default function PinnedMessagesSection({
@@ -27,8 +31,46 @@ export default function PinnedMessagesSection({
   onJumpToMessage,
   getSenderName,
   onUnpinMessage,
+  onLoadMorePinned,
+  pinnedHasMore,
+  pinnedLoading,
 }: PinnedMessagesSectionProps) {
   if (allPinnedMessages.length === 0 && !showPinnedList) return null;
+  const isVideoFile = (name?: string) => /\.(mp4|webm|mov|mkv|avi)$/i.test(String(name || ''));
+  const isImageFile = (name?: string) => /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(String(name || ''));
+  const renderPreview = (msg: Message) => {
+    const url = String(msg.fileUrl || msg.previewUrl || '');
+    const isVid = msg.type === 'video' || isVideoFile(msg.fileName) || isVideoFile(url);
+    const isImg = msg.type === 'image' || isImageFile(msg.fileName) || isImageFile(url);
+    if (isImg) {
+      return <Image src={getProxyUrl(url)} alt="Ảnh" width={64} height={64} className="w-16 h-16 object-cover" />;
+    }
+    if (isVid) {
+      return (
+        <div className="relative w-16 h-16 bg-black">
+          <video src={getProxyUrl(url)} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-6 h-6 rounded-full bg-white/80 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" className="w-4 h-4 text-gray-800">
+                <path d="M8 5v14l11-7z" fill="currentColor" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    const label =
+      msg.type === 'file'
+        ? msg.fileName || 'File'
+        : msg.type === 'sticker'
+          ? 'Sticker'
+          : msg.type === 'poll'
+            ? 'Bình chọn'
+            : msg.type === 'reminder'
+              ? 'Lịch hẹn'
+              : msg.content || 'Tin nhắn';
+    return <div className="w-24 max-w-[12rem] px-2 py-2 text-xs text-gray-700 line-clamp-2">{label}</div>;
+  };
 
   return (
     <>
@@ -53,9 +95,7 @@ export default function PinnedMessagesSection({
           <span className="flex items-center gap-1.5">
             Tin nhắn đã ghim
             {/* Badge số lượng */}
-            <span className="min-w-[1.5rem] px-2 py-0.5 bg-yellow-500 text-white text-xs font-bold rounded-full shadow-sm">
-              {allPinnedMessages.length}
-            </span>
+           
           </span>
         </button>
       )}
@@ -66,10 +106,14 @@ export default function PinnedMessagesSection({
           onClose={onClosePinnedList}
           onJumpToMessage={onJumpToMessage}
           onGetSenderName={getSenderName}
+          hasMore={pinnedHasMore}
+          onLoadMore={onLoadMorePinned}
+          loadingMore={pinnedLoading}
           onGetContentDisplay={(msg) => {
             if (msg.type === 'poll') return `Bình chọn: ${msg.pollQuestion || msg.content || ''}`;
             if (msg.type === 'reminder') return `Lịch hẹn: ${msg.content || ''}`;
             if (msg.type === 'image') return 'Ảnh';
+            if (msg.type === 'video') return 'Video';
             if (msg.type === 'file')
               return (
                 <a

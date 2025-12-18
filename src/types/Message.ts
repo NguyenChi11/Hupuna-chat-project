@@ -15,6 +15,7 @@ export interface Message {
   previewUrl?: string;
   type: MessageType;
   timestamp: number;
+  pinnedAt?: number | null;
   readBy?: string[];
   isRecalled?: boolean;
   replyToMessageId?: string;

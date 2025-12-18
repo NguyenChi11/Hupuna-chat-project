@@ -133,6 +133,30 @@ export default function MessageList({
           year: 'numeric',
         });
   };
+  useEffect(() => {
+    if (!highlightedMsgId) return;
+
+    // Đợi DOM render xong
+    setTimeout(() => {
+      const element = document.getElementById(`msg-${highlightedMsgId}`);
+      if (element) {
+        // Scroll với nhiều fallback
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+
+        // Fallback cho mobile
+        setTimeout(() => {
+          element.scrollIntoView({
+            behavior: 'auto', // Dùng auto thay vì smooth cho mobile
+            block: 'center',
+          });
+        }, 100);
+      }
+    }, 100);
+  }, [highlightedMsgId]);
 
   return (
     <>
@@ -222,7 +246,12 @@ export default function MessageList({
                     : dt.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
                 const timeLabel = dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                 return (
-                  <div key={msg._id} id={`msg-${msg._id}`} className="flex justify-center my-3">
+                  <div
+                    key={msg._id}
+                    id={`msg-${msg._id}`} // ✅ Đảm bảo ID luôn có
+                    data-message-id={msg._id}
+                    className="flex justify-center my-3"
+                  >
                     <div
                       className={`px-4 p-1.5 bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
                     >

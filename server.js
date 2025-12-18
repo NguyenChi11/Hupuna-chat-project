@@ -28,32 +28,16 @@ const buildCallContent = ({ type, incoming, status, durationSec }) => {
 };
 const createCallNotify = async ({ roomId, sender, callerId, calleeId, type, status, durationSec }) => {
   try {
-    const incoming = String(sender) === String(calleeId);
-    const content = buildCallContent({ type, incoming, status, durationSec });
-    const receiver = String(sender) === String(callerId) ? String(calleeId) : String(callerId);
-    const uniqueId = `notify-${String(roomId)}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const payload = {
-      _id: uniqueId,
       roomId: String(roomId),
       sender: String(sender),
-      senderName: 'Hệ thống',
-      isGroup: false,
-      receiver,
-      members: [],
-      type: 'notify',
-      content,
-      timestamp: Date.now(),
       callerId: String(callerId),
       calleeId: String(calleeId),
-      callType: type,
-      callStatus: status,
-      callDurationSec: typeof durationSec === 'number' ? Math.max(0, Math.floor(durationSec)) : 0,
+      type,
+      status,
+      durationSec: typeof durationSec === 'number' ? Math.max(0, Math.floor(durationSec)) : 0,
     };
-    io.in(String(roomId)).emit('receive_message', payload);
-    const lastMessage = `Hệ thống: ${content}`;
-    const sidebarData = { ...payload, lastMessage };
-    io.to(String(sender)).emit('update_sidebar', sidebarData);
-    io.to(String(receiver)).emit('update_sidebar', sidebarData);
+    io.in(String(roomId)).emit('call_notify', payload);
   } catch {}
 };
 
