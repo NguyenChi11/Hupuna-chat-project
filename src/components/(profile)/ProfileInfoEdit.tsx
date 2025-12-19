@@ -24,7 +24,7 @@ interface Props {
 export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Props) {
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
-      <div className="space-y-4">
+      <div className="space-y-4 h-[38rem] overflow-y-auto custom-scrollbar">
         <InputField
           icon="user"
           value={form.name}

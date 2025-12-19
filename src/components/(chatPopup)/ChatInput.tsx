@@ -17,6 +17,7 @@ import {
   HiChartBar,
   HiIdentification,
   HiPencil,
+  HiHandThumbUp,
 } from 'react-icons/hi2';
 import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
 import Image from 'next/image';
@@ -99,6 +100,27 @@ export default function ChatInput({
   const containerRef = useRef<HTMLDivElement>(null);
   const pendingFocusRef = useRef(false);
   const allowFocusRef = useRef(true);
+  const [hasContent, setHasContent] = useState(false);
+
+  const checkContent = () => {
+    if (editableRef.current) {
+      const text = editableRef.current.innerText || '';
+      setHasContent(text.trim().length > 0);
+    } else {
+      setHasContent(false);
+    }
+  };
+
+  useEffect(() => {
+    checkContent();
+  }, []);
+
+  const handleSendWrapper = () => {
+    onSendMessage();
+    // Optimistically update state as parent usually clears input
+    setHasContent(false);
+    setTimeout(checkContent, 100); // Double check
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -369,10 +391,13 @@ export default function ChatInput({
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50">
+    <div
+      ref={containerRef}
+      className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50 md:bg-white md:border md:border-gray-200 md:rounded-xl md:px-3 md:py-2"
+    >
       {isUploading ? (
         <div className="mb-2 w-full overflow-hidden rounded-xl">
-          <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallUploadPercent} />
+          {/* <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallUploadPercent} /> */}
         </div>
       ) : attachments && attachments.length > 0 ? (
         <div className="mb-2">
@@ -418,52 +443,19 @@ export default function ChatInput({
           </div>
         </div>
       ) : null}
-      {/* Toolbar trái – Sang trọng như Zalo Premium */}
-      <div className="flex items-center gap-2 md:mb-2 mb-0">
-        {/* Emoji */}
+      <div className="hidden md:flex items-center gap-2 mb-2 p-1 rounded-xl bg-white ">
         <button
-          onClick={() => {
-            try {
-              editableRef.current?.blur?.();
-            } catch {}
-            setTimeout(() => onToggleEmojiPicker(), 100);
-          }}
-          className="hidden md:block group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
-          aria-label="Chọn emoji"
+          onClick={onVoiceInput}
+          className={`p-2 rounded-lg cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+          aria-label="Nhập bằng giọng nói"
         >
-          <HiFaceSmile className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform" />
+          <HiMicrophone className="w-6 h-6" />
         </button>
-
-        {/* <button
-          onClick={() => setShowChatFlashDashboard(true)}
-          className="group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-indigo-100 to-blue-100 hover:from-indigo-200 hover:to-blue-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
-          aria-label="Mở dashboard Chat nhanh"
-        >
-          <div className="flex items-center gap-1">
-            <HiLightningBolt className="w-5 h-5 text-indigo-600 group-hover:scale-110 transition-transform" />
-            <span className="text-xs text-gray-700 max-w-[9rem] truncate">
-              {selectedFlashFolder?.name || 'Chọn thư mục'}
-            </span>
-          </div>
-        </button> */}
-
-        <button
-          onClick={() => setShowFolderDashboard(true)}
-          className="md:block hidden group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
-          aria-label="Mở dashboard Folder"
-        >
-          <div className="flex items-center gap-1">
-            <HiFolder className="w-6 h-6 text-orange-600 group-hover:scale-110 transition-transform" />
-            <span className="text-xs text-gray-700 max-w-[9rem] truncate">Folder</span>
-          </div>
-        </button>
-
-        {/* Ảnh/Video */}
         <label
-          className="md:block hidden group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+          className="p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Gửi ảnh hoặc video"
         >
-          <HiPhoto className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" />
+          <HiPhoto className="w-6 h-6" />
           <input
             type="file"
             accept="image/*,video/*"
@@ -476,13 +468,11 @@ export default function ChatInput({
             multiple
           />
         </label>
-
-        {/* File */}
         <label
-          className="md:block hidden group relative p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+          className="p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Gửi file"
         >
-          <HiPaperClip className="w-6 h-6 text-green-600 group-hover:scale-110 transition-transform rotate-12" />
+          <HiPaperClip className="w-6 h-6 rotate-12" />
           <input
             type="file"
             className="sr-only"
@@ -494,24 +484,17 @@ export default function ChatInput({
             }}
           />
         </label>
-
-        {/* Voice – Hiệu ứng pulse đỏ đẹp hơn Zalo */}
         <button
-          onClick={onVoiceInput}
-          className={`md:block hidden relative p-2 rounded-3xl cursor-pointer transition-all duration-500 shadow-2xl ${
-            isListening
-              ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white animate-pulse ring-4 ring-red-300/50 scale-110'
-              : 'bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 hover:scale-105'
-          }`}
-          aria-label="Nhập bằng giọng nói"
+          onClick={() => setShowFolderDashboard(true)}
+          className="p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
+          aria-label="Mở Folder"
         >
-          <HiMicrophone className="w-6 h-6" />
-          {isListening && <div className="absolute inset-0 rounded-3xl bg-red-500/30 animate-ping" />}
+          <HiFolder className="w-6 h-6" />
         </button>
       </div>
 
       {/* Input Area + Send Button */}
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-2">
         <button
           onClick={() => {
             try {
@@ -519,10 +502,10 @@ export default function ChatInput({
             } catch {}
             setTimeout(() => onToggleEmojiPicker(), 100);
           }}
-          className="md:hidden block group p-2 rounded-2xl cursor-pointer bg-gradient-to-br from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 transition-all duration-300 active:scale-90 shadow-lg hover:shadow-xl"
+          className="md:hidden group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
           aria-label="Chọn emoji"
         >
-          <HiFaceSmile className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform" />
+          <HiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
         </button>
         {/* Input contentEditable – Đẹp như iMessage */}
         <div className="relative flex-1 min-w-0">
@@ -558,6 +541,7 @@ export default function ChatInput({
             onInput={() => {
               onInputEditable();
               updateSlashState();
+              checkContent();
             }}
             onKeyDown={(e) => {
               const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
@@ -654,73 +638,134 @@ export default function ChatInput({
           </div>
         </div>
 
-        <div className="md:hidden relative flex items-center gap-2">
-          <button
-            ref={toggleMobileActionsBtnRef}
-            onClick={handleToggleMobileActions}
-            className="p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90"
-            aria-label="Mở thêm hành động"
-          >
-            <HiEllipsisHorizontal className="w-6 h-6" />
-          </button>
-          <button
-            onMouseDown={(e) => e.preventDefault()}
-            onTouchStart={(e) => e.preventDefault()}
-            onClick={() => {
-              onSendMessage();
-              if (!document.hidden && allowFocusRef.current) {
-                allowFocusRef.current = true;
-                try {
-                  requestAnimationFrame(() => {
-                    const el = editableRef.current;
-                    if (el) {
-                      el.focus();
-                      const range = document.createRange();
-                      range.selectNodeContents(el);
-                      range.collapse(false);
-                      const sel = window.getSelection();
-                      sel?.removeAllRanges();
-                      sel?.addRange(range);
-                    }
-                  });
-                } catch {}
-              }
-            }}
-            className="p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90 group"
-            aria-label="Gửi tin nhắn"
-          >
-            <HiPaperAirplane className="w-6 h-6 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
-          </button>
-        </div>
-        {/* Desktop: always show send */}
-        <button
-          onMouseDown={(e) => e.preventDefault()}
-          onTouchStart={(e) => e.preventDefault()}
-          onClick={() => {
-            onSendMessage();
-            if (!document.hidden && allowFocusRef.current) {
-              allowFocusRef.current = true;
-              try {
-                requestAnimationFrame(() => {
-                  const el = editableRef.current;
-                  if (el) {
-                    el.focus();
-                    const range = document.createRange();
-                    range.selectNodeContents(el);
-                    range.collapse(false);
-                    const sel = window.getSelection();
-                    sel?.removeAllRanges();
-                    sel?.addRange(range);
+        <div className="flex items-center gap-1">
+          {hasContent || (attachments && attachments.length > 0) ? (
+            <>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onTouchStart={(e) => e.preventDefault()}
+                onClick={() => {
+                  handleSendWrapper();
+                  if (!document.hidden && allowFocusRef.current) {
+                    allowFocusRef.current = true;
+                    try {
+                      requestAnimationFrame(() => {
+                        const el = editableRef.current;
+                        if (el) {
+                          el.focus();
+                          const range = document.createRange();
+                          range.selectNodeContents(el);
+                          range.collapse(false);
+                          const sel = window.getSelection();
+                          sel?.removeAllRanges();
+                          sel?.addRange(range);
+                        }
+                      });
+                    } catch {}
                   }
-                });
-              } catch {}
-            }
-          }}
-          className="hidden md:block p-2 rounded-3xl cursor-pointer bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-90 group"
-          aria-label="Gửi tin nhắn"
-        >
-          <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
-        </button>
+                }}
+                className="md:hidden p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group"
+                aria-label="Gửi tin nhắn"
+              >
+                <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
+              </button>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onTouchStart={(e) => e.preventDefault()}
+                onClick={() => {
+                  handleSendWrapper();
+                  if (!document.hidden && allowFocusRef.current) {
+                    allowFocusRef.current = true;
+                    try {
+                      requestAnimationFrame(() => {
+                        const el = editableRef.current;
+                        if (el) {
+                          el.focus();
+                          const range = document.createRange();
+                          range.selectNodeContents(el);
+                          range.collapse(false);
+                          const sel = window.getSelection();
+                          sel?.removeAllRanges();
+                          sel?.addRange(range);
+                        }
+                      });
+                    } catch {}
+                  }
+                }}
+                className="hidden md:block p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group"
+                aria-label="Gửi tin nhắn"
+              >
+                <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="hidden md:flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    try {
+                      editableRef.current?.blur?.();
+                    } catch {}
+                    setTimeout(() => onToggleEmojiPicker(), 100);
+                  }}
+                  className="group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                  aria-label="Chọn emoji"
+                >
+                  <HiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
+                </button>
+                <button
+                  onClick={() => {
+                    const el = editableRef.current;
+                    if (!el) return;
+                    el.innerText = '👍';
+                    onInputEditable();
+                    handleSendWrapper();
+                  }}
+                  className="p-2 rounded-full cursor-pointer text-gray-700 hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                  aria-label="Gửi like"
+                >
+                  <HiHandThumbUp className="w-7 h-7" />
+                </button>
+              </div>
+              <div className="md:hidden flex items-center gap-2">
+                <button
+                  ref={toggleMobileActionsBtnRef}
+                  onClick={handleToggleMobileActions}
+                  className="block p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                  aria-label="Mở thêm hành động"
+                >
+                  <HiEllipsisHorizontal className="w-7 h-7" />
+                </button>
+                <button
+                  onClick={onVoiceInput}
+                  className={`p-2 rounded-full cursor-pointer transition-all duration-300 active:scale-90 ${
+                    isListening ? 'text-red-500 animate-pulse bg-red-50' : 'text-gray-500 hover:bg-gray-100'
+                  }`}
+                  aria-label="Nhập bằng giọng nói"
+                >
+                  <HiMicrophone className="w-7 h-7" />
+                </button>
+                <label
+                  className="p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                  aria-label="Gửi ảnh hoặc video"
+                >
+                  <HiPhoto className="w-7 h-7" />
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const files = e.target.files ? Array.from(e.target.files) : [];
+                      files.forEach((f) => onSelectImage(f));
+                      e.target.value = '';
+                    }}
+                    multiple
+                  />
+                </label>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {showMobileActions && (
@@ -728,24 +773,6 @@ export default function ChatInput({
           ref={mobileActionsRef}
           className="md:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
         >
-          <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
-            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
-              <HiFolder className="w-6 h-6 text-orange-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
-              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
-            </div>
-            <span className="text-sm font-medium text-gray-800">Thư Mục</span>
-            <input
-              type="button"
-              className="sr-only"
-              onClick={() => {
-                setShowFolderDashboard(true);
-                setShowMobileActions(false);
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                } catch {}
-              }}
-            />
-          </label>
           <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Gửi ảnh hoặc video">
             {/* Background tròn bao quanh icon */}
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200  shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
@@ -794,6 +821,24 @@ export default function ChatInput({
               }}
             />
           </label>
+          <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiFolder className="w-6 h-6 text-orange-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Thư Mục</span>
+            <input
+              type="button"
+              className="sr-only"
+              onClick={() => {
+                setShowFolderDashboard(true);
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }}
+            />
+          </label>
           <button
             onClick={() => {
               onVoiceInput();
@@ -821,6 +866,13 @@ export default function ChatInput({
             </div>
             <span className="text-sm font-medium text-gray-800">Voice</span>
           </button>
+          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Chat nhanh">
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 hover:from-violet-200 hover:to-purple-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiLightningBolt className="w-6 h-6 text-yellow-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Chat nhanh</span>
+          </button>
           <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Vị trí">
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 hover:from-rose-200 hover:to-pink-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <HiMapPin className="w-6 h-6 text-rose-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
@@ -835,13 +887,7 @@ export default function ChatInput({
             </div>
             <span className="text-sm font-medium text-gray-800">Bình chọn</span>
           </button>
-          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Chat nhanh">
-            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 hover:from-violet-200 hover:to-purple-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
-              <HiLightningBolt className="w-6 h-6 text-yellow-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
-              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
-            </div>
-            <span className="text-sm font-medium text-gray-800">Chat nhanh</span>
-          </button>
+
           <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Danh thiếp">
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 hover:from-teal-200 hover:to-cyan-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <HiIdentification className="w-6 h-6 text-teal-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />

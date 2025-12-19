@@ -374,7 +374,7 @@ export default function Sidebar({
       {/* HEADER GRADIENT SIÊU SANG */}
       <div className="bg-blue-500 shadow-2xl">
         {/* User Info */}
-        <div className="px-4 py-4  items-center gap-4 hidden md:flex text-white">
+        {/* <div className="px-4 py-4  items-center gap-4 hidden md:flex text-white">
           <div className="relative">
             <div className="w-12 h-12 rounded-3xl overflow-hidden ring-2 ring-white/30 shadow-xl">
               {currentUser.avatar ? (
@@ -405,7 +405,7 @@ export default function Sidebar({
           >
             <HiUserCircle className="w-6 h-6" />
           </button>
-        </div>
+        </div> */}
 
         {/* Search + Create Group */}
         <div className="px-2 pb-2 pt-2">
@@ -438,7 +438,7 @@ export default function Sidebar({
             </div>
 
             {!isWidgetIframe && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 {!onlyPersonal && (
                   <button
                     onClick={() => setShowCreateGroupModal(true)}

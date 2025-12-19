@@ -9,7 +9,7 @@ import { formatTimeAgo } from '@/utils/dateUtils';
 import { GroupConversation } from '@/types/Group';
 import { useCreateGroupModal } from '@/hooks/useCreateGroupModal';
 import { getProxyUrl } from '@/utils/utils';
-import { HiMagnifyingGlass, HiOutlineUserPlus, HiCamera, HiFaceSmile } from 'react-icons/hi2';
+import { HiMagnifyingGlass, HiOutlineUserPlus, HiCamera, HiFaceSmile, HiChevronLeft } from 'react-icons/hi2';
 
 interface Props {
   currentUser: User;
@@ -72,18 +72,34 @@ export default function CreateGroupModal({
   );
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 sm:px-0">
-      <div className="bg-white w-full max-w-2xl h-[85vh] sm:h-auto sm:max-h-[90vh] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm sm:px-0">
+      <div className="bg-white w-full h-full sm:w-full sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-2 py-2 sm:px-2 sm:py-2 bg-[#0573ff] text-white">
-          <div className="flex items-center gap-3">
-            <HiOutlineUserPlus className="w-5 h-5 " />
+        <div className="flex items-center justify-between px-4 py-3 sm:px-2 sm:py-2 bg-white sm:bg-[#0573ff] sm:text-white border-b border-gray-100 sm:border-none">
+          <div className="flex items-center gap-3 w-full">
+            {/* Mobile Back Button */}
+            <button
+              onClick={onClose}
+              className="sm:hidden p-2 -ml-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-800"
+            >
+              <HiChevronLeft className="w-6 h-6" />
+            </button>
 
-            <h2 className="text-lg sm:text-sm font-bold">{mode === 'create' ? 'Tạo nhóm mới' : 'Thêm thành viên'}</h2>
+            {/* Desktop Icon (hidden on mobile) */}
+            <HiOutlineUserPlus className="w-5 h-5 hidden sm:block" />
+
+            <div className="flex flex-col items-start justify-center flex-1 sm:flex-none">
+              <h2 className="text-lg sm:text-sm font-bold leading-tight">
+                {mode === 'create' ? 'Nhóm mới' : 'Thêm thành viên'}
+              </h2>
+              <p className="text-sm text-gray-500 font-medium sm:hidden">Đã chọn: {selectedMembers.length}</p>
+            </div>
           </div>
+
+          {/* Desktop Close Button */}
           <button
             onClick={onClose}
-            className="p-2.5 cursor-pointer rounded-full hover:bg-white/20 transition-all duration-200 active:scale-90"
+            className="hidden sm:block p-2.5 cursor-pointer rounded-full hover:bg-white/20 transition-all duration-200 active:scale-90"
           >
             <HiX className="w-4 h-4" />
           </button>
@@ -163,7 +179,7 @@ export default function CreateGroupModal({
 
           {/* Danh sách User (Scrollable) */}
           <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            <h4 className="font-semibold text-sm text-gray-600 mb-3 flex items-center">
+            <h4 className="hidden  font-semibold text-sm text-gray-600 mb-3 md:flex items-center">
               {mode === 'create' ? 'Danh sách bạn bè' : 'Thành viên có thể thêm'}
               <span className="ml-2 bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-xs">
                 {selectedMembers.length}
