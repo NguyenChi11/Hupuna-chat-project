@@ -116,6 +116,7 @@ export default function ChatInput({
   }, []);
 
   const handleSendWrapper = () => {
+    // if (isUploading) return; // 🔥 Cho phép chat khi đang upload
     onSendMessage();
     // Optimistically update state as parent usually clears input
     setHasContent(false);
@@ -393,13 +394,9 @@ export default function ChatInput({
   return (
     <div
       ref={containerRef}
-      className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50 md:bg-white md:border md:border-gray-200 md:rounded-xl md:px-3 md:py-2"
+      className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50 md:bg-white md:border md:border-gray-200 md:rounded-xl md:px-1 md:py-2 md:pt-1"
     >
-      {isUploading ? (
-        <div className="mb-2 w-full overflow-hidden rounded-xl">
-          {/* <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallUploadPercent} /> */}
-        </div>
-      ) : attachments && attachments.length > 0 ? (
+      {attachments && attachments.length > 0 ? (
         <div className="mb-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600">
@@ -587,6 +584,10 @@ export default function ChatInput({
                   return;
                 }
               }
+              // if (e.key === 'Enter' && !e.shiftKey && isUploading) {
+              //   e.preventDefault();
+              //   return;
+              // }
               onKeyDownEditable(e);
               updateSlashState();
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -664,7 +665,7 @@ export default function ChatInput({
                     } catch {}
                   }
                 }}
-                className="md:hidden p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group"
+                className={`md:hidden p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
                 aria-label="Gửi tin nhắn"
               >
                 <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
@@ -692,7 +693,7 @@ export default function ChatInput({
                     } catch {}
                   }
                 }}
-                className="hidden md:block p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group"
+                className={`hidden md:block p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
                 aria-label="Gửi tin nhắn"
               >
                 <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
@@ -721,7 +722,9 @@ export default function ChatInput({
                     onInputEditable();
                     handleSendWrapper();
                   }}
-                  className="p-2 rounded-full cursor-pointer text-gray-700 hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                  className={`p-2 rounded-full cursor-pointer text-gray-700 hover:bg-gray-100 transition-all duration-300 active:scale-90 ${
+                    isUploading ? 'opacity-50 pointer-events-none grayscale' : ''
+                  }`}
                   aria-label="Gửi like"
                 >
                   <HiHandThumbUp className="w-7 h-7" />

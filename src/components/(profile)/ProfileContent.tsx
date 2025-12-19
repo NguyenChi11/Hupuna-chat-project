@@ -49,8 +49,8 @@ export default function ProfileContent({
 
         {/* Mã QR */}
         {tab === 'qr' && (
-          <div className="flex justify-center py-12">
-            <div className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-100">
+          <div className="flex justify-center py-6">
+            <div className=" p-2  ">
               <ProfileQR />
             </div>
           </div>

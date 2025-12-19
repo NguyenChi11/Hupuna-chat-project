@@ -157,7 +157,7 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
           active:scale-98
         `}
       >
-        <div className="flex items-center gap-4 py-4 px-2 ">
+        <div className="flex items-center gap-4 py-4 px-2 md:py-2 ">
           {/* Avatar + Online + Group Icon */}
           <div className="relative flex-shrink-0">
             <div

@@ -954,8 +954,6 @@ export default function ChatWindow({
         const olderAsc = olderMessages.reverse();
         const allNewMessages = [...olderAsc, ...newerMessages];
 
-      
-
         // Update messages state
         const existingIds = new Set(messages.map((m) => String(m._id)));
         const messagesToAdd = allNewMessages.filter((m) => !existingIds.has(String(m._id)));
@@ -1790,6 +1788,13 @@ export default function ChatWindow({
       editableRef.current.innerHTML = '';
     }
 
+    // 🔥 Clear attachments ngay lập tức để tránh upload trùng nếu user ấn gửi tiếp
+    let currentAttachments: typeof attachments = [];
+    if (hasAtt) {
+      currentAttachments = [...attachments];
+      setAttachments([]);
+    }
+
     if (plainText) {
       const textMsg: MessageCreate = {
         roomId,
@@ -1805,25 +1810,14 @@ export default function ChatWindow({
     }
 
     if (hasAtt) {
-      const limit = 2;
-      const queue = attachments.slice();
-      const worker = async () => {
-        while (queue.length > 0) {
-          const att = queue.shift();
-          if (!att) break;
-          await handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined);
-        }
-      };
-      const workers: Promise<void>[] = [];
-      for (let i = 0; i < Math.min(limit, attachments.length); i++) workers.push(worker());
-      await Promise.all(workers);
-      setAttachments((prev) => {
-        prev.forEach((a) => {
+      // 🔥 Fire all uploads concurrently so temp messages appear immediately
+      currentAttachments.forEach((att) => {
+        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined).then(() => {
+          // Revoke preview URL after upload completes/fails
           try {
-            URL.revokeObjectURL(a.previewUrl);
+            URL.revokeObjectURL(att.previewUrl);
           } catch {}
         });
-        return [];
       });
     }
     try {
@@ -2287,6 +2281,7 @@ export default function ChatWindow({
               onPinMessage={handlePinMessage}
               onToggleReaction={handleToggleReaction}
               contextMenu={contextMenu}
+              isSidebarOpen={showPopup}
             />
             <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>

@@ -223,7 +223,7 @@ export default function ProfileByIdPage() {
 
             {/* Nội dung trái */}
             {isOwner && (
-              <div className=" overflow-y-auto bg-gradient-to-br from-gray-50 to-white h-[30rem] custom-scrollbar">
+              <div className=" overflow-y-auto bg-gradient-to-br from-gray-50 to-white h-[20rem] custom-scrollbar">
                 <ProfileContent
                   tab={tabLeft}
                   isOwner={true}
