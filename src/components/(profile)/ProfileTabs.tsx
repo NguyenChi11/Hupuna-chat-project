@@ -50,13 +50,14 @@ export default function ProfileTabs({
           key={item}
           onClick={() => setTab(item)}
           className={`
-            flex-1 relative py-2 px-1 text-center font-medium text-[1.5rem] cursor-pointer select-none
+            flex-1 relative py-4 px-1 text-center font-medium text-[1.5rem] cursor-pointer select-none
             transition-all duration-300 group
             ${tab === item ? 'text-indigo-600 font-bold' : 'text-gray-500 hover:text-gray-700'}
+            ${item === 'profile' ? 'hidden md:block' : ''}
           `}
         >
           {/* Nội dung tab */}
-          <div className="flex items-center justify-center md:gap-2.5 gap-0.5 overflow-hidden w-full">
+          <div className="flex items-center justify-center md:gap-2.5 gap-1.5 overflow-hidden w-full">
             {icon ? icon(item) : defaultIcon(item)}
             <span className="inline md:text-xl text-[1rem]">{labels[item] || item}</span>
           </div>
