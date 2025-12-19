@@ -26,6 +26,7 @@ export interface ContextMenuState {
   y: number;
   message: Message;
   placement?: 'above' | 'below';
+  focusTop?: number;
 }
 
 interface MenuItemProps {

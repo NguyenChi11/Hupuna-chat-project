@@ -119,11 +119,10 @@ html {
 
 .vv-fixed {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: var(--vvTop);
+  left: var(--vvLeft);
   width: var(--vvw);
   height: var(--vvh);
-  transform: translate(var(--vvLeft), var(--vvTop));
   padding-bottom: 0 !important;
   overscroll-behavior: contain;
 }

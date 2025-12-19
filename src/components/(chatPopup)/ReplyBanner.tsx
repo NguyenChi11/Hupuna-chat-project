@@ -15,7 +15,7 @@ export default function ReplyBanner({ replyingTo, getSenderName, onCancel }: Rep
   if (!replyingTo) return null;
 
   return (
-    <div className="absolute bottom-full left-0 right-0 p-3 bg-blue-50 border-t border-blue-200 flex justify-between items-center text-sm text-gray-700">
+    <div className=" bottom-full left-0 right-0 p-3 bg-blue-50 border-t border-blue-200 flex justify-between items-center text-sm text-gray-700">
       <div className="border-l-2 border-blue-600 pl-2">
         <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
           Trả lời {getSenderName(replyingTo.sender)}

@@ -47,6 +47,7 @@ import { stopGlobalRingTone } from '@/utils/callRing';
 import { useCallSession } from '@/hooks/useCallSession';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
 import { HiChevronDoubleDown } from 'react-icons/hi2';
+import MessageMobileContextMenu from '@/components/(chatPopup)/MessageMobileContextMenu';
 
 const STICKERS = [
   'https://cdn-icons-png.flaticon.com/512/9408/9408176.png',
@@ -961,6 +962,26 @@ export default function ChatWindow({
       placement,
       message: msg,
     });
+  }, []);
+
+  const handleMobileLongPress = useCallback((msg: Message, el: HTMLElement, startX: number, startY: number) => {
+    try {
+      const rect = el.getBoundingClientRect();
+      const menuHeight = 240;
+      const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
+      const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
+      const focusTop = Math.max(8, Math.min(Math.floor(viewportH * 0.27), viewportH - rect.height - menuHeight - 16));
+      const placement: 'above' | 'below' = 'below';
+      const yBelow = focusTop + rect.height + 12;
+      setContextMenu({
+        visible: true,
+        x: Math.floor(viewportW / 2),
+        y: Math.max(8, yBelow),
+        placement,
+        message: msg,
+        focusTop,
+      });
+    } catch {}
   }, []);
 
   const closeContextMenu = useCallback(() => {
@@ -2309,6 +2330,17 @@ export default function ChatWindow({
     root.style.setProperty('--vvw', `${w}px`);
     root.style.setProperty('--vvTop', `${top}px`);
     root.style.setProperty('--vvLeft', `${left}px`);
+    const footerEl = footerRef.current as HTMLElement | null;
+    const listEl = messagesContainerRef.current as HTMLElement | null;
+    if (footerEl && listEl) {
+      const fh = footerEl.offsetHeight || 0;
+      listEl.style.paddingBottom = `${fh}px`;
+      footerEl.style.position = 'sticky';
+      footerEl.style.bottom = '0px';
+      footerEl.style.left = '0px';
+      footerEl.style.right = '0px';
+      footerEl.style.zIndex = '20';
+    }
     window.scrollTo(0, 0);
     if (!jumpLoadingRef.current && isAtBottomRef.current && !(isMobile && showSearchSidebar)) {
       scrollToBottom();
@@ -2438,6 +2470,8 @@ export default function ChatWindow({
               highlightedMsgId={highlightedMsgId}
               isGroup={isGroup}
               onContextMenu={handleContextMenu}
+              onMobileLongPress={handleMobileLongPress}
+              isMobile={isMobile}
               onReplyMessage={handleReplyTo}
               onJumpToMessage={handleJumpToMessage}
               getSenderInfo={getSenderInfo}
@@ -2721,18 +2755,33 @@ export default function ChatWindow({
         )}
 
         {contextMenu && contextMenu.visible && (
-          <MessageContextMenu
-            contextMenu={contextMenu}
-            currentUserId={String(currentUser._id)}
-            onClose={closeContextMenu}
-            onPinMessage={handlePinMessage}
-            onRecallMessage={handleRecallMessage}
-            setEditingMessageId={setEditingMessageId}
-            setEditContent={setEditContent}
-            closeContextMenu={closeContextMenu}
-            onReplyMessage={handleReplyTo}
-            onShareMessage={handleShareMessage}
-          />
+          <>
+            {!isMobile ? (
+              <MessageContextMenu
+                contextMenu={contextMenu}
+                currentUserId={String(currentUser._id)}
+                onClose={closeContextMenu}
+                onPinMessage={handlePinMessage}
+                onRecallMessage={handleRecallMessage}
+                setEditingMessageId={setEditingMessageId}
+                setEditContent={setEditContent}
+                closeContextMenu={closeContextMenu}
+                onReplyMessage={handleReplyTo}
+                onShareMessage={handleShareMessage}
+              />
+            ) : (
+              <MessageMobileContextMenu
+                contextMenu={contextMenu}
+                currentUserId={String(currentUser._id)}
+                onClose={closeContextMenu}
+                onPinMessage={handlePinMessage}
+                onRecallMessage={handleRecallMessage}
+                onReplyMessage={handleReplyTo}
+                onShareMessage={handleShareMessage}
+                onToggleReaction={handleToggleReaction}
+              />
+            )}
+          </>
         )}
 
         <MediaPreviewModal
