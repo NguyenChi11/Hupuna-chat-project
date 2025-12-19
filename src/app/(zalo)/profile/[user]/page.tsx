@@ -93,7 +93,7 @@ export default function ProfileByIdPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
       {/* ==================== MOBILE (<= md) & TABLET SMALL (<= lg) ==================== */}
       <div className=" mx-auto md:hidden">
-        <div className=" h-[40rem] bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden custom-scrollbar border border-white/50 pb-28 ">
+        <div className=" h-[34rem] bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden custom-scrollbar border border-white/50 pb-28 ">
           {/* Header */}
           <ProfileHeader
             isOwner={!!isOwner}
