@@ -110,6 +110,37 @@ html {
   }
 }
 
+:root {
+  --vvh: 100vh;
+  --vvw: 100vw;
+  --vvTop: 0px;
+  --vvLeft: 0px;
+}
+
+.vv-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--vvw);
+  height: var(--vvh);
+  transform: translate(var(--vvLeft), var(--vvTop));
+  padding-bottom: 0 !important;
+  overscroll-behavior: contain;
+}
+
+.vv-body-lock {
+  position: fixed;
+  width: 100%;
+  height: var(--vvh);
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 0 !important;
+  }
+}
+
 /* Ẩn scrollbar (giữ cuộn bằng cảm ứng/chuột) cho khu vực chat giống Zalo */
 .no-scrollbar {
   -ms-overflow-style: none; /* IE và Edge */

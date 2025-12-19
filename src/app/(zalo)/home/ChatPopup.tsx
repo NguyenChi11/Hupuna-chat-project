@@ -2298,36 +2298,68 @@ export default function ChatWindow({
 
   const viewportRef = useRef<HTMLElement>(null);
 
-  // Fix keyboard overlapping on mobile using VisualViewport API
-  useEffect(() => {
-    const handleVisualViewport = () => {
-      if (!viewportRef.current || !window.visualViewport) return;
-      const vv = window.visualViewport;
-      viewportRef.current.style.height = `${vv.height}px`;
-      if (!jumpLoadingRef.current && isAtBottomRef.current && !(isMobile && showSearchSidebar)) {
-        scrollToBottom();
-      }
-    };
-
-    const vv = window.visualViewport;
-    if (vv) {
-      vv.addEventListener('resize', handleVisualViewport);
-      vv.addEventListener('scroll', handleVisualViewport);
-      // Init
-      handleVisualViewport();
+  const applyViewport = useCallback(() => {
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    const h = vv ? vv.height : window.innerHeight;
+    const w = vv ? vv.width : window.innerWidth;
+    const top = vv ? vv.offsetTop : 0;
+    const left = vv ? vv.offsetLeft : 0;
+    const root = document.documentElement;
+    root.style.setProperty('--vvh', `${h}px`);
+    root.style.setProperty('--vvw', `${w}px`);
+    root.style.setProperty('--vvTop', `${top}px`);
+    root.style.setProperty('--vvLeft', `${left}px`);
+    window.scrollTo(0, 0);
+    if (!jumpLoadingRef.current && isAtBottomRef.current && !(isMobile && showSearchSidebar)) {
+      scrollToBottom();
     }
+  }, [scrollToBottom, isMobile, showSearchSidebar]);
 
+  useEffect(() => {
+    if (!isMobile) return;
+    applyViewport();
+    const vv = window.visualViewport;
+    const onResize = () => applyViewport();
+    const onScrollVV = () => applyViewport();
+    const onWindowResize = () => applyViewport();
+    const onFocusIn = () => applyViewport();
+    const onFocusOut = () => applyViewport();
+    const onMobileActionsToggle = () => applyViewport();
+    if (vv) {
+      vv.addEventListener('resize', onResize);
+      vv.addEventListener('scroll', onScrollVV);
+    }
+    window.addEventListener('resize', onWindowResize);
+    window.addEventListener('orientationchange', onWindowResize);
+    window.addEventListener('focusin', onFocusIn);
+    window.addEventListener('focusout', onFocusOut);
+    window.addEventListener('mobileActionsToggle', onMobileActionsToggle as EventListener);
+    document.body.classList.add('vv-body-lock');
     return () => {
       if (vv) {
-        vv.removeEventListener('resize', handleVisualViewport);
-        vv.removeEventListener('scroll', handleVisualViewport);
+        vv.removeEventListener('resize', onResize);
+        vv.removeEventListener('scroll', onScrollVV);
       }
+      window.removeEventListener('resize', onWindowResize);
+      window.removeEventListener('orientationchange', onWindowResize);
+      window.removeEventListener('focusin', onFocusIn);
+      window.removeEventListener('focusout', onFocusOut);
+      window.removeEventListener('mobileActionsToggle', onMobileActionsToggle as EventListener);
+      document.body.classList.remove('vv-body-lock');
+      const root = document.documentElement;
+      root.style.removeProperty('--vvh');
+      root.style.removeProperty('--vvw');
+      root.style.removeProperty('--vvTop');
+      root.style.removeProperty('--vvLeft');
     };
-  }, [scrollToBottom, isMobile, showSearchSidebar]);
+  }, [isMobile, applyViewport]);
 
   return (
     <ChatProvider value={chatContextValue}>
-      <main ref={viewportRef} className="flex h-full bg-gray-700 overflow-hidden no-scrollbar">
+      <main
+        ref={viewportRef}
+        className={`flex ${isMobile ? 'vv-fixed' : 'h-full'} bg-gray-700 overflow-hidden no-scrollbar`}
+      >
         <div
           className={`flex flex-col h-full relative bg-gray-100 transition-all duration-300 ${showPopup ? 'sm:w-[calc(100%-21.875rem)]' : 'w-full'} border-r border-gray-200`}
         >
