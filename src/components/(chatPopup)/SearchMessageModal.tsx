@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Message } from '@/types/Message';
 import { User } from '@/types/User';
 import Image from 'next/image';
@@ -59,13 +59,13 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
           }),
         });
         const data = await res.json();
-        const results: Message[] = data.data || [];
+        const results: Message[] = (data.data || []).slice().sort((a: Message, b: Message) => Number(b.timestamp) - Number(a.timestamp));
         setSearchResults(results);
         if (results.length > 0) {
           const term = query.trim();
-          const lastIdx = results.length - 1;
-          setCurrentResultIndex(lastIdx);
-          onJumpToMessage(results[lastIdx]._id);
+          const firstIdx = 0;
+          setCurrentResultIndex(firstIdx);
+          onJumpToMessage(results[firstIdx]._id);
           lastJumpedTermRef.current = term;
         } else {
           setCurrentResultIndex(-1);
@@ -77,18 +77,15 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
         setIsSearching(false);
       }
     },
-    [roomId],
+    [roomId, onJumpToMessage],
   );
-  // Auto-fill and auto-search when initialKeyword is provided
   useEffect(() => {
     if (initialKeyword && initialKeyword.trim() && !hasAutoSearchedRef.current && isOpen) {
       setSearchTerm(initialKeyword);
       hasAutoSearchedRef.current = true;
-      // Auto-focus input
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
-      // Auto-search immediately
       fetchSearchResults(initialKeyword);
     }
   }, [initialKeyword, isOpen, fetchSearchResults]);
@@ -104,39 +101,37 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
     }
   }, [isOpen, onKeywordClear]);
 
-  // 🔥 THÊM LOGIC DEBOUNCING DÙNG useEffect
   useEffect(() => {
-    // Skip if this is from initial keyword (already searched)
     if (initialKeyword && searchTerm === initialKeyword && hasAutoSearchedRef.current) {
       return;
     }
 
-    // 1. Nếu searchTerm rỗng, xóa kết quả ngay lập tức
     if (!searchTerm.trim()) {
       setSearchResults([]);
       setCurrentResultIndex(-1);
       return;
     }
 
-    // 2. Thiết lập timer: Trì hoãn gọi API 500ms
     const handler = setTimeout(() => {
       fetchSearchResults(searchTerm);
-    }, 500); // <-- 500ms (Nửa giây) là thời gian chờ hợp lý
+    }, 500);
 
-    // 3. Hàm cleanup: Xóa timer cũ nếu searchTerm thay đổi trước 500ms
     return () => {
       clearTimeout(handler);
     };
-  }, [searchTerm, fetchSearchResults, initialKeyword]); // Chạy lại hiệu ứng mỗi khi searchTerm thay đổi
+  }, [searchTerm, fetchSearchResults, initialKeyword]); 
+  const sortedResults = useMemo(
+    () => searchResults.slice().sort((a, b) => Number(b.timestamp) - Number(a.timestamp)),
+    [searchResults],
+  );
 
-  // Update current index when results change
   useEffect(() => {
-    if (searchResults.length > 0 && currentResultIndex === -1) {
-      setCurrentResultIndex(searchResults.length - 1);
-    } else if (searchResults.length === 0) {
+    if (sortedResults.length > 0 && currentResultIndex === -1) {
+      setCurrentResultIndex(0);
+    } else if (sortedResults.length === 0) {
       setCurrentResultIndex(-1);
     }
-  }, [searchResults.length, currentResultIndex]);
+  }, [sortedResults.length, currentResultIndex]);
 
   if (!isOpen) return null;
 
@@ -158,17 +153,17 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
   };
 
   const handlePrevious = () => {
-    if (searchResults.length === 0 || currentResultIndex <= 0) return;
-    const newIndex = currentResultIndex - 1;
+    if (sortedResults.length === 0) return;
+    const newIndex = currentResultIndex <= 0 ? sortedResults.length - 1 : currentResultIndex - 1;
     setCurrentResultIndex(newIndex);
-    handleJump(searchResults[newIndex]._id, newIndex);
+    handleJump(sortedResults[newIndex]._id, newIndex);
   };
 
   const handleNext = () => {
-    if (searchResults.length === 0 || currentResultIndex >= searchResults.length - 1) return;
-    const newIndex = currentResultIndex + 1;
+    if (sortedResults.length === 0) return;
+    const newIndex = currentResultIndex >= sortedResults.length - 1 ? 0 : currentResultIndex + 1;
     setCurrentResultIndex(newIndex);
-    handleJump(searchResults[newIndex]._id, newIndex);
+    handleJump(sortedResults[newIndex]._id, newIndex);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -277,10 +272,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
           <p className="text-center text-gray-400 text-sm">Nhập từ khóa để tìm kiếm trong hội thoại này.</p>
         )}
 
-        {searchResults
-          .slice()
-          .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
-          .map((msg: Message, index: number) => {
+        {sortedResults.map((msg: Message, index: number) => {
           const isRecalled = msg.isRecalled === true;
           const contentDisplay = isRecalled
             ? 'đã thu hồi tin nhắn'
@@ -327,7 +319,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrevious}
-              disabled={currentResultIndex <= 0}
               className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title="Kết quả trước"
             >
@@ -336,13 +327,12 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
               </svg>
             </button>
             <span className="text-xs text-gray-600 font-medium min-w-[80px] text-center">
-              {currentResultIndex >= 0 && currentResultIndex < searchResults.length
-                ? `Kết quả ${currentResultIndex + 1}/${searchResults.length}`
-                : `0/${searchResults.length}`}
+              {currentResultIndex >= 0 && currentResultIndex < sortedResults.length
+                ? `Kết quả ${currentResultIndex + 1}/${sortedResults.length}`
+                : `0/${sortedResults.length}`}
             </span>
             <button
               onClick={handleNext}
-              disabled={currentResultIndex >= searchResults.length - 1}
               className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title="Kết quả tiếp theo"
             >

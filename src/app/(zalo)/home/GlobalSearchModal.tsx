@@ -64,6 +64,11 @@ export default function GlobalSearchModal({
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const [isSearching, setIsSearching] = useState(false);
 
+  // 🔥 Sync localSearchTerm khi searchTerm prop thay đổi
+  useEffect(() => {
+    setLocalSearchTerm(searchTerm);
+  }, [searchTerm]);
+
   // Keep the useMemo for processing messages
   const { regularMessages, fileMessages } = useMemo(() => {
     if (!results?.messages || !Array.isArray(results.messages)) {
@@ -180,11 +185,6 @@ export default function GlobalSearchModal({
   ];
 
   const hasResults = (results?.contacts?.length || 0) > 0 || (results?.messages?.length || 0) > 0;
-
-  // Update localSearchTerm when prop changes
-  useEffect(() => {
-    setLocalSearchTerm(searchTerm);
-  }, [searchTerm]);
 
   return (
     <div

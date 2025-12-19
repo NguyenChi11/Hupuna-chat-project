@@ -231,68 +231,54 @@ export default function ChatWindow({
 
       isAtBottomRef.current = false;
 
-      const getOffsetTop = (el: HTMLElement, parent: HTMLElement) => {
-        let top = 0;
-        let node: HTMLElement | null = el;
-        while (node && node !== parent) {
-          top += node.offsetTop;
-          node = node.offsetParent as HTMLElement | null;
-        }
-        return top;
+      const computeTopInContainer = (el: HTMLElement, parent: HTMLElement) => {
+        const elRect = el.getBoundingClientRect();
+        const parentRect = parent.getBoundingClientRect();
+        return parent.scrollTop + (elRect.top - parentRect.top);
       };
 
       const isFullyVisible = (el: HTMLElement, parent: HTMLElement) => {
         const cTop = parent.scrollTop;
         const cBottom = cTop + parent.clientHeight;
-        const eTop = getOffsetTop(el, parent);
+        const eTop = computeTopInContainer(el, parent);
         const eBottom = eTop + el.clientHeight;
         return eTop >= cTop && eBottom <= cBottom;
       };
 
       const centerElement = (el: HTMLElement) => {
         try {
-          const elTopInContainer = getOffsetTop(el, container);
+          const elTopInContainer = computeTopInContainer(el, container);
           const rawTarget = elTopInContainer - container.clientHeight / 2 + el.clientHeight / 2;
           const maxScroll = Math.max(0, container.scrollHeight - container.clientHeight);
           const targetTop = Math.max(0, Math.min(rawTarget, maxScroll));
           container.scrollTo({ top: targetTop, behavior: 'smooth' });
-          setTimeout(() => {
-            container.scrollTo({ top: targetTop, behavior: 'auto' });
-          }, 80);
-          setTimeout(() => {
-            if (!isFullyVisible(el, container)) {
-              container.scrollTo({ top: targetTop, behavior: 'auto' });
-            }
-          }, 160);
         } catch {}
       };
 
       const scrollToElement = (elementId: string, attempt = 0): boolean => {
-        const element = document.getElementById(elementId);
+        const element =
+          (messagesContainerRef.current?.querySelector(`[id="${elementId}"]`) as HTMLElement | null) ||
+          (document.getElementById(elementId) as HTMLElement | null);
 
         if (element) {
-          centerElement(element as HTMLElement);
+          try {
+            (element as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          } catch {}
+          centerElement(element);
 
           setHighlightedMsgId(messageId);
           setTimeout(() => setHighlightedMsgId(null), 2500);
 
           setTimeout(() => {
-            const e1 = document.getElementById(elementId);
-            if (e1) centerElement(e1 as HTMLElement);
-          }, 250);
-          setTimeout(() => {
-            const e2 = document.getElementById(elementId);
-            if (e2) centerElement(e2 as HTMLElement);
+            const e =
+              (messagesContainerRef.current?.querySelector(`[id="${elementId}"]`) as HTMLElement | null) ||
+              (document.getElementById(elementId) as HTMLElement | null);
+            if (e && !isFullyVisible(e, container)) {
+              centerElement(e);
+            }
             jumpLoadingRef.current = false;
             scrollLockUntilRef.current = 0;
-          }, 600);
-          setTimeout(() => {
-            const e3 = document.getElementById(elementId);
-            if (e3) {
-              const el3 = e3 as HTMLElement;
-              if (!isFullyVisible(el3, container)) centerElement(el3);
-            }
-          }, 900);
+          }, 320);
 
           return true;
         }
@@ -377,7 +363,6 @@ export default function ChatWindow({
         }
 
         setTimeout(() => {
-          console.log('⏳ [JUMP] Waiting for DOM render...');
           scrollToElement(`msg-${messageId}`);
         }, 300);
       } catch (error) {
@@ -406,14 +391,12 @@ export default function ChatWindow({
     mobileCurrentIndexRef.current = mobileCurrentResultIndex;
   }, [mobileCurrentResultIndex]);
 
-  // Auto-open search sidebar when roomSearchKeyword is provided (desktop)
   useEffect(() => {
     if (!isMobile && roomSearchKeyword && roomSearchKeyword.trim()) {
       setShowSearchSidebar(true);
     }
   }, [roomSearchKeyword, isMobile]);
 
-  // Mobile: Fetch search results
   const fetchMobileSearchResults = useCallback(
     async (query: string) => {
       if (!query.trim() || !roomId) {
@@ -481,7 +464,6 @@ export default function ChatWindow({
     [roomId, handleJumpToMessage],
   );
 
-  // Mobile: Auto-fill and auto-search when roomSearchKeyword is provided
   useEffect(() => {
     if (isMobile && roomSearchKeyword && roomSearchKeyword.trim() && !hasAutoSearchedRef.current) {
       setMobileSearchTerm(roomSearchKeyword);
@@ -493,8 +475,6 @@ export default function ChatWindow({
       }, 100);
     }
   }, [roomSearchKeyword, isMobile, fetchMobileSearchResults]);
-
- 
 
   // Mobile: Debounced search
   useEffect(() => {
@@ -522,8 +502,8 @@ export default function ChatWindow({
 
   // Mobile: Navigation handlers
   const handlePreviousResult = useCallback(() => {
-    if (mobileSearchResults.length === 0 || mobileCurrentResultIndex <= 0) return;
-    const newIndex = mobileCurrentResultIndex - 1;
+    if (mobileSearchResults.length === 0) return;
+    const newIndex = mobileCurrentResultIndex <= 0 ? mobileSearchResults.length - 1 : mobileCurrentResultIndex - 1;
     setMobileCurrentResultIndex(newIndex);
     mobileSelectingRef.current = true;
     mobileSelectedMsgIdRef.current = mobileSearchResults[newIndex]._id;
@@ -535,8 +515,8 @@ export default function ChatWindow({
   }, [mobileSearchResults, mobileCurrentResultIndex]);
 
   const handleNextResult = useCallback(() => {
-    if (mobileSearchResults.length === 0 || mobileCurrentResultIndex >= mobileSearchResults.length - 1) return;
-    const newIndex = mobileCurrentResultIndex + 1;
+    if (mobileSearchResults.length === 0) return;
+    const newIndex = mobileCurrentResultIndex >= mobileSearchResults.length - 1 ? 0 : mobileCurrentResultIndex + 1;
     setMobileCurrentResultIndex(newIndex);
     mobileSelectingRef.current = true;
     mobileSelectedMsgIdRef.current = mobileSearchResults[newIndex]._id;
@@ -573,23 +553,26 @@ export default function ChatWindow({
     return { online, text };
   }, [isGroup, selectedChat, allUsers]);
 
-  const scrollToBottom = useCallback(() => {
-    if (showSearchSidebar || (scrollLockUntilRef.current && Date.now() < scrollLockUntilRef.current)) {
-      return;
-    }
-    if (jumpLoadingRef.current) return;
-    const el = messagesContainerRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-    const end = messagesEndRef.current;
-    if (end && typeof end.scrollIntoView === 'function') {
-      end.scrollIntoView({ block: 'end' });
-    }
-    setPendingNewCount(0);
-    pendingNewCountRef.current = 0;
-    hasScrolledUpRef.current = false;
-    setShowScrollDown(false);
-  }, [isMobile, showSearchSidebar]);
+  const scrollToBottom = useCallback(
+    (force = false) => {
+      if (!force && (showSearchSidebar || (scrollLockUntilRef.current && Date.now() < scrollLockUntilRef.current))) {
+        return;
+      }
+      if (jumpLoadingRef.current) return;
+      const el = messagesContainerRef.current;
+      if (!el) return;
+      el.scrollTop = el.scrollHeight;
+      const end = messagesEndRef.current;
+      if (end && typeof end.scrollIntoView === 'function') {
+        end.scrollIntoView({ block: 'end' });
+      }
+      setPendingNewCount(0);
+      pendingNewCountRef.current = 0;
+      hasScrolledUpRef.current = false;
+      setShowScrollDown(false);
+    },
+    [showSearchSidebar],
+  );
 
   const ensureBottom = useCallback(() => {
     scrollToBottom();
@@ -1019,7 +1002,12 @@ export default function ChatWindow({
 
   useEffect(() => {
     if (!scrollToMessageId) return;
-  }, [scrollToMessageId]);
+    initialScrolledRef.current = true;
+    setTimeout(() => {
+      handleJumpToMessage(scrollToMessageId);
+      if (typeof onScrollComplete === 'function') onScrollComplete();
+    }, 50);
+  }, [scrollToMessageId, handleJumpToMessage, onScrollComplete]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -1143,8 +1131,6 @@ export default function ChatWindow({
         setOldestTs(newOldest ?? oldestTs);
         added = true;
       }
-      // Với truy vấn "before=oldestTs", tổng trả về chỉ là số lượng bản ghi cũ hơn oldestTs,
-      // không phải tổng toàn bộ room. Để tránh dừng sớm, dùng ngưỡng theo limit.
       setHasMore(raw.length === LIMIT);
       if (container && !jumpLoadingRef.current) {
         setTimeout(() => {
@@ -1190,160 +1176,6 @@ export default function ChatWindow({
     setReplyingTo(message);
   }, []);
 
-  // const handleJumpToMessage = useCallback(
-  //   async (messageId: string) => {
-  //     jumpLoadingRef.current = true;
-  //     const container = messagesContainerRef.current;
-
-  //     if (!container) {
-  //       console.error('❌ [JUMP] Container not found');
-  //       jumpLoadingRef.current = false;
-  //       return;
-  //     }
-
-  //     const getOffsetTop = (el: HTMLElement, parent: HTMLElement) => {
-  //       let top = 0;
-  //       let node: HTMLElement | null = el;
-  //       while (node && node !== parent) {
-  //         top += node.offsetTop;
-  //         node = node.offsetParent as HTMLElement | null;
-  //       }
-  //       return top;
-  //     };
-
-  //     const centerElement = (el: HTMLElement) => {
-  //       const elTopInContainer = getOffsetTop(el, container);
-  //       const targetTop = elTopInContainer - container.clientHeight / 2 + el.clientHeight / 2;
-  //       container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-  //     };
-
-  //     const scrollToElement = (elementId: string, attempt = 0): boolean => {
-  //       const element = document.getElementById(elementId);
-
-  //       if (element) {
-  //         centerElement(element as HTMLElement);
-
-  //         setHighlightedMsgId(messageId);
-  //         setTimeout(() => setHighlightedMsgId(null), 2500);
-
-  //         setTimeout(() => {
-  //           const e1 = document.getElementById(elementId);
-  //           if (e1) centerElement(e1 as HTMLElement);
-  //         }, 250);
-  //         setTimeout(() => {
-  //           const e2 = document.getElementById(elementId);
-  //           if (e2) centerElement(e2 as HTMLElement);
-  //           jumpLoadingRef.current = false;
-  //         }, 800);
-
-  //         return true;
-  //       }
-
-  //       if (attempt < 10) {
-  //         setTimeout(() => scrollToElement(elementId, attempt + 1), 200);
-  //         return false;
-  //       }
-
-  //       console.warn('❌ [JUMP] Element not found after 10 attempts');
-  //       jumpLoadingRef.current = false;
-  //       return false;
-  //     };
-
-  //     // 1️⃣ Check nếu message đã có trong DOM
-  //     const existingElement = document.getElementById(`msg-${messageId}`);
-  //     if (existingElement) {
-  //       scrollToElement(`msg-${messageId}`);
-  //       return;
-  //     }
-
-  //     // 2️⃣ Check nếu message đã có trong state (đã load nhưng chưa render)
-  //     const messageInState = messages.find((m) => String(m._id) === String(messageId));
-  //     if (messageInState) {
-  //       // Wait for render then scroll
-  //       setTimeout(() => scrollToElement(`msg-${messageId}`), 100);
-  //       return;
-  //     }
-
-  //     try {
-  //       // Get target message info
-  //       const response = await fetch('/api/messages', {
-  //         method: 'POST',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify({ action: 'getById', _id: messageId }),
-  //       });
-
-  //       const result = await response.json();
-  //       const targetMessage = (result?.row?.row || result?.row) as Message | null;
-
-  //       if (!targetMessage || String(targetMessage.roomId) !== String(roomId)) {
-  //         console.error('❌ [JUMP] Message not found or wrong room');
-  //         alert('Không tìm thấy tin nhắn này trong cuộc trò chuyện.');
-  //         jumpLoadingRef.current = false;
-  //         return;
-  //       }
-
-  //       const targetTs = Number(targetMessage.timestamp);
-
-  //       // Load surrounding messages (100 messages before + 50 after)
-  //       const [olderRes, newerRes] = await Promise.all([
-  //         readMessagesApi(roomId, {
-  //           limit: 100,
-  //           sortOrder: 'desc',
-  //           extraFilters: { timestamp: { $lte: targetTs } },
-  //         }),
-  //         readMessagesApi(roomId, {
-  //           limit: 50,
-  //           sortOrder: 'asc',
-  //           extraFilters: { timestamp: { $gt: targetTs } },
-  //         }),
-  //       ]);
-
-  //       // Process and merge messages
-  //       const olderMessages = Array.isArray(olderRes.data) ? (olderRes.data as Message[]) : [];
-  //       const newerMessages = Array.isArray(newerRes.data) ? (newerRes.data as Message[]) : [];
-
-  //       const olderAsc = olderMessages.reverse();
-  //       const allNewMessages = [...olderAsc, ...newerMessages];
-
-      
-
-  //       // Update messages state
-  //       const existingIds = new Set(messages.map((m) => String(m._id)));
-  //       const messagesToAdd = allNewMessages.filter((m) => !existingIds.has(String(m._id)));
-
-  //       if (messagesToAdd.length > 0) {
-  //         setMessages((prev) => {
-  //           const combined = [...prev, ...messagesToAdd];
-
-  //           // Sort by timestamp
-  //           combined.sort((a, b) => {
-  //             const ta = Number(a.timestamp) || 0;
-  //             const tb = Number(b.timestamp) || 0;
-  //             return ta - tb;
-  //           });
-
-  //           return combined;
-  //         });
-
-  //         // Update oldestTs
-  //         const minTimestamp = Math.min(...messagesToAdd.map((m) => Number(m.timestamp)));
-  //         setOldestTs((prev) => Math.min(minTimestamp, prev ?? Infinity));
-  //         setHasMore(olderMessages.length === 100);
-  //       }
-
-  //       // Wait for DOM render then scroll
-  //       setTimeout(() => {
-  //         console.log('⏳ [JUMP] Waiting for DOM render...');
-  //         scrollToElement(`msg-${messageId}`);
-  //       }, 300);
-  //     } catch (error) {
-  //       console.error('❌ [JUMP] Error:', error);
-  //       alert('Có lỗi xảy ra khi tải tin nhắn.');
-  //       jumpLoadingRef.current = false;
-  //     }
-  //   },
-  //   [roomId, messages, oldestTs],
-  // );
   useEffect(() => {
     if (!scrollToMessageId) return;
     const timer = setTimeout(() => {
@@ -1580,8 +1412,6 @@ export default function ChatWindow({
         }
       }
     });
-
-    
 
     socketRef.current.on(
       'reaction_updated',
@@ -2179,7 +2009,12 @@ export default function ChatWindow({
     };
   };
   // Render tin nhắn với highlight mentions + link clickable + search keyword
-  const renderMessageContent = (content: string, mentionedUserIds?: string[], isMe?: boolean, searchKeyword?: string | null) => {
+  const renderMessageContent = (
+    content: string,
+    mentionedUserIds?: string[],
+    isMe?: boolean,
+    searchKeyword?: string | null,
+  ) => {
     if (!content) return null;
 
     const highlightKeyword = (text: string, keyword: string | null | undefined) => {
@@ -2567,7 +2402,7 @@ export default function ChatWindow({
           </div>
 
           <button
-            onClick={scrollToBottom}
+            onClick={() => scrollToBottom(true)}
             aria-label="Cuộn xuống cuối"
             className={`absolute cursor-pointer hover:bg-gray-100 md:bottom-35 bottom-30   right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
               showScrollDown ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -2607,7 +2442,45 @@ export default function ChatWindow({
                 onSelectMention={selectMention}
               />
             )}
-
+            {/* Mobile Search Navigation Bar - chỉ hiển thị khi có kết quả tìm kiếm */}
+            {isMobile && mobileSearchResults.length > 0 && mobileSearchTerm.trim() && (
+              <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-t border-gray-200">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                  <span className="text-xs text-gray-600 font-medium">
+                    Kết quả thứ {mobileCurrentResultIndex >= 0 ? mobileCurrentResultIndex + 1 : 0}/
+                    {mobileSearchResults.length}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePreviousResult}
+                    className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Kết quả trước"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleNextResult}
+                    className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Kết quả tiếp theo"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
             <ChatInput
               showEmojiPicker={showEmojiPicker}
               onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -2717,48 +2590,6 @@ export default function ChatWindow({
               uploadingCount={uploadingCount}
               overallUploadPercent={overallUploadPercent}
             />
-
-            {/* Mobile Search Navigation Bar - chỉ hiển thị khi có kết quả tìm kiếm */}
-            {isMobile && mobileSearchResults.length > 0 && mobileSearchTerm.trim() && (
-              <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-t border-gray-200">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                  <span className="text-xs text-gray-600 font-medium">
-                    Kết quả thứ {mobileCurrentResultIndex >= 0 ? mobileCurrentResultIndex + 1 : 0}/
-                    {mobileSearchResults.length}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handlePreviousResult}
-                    disabled={mobileCurrentResultIndex <= 0}
-                    className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title="Kết quả trước"
-                  >
-                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={handleNextResult}
-                    disabled={mobileCurrentResultIndex >= mobileSearchResults.length - 1}
-                    className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title="Kết quả tiếp theo"
-                  >
-                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
