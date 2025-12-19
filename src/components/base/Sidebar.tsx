@@ -370,7 +370,7 @@ export default function Sidebar({
   }, [filterType, filterCounts.hidden]);
 
   return (
-    <aside className="relative flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-r border-gray-200 w-full md:w-[20rem] shadow-2xl overflow-hidden">
+    <aside className="relative flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-r border-gray-200 w-full md:w-[24rem] shadow-2xl overflow-hidden">
       {/* HEADER GRADIENT SIÊU SANG */}
       <div className="bg-blue-500 shadow-2xl">
         {/* User Info */}

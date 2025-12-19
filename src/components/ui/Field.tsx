@@ -10,7 +10,7 @@ export function Field({
   required?: boolean;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 mr-3">
       <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
         {icon && <span className="text-indigo-600">{icon}</span>}
         {label}

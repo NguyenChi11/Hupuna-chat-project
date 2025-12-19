@@ -77,9 +77,8 @@ export default function CreateGroupModal({
         {/* Header */}
         <div className="flex items-center justify-between px-2 py-2 sm:px-2 sm:py-2 bg-[#0573ff] text-white">
           <div className="flex items-center gap-3">
-            <div className="p-1 sm:p-1 rounded-xl bg-white/20 backdrop-blur-sm">
-              <HiOutlineUserPlus className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
+            <HiOutlineUserPlus className="w-5 h-5 " />
+
             <h2 className="text-lg sm:text-sm font-bold">{mode === 'create' ? 'Tạo nhóm mới' : 'Thêm thành viên'}</h2>
           </div>
           <button
@@ -325,28 +324,45 @@ export default function CreateGroupModal({
         )}
 
         {/* Footer - Nút cố định dưới cùng */}
-        <div className="p-2 sm:p-4 bg-white border-t border-gray-200 flex gap-3 shadow-2xl">
+        <div className="p-3 bg-white border-t border-gray-200 flex gap-3">
+          {/* Nút Hủy */}
           <button
             onClick={onClose}
-            className="flex-1 cursor-pointer py-2 sm:py-2 sm:text-base text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-200 active:scale-95"
+            className="flex-1 py-3 text-base font-medium text-gray-600 bg-transparent hover:bg-gray-100 rounded-2xl transition-all duration-200 active:scale-95"
           >
             Hủy
           </button>
+
+          {/* Nút Tạo / Thêm */}
           <button
             onClick={handleSubmit}
             disabled={loading || selectedMembers.length === 0}
-            className={`flex-1 cursor-pointer py-2 sm:py-2 text-sm sm:text-base font-bold text-white rounded-2xl shadow-lg transition-all duration-300 active:scale-95 flex items-center justify-center gap-2
-              ${
-                loading || selectedMembers.length === 0
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+            className={`flex-1 py-3 text-base font-bold text-white rounded-2xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-md
+      ${
+        loading || selectedMembers.length === 0
+          ? 'bg-gray-400 cursor-not-allowed'
+          : 'bg-[#0068ff] hover:bg-[#005edc] shadow-[#0068ff]/50'
+      }`}
           >
-            {loading
-              ? 'Đang xử lý...'
-              : mode === 'create'
-                ? `Tạo (${selectedMembers.length})`
-                : `Thêm (${selectedMembers.filter((id) => !existingMemberIds.includes(id)).length})`}
+            {loading ? (
+              <>Đang xử lý...</>
+            ) : mode === 'create' ? (
+              <>
+                Tạo nhóm
+                {selectedMembers.length > 0 && (
+                  <span className="ml-1 text-sm font-normal opacity-90">({selectedMembers.length})</span>
+                )}
+              </>
+            ) : (
+              <>
+                Thêm
+                {selectedMembers.filter((id) => !existingMemberIds.includes(id)).length > 0 && (
+                  <span className="ml-1 text-sm font-normal opacity-90">
+                    ({selectedMembers.filter((id) => !existingMemberIds.includes(id)).length})
+                  </span>
+                )}
+              </>
+            )}
           </button>
         </div>
       </div>
