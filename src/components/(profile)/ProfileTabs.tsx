@@ -58,7 +58,7 @@ export default function ProfileTabs({
           {/* Nội dung tab */}
           <div className="flex items-center justify-center md:gap-2.5 gap-0.5 overflow-hidden w-full">
             {icon ? icon(item) : defaultIcon(item)}
-            <span className="inline md:text-sm text-[10.5px]">{labels[item] || item}</span>
+            <span className="inline md:text-xl text-[10.5px]">{labels[item] || item}</span>
           </div>
 
           {/* Thanh gạch dưới mượt mà */}

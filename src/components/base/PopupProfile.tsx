@@ -90,9 +90,9 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
             if (!f) return;
             try {
               setIsUploadingBackground(true);
-              const MAX = 5 * 1024 * 1024;
+              const MAX = 1024 * 1024 * 1024; // 1GB
               if (!f.type.startsWith('image/') || f.size > MAX) {
-                toast({ type: 'error', message: 'Ảnh không hợp lệ' });
+                toast({ type: 'error', message: 'Ảnh không hợp lệ hoặc quá lớn (>1GB)' });
                 return;
               }
               const formData = new FormData();

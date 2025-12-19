@@ -18,24 +18,19 @@ export default function GenderSelector({ value, onChange }: GenderSelectorProps)
 
   return (
     <div className="relative">
-      {/* Nút chính – giống hệt select */}
+      {/* Nút chọn chính – style giống hệt Zalo */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
-          w-full px-5 py-2 rounded-2xl bg-white border-2 font-medium text-left
+          w-full px-5 py-4 rounded-2xl bg-gray-100 font-medium text-left
           flex items-center justify-between transition-all duration-200
-          focus:outline-none focus:ring-4 focus:ring-indigo-100
-          ${
-            isOpen
-              ? 'border-indigo-500 ring-4 ring-indigo-100 shadow-lg'
-              : 'border-gray-300 hover:border-indigo-400 hover:shadow-md'
-          }
+          focus:outline-none
+          ${isOpen ? 'bg-white ring-4 ring-[#0068ff]/20 border-[#0068ff]' : 'border-2 border-transparent hover:bg-gray-200'}
           ${value ? 'text-gray-900' : 'text-gray-500'}
         `}
       >
         <span className="flex items-center gap-3">
-          {/* Icon check nếu đã chọn */}
-          {value && <HiCheck className="w-5 h-5 text-indigo-600" />}
+          {value && <HiCheck className="w-5 h-5 text-[#0068ff]" />}
           {selectedLabel}
         </span>
         <HiChevronDown
@@ -43,14 +38,14 @@ export default function GenderSelector({ value, onChange }: GenderSelectorProps)
         />
       </button>
 
-      {/* Dropdown menu – hiện khi mở */}
+      {/* Dropdown menu – hiện từ dưới lên như Zalo mobile */}
       {isOpen && (
         <>
-          {/* Backdrop mờ */}
+          {/* Backdrop mờ để đóng khi bấm ngoài */}
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
-          {/* Menu */}
-          <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50 animate-in slide-in-from-top-2 duration-200">
+          {/* Danh sách lựa chọn */}
+          <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-50">
             {genders.map((gender) => (
               <button
                 key={gender}
@@ -59,13 +54,14 @@ export default function GenderSelector({ value, onChange }: GenderSelectorProps)
                   setIsOpen(false);
                 }}
                 className={`
-                  w-full px-5 py-3 text-left font-medium transition-all flex items-center justify-between
-                  hover:bg-indigo-50 active:bg-indigo-100
-                  ${value === gender ? 'bg-indigo-50 text-indigo-700' : 'text-gray-800'}
+                  w-full px-5 py-4 text-left font-medium flex items-center justify-between
+                  transition-all duration-150
+                  ${value === gender ? 'bg-[#0068ff]/5 text-[#0068ff]' : 'text-gray-800 hover:bg-gray-100'}
+                  active:bg-gray-200
                 `}
               >
                 <span>{gender}</span>
-                {value === gender && <HiCheck className="w-5 h-5 text-indigo-600" />}
+                {value === gender && <HiCheck className="w-5 h-5 text-[#0068ff]" />}
               </button>
             ))}
           </div>

@@ -24,7 +24,7 @@ export const uploadFileWithProgress = (
   formData: FormData,
   onProgress: (percent: number) => void,
 ): Promise<UploadResponse> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
 
     // 1. Lắng nghe sự kiện tiến trình upload (quan trọng nhất)
@@ -46,16 +46,26 @@ export const uploadFileWithProgress = (
           const response = JSON.parse(xhr.responseText) as UploadResponse;
           resolve(response);
         } catch {
-          reject('Phản hồi từ server không phải JSON hợp lệ');
+          resolve({ success: false, message: 'Phản hồi từ server không phải JSON hợp lệ' });
         }
       } else {
-        reject(xhr.statusText || 'Upload thất bại');
+        try {
+          const parsed = JSON.parse(xhr.responseText) as { message?: string };
+          const msg =
+            typeof parsed?.message === 'string' && parsed.message.trim()
+              ? parsed.message
+              : xhr.statusText || `Upload thất bại (${xhr.status})`;
+          resolve({ success: false, message: msg });
+        } catch {
+          const msg = xhr.statusText || `Upload thất bại (${xhr.status})`;
+          resolve({ success: false, message: msg });
+        }
       }
     };
 
     // 4. Xử lý lỗi mạng
     xhr.onerror = () => {
-      reject('Lỗi mạng (Network Error)');
+      resolve({ success: false, message: 'Lỗi mạng (Network Error)' });
     };
 
     // 5. Gửi dữ liệu đi

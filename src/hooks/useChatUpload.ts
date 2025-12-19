@@ -121,7 +121,7 @@ export function useChatUpload({
             lastMessage = res.message || 'Không xác định';
           }
         } catch (e) {
-          lastMessage = (e as Error)?.message || 'Không xác định';
+          lastMessage = (e as Error)?.message || String(e) || 'Không xác định';
         }
       }
 

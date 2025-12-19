@@ -23,59 +23,61 @@ interface Props {
 
 export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Props) {
   return (
-    <div className="space-y-5 max-w-2xl mx-auto">
-      <InputField
-        icon="user"
-        value={form.name}
-        onChange={(v) => setForm({ ...form, name: v })}
-        placeholder="Tên hiển thị"
-      />
-      <InputField
-        icon="phone"
-        value={form.phone}
-        onChange={(v) => setForm({ ...form, phone: v })}
-        placeholder="Số điện thoại"
-        type="tel"
-      />
-      <GenderSelector value={form.gender} onChange={(v) => setForm({ ...form, gender: v })} />
-      <InputField
-        icon="calendar"
-        value={form.birthday}
-        onChange={(v) => setForm({ ...form, birthday: v })}
-        type="date"
-      />
-      <DepartmentDropdown value={form.department} onChange={(v) => setForm({ ...form, department: v })} />
-      <InputField
-        icon="email"
-        value={form.email}
-        onChange={(v) => setForm({ ...form, email: v })}
-        placeholder="Email"
-        type="email"
-      />
-      <InputField
-        icon="location"
-        value={form.address}
-        onChange={(v) => setForm({ ...form, address: v })}
-        placeholder="Địa chỉ"
-      />
+    <div className="space-y-5 max-w-3xl mx-auto">
+      <div className="space-y-4">
+        <InputField
+          icon="user"
+          value={form.name}
+          onChange={(v) => setForm({ ...form, name: v })}
+          placeholder="Tên hiển thị"
+        />
+        <InputField
+          icon="phone"
+          value={form.phone}
+          onChange={(v) => setForm({ ...form, phone: v })}
+          placeholder="Số điện thoại"
+          type="tel"
+        />
+        <GenderSelector value={form.gender} onChange={(v) => setForm({ ...form, gender: v })} />
+        <InputField
+          icon="calendar"
+          value={form.birthday}
+          onChange={(v) => setForm({ ...form, birthday: v })}
+          type="date"
+        />
+        <DepartmentDropdown value={form.department} onChange={(v) => setForm({ ...form, department: v })} />
+        <InputField
+          icon="email"
+          value={form.email}
+          onChange={(v) => setForm({ ...form, email: v })}
+          placeholder="Email"
+          type="email"
+        />
+        <InputField
+          icon="location"
+          value={form.address}
+          onChange={(v) => setForm({ ...form, address: v })}
+          placeholder="Địa chỉ"
+        />
 
-      <InputField
-        icon="briefcase"
-        value={form.title}
-        onChange={(v) => setForm({ ...form, title: v })}
-        placeholder="Chức vụ"
-      />
+        <InputField
+          icon="briefcase"
+          value={form.title}
+          onChange={(v) => setForm({ ...form, title: v })}
+          placeholder="Chức vụ"
+        />
+      </div>
 
       <button
         onClick={onSave}
         disabled={isSaving}
-        className="w-full mt-2 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-sm cursor-pointer rounded-2xl shadow-2xl transition-all active:scale-98 disabled:opacity-70 flex items-center justify-center gap-3"
+        className="w-full mt-4 py-4 bg-[#0068ff] hover:bg-[#005edc] disabled:bg-gray-400 text-white font-bold text-base rounded-2xl shadow-md transition-all duration-200 active:scale-95 disabled:opacity-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isSaving ? (
           'Đang lưu...'
         ) : (
           <>
-            <HiCheck className="w-6 h-6" />
+            <HiCheck className="w-5 h-5" />
             Lưu thông tin
           </>
         )}
