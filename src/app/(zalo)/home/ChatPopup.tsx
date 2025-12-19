@@ -1229,69 +1229,7 @@ export default function ChatWindow({
       }
     });
 
-    socketRef.current.on(
-      'call_notify',
-      async (data: {
-        roomId: string;
-        sender: string;
-        callerId: string;
-        calleeId: string;
-        type: 'voice' | 'video';
-        status: 'answered' | 'rejected' | 'timeout';
-        durationSec?: number;
-      }) => {
-        if (String(data.roomId) !== String(roomId)) return;
-        if (String(currentUser._id) !== String(data.sender)) return;
-        const kind = data.type === 'video' ? 'video' : 'thoại';
-        const incoming = String(data.sender) === String(data.calleeId);
-        const dir = incoming ? 'đến' : 'đi';
-        const s = data.status;
-        const d = Math.max(0, Math.floor(Number(data.durationSec || 0)));
-        const m = Math.floor(d / 60);
-        const ss = d % 60;
-        const durStr = `${m} phút ${ss} giây`;
-        const content =
-          s === 'answered'
-            ? `Cuộc gọi ${kind} ${dir} – ${durStr}`
-            : s === 'rejected'
-              ? `Cuộc gọi ${kind} ${dir} – Bị từ chối`
-              : `Cuộc gọi ${kind} ${dir} – Không phản hồi`;
-        const ts = Date.now();
-        const notifyRes = await createMessageApi({
-          roomId,
-          sender: String(currentUser._id),
-          type: 'notify',
-          content,
-          timestamp: ts,
-          callerId: String(data.callerId),
-          calleeId: String(data.calleeId),
-          callType: data.type,
-          callStatus: data.status,
-          callDurationSec: d,
-        });
-        if (notifyRes?.success && typeof notifyRes._id === 'string') {
-          const receiver = isGroup ? null : getId(selectedChat);
-          const members = isGroup ? (selectedChat as GroupConversation).members : [];
-          socketRef.current?.emit('send_message', {
-            roomId,
-            sender: String(currentUser._id),
-            senderName: currentUser.name,
-            isGroup,
-            receiver,
-            members,
-            _id: notifyRes._id,
-            type: 'notify',
-            content,
-            timestamp: ts,
-            callerId: String(data.callerId),
-            calleeId: String(data.calleeId),
-            callType: data.type,
-            callStatus: data.status,
-            callDurationSec: d,
-          });
-        }
-      },
-    );
+    
 
     socketRef.current.on(
       'reaction_updated',

@@ -38,6 +38,7 @@ const createCallNotify = async ({ roomId, sender, callerId, calleeId, type, stat
       durationSec: typeof durationSec === 'number' ? Math.max(0, Math.floor(durationSec)) : 0,
     };
     io.in(String(roomId)).emit('call_notify', payload);
+    io.to(String(sender)).emit('call_notify', payload);
   } catch {}
 };
 
