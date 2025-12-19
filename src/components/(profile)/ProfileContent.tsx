@@ -18,49 +18,8 @@ export default function ProfileContent({
   overviewData: Record<string, unknown>;
   handleOverviewData: (data: Record<string, unknown>) => void;
 }) {
-  // Icon tiêu đề cho từng tab – đẹp như Zalo
-  const getTabHeader = () => {
-    const baseClasses = 'flex items-center gap-3 text-xl font-bold text-gray-800 mb-6 pb-3 border-b border-gray-200';
-
-    switch (tab) {
-      case 'info':
-        return (
-          <div className={baseClasses}>
-            <HiInformationCircle className="w-8 h-8 text-indigo-600" />
-            <span>Thông tin cá nhân</span>
-          </div>
-        );
-      case 'qr':
-        return (
-          <div className={baseClasses}>
-            <HiQrCode className="w-8 h-8 text-green-600" />
-            <span>Mã QR của bạn</span>
-          </div>
-        );
-      case 'settings':
-        return (
-          <div className={baseClasses}>
-            <HiCog6Tooth className="w-8 h-8 text-purple-600" />
-            <span>Cài đặt</span>
-          </div>
-        );
-      case 'profile':
-      default:
-        return (
-          <div className={baseClasses}>
-            <HiUser className="w-8 h-8 text-blue-600" />
-            <span>Hồ sơ công khai</span>
-          </div>
-        );
-    }
-  };
-
   return (
-    <div className="p-5 sm:p-6 md:p-8 lg:p-10">
-      {/* Tiêu đề + icon đẹp – responsive */}
-      <div className="animate-in fade-in slide-in-from-top-4 duration-500">{getTabHeader()}</div>
-
-      {/* Nội dung chính – mượt, có hiệu ứng */}
+    <div className="p-4">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
         {/* Thông tin cá nhân (chỉ owner chỉnh sửa được) */}
         {tab === 'info' && (
@@ -90,8 +49,8 @@ export default function ProfileContent({
 
         {/* Mã QR */}
         {tab === 'qr' && (
-          <div className="flex justify-center py-12">
-            <div className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-100">
+          <div className="flex justify-center py-6">
+            <div className=" p-2  ">
               <ProfileQR />
             </div>
           </div>

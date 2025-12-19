@@ -36,6 +36,8 @@ export function useCreateGroupModal({
 }: UseCreateGroupModalParams) {
   const [groupName, setGroupName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const [selectedMembers, setSelectedMembers] = useState<string[]>(() => {
     const currentUserId = String(currentUser._id);
@@ -49,6 +51,24 @@ export function useCreateGroupModal({
   const handleMemberToggle = (_id: string) => {
     if (mode === 'add' && existingMemberIds.includes(_id)) return;
     setSelectedMembers((prev) => (prev.includes(_id) ? prev.filter((id) => id !== _id) : [...prev, _id]));
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Vui lòng chọn file ảnh');
+      return;
+    }
+
+    // Remove size limit
+    // const MAX = 5 * 1024 * 1024; // 5MB
+    // if (file.size > MAX) { ... }
+
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+    setError('');
   };
 
   const groupedUsers = useMemo(() => {
@@ -100,12 +120,33 @@ export function useCreateGroupModal({
     setError('');
 
     try {
+      let avatarUrl = '';
+      if (mode === 'create' && avatarFile) {
+        const uploadId = `group_avatar_${Date.now()}`;
+        const formData = new FormData();
+        formData.append('file', avatarFile);
+        formData.append('roomId', 'new_group');
+        formData.append('sender', String(currentUser._id));
+        formData.append('type', 'image');
+        formData.append('folderName', 'GroupAvatars');
+
+        const uploadRes = await fetch(`/api/upload?uploadId=${uploadId}`, {
+          method: 'POST',
+          body: formData,
+        });
+        const uploadJson = await uploadRes.json();
+        if (uploadJson.success && uploadJson.link) {
+          avatarUrl = uploadJson.link;
+        }
+      }
+
       type CreateGroupBody = {
         action: 'createGroup';
         data: {
           name: string;
           members: string[];
           createdBy: string;
+          avatar?: string;
         };
       };
 
@@ -124,6 +165,7 @@ export function useCreateGroupModal({
             name: groupName,
             members: selectedMembers,
             createdBy: currentUser._id,
+            avatar: avatarUrl || undefined,
           },
         };
       } else {
@@ -198,5 +240,8 @@ export function useCreateGroupModal({
     sortedGroupKeys,
     handleMemberToggle,
     handleSubmit,
+    avatarFile,
+    avatarPreview,
+    handleAvatarChange,
   };
 }

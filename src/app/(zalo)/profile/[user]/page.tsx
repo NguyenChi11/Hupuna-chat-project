@@ -10,8 +10,18 @@ import { useCurrentUser } from '@/hooks/(profile)/useCurrentUser';
 import ProfileHeader from '@/components/(profile)/ProfileHeader';
 import ProfileTabs from '@/components/(profile)/ProfileTabs';
 import ProfileContent from '@/components/(profile)/ProfileContent';
+import MobileProfileSheet from '@/components/(profile)/MobileProfileSheet';
 
-import { HiUserCircle, HiQrCode, HiCog6Tooth, HiInformationCircle } from 'react-icons/hi2';
+import {
+  HiUserCircle,
+  HiQrCode,
+  HiCog6Tooth,
+  HiInformationCircle,
+  HiPhone,
+  HiEnvelope,
+  HiCalendar,
+  HiMapPin,
+} from 'react-icons/hi2';
 
 export default function ProfileByIdPage() {
   const params = useParams();
@@ -46,6 +56,7 @@ export default function ProfileByIdPage() {
   const [tabLeft, setTabLeft] = useState<'profile' | 'qr'>('profile');
   const [tabRight, setTabRight] = useState<'info' | 'settings' | 'qr'>('info');
   const [tabMobile, setTabMobile] = useState<'profile' | 'qr' | 'info' | 'settings'>('profile');
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
   const tabsLeft = isOwner ? ['profile', 'qr'] : [];
   const tabsRight = isOwner ? ['info', 'settings'] : ['info', 'qr'];
@@ -82,7 +93,7 @@ export default function ProfileByIdPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
       {/* ==================== MOBILE (<= md) & TABLET SMALL (<= lg) ==================== */}
       <div className=" mx-auto md:hidden">
-        <div className=" max-h-[90vh] bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-y-auto custom-scrollbar border border-white/50 pb-28 ">
+        <div className=" h-[40rem] bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden custom-scrollbar border border-white/50 pb-28 ">
           {/* Header */}
           <ProfileHeader
             isOwner={!!isOwner}
@@ -106,24 +117,71 @@ export default function ProfileByIdPage() {
             {displayTitle && <p className="mt-1.5 text-sm text-gray-600 font-medium">{displayTitle}</p>}
           </div>
 
+          {/* Additional Info (Mobile) */}
+          <div className="flex flex-wrap justify-center gap-2 px-4 pb-4">
+            {overviewData.gender && (
+              <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+                <HiUserCircle className="w-3.5 h-3.5 text-indigo-500" />
+                {overviewData.gender}
+              </div>
+            )}
+            {overviewData.birthday && (
+              <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+                <HiCalendar className="w-3.5 h-3.5 text-pink-500" />
+                {overviewData.birthday}
+              </div>
+            )}
+            {overviewData.phone && (
+              <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+                <HiPhone className="w-3.5 h-3.5 text-green-500" />
+                {overviewData.phone}
+              </div>
+            )}
+            {overviewData.email && (
+              <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+                <HiEnvelope className="w-3.5 h-3.5 text-blue-500" />
+                <span className="truncate max-w-[150px]">{overviewData.email}</span>
+              </div>
+            )}
+            {overviewData.address && (
+              <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+                <HiMapPin className="w-3.5 h-3.5 text-red-500" />
+                <span className="truncate max-w-[150px]">{overviewData.address}</span>
+              </div>
+            )}
+          </div>
+
           {/* Tabs Mobile → mở nội dung trong popup */}
           <ProfileTabs
             tabs={tabsMobile}
             tab={tabMobile}
             setTab={(item) => {
               setTabMobile(item as 'profile' | 'qr' | 'info' | 'settings');
+              setIsMobileSheetOpen(true);
             }}
             icon={getTabIcon}
           />
 
-          <div className="bg-gradient-to-b from-gray-50/50 to-white">
+          <MobileProfileSheet
+            isOpen={isMobileSheetOpen}
+            onClose={() => setIsMobileSheetOpen(false)}
+            title={
+              tabMobile === 'profile'
+                ? 'Hồ sơ'
+                : tabMobile === 'qr'
+                  ? 'Mã QR'
+                  : tabMobile === 'info'
+                    ? 'Thông tin'
+                    : 'Cài đặt'
+            }
+          >
             <ProfileContent
               tab={tabMobile}
               isOwner={!!isOwner}
               overviewData={overviewData}
               handleOverviewData={(data) => setOverviewData(data as Parameters<typeof setOverviewData>[0])}
             />
-          </div>
+          </MobileProfileSheet>
         </div>
       </div>
 
@@ -131,7 +189,7 @@ export default function ProfileByIdPage() {
       <div className="hidden md:flex max-w-7xl mx-auto  max-h-[90vh]">
         <div className="flex-1 flex gap-6">
           {/* CỘT TRÁI */}
-          <div className=" w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-auto custom-scrollbar border border-white/60">
+          <div className=" w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden custom-scrollbar border border-white/60">
             <ProfileHeader
               isOwner={!!isOwner}
               background={background ?? null}
@@ -141,7 +199,7 @@ export default function ProfileByIdPage() {
               isUploadingBackground={isUploadingBackground}
             />
 
-            <div className="px-8 pt-20 pb-8 text-center bg-gradient-to-b from-white to-gray-50">
+            <div className="px-8 pt-20 pb-2 text-center bg-gradient-to-b from-white to-gray-50">
               <h1 className="text-xl font-black bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                 {displayName}
               </h1>
@@ -165,7 +223,7 @@ export default function ProfileByIdPage() {
 
             {/* Nội dung trái */}
             {isOwner && (
-              <div className="h-auto overflow-y-auto bg-gradient-to-br from-gray-50 to-white">
+              <div className=" overflow-y-auto bg-gradient-to-br from-gray-50 to-white h-[20rem] custom-scrollbar">
                 <ProfileContent
                   tab={tabLeft}
                   isOwner={true}
@@ -177,7 +235,7 @@ export default function ProfileByIdPage() {
           </div>
 
           {/* CỘT PHẢI */}
-          <div className="flex-1 bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-auto border border-white/60 custom-scrollbar">
+          <div className="flex-1 bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/60 ">
             <ProfileTabs
               tabs={tabsRight}
               tab={tabRight}

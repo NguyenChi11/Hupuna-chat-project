@@ -1176,6 +1176,7 @@ export default function ChatWindow({
     setReplyingTo(message);
   }, []);
 
+  
   useEffect(() => {
     if (!scrollToMessageId) return;
     const timer = setTimeout(() => {
@@ -1815,6 +1816,35 @@ export default function ChatWindow({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showMentionMenu, mentionMenuRef, setShowMentionMenu]);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const target = e.target as Node | null;
+      const footerEl = footerRef.current;
+      const inputEl = editableRef.current;
+      if (!inputEl) return;
+      const active = document.activeElement === inputEl;
+      if (!active) return;
+      if (footerEl && target && footerEl.contains(target)) return;
+      try {
+        inputEl.blur();
+      } catch {}
+      setShowEmojiPicker(false);
+    };
+    document.addEventListener('mousedown', handler, true);
+    document.addEventListener('touchstart', handler, true);
+    return () => {
+      document.removeEventListener('mousedown', handler, true);
+      document.removeEventListener('touchstart', handler, true);
+    };
+  }, [editableRef, footerRef, setShowEmojiPicker]);
+
+  const handleToggleEmojiPicker = useCallback(() => {
+    try {
+      editableRef.current?.blur?.();
+    } catch {}
+    setTimeout(() => setShowEmojiPicker((prev) => !prev), 120);
+  }, [editableRef, setShowEmojiPicker]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const getSenderName = (sender: User | string): string => {
     if (typeof sender === 'object' && sender && 'name' in sender && (sender as User).name) {
@@ -1881,6 +1911,13 @@ export default function ChatWindow({
       editableRef.current.innerHTML = '';
     }
 
+    // 🔥 Clear attachments ngay lập tức để tránh upload trùng nếu user ấn gửi tiếp
+    let currentAttachments: typeof attachments = [];
+    if (hasAtt) {
+      currentAttachments = [...attachments];
+      setAttachments([]);
+    }
+
     if (plainText) {
       const textMsg: MessageCreate = {
         roomId,
@@ -1896,25 +1933,14 @@ export default function ChatWindow({
     }
 
     if (hasAtt) {
-      const limit = 2;
-      const queue = attachments.slice();
-      const worker = async () => {
-        while (queue.length > 0) {
-          const att = queue.shift();
-          if (!att) break;
-          await handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined);
-        }
-      };
-      const workers: Promise<void>[] = [];
-      for (let i = 0; i < Math.min(limit, attachments.length); i++) workers.push(worker());
-      await Promise.all(workers);
-      setAttachments((prev) => {
-        prev.forEach((a) => {
+      // 🔥 Fire all uploads concurrently so temp messages appear immediately
+      currentAttachments.forEach((att) => {
+        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined).then(() => {
+          // Revoke preview URL after upload completes/fails
           try {
-            URL.revokeObjectURL(a.previewUrl);
+            URL.revokeObjectURL(att.previewUrl);
           } catch {}
         });
-        return [];
       });
     }
     try {
@@ -2396,7 +2422,7 @@ export default function ChatWindow({
               onPinMessage={handlePinMessage}
               onToggleReaction={handleToggleReaction}
               contextMenu={contextMenu}
-              scrollManagedExternally
+              isSidebarOpen={showPopup}
             />
             <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>
@@ -2483,7 +2509,7 @@ export default function ChatWindow({
             )}
             <ChatInput
               showEmojiPicker={showEmojiPicker}
-              onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
+              onToggleEmojiPicker={handleToggleEmojiPicker}
               isListening={isListening}
               onVoiceInput={handleVoiceInput}
               editableRef={editableRef}

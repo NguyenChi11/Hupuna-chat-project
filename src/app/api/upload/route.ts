@@ -34,21 +34,21 @@ export async function POST(req: NextRequest) {
 
     if (!file) return NextResponse.json({ success: false, message: 'Thiếu tệp để upload' }, { status: 400 });
 
-    const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_BYTES || 200 * 1024 * 1024);
+    const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_BYTES || 100 * 1024 * 1024 * 1024); // 100GB
     const fileSizeClient = (file as unknown as { size?: number }).size ?? undefined;
     if (typeof fileSizeClient === 'number' && fileSizeClient > MAX_UPLOAD_BYTES) {
       setProgress(uploadId, -1);
       return NextResponse.json(
         {
           success: false,
-          message: `Kích thước tệp vượt quá giới hạn ${(MAX_UPLOAD_BYTES / (1024 * 1024)).toFixed(0)}MB`,
+          message: `Kích thước tệp vượt quá giới hạn ${(MAX_UPLOAD_BYTES / (1024 * 1024 * 1024)).toFixed(0)}GB`,
         },
         { status: 413 },
       );
     }
 
     // 2. Chuyển về Buffer (Load vào RAM Server)
-    // Lưu ý: Cách này giới hạn file < 200MB (do giới hạn RAM của Serverless Function)
+    // Lưu ý: Cách này có thể gây tràn RAM nếu file quá lớn
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     if (buffer.length > MAX_UPLOAD_BYTES) {
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: `Kích thước tệp vượt quá giới hạn ${(MAX_UPLOAD_BYTES / (1024 * 1024)).toFixed(0)}MB`,
+          message: `Kích thước tệp vượt quá giới hạn ${(MAX_UPLOAD_BYTES / (1024 * 1024 * 1024)).toFixed(0)}GB`,
         },
         { status: 413 },
       );

@@ -27,6 +27,11 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [item.avatar]);
 
   const unreadCount = item.unreadCount || 0;
   const isPinned = !!item.isPinned;
@@ -48,7 +53,6 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
     return user.name || user.username || 'Người dùng';
   }, [item, isGroup]);
 
-  const avatarChar = displayName.charAt(0).toUpperCase();
   const lastMessage = item.lastMessage || (isGroup ? 'Nhóm mới tạo' : 'Bắt đầu trò chuyện');
   const timeDisplay = formatTimeAgo(item.lastMessageAt);
 
@@ -153,7 +157,7 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
           active:scale-98
         `}
       >
-        <div className="flex items-center gap-4 p-2">
+        <div className="flex items-center gap-4 py-4 px-2 md:py-2 ">
           {/* Avatar + Online + Group Icon */}
           <div className="relative flex-shrink-0">
             <div
@@ -166,16 +170,23 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
                 }
               `}
             >
-              {item.avatar ? (
+              {item.avatar && !imgError ? (
                 <Image
                   src={getProxyUrl(item.avatar)}
                   alt={displayName}
                   width={64}
                   height={64}
                   className="w-full h-full object-cover"
+                  onError={() => setImgError(true)}
                 />
               ) : (
-                <span>{avatarChar}</span>
+                <Image
+                  src="/logo/avata.webp"
+                  alt={displayName}
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-cover"
+                />
               )}
             </div>
 
@@ -204,12 +215,12 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
           </div>
 
           {/* Nội dung */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 ml-2">
             <div className="flex items-center justify-between mb-1">
               <h4
                 className={`
-                  text-lg font-bold truncate max-w-[11rem]
-                  ${unreadCount > 0 ? 'text-gray-900' : 'text-gray-800'}
+                  text-lg font-medium truncate max-w-[11rem]
+                  ${unreadCount > 0 ? 'text-gray-900' : 'text-gray-500'}
                 `}
               >
                 {displayName}

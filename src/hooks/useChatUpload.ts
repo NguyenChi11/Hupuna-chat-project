@@ -38,7 +38,7 @@ export function useChatUpload({
       };
 
       const uploadId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const tempId = `temp_${Date.now()}`;
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
       const formData = new FormData();
       formData.append('file', file);
@@ -121,7 +121,7 @@ export function useChatUpload({
             lastMessage = res.message || 'Không xác định';
           }
         } catch (e) {
-          lastMessage = (e as Error)?.message || 'Không xác định';
+          lastMessage = (e as Error)?.message || String(e) || 'Không xác định';
         }
       }
 

@@ -18,6 +18,7 @@ type Props = {
   type?: 'image' | 'video' | 'file' | 'text' | string;
   fileUrl?: string;
   fileName?: string;
+  batchItems?: FolderItem[];
 };
 
 type FolderItem = {
@@ -42,6 +43,7 @@ export default function FolderButton({
   type,
   fileUrl,
   fileName,
+  batchItems,
 }: Props) {
   const { currentUser } = useChatContext();
   const [open, setOpen] = useState(false);
@@ -290,6 +292,16 @@ export default function FolderButton({
                 type: type || 'text',
                 fileUrl,
                 fileName,
+                batch: Array.isArray(batchItems)
+                  ? batchItems.map((it) => ({
+                      roomId,
+                      messageId: String(it.id),
+                      content: it.content || '',
+                      type: String(it.type || 'text'),
+                      fileUrl: it.fileUrl,
+                      fileName: it.fileName,
+                    }))
+                  : undefined,
               },
             });
             window.dispatchEvent(ev);

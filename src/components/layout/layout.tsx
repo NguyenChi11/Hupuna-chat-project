@@ -15,15 +15,19 @@ import {
   HiUserGroup,
   HiPhoto,
   HiUserCircle,
-  HiCog6Tooth,
   HiSparkles,
   HiRectangleGroup,
 } from 'react-icons/hi2';
+
 
 const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [isAuthed, setIsAuthed] = useState<boolean>(false);
   const [checked, setChecked] = useState<boolean>(false);
   const [hideMobileFooter, setHideMobileFooter] = useState<boolean>(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [totalUnread, setTotalUnread] = useState<number>(0);
+  const [unreadGroups, setUnreadGroups] = useState<number>(0);
+  const [unreadContacts, setUnreadContacts] = useState<number>(0);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const groupMembersRef = useRef<Map<string, Array<{ _id: string } | string>>>(new Map());
@@ -75,6 +79,71 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       mounted = false;
     };
   }, []);
+
+  // Lấy current user id để dùng tính tổng unread
+  useEffect(() => {
+    const loadMe = async () => {
+      try {
+        const meRes = await fetch('/api/users/me', { credentials: 'include' });
+        const meJson = await meRes.json();
+        const id = String(meJson?.data?._id || '').trim();
+        if (id) {
+          setCurrentUserId(id);
+          return;
+        }
+      } catch {}
+      try {
+        const raw = localStorage.getItem('info_user');
+        const u = raw ? JSON.parse(raw) : null;
+        const id = String(u?._id || u?.username || '').trim();
+        if (id) setCurrentUserId(id);
+      } catch {}
+    };
+    if (isAuthed && checked) loadMe();
+  }, [isAuthed, checked]);
+
+  // Tính tổng tin nhắn chưa đọc
+  useEffect(() => {
+    let timer: number | null = null;
+    const fetchUnreadTotal = async () => {
+      if (!currentUserId) return;
+      try {
+        const [usersRes, groupsRes] = await Promise.all([
+          fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'read', currentUserId }),
+          }),
+          fetch('/api/groups', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'readGroups', _id: currentUserId }),
+          }),
+        ]);
+        const usersJson = await usersRes.json();
+        const groupsJson = await groupsRes.json();
+        const users = (Array.isArray(usersJson) ? usersJson : usersJson.data || []) as Array<Partial<User>>;
+        const groups = (Array.isArray(groupsJson) ? groupsJson : groupsJson.data || []) as Array<
+          Partial<GroupConversation>
+        >;
+        const sumUsers = users.reduce((acc: number, u: Partial<User>) => acc + Number(u?.unreadCount || 0), 0);
+        const sumGroups = groups.reduce(
+          (acc: number, g: Partial<GroupConversation>) => acc + Number(g?.unreadCount || 0),
+          0,
+        );
+        setTotalUnread(sumUsers + sumGroups);
+        setUnreadContacts(sumUsers);
+        setUnreadGroups(sumGroups);
+      } catch {
+        // bỏ qua lỗi
+      }
+    };
+    fetchUnreadTotal();
+    timer = window.setInterval(fetchUnreadTotal, 15000);
+    return () => {
+      if (timer) window.clearInterval(timer);
+    };
+  }, [currentUserId]);
 
   // Ẩn/hiện mobile footer
   useEffect(() => {
@@ -305,10 +374,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       {/* Mobile Bottom Navigation – ĐẸP NHƯ ZALO PRO 2025 */}
       {isAuthed && !(hideMobileFooter || isWidgetIframe) && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] pointer-events-none">
-          {/* Gradient mờ từ trên xuống */}
-          <div className="absolute inset-x-0 -top-12 h-16 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-
-          <div className="relative pointer-events-auto bg-white/95 backdrop-blur-3xl border-t border-gray-200 shadow-2xl rounded-t-3xl overflow-hidden">
+          <div className="relative pointer-events-auto bg-white border-t border-gray-200 shadow-lg">
             <div className="flex">
               {mobileTabs.map((tab) => {
                 const active = isActive(tab.paths);
@@ -331,27 +397,32 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                         router.push(tab.paths[0]);
                       }
                     }}
-                    className="cursor-pointer flex-1 py-4 flex flex-col items-center gap-1 relative transition-all duration-300 active:scale-95"
+                    className="cursor-pointer flex-1 py-3 flex flex-col items-center gap-1 relative"
                   >
-                    <div className={`relative transition-all duration-300 ${active ? 'scale-125' : 'scale-100'}`}>
-                      <Icon
-                        className={`w-7 h-7 transition-all duration-300 ${active ? 'text-indigo-600 drop-shadow-lg' : 'text-gray-500'}`}
-                      />
-                      {active && (
-                        <div className="absolute -inset-2 bg-indigo-400/30 rounded-full blur-xl animate-pulse" />
+                    <div className="relative">
+                      <Icon className={`w-6 h-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} />
+                      {tab.key === 'home' && totalUnread > 0 && (
+                        <span className="absolute -top-2 -right-3 min-w-[1.5rem] px-1.5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">
+                          {totalUnread > 99 ? '99+' : totalUnread}
+                        </span>
+                      )}
+                      {tab.key === 'group' && unreadGroups > 0 && (
+                        <span className="absolute -top-2 -right-3 min-w-[1.5rem] px-1.5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">
+                          {unreadGroups > 99 ? '99+' : unreadGroups}
+                        </span>
+                      )}
+                      {tab.key === 'directory' && unreadContacts > 0 && (
+                        <span className="absolute -top-2 -right-3 min-w-[1.5rem] px-1.5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">
+                          {unreadContacts > 99 ? '99+' : unreadContacts}
+                        </span>
                       )}
                     </div>
 
-                    <span
-                      className={`text-xs font-bold transition-all duration-300 ${active ? 'text-indigo-600' : 'text-gray-500'}`}
-                    >
+                    <span className={`text-xs font-medium ${active ? 'text-indigo-600' : 'text-gray-500'}`}>
                       {tab.label}
                     </span>
 
-                    {/* Thanh active cong đẹp như Zalo Premium */}
-                    {active && (
-                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full shadow-lg" />
-                    )}
+                    {active && <div className="absolute bottom-0 w-10 h-0.5 bg-indigo-600 rounded-full" />}
                   </button>
                 );
               })}

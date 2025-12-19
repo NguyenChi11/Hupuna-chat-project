@@ -15,7 +15,8 @@ export function useUploadImage(
     if (!isOwner || !currentId) return;
     if (!file.type.startsWith('image/')) return;
 
-    const MAX = 5 * 1024 * 1024;
+    // Tăng giới hạn lên 1GB hoặc bỏ qua check
+    const MAX = 1024 * 1024 * 1024; // 1GB
     if (file.size > MAX) return;
 
     if (kind === 'avatar') setIsUploadingAvatar(true);

@@ -38,7 +38,7 @@ export function Dropdown({
         type="button"
         onClick={onToggle}
         className={`
-          w-full pl-4 pr-5 py-3 rounded-2xl border-2 border-gray-200 
+          w-full pl-4 pr-5 py-1.5 rounded-2xl border-2 border-gray-200 
           bg-white text-left text-lg font-medium transition-all
           flex items-center justify-between
           focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100
@@ -59,7 +59,7 @@ export function Dropdown({
       {/* Dropdown Menu */}
       {open && (
         <div className="absolute z-30 w-full mt-2 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto custom-scrollbar">
             {items.map((item) => (
               <button
                 key={item.value}

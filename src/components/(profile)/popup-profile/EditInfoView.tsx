@@ -34,18 +34,11 @@ export default function EditInfoView({
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8 ">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h3 className="text-xl font-black text-gray-900 flex items-center justify-center gap-3">
-          <HiUser className="w-8 h-8 text-indigo-600" />
-          Cập nhật thông tin cá nhân
-        </h3>
-        <p className="text-gray-500 mt-2">Thông tin sẽ hiển thị trên hồ sơ và danh bạ</p>
-      </div>
 
       {/* Form Grid */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 h-[26rem] overflow-y-auto custom-scrollbar mb-4">
         {/* Tên hiển thị */}
         <Field icon={<HiUser className="w-6 h-6 text-indigo-600" />} label="Tên hiển thị" required>
           <input
@@ -53,7 +46,7 @@ export default function EditInfoView({
             value={String(form.name ?? '')}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="Ví dụ: Nguyễn Văn A"
-            className="w-full pl-4 pr-5 py-3 rounded-2xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 text-lg font-medium transition-all bg-white"
+            className="w-full pl-4 pr-5 py-1.5 rounded-2xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 text-lg font-medium transition-all bg-white"
           />
         </Field>
 
@@ -64,7 +57,7 @@ export default function EditInfoView({
             value={String(form.phone ?? '')}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
             placeholder="0123456789"
-            className="w-full pl-4 pr-5 py-3 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-lg font-medium transition-all bg-white"
+            className="w-full pl-4 pr-5 py-1.5 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-lg font-medium transition-all bg-white"
           />
         </Field>
 
@@ -84,7 +77,7 @@ export default function EditInfoView({
               setForm({ ...form, gender: v });
               setOpenGender(false);
             }}
-            className="h-[4rem] rounded-2xl border-2 border-gray-200 focus-within:border-purple-500 focus-within:ring-4 focus-within:ring-purple-100"
+            className="h-[3rem] rounded-2xl border-2 border-gray-200 focus-within:border-purple-500 focus-within:ring-4 focus-within:ring-purple-100"
           />
         </Field>
 
@@ -94,7 +87,7 @@ export default function EditInfoView({
             type="date"
             value={form.birthday ? String(form.birthday) : ''}
             onChange={(e) => setForm({ ...form, birthday: e.target.value })}
-            className="w-full pl-4 pr-5 py-3 rounded-2xl border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-lg font-medium transition-all bg-white"
+            className="w-full pl-4 pr-5 py-1.5 rounded-2xl border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 text-lg font-medium transition-all bg-white"
           />
         </Field>
 
@@ -105,7 +98,7 @@ export default function EditInfoView({
             value={String(form.email ?? '')}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             placeholder="you@example.com"
-            className="w-full pl-4 pr-5 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 text-lg font-medium transition-all bg-white"
+            className="w-full pl-4 pr-5 py-1.5 rounded-2xl border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 text-lg font-medium transition-all bg-white"
           />
         </Field>
 
@@ -116,7 +109,7 @@ export default function EditInfoView({
             value={String(form.title ?? '')}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             placeholder="Ví dụ: Nhân viên kinh doanh"
-            className="w-full pl-4 pr-5 py-3 rounded-2xl border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 text-lg font-medium transition-all bg-white"
+            className="w-full pl-4 pr-5 py-1.5 rounded-2xl border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 text-lg font-medium transition-all bg-white"
           />
         </Field>
 
@@ -128,7 +121,7 @@ export default function EditInfoView({
               value={String(form.address ?? '')}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
               placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"
-              className="w-full pl-4 pr-5 py-3 rounded-2xl border-2 border-gray-200 focus:border-rose-500 focus:ring-4 focus:ring-rose-100 text-lg font-medium transition-all bg-white"
+              className="w-full pl-4 pr-5 py-1.5 rounded-2xl border-2 border-gray-200 focus:border-rose-500 focus:ring-4 focus:ring-rose-100 text-lg font-medium transition-all bg-white"
             />
           </Field>
         </div>
@@ -150,7 +143,7 @@ export default function EditInfoView({
                 setForm({ ...form, department: v });
                 setOpenDept(false);
               }}
-              className="h-[4rem] rounded-2xl border-2 border-gray-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100"
+              className="h-[3rem] rounded-2xl border-2 border-gray-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100"
             />
           </Field>
         </div>
@@ -172,7 +165,7 @@ export default function EditInfoView({
                 setForm({ ...form, status: v });
                 setOpenStatus(false);
               }}
-              className="h-[4rem] rounded-2xl border-2 border-gray-200 focus-within:border-green-500 focus-within:ring-4 focus-within:ring-green-100"
+              className="h-[3rem] rounded-2xl border-2 border-gray-200 focus-within:border-green-500 focus-within:ring-4 focus-within:ring-green-100"
             />
           </Field>
         </div>

@@ -488,7 +488,7 @@ export default function MobileLayout(props: MobileLayoutProps) {
         )}
       </div>
 
-      <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallPercent} />
+      {/* <UploadProgressBar uploadingCount={uploadingCount} overallUploadPercent={overallPercent} /> */}
 
       {showComplete && (
         <div className="fixed inset-0 z-[1000] bg-black/40" onClick={() => setShowComplete(false)}>

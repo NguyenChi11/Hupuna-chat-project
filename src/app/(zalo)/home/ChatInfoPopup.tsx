@@ -138,6 +138,10 @@ export default function ChatInfoPopup({
       if (!file || !isGroup) return;
       e.target.value = '';
 
+      // Remove size limit if any
+      // const MAX = 5 * 1024 * 1024;
+      // if (file.size > MAX) { ... }
+
       setIsGroupAvatarUploading(true);
       try {
         const groupId = (selectedChat as GroupConversation)._id;

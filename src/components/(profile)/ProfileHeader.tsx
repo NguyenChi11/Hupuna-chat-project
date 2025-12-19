@@ -25,7 +25,7 @@ export default function ProfileHeader({
     setMounted(true);
   }, []);
   return (
-    <div className="relative h-30 md:h-30 z-10 bg-gradient-to-br from-violet-600 via-purple-600 to-pink-600">
+    <div className="relative h-50  z-10 bg-gradient-to-br from-violet-600 via-purple-600 to-pink-600">
       {/* Background Image */}
       {background ? (
         <Image
@@ -93,7 +93,7 @@ export default function ProfileHeader({
             </div>
           )}
 
-          {isOwner && (
+          {mounted && isOwner && (
             <input
               type="file"
               accept="image/*"

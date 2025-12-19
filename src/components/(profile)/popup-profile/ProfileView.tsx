@@ -64,7 +64,7 @@ export default function ProfileView({
             </h3>
           </div>
 
-          <div className="p-5 space-y-4">
+          <div className="p-5 space-y-4 h-[17rem] overflow-y-auto custom-scrollbar">
             {/* Tên hiển thị */}
             <InfoRow
               icon={<HiUser className="w-5 h-5 text-indigo-600" />}
