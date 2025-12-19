@@ -56,6 +56,7 @@ interface MessageListProps {
   onPinMessage?: (msg: Message) => void;
   onToggleReaction?: (msg: Message, emoji: string) => void;
   contextMenu: ContextMenuState | null;
+  scrollManagedExternally?: boolean;
 }
 
 export default function MessageList({
@@ -80,6 +81,7 @@ export default function MessageList({
   onRefresh,
   onPinMessage,
   onToggleReaction,
+  scrollManagedExternally = false,
 }: MessageListProps) {
   const [, setTimeVisibleId] = useState<string | null>(null);
   const [expandedOriginalId, setExpandedOriginalId] = useState<string | null>(null);
@@ -134,7 +136,7 @@ export default function MessageList({
         });
   };
   useEffect(() => {
-    if (!highlightedMsgId) return;
+    if (scrollManagedExternally || !highlightedMsgId) return;
 
     // Đợi DOM render xong
     setTimeout(() => {
@@ -156,7 +158,7 @@ export default function MessageList({
         }, 100);
       }
     }, 100);
-  }, [highlightedMsgId]);
+  }, [highlightedMsgId, scrollManagedExternally]);
 
   return (
     <>

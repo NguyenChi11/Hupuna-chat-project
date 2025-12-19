@@ -42,7 +42,7 @@ interface HomeOverlaysProps {
   globalSearchResults: { contacts: GlobalSearchContact[]; messages: GlobalSearchMessage[] };
   onCloseGlobalSearch: () => void;
   onSearch: (term: string) => void | Promise<void>;
-  onNavigateToMessage: (message: GlobalSearchMessage) => void;
+  onNavigateToMessage: (message: GlobalSearchMessage, searchKeyword?: string) => void;
   onSelectContact: (contact: GlobalSearchContact) => void;
   showCreateGroupModal: boolean;
   onCloseCreateGroup: () => void;

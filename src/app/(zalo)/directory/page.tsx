@@ -35,6 +35,8 @@ export default function DirectoryPage() {
     globalSearchResults,
     scrollToMessageId,
     setScrollToMessageId,
+    roomSearchKeyword,
+    setRoomSearchKeyword,
     handleOpenGlobalSearch,
     handleGlobalSearch,
     handleSelectContact,
@@ -160,7 +162,6 @@ export default function DirectoryPage() {
   return (
     <div className="flex h-screen w-full font-sans">
       <HomeDesktop
-        onNavigateToMessage={handleNavigateToMessage}
         currentUser={currentUser}
         groups={groups}
         allUsers={allUsers}
@@ -173,8 +174,11 @@ export default function DirectoryPage() {
         onChatAction={handleChatAction}
         scrollToMessageId={scrollToMessageId}
         onScrollComplete={() => setScrollToMessageId(null)}
+        roomSearchKeyword={roomSearchKeyword}
+        setRoomSearchKeyword={setRoomSearchKeyword}
         fetchAllData={fetchAllData}
         onShowGlobalSearch={handleOpenGlobalSearch}
+        onNavigateToMessage={handleNavigateToMessage}
         onlyPersonal={true}
       />
 
@@ -190,7 +194,12 @@ export default function DirectoryPage() {
         onBackFromChat={() => setSelectedChat(null)}
         onChatAction={handleChatAction}
         scrollToMessageId={scrollToMessageId}
-        onScrollComplete={() => setScrollToMessageId(null)}
+        onScrollComplete={() => {
+          setScrollToMessageId(null);
+          setRoomSearchKeyword(null);
+        }}
+        roomSearchKeyword={roomSearchKeyword}
+        setRoomSearchKeyword={setRoomSearchKeyword}
         fetchAllData={fetchAllData}
         onShowGlobalSearch={handleOpenGlobalSearch}
         onNavigateToMessage={handleNavigateToMessage}

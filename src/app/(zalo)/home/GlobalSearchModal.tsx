@@ -47,7 +47,7 @@ interface Props {
   onClose: () => void;
   onSearch: (term: string) => void;
   allUsers: User[];
-  onNavigateToMessage: (message: Message) => void;
+  onNavigateToMessage: (message: Message, searchKeyword: string) => void;
   onSelectContact: (phonebook: PhonebookContact) => void;
 }
 
@@ -220,7 +220,7 @@ export default function GlobalSearchModal({
                   groupedMessages={groupedMessages}
                   searchTerm={localSearchTerm}
                   allUsers={allUsers}
-                  onNavigateToMessage={onNavigateToMessage}
+                  onNavigateToMessage={(msg) => onNavigateToMessage(msg, localSearchTerm)}
                 />
               )}
 
@@ -228,7 +228,7 @@ export default function GlobalSearchModal({
                 <FileResults
                   groupedFiles={groupedFiles}
                   searchTerm={localSearchTerm}
-                  onNavigateToMessage={onNavigateToMessage}
+                  onNavigateToMessage={(msg) => onNavigateToMessage(msg, localSearchTerm)}
                 />
               )}
             </>

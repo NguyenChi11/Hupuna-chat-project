@@ -235,6 +235,9 @@ export async function POST(req: NextRequest) {
           const escapedTerm = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const searchRegex = new RegExp(escapedTerm, 'i');
           searchOr = [{ content: { $regex: searchRegex } }, { fileName: { $regex: searchRegex } }];
+          if (!otherFilters || !(Object.keys(otherFilters).includes('type'))) {
+            (finalFilters as Record<string, unknown>).type = { $ne: 'notify' };
+          }
         }
 
         const tsCondRaw = (otherFilters || {})['timestamp'] as Record<string, unknown> | undefined;
@@ -629,6 +632,7 @@ export async function POST(req: NextRequest) {
             },
             { isDeleted: { $ne: true } },
             { isRecalled: { $ne: true } },
+            { type: { $ne: 'notify' } },
           ],
         };
 

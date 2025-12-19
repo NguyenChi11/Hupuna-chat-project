@@ -278,12 +278,24 @@ const MessagesSection = ({
                 </div>
               )}
             </div>
-            <div className="flex-1">
-              <p className="font-bold text-gray-900 text-lg">{group.roomName}</p>
-              <p className="text-sm text-gray-600 flex items-center gap-2">
-                <HiChatBubbleLeftRight className="w-4 h-4" />
-                {group.isGroupChat ? 'Nhóm' : 'Chat cá nhân'} • {group.messages.length} kết quả
-              </p>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-gray-900 text-lg truncate">{group.roomName}</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-gray-600 flex items-center gap-2">
+                  <HiChatBubbleLeftRight className="w-4 h-4" />
+                  {group.isGroupChat ? 'Nhóm' : 'Chat cá nhân'}
+                </p>
+                <button
+                  onClick={() => {
+                    onNavigateToMessage(group.messages[0]);
+                    onClearSearch();
+                  }}
+                  className="flex items-center gap-1 text-xs text-blue-600 font-medium hover:text-blue-700 cursor-pointer"
+                >
+                  <span>{group.messages.length} kết quả phù hợp</span>
+                  <HiChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
 

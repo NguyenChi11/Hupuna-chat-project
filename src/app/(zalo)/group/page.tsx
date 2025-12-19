@@ -35,6 +35,8 @@ export default function GroupPage() {
     globalSearchResults,
     scrollToMessageId,
     setScrollToMessageId,
+    roomSearchKeyword,
+    setRoomSearchKeyword,
     handleOpenGlobalSearch,
     handleGlobalSearch,
     handleSelectContact,
@@ -174,6 +176,8 @@ export default function GroupPage() {
         onChatAction={handleChatAction}
         scrollToMessageId={scrollToMessageId}
         onScrollComplete={() => setScrollToMessageId(null)}
+        roomSearchKeyword={roomSearchKeyword}
+        setRoomSearchKeyword={setRoomSearchKeyword}
         fetchAllData={fetchAllData}
         onShowGlobalSearch={handleOpenGlobalSearch}
         onlyGroups={true}
@@ -191,7 +195,12 @@ export default function GroupPage() {
         onBackFromChat={() => setSelectedChat(null)}
         onChatAction={handleChatAction}
         scrollToMessageId={scrollToMessageId}
-        onScrollComplete={() => setScrollToMessageId(null)}
+        onScrollComplete={() => {
+          setScrollToMessageId(null);
+          setRoomSearchKeyword(null);
+        }}
+        roomSearchKeyword={roomSearchKeyword}
+        setRoomSearchKeyword={setRoomSearchKeyword}
         fetchAllData={fetchAllData}
         onShowGlobalSearch={handleOpenGlobalSearch}
         onNavigateToMessage={handleNavigateToMessage}

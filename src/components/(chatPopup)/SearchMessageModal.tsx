@@ -11,13 +11,26 @@ interface SearchSidebarProps {
   roomId: string;
   onJumpToMessage: (messageId: string) => void;
   getSenderName: (sender: User | string) => string;
+  initialKeyword?: string | null;
+  onKeywordClear?: () => void;
 }
 
-const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, onJumpToMessage, getSenderName }) => {
+const SearchSidebar: React.FC<SearchSidebarProps> = ({ 
+  isOpen, 
+  onClose, 
+  roomId, 
+  onJumpToMessage, 
+  getSenderName,
+  initialKeyword,
+  onKeywordClear,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Message[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const hasAutoSearchedRef = useRef(false);
+  const lastJumpedTermRef = useRef<string>('');
 
   const fetchSearchResults = useCallback(
     async (query: string) => {
@@ -39,13 +52,24 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
               searchQuery: query.trim(),
               isRecalled: { $ne: true },
               isDeleted: { $ne: true },
+              type: { $ne: 'notify' },
             },
             limit: 100,
             sort: { timestamp: -1 },
           }),
         });
         const data = await res.json();
-        setSearchResults(data.data || []);
+        const results: Message[] = data.data || [];
+        setSearchResults(results);
+        if (results.length > 0) {
+          const term = query.trim();
+          const lastIdx = results.length - 1;
+          setCurrentResultIndex(lastIdx);
+          onJumpToMessage(results[lastIdx]._id);
+          lastJumpedTermRef.current = term;
+        } else {
+          setCurrentResultIndex(-1);
+        }
       } catch (error) {
         console.error('Fetch search results error:', error);
         setSearchResults([]);
@@ -55,11 +79,42 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
     },
     [roomId],
   );
+  // Auto-fill and auto-search when initialKeyword is provided
+  useEffect(() => {
+    if (initialKeyword && initialKeyword.trim() && !hasAutoSearchedRef.current && isOpen) {
+      setSearchTerm(initialKeyword);
+      hasAutoSearchedRef.current = true;
+      // Auto-focus input
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      // Auto-search immediately
+      fetchSearchResults(initialKeyword);
+    }
+  }, [initialKeyword, isOpen, fetchSearchResults]);
+
+  // Reset when sidebar closes
+  useEffect(() => {
+    if (!isOpen) {
+      hasAutoSearchedRef.current = false;
+      setCurrentResultIndex(-1);
+      if (onKeywordClear) {
+        onKeywordClear();
+      }
+    }
+  }, [isOpen, onKeywordClear]);
+
   // 🔥 THÊM LOGIC DEBOUNCING DÙNG useEffect
   useEffect(() => {
+    // Skip if this is from initial keyword (already searched)
+    if (initialKeyword && searchTerm === initialKeyword && hasAutoSearchedRef.current) {
+      return;
+    }
+
     // 1. Nếu searchTerm rỗng, xóa kết quả ngay lập tức
     if (!searchTerm.trim()) {
       setSearchResults([]);
+      setCurrentResultIndex(-1);
       return;
     }
 
@@ -72,17 +127,29 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
     return () => {
       clearTimeout(handler);
     };
-  }, [searchTerm, fetchSearchResults]); // Chạy lại hiệu ứng mỗi khi searchTerm thay đổi
+  }, [searchTerm, fetchSearchResults, initialKeyword]); // Chạy lại hiệu ứng mỗi khi searchTerm thay đổi
+
+  // Update current index when results change
+  useEffect(() => {
+    if (searchResults.length > 0 && currentResultIndex === -1) {
+      setCurrentResultIndex(searchResults.length - 1);
+    } else if (searchResults.length === 0) {
+      setCurrentResultIndex(-1);
+    }
+  }, [searchResults.length, currentResultIndex]);
 
   if (!isOpen) return null;
 
-  const handleJump = (messageId: string) => {
+  const handleJump = (messageId: string, index?: number) => {
+    if (index !== undefined) {
+      setCurrentResultIndex(index);
+    }
     onJumpToMessage(messageId);
     const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
     if (isMobile) {
       setTimeout(() => {
         onClose();
-      }, 0);
+      }, 300);
     } else {
       setTimeout(() => {
         inputRef.current?.focus();
@@ -90,10 +157,50 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
     }
   };
 
+  const handlePrevious = () => {
+    if (searchResults.length === 0 || currentResultIndex <= 0) return;
+    const newIndex = currentResultIndex - 1;
+    setCurrentResultIndex(newIndex);
+    handleJump(searchResults[newIndex]._id, newIndex);
+  };
+
+  const handleNext = () => {
+    if (searchResults.length === 0 || currentResultIndex >= searchResults.length - 1) return;
+    const newIndex = currentResultIndex + 1;
+    setCurrentResultIndex(newIndex);
+    handleJump(searchResults[newIndex]._id, newIndex);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       fetchSearchResults(searchTerm);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      handlePrevious();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      handleNext();
     }
+  };
+
+  // Highlight keyword function
+  const highlightKeyword = (text: string, keyword: string) => {
+    if (!keyword.trim() || !text) return text;
+    const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    return (
+      <>
+        {parts.map((part, i) =>
+          regex.test(part) ? (
+            <mark key={i} className="bg-yellow-200 text-yellow-900 px-0.5 rounded font-medium">
+              {part}
+            </mark>
+          ) : (
+            <span key={i}>{part}</span>
+          ),
+        )}
+      </>
+    );
   };
 
   return (
@@ -173,11 +280,12 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
         {searchResults
           .slice()
           .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
-          .map((msg: Message) => {
+          .map((msg: Message, index: number) => {
           const isRecalled = msg.isRecalled === true;
           const contentDisplay = isRecalled
             ? 'đã thu hồi tin nhắn'
             : msg.content || `[${msg.type.charAt(0).toUpperCase() + msg.type.slice(1)}]`;
+          const isCurrentResult = index === currentResultIndex;
 
           // Lấy tên người gửi (sender được khai báo là string ID trong Message)
           const senderName = getSenderName(msg.sender);
@@ -197,19 +305,54 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
           return (
             <div
               key={msg._id}
-              className="p-3 bg-white rounded-lg shadow-sm hover:bg-gray-100 cursor-pointer transition-colors border border-gray-200"
-              onClick={() => handleJump(msg._id)}
+              className={`p-3 rounded-lg shadow-sm hover:bg-gray-100 cursor-pointer transition-colors border ${
+                isCurrentResult ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200'
+              }`}
+              onClick={() => handleJump(msg._id, index)}
             >
               <p className="text-xs text-blue-600 font-semibold">
                 {senderName} • {dateLabel} • {timeLabel}
               </p>
               <p className={`text-sm mt-1 line-clamp-2 ${isRecalled ? 'italic text-gray-500' : 'text-gray-800'}`}>
-                {contentDisplay}
+                {highlightKeyword(contentDisplay, searchTerm)}
               </p>
             </div>
           );
         })}
       </div>
+
+      {/* Navigation bar - chỉ hiển thị khi có kết quả (mobile only) */}
+      {searchResults.length > 0 && typeof window !== 'undefined' && window.innerWidth < 768 && (
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-t border-gray-200">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrevious}
+              disabled={currentResultIndex <= 0}
+              className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Kết quả trước"
+            >
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span className="text-xs text-gray-600 font-medium min-w-[80px] text-center">
+              {currentResultIndex >= 0 && currentResultIndex < searchResults.length
+                ? `Kết quả ${currentResultIndex + 1}/${searchResults.length}`
+                : `0/${searchResults.length}`}
+            </span>
+            <button
+              onClick={handleNext}
+              disabled={currentResultIndex >= searchResults.length - 1}
+              className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Kết quả tiếp theo"
+            >
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -62,6 +62,7 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
   });
 
   const [scrollToMessageId, setScrollToMessageId] = useState<string | null>(null);
+  const [roomSearchKeyword, setRoomSearchKeyword] = useState<string | null>(null);
   const reminderTimersRef = useRef<Map<string, number>>(new Map());
   const scheduledReminderIdsRef = useRef<Set<string>>(new Set());
 
@@ -372,7 +373,7 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
   // Thay thế hàm handleNavigateToMessage trong useHomePage.ts
 
     const handleNavigateToMessage = useCallback(
-      (message: GlobalSearchMessage) => {
+      (message: GlobalSearchMessage, searchKeyword?: string) => {
         let targetChat: ChatItem | null = null;
         const myId = String(currentUser?._id);
 
@@ -401,6 +402,11 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         if (targetChat) {
           setShowGlobalSearchModal(false);
           handleSelectChat(targetChat);
+
+          // Set search keyword if provided
+          if (searchKeyword) {
+            setRoomSearchKeyword(searchKeyword);
+          }
 
           setTimeout(() => {
             setScrollToMessageId(String(message._id));
@@ -717,6 +723,8 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
     globalSearchResults,
     scrollToMessageId,
     setScrollToMessageId,
+    roomSearchKeyword,
+    setRoomSearchKeyword,
     handleOpenGlobalSearch,
     handleGlobalSearch,
     handleSelectContact,
