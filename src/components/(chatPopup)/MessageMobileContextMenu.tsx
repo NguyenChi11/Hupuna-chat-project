@@ -159,7 +159,7 @@ export default function MessageMobileContextMenu({
         </div>
       )}
       <div
-        className={`absolute ${placement === 'above' ? 'bottom-auto' : 'top-auto'} ${placement === 'above' ? '' : ''}`}
+        className={`absolute z-[10001] ${placement === 'above' ? 'bottom-auto' : 'top-auto'} ${placement === 'above' ? '' : ''}`}
         data-context-menu="true"
         style={panelStyle}
         onMouseDown={(e) => {

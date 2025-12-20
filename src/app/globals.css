@@ -132,6 +132,8 @@ html {
   width: 100%;
   height: var(--vvh);
   overflow: hidden;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 @media (max-width: 768px) {

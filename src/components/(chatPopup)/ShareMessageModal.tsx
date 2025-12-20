@@ -8,7 +8,7 @@ import { GroupConversation } from '@/types/Group';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 import { Message } from '@/types/Message';
-import { HiPlay } from 'react-icons/hi';
+import { HiPlay, HiXCircle } from 'react-icons/hi';
 
 // Mock types
 
@@ -258,42 +258,62 @@ export default function ShareMessageModal({
             </div>
             <div>
               <h3 className="text-xl font-bold">Chia sẻ tin nhắn</h3>
-              <p className="text-blue-100 text-sm mt-0.5">Chọn người hoặc nhóm để chia sẻ</p>
+              <p className="text-blue-100 text-sm mt-0.5">
+                {selectedTargets.size > 0 &&
+                  `Đã chọn: ${selectedTargets.size} ${selectedTargets.size > 1 ? 'người' : 'người'}`}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="py-1.5 px-3 bg-white">
-          <input
-            type="text"
-            placeholder="Nhập tin nhắn đính kèm (tùy chọn)"
-            value={attachedText}
-            onChange={(e) => setAttachedText(e.target.value)}
-            className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white"
-          />
+        <div className="py-1.5 px-3 bg-white border-b border-gray-300 pb-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Nhập tin nhắn đính kèm (tùy chọn)"
+              value={attachedText}
+              onChange={(e) => setAttachedText(e.target.value)}
+              className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white"
+            />
+            <button
+              onClick={handleShare}
+              disabled={selectedTargets.size === 0 || isSharing}
+              className="flex-1 px-4 py-4 hover:cursor-pointer bg-blue-400 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            >
+              {isSharing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                </>
+              ) : (
+                <>
+                  <IoSend className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="py-2  bg-gradient-to-br from-gray-50 to-blue-50/30 ">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nội dung chia sẻ</p>
+            <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm">{renderMessagePreview()}</div>
+          </div>
+          <div className="relative ">
+            <IoSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm người dùng hoặc nhóm..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white"
+            />
+          </div>
         </div>
 
         {/* Main content scrollable (mobile fullscreen) */}
         <div className="flex-1 overflow-y-auto">
           {/* Message Preview - Enhanced */}
-          <div className="py-1.5 px-3 bg-gradient-to-br from-gray-50 to-blue-50/30 ">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nội dung chia sẻ</p>
-            <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm">{renderMessagePreview()}</div>
-          </div>
 
           {/* Search - Modern design */}
           <div className="px-3 py-1.5 bg-white">
-            <div className="relative">
-              <IoSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm người dùng hoặc nhóm..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white"
-              />
-            </div>
-
             {selectedTargets.size > 0 && (
               <div className="mt-3 flex items-center gap-2 text-sm">
                 <div className="flex items-center gap-1.5 text-blue-600 font-medium">
@@ -329,11 +349,21 @@ export default function ShareMessageModal({
                       <div className="relative flex-shrink-0">
                         <div className={`w-10 h-10 rounded-full overflow-hidden transition-all duration-200`}>
                           {target.avatar ? (
-                            <Image src={getProxyUrl(target.avatar)} alt="" width={36} height={36} className="w-full h-full object-cover" />
+                            <Image
+                              src={getProxyUrl(target.avatar)}
+                              alt=""
+                              width={36}
+                              height={36}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
-                              {target.name?.charAt(0).toUpperCase()}
-                            </div>
+                            <Image
+                              src="/logo/avata.webp"
+                              alt={target.name}
+                              width={64}
+                              height={64}
+                              className="w-full h-full object-cover"
+                            />
                           )}
                         </div>
                         {isSelected && (
@@ -363,7 +393,9 @@ export default function ShareMessageModal({
                           )}
                         </div>
                       </div>
-                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'}`}>
+                      <div
+                        className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'}`}
+                      >
                         {isSelected && <IoCheckmark className="w-5 h-5 text-white" />}
                       </div>
                     </button>
@@ -375,33 +407,75 @@ export default function ShareMessageModal({
         </div>
 
         {/* Footer - Modern actions */}
-        <div className="p-5 bg-gradient-to-br from-gray-50 to-white rounded-none sm:rounded-b-2xl">
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-2  hover:cursor-pointer border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 hover:border-gray-400 transition-all duration-200 disabled:opacity-50"
-              disabled={isSharing}
-            >
-              Hủy
-            </button>
-            <button
-              onClick={handleShare}
-              disabled={selectedTargets.size === 0 || isSharing}
-              className="flex-1 px-4 py-2 hover:cursor-pointer bg-blue-400 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
-            >
-              {isSharing ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Đang chia sẻ...</span>
-                </>
-              ) : (
-                <>
-                  <IoSend className="w-4 h-4" />
-                  <span>Chia sẻ {selectedTargets.size > 0 && `(${selectedTargets.size})`}</span>
-                </>
-              )}
-            </button>
-          </div>
+        {/* Footer - Hiển thị các target đã chọn */}
+        <div className="py-2 px-4 bg-gradient-to-br from-gray-50 to-white border-t border-gray-200 rounded-none sm:rounded-b-2xl">
+          {selectedTargets.size === 0 ? (
+            <p className="text-center text-gray-400 text-sm">Chưa chọn người nhận nào</p>
+          ) : (
+            <>
+              <div className="mb-3">
+                <p className="text-sm font-semibold text-gray-700">Đã chọn ({selectedTargets.size})</p>
+              </div>
+
+              {/* Danh sách cuộn ngang các người đã chọn */}
+              <div className="flex gap-3 overflow-x-auto  scrollbar-thin scrollbar-thumb-gray-300">
+                {Array.from(selectedTargets).map((targetId) => {
+                  const target = shareTargets.find((t) => t.id === targetId);
+                  if (!target) return null;
+
+                  return (
+                    <div key={targetId} className="flex-shrink-0 flex flex-col items-center gap-2 group">
+                      <div className="relative flex-shrink-0">
+                        {/* Avatar */}
+                        <div className="w-14 h-14 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                          {target.avatar ? (
+                            <Image
+                              src={getProxyUrl(target.avatar)}
+                              alt={target.name}
+                              width={56}
+                              height={56}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Image
+                              src="/logo/avata.webp"
+                              alt={target.name}
+                              width={56}
+                              height={56}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+
+                        {/* Nút xóa - Dấu X đỏ ở góc trên phải */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Ngăn click lan ra toggleSelect toàn bộ item
+                            toggleSelect(targetId);
+                          }}
+                          className="absolute -top-[2px] cursor-pointer -right-1 w-5 h-5 bg-gray-400 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-all duration-200 opacity-0 opacity-100 hover:scale-110"
+                          aria-label="Xóa khỏi danh sách chia sẻ"
+                        >
+                          <IoClose className="w-4 h-4 text-white" />
+                        </button>
+
+                        {/* Icon nhóm ở góc dưới phải (nếu là group) */}
+                        {target.isGroup && (
+                          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center border-3 border-white shadow-md">
+                            <HiUsers className="w-4.5 h-4.5 text-white" />
+                          </div>
+                        )}
+                      </div>
+
+                      <p className="text-xs font-medium text-gray-700 max-w-[64px] truncate text-center mt-1">
+                        {target.name}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

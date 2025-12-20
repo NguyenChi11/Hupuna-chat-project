@@ -517,23 +517,23 @@ export default function ChatInput({
               try {
                 window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
               } catch {}
-              const el = editableRef.current;
-              if (el) {
-                try {
-                  el.focus();
-                  const range = document.createRange();
-                  range.selectNodeContents(el);
-                  range.collapse(false);
-                  const sel = window.getSelection();
-                  sel?.removeAllRanges();
-                  sel?.addRange(range);
-                } catch {}
-                setTimeout(() => {
-                  try {
-                    el.focus();
-                  } catch {}
-                }, 100);
-              }
+              // const el = editableRef.current;
+              // if (el) {
+              //   try {
+              //     el.focus();
+              //     const range = document.createRange();
+              //     range.selectNodeContents(el);
+              //     range.collapse(false);
+              //     const sel = window.getSelection();
+              //     sel?.removeAllRanges();
+              //     sel?.addRange(range);
+              //   } catch {}
+              //   setTimeout(() => {
+              //     try {
+              //       el.focus();
+              //     } catch {}
+              //   }, 100);
+              // }
             }}
             onInput={() => {
               onInputEditable();
@@ -633,11 +633,7 @@ export default function ChatInput({
                 e.preventDefault();
               }
             }}
-            // onScroll={(e) => {
-            //   try {
-            //     (e.currentTarget as HTMLDivElement).scrollTop = 0;
-            //   } catch {}
-            // }}
+           
             style={{
               touchAction: 'pan-y', // Cho phép cuộn dọc
               overscrollBehavior: 'contain', // Ngăn overscroll
