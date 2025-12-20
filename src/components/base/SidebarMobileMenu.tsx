@@ -87,7 +87,7 @@ export default function SidebarMobileMenu({
               onOpenCreateGroup();
               onClose();
             }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/50 transition-colors text-gray-700 font-medium"
+            className="cursor-pointer w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/50 transition-colors text-gray-700 font-medium"
           >
             <div className="p-1.5 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-md">
               <FaPlus className="w-4 h-4" />
@@ -101,7 +101,7 @@ export default function SidebarMobileMenu({
             onOpenGlobalFolder();
             onClose();
           }}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/50 transition-colors text-gray-700 font-medium"
+          className="cursor-pointer w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/50 transition-colors text-gray-700 font-medium"
         >
           <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-md">
             <HiFolder className="w-4 h-4" />
@@ -138,7 +138,7 @@ export default function SidebarMobileMenu({
                 onClose();
               }}
               className={`
-                w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200
+                cursor-pointer w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200
                 ${isActive ? 'bg-white shadow-sm ring-1 ring-gray-200' : 'hover:bg-white/50'}
               `}
             >

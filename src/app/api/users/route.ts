@@ -137,6 +137,10 @@ export async function POST(req: NextRequest) {
           return NextResponse.json(result);
         }
         const userIdStr = String(currentUserId);
+        const variants: (string | number)[] = [userIdStr];
+        if (!isNaN(Number(userIdStr))) {
+          variants.push(Number(userIdStr));
+        }
         const msgCollection = await getCollection<Message>(MESSAGES_COLLECTION_NAME);
 
         const usersWithData = await Promise.all(
@@ -147,7 +151,7 @@ export async function POST(req: NextRequest) {
 
             const unreadCount = await msgCollection.countDocuments({
               roomId,
-              readBy: { $ne: userIdStr },
+              readBy: { $nin: variants as unknown as string[] },
             });
 
             const lastMsgs = await msgCollection.find({ roomId }).sort({ timestamp: -1 }).limit(1).toArray();
@@ -156,11 +160,11 @@ export async function POST(req: NextRequest) {
             const lastMsgObj = lastMsgs[0];
 
             if (lastMsgObj) {
-              if(lastMsgObj.isRecalled) {
+              if (lastMsgObj.isRecalled) {
                 const isMySender = String(lastMsgObj.sender) === userIdStr;
-                const senderName = isMySender ? 'Bạn' : u.name  || 'Người dùng';
+                const senderName = isMySender ? 'Bạn' : u.name || 'Người dùng';
                 lastMessagePreview = `${senderName}: đã thu hồi tin nhắn`;
-              }else{
+              } else {
                 const content =
                   lastMsgObj.type === 'text' || lastMsgObj.type === 'notify'
                     ? lastMsgObj.content
@@ -168,11 +172,10 @@ export async function POST(req: NextRequest) {
 
                 if (String(lastMsgObj.sender) === userIdStr) {
                   lastMessagePreview = `Bạn: ${content}`;
-              } else {
-                lastMessagePreview = content || '';
+                } else {
+                  lastMessagePreview = content || '';
+                }
               }
-              }
-              
             } else {
               lastMessagePreview = 'Các bạn đã kết nối với nhau trên Zalo';
             }
@@ -185,7 +188,7 @@ export async function POST(req: NextRequest) {
               lastMessage: lastMessagePreview,
               lastMessageAt: lastMsgObj ? lastMsgObj.timestamp : null,
               isGroup: false,
-              isRecall:lastMsgObj ? lastMsgObj.isRecalled || false : false,
+              isRecall: lastMsgObj ? lastMsgObj.isRecalled || false : false,
               isPinned,
               isHidden,
             };
@@ -341,6 +344,8 @@ export async function POST(req: NextRequest) {
             email: found['email'],
             address: found['address'],
             title: found['title'],
+            background: found['background'],
+            bio: found['bio'],
           },
         });
 

@@ -344,7 +344,7 @@ export default function CreateGroupModal({
           {/* Nút Hủy */}
           <button
             onClick={onClose}
-            className="flex-1 py-3 text-base font-medium text-gray-600 bg-transparent hover:bg-gray-100 rounded-2xl transition-all duration-200 active:scale-95"
+            className="flex-1 py-3 cursor-pointer text-base font-medium text-gray-600 bg-transparent hover:bg-gray-100 rounded-2xl transition-all duration-200 active:scale-95"
           >
             Hủy
           </button>
@@ -353,7 +353,7 @@ export default function CreateGroupModal({
           <button
             onClick={handleSubmit}
             disabled={loading || selectedMembers.length === 0}
-            className={`flex-1 py-3 text-base font-bold text-white rounded-2xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-md
+            className={`flex-1 py-3 text-base font-bold text-white rounded-2xl cursor-pointer transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-md
       ${
         loading || selectedMembers.length === 0
           ? 'bg-gray-400 cursor-not-allowed'

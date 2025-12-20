@@ -193,7 +193,7 @@ export default function MessageList({
                 if (consumedIds.has(msg._id)) return null;
                 const isLastMsg = msg._id === messages[messages.length - 1]?._id;
                 const senderInfo = getSenderInfo(msg.sender);
-                const isMe = senderInfo._id === currentUser._id;
+                const isMe = String(senderInfo._id) === String(currentUser._id);
                 const repliedToMsg = msg.replyToMessageId ? messages.find((m) => m._id === msg.replyToMessageId) : null;
 
                 const uploadProgress = uploadingFiles[msg._id];
@@ -233,7 +233,7 @@ export default function MessageList({
                   if (mediaGroup.length > 1) {
                     mediaGroup.slice(1).forEach((m) => consumedIds.add(m._id));
                     const lastInGroup = mediaGroup[mediaGroup.length - 1];
-                    const isMeGroup = senderInfo._id === currentUser._id;
+                    const isMeGroup = String(senderInfo._id) === String(currentUser._id);
                     const groupIsLast = lastInGroup._id === messages[messages.length - 1]?._id;
                     return (
                       <div
@@ -382,10 +382,10 @@ export default function MessageList({
                                 return isVid ? (
                                   <div
                                     key={`${m._id}-${idx}`}
-                                    className={`relative bg-black rounded-[0.25rem] overflow-hidden cursor-pointer ${
+                                    className={`relative bg-black rounded-[0.25rem] overflow-hidden cursor-pointer h-[8rem] w-[8rem]  ${
                                       isSidebarOpen
                                         ? 'sm:w-[6rem] sm:h-[6rem] aspect-square'
-                                        : 'sm:aspect-video aspect-square'
+                                        : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
                                     }`}
                                     onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
                                   >
@@ -581,7 +581,7 @@ export default function MessageList({
                   if (fileGroup.length > 1) {
                     fileGroup.slice(1).forEach((m) => consumedIds.add(m._id));
                     const lastInGroup = fileGroup[fileGroup.length - 1];
-                    const isMeGroup = senderInfo._id === currentUser._id;
+                    const isMeGroup = String(senderInfo._id) === String(currentUser._id);
                     const groupIsLast = lastInGroup._id === messages[messages.length - 1]?._id;
                     return (
                       <div
@@ -989,7 +989,8 @@ export default function MessageList({
                   // Hiển thị rõ tên người join bằng link (clickable) — luôn ưu tiên tên thật
                   let displayNode: React.ReactNode = <p className="text-xs text-gray-500 truncate">{display}</p>;
                   if (isJoinByLink) {
-                    const actualName = senderInfo._id === currentUser._id ? currentUser.name || nameLabel : nameLabel;
+                    const actualName =
+                      String(senderInfo._id) === String(currentUser._id) ? currentUser.name || nameLabel : nameLabel;
                     const needle = 'đã tham gia nhóm';
                     const idx = rawLower.indexOf(needle);
                     const tail = idx > -1 ? rawDisplay.slice(idx) : 'đã tham gia nhóm qua link mời';
@@ -1348,7 +1349,7 @@ export default function MessageList({
                           return (
                             <div
                               onClick={() => onJumpToMessage(repliedToMsg._id)}
-                              className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-4 border-blue-500 rounded-xl cursor-pointer"
+                              className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-2 border-blue-500 rounded-xl cursor-pointer"
                             >
                               <p className="font-semibold text-blue-600">
                                 {msg.replyToMessageName || senderName}
@@ -1775,7 +1776,7 @@ export default function MessageList({
                         {/* IMAGE – FIX SIZE MOBILE */}
                         {msg.type === 'image' && msg.fileUrl && !isRecalled && (
                           <div
-                            className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[70vw] sm:max-w-[10rem]"
+                            className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[40vw] sm:max-w-[10rem]"
                             onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
                           >
                             {String(msg.fileUrl).startsWith('blob:') ? (

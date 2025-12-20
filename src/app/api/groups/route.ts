@@ -34,16 +34,16 @@ function normalizeMemberId(member: MemberInput): string | null {
 
 // 🔥 Helper function để tạo filter cho member ID (hỗ trợ cả string và number)
 function createMemberIdFilter(memberId: string): Array<Record<string, unknown>> {
-  const filters: Array<Record<string, unknown>> = [{ '_id': memberId }];
+  const filters: Array<Record<string, unknown>> = [{ _id: memberId }];
 
   // Nếu là số, thêm filter cho number
   if (!isNaN(Number(memberId))) {
-    filters.push({ '_id': Number(memberId) });
+    filters.push({ _id: Number(memberId) });
   }
 
   // Nếu là ObjectId hợp lệ, thêm filter cho ObjectId
   if (ObjectId.isValid(memberId)) {
-    filters.push({ '_id': new ObjectId(memberId) });
+    filters.push({ _id: new ObjectId(memberId) });
   }
 
   return filters;
@@ -88,10 +88,14 @@ export async function POST(req: NextRequest) {
         }
 
         const userIdStr = String(_id);
+        const variants: (string | number)[] = [userIdStr];
+        if (!isNaN(Number(userIdStr))) {
+          variants.push(Number(userIdStr));
+        }
 
         // 🔥 Tạo filter hỗ trợ nhiều kiểu dữ liệu
-        const memberFilters = createMemberIdFilter(userIdStr).map(filter => ({
-          'members._id': filter._id
+        const memberFilters = createMemberIdFilter(userIdStr).map((filter) => ({
+          'members._id': filter._id,
         }));
 
         const filters = {
@@ -107,17 +111,15 @@ export async function POST(req: NextRequest) {
         const allMemberIds = Array.from(
           new Set(
             conversations.flatMap((conv) =>
-              ((conv.members || []) as MemberInput[])
-                .map(normalizeMemberId)
-                .filter((id): id is string => !!id)
-            )
-          )
+              ((conv.members || []) as MemberInput[]).map(normalizeMemberId).filter((id): id is string => !!id),
+            ),
+          ),
         );
 
         // 🔥 Tạo filters để query users (hỗ trợ cả string, number và ObjectId)
         const userFilters: Array<Record<string, unknown>> = [];
 
-        allMemberIds.forEach(id => {
+        allMemberIds.forEach((id) => {
           // Thêm filter cho string
           userFilters.push({ _id: id });
 
@@ -134,7 +136,7 @@ export async function POST(req: NextRequest) {
 
         // Query users với $or filter
         const usersResult = await getAllRows<User>(USERS_COLLECTION_NAME, {
-          filters: userFilters.length > 0 ? { $or: userFilters } : {}
+          filters: userFilters.length > 0 ? { $or: userFilters } : {},
         });
 
         // 🔥 Tạo userMap với nhiều key formats
@@ -220,7 +222,7 @@ export async function POST(req: NextRequest) {
           enrichedConversations.map(async (group) => {
             const unreadCount = await msgCollection.countDocuments({
               roomId: group._id,
-              readBy: { $ne: userIdStr },
+              readBy: { $nin: variants as unknown as string[] },
             });
 
             const lastMsgs = await msgCollection.find({ roomId: group._id }).sort({ timestamp: -1 }).limit(1).toArray();
@@ -237,8 +239,7 @@ export async function POST(req: NextRequest) {
               if (senderIdStr === userIdStr) {
                 senderName = 'Bạn';
               } else {
-                const senderInfo = userMap.get(senderIdStr) ||
-                  userMap.get(String(Number(senderIdStr)));
+                const senderInfo = userMap.get(senderIdStr) || userMap.get(String(Number(senderIdStr)));
                 senderName = senderInfo ? senderInfo.name : 'Người lạ';
               }
 
@@ -389,7 +390,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, result });
       }
-      
+
       case 'kickMember': {
         if (!conversationId || !targetUserId) {
           return NextResponse.json({ error: 'Missing info' }, { status: 400 });
@@ -398,9 +399,7 @@ export async function POST(req: NextRequest) {
         const targetStr = String(targetUserId);
 
         // 🔥 Tạo pull condition cho nhiều định dạng ID
-        const pullConditions: Array<Record<string, unknown>> = [
-          { _id: targetStr }
-        ];
+        const pullConditions: Array<Record<string, unknown>> = [{ _id: targetStr }];
 
         if (!isNaN(Number(targetStr))) {
           pullConditions.push({ _id: Number(targetStr) });
@@ -441,9 +440,7 @@ export async function POST(req: NextRequest) {
 
         if (!ownerMember) {
           // 🔥 Pull với nhiều format
-          const pullConditions: Array<Record<string, unknown>> = [
-            { _id: userIdStr }
-          ];
+          const pullConditions: Array<Record<string, unknown>> = [{ _id: userIdStr }];
 
           if (!isNaN(Number(userIdStr))) {
             pullConditions.push({ _id: Number(userIdStr) });
@@ -476,9 +473,7 @@ export async function POST(req: NextRequest) {
         const nextOwnerId = normalizeMemberId(nextOwnerCandidate) || '';
 
         // 🔥 Update owner với filter phức tạp
-        const ownerFilters: Array<Record<string, unknown>> = [
-          { 'members._id': nextOwnerId }
-        ];
+        const ownerFilters: Array<Record<string, unknown>> = [{ 'members._id': nextOwnerId }];
 
         if (!isNaN(Number(nextOwnerId))) {
           ownerFilters.push({ 'members._id': Number(nextOwnerId) });
@@ -491,14 +486,12 @@ export async function POST(req: NextRequest) {
         await collection.updateOne(
           {
             _id: new ObjectId(conversationId),
-            $or: ownerFilters
+            $or: ownerFilters,
           } as unknown as Filter<GroupConversation>,
           { $set: { 'members.$.role': 'OWNER' } } as unknown as UpdateFilter<GroupConversation>,
         );
 
-        const pullConditions: Array<Record<string, unknown>> = [
-          { _id: userIdStr }
-        ];
+        const pullConditions: Array<Record<string, unknown>> = [{ _id: userIdStr }];
 
         if (!isNaN(Number(userIdStr))) {
           pullConditions.push({ _id: Number(userIdStr) });

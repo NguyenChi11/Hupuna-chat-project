@@ -72,7 +72,7 @@ export default function ReplyBanner({ replyingTo, getSenderName, onCancel }: Rep
               </div>
             )
           )}
-          <p className="text-xs text-gray-700 w-full truncate">{contentLabel}</p>
+          <p className="text-xs text-gray-700 w-full">{contentLabel}</p>
         </div>
       </div>
       <button onClick={onCancel} className="cursor-pointer text-red-500 hover:text-red-700 p-1">
