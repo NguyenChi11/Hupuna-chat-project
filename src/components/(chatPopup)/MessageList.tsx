@@ -1320,17 +1320,73 @@ export default function MessageList({
                         </span>
                       )}
                       {/* Reply preview */}
-                      {repliedToMsg && (
-                        <div
-                          onClick={() => onJumpToMessage(repliedToMsg._id)}
-                          className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-4 border-blue-500 rounded-xl cursor-pointer"
-                        >
-                          <p className="font-semibold text-blue-600">{msg.replyToMessageName || senderName}</p>
-                          <p className="truncate text-gray-600">
-                            {repliedToMsg.isRecalled ? 'Tin nhắn đã bị thu hồi' : repliedToMsg.content || '[Tệp]'}
-                          </p>
-                        </div>
-                      )}
+                      {repliedToMsg &&
+                        (() => {
+                          const url = String(repliedToMsg.fileUrl || repliedToMsg.previewUrl || '');
+                          const isVid =
+                            repliedToMsg.type === 'video' ||
+                            isVideoFile(repliedToMsg.fileName) ||
+                            isVideoFile(url);
+                          const isImg =
+                            repliedToMsg.type === 'image' ||
+                            /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(
+                              String(repliedToMsg.fileName || url || ''),
+                            );
+                          const label = repliedToMsg.isRecalled
+                            ? 'Tin nhắn đã bị thu hồi'
+                            : repliedToMsg.type === 'file'
+                              ? repliedToMsg.fileName || '[File]'
+                              : repliedToMsg.type === 'image'
+                                ? '[Ảnh]'
+                                : repliedToMsg.type === 'video'
+                                  ? '[Video]'
+                                  : repliedToMsg.type === 'sticker'
+                                    ? '[Sticker]'
+                                    : repliedToMsg.type === 'reminder'
+                                      ? repliedToMsg.content || '[Nhắc nhở]'
+                                      : repliedToMsg.content || 'Tin nhắn';
+                          return (
+                            <div
+                              onClick={() => onJumpToMessage(repliedToMsg._id)}
+                              className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-4 border-blue-500 rounded-xl cursor-pointer"
+                            >
+                              <p className="font-semibold text-blue-600">
+                                {msg.replyToMessageName || senderName}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                {!repliedToMsg.isRecalled && (isImg || isVid) && (
+                                  isImg ? (
+                                    <Image
+                                      src={getProxyUrl(url)}
+                                      alt="Ảnh"
+                                      width={40}
+                                      height={40}
+                                      className="w-10 h-10 rounded-md object-cover border border-blue-200"
+                                    />
+                                  ) : (
+                                    <div className="relative w-10 h-10 bg-black rounded-md overflow-hidden border border-blue-200">
+                                      <video
+                                        src={getProxyUrl(url)}
+                                        className="w-full h-full object-cover"
+                                        muted
+                                        playsInline
+                                        preload="metadata"
+                                      />
+                                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <div className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center">
+                                          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-gray-800">
+                                            <path d="M8 5v14l11-7z" fill="currentColor" />
+                                          </svg>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )
+                                )}
+                                <p className="truncate text-gray-600">{label}</p>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                       {/* MAIN BUBBLE */}
                       <div

@@ -10,6 +10,8 @@ import {
   HiFolder,
 } from 'react-icons/hi';
 import type { ContextMenuState } from './MessageContextMenu';
+import Image from 'next/image';
+import { getProxyUrl } from '@/utils/utils';
 
 interface MessageMobileContextMenuProps {
   contextMenu: ContextMenuState | null;
@@ -154,6 +156,27 @@ export default function MessageMobileContextMenu({
           >
             <div className="whitespace-pre-wrap break-words">{msg.content || ''}</div>
             <div className=" left-0 right-0 bottom-0 h-16 flex items-end justify-center pointer-events-none">
+            </div>
+          </div>
+        </div>
+      )}
+      {msg.type === 'image' && msg.fileUrl && typeof focusTop === 'number' && (
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[92vw] max-w-[24rem] px-2"
+          style={{ top: focusTop }}
+        >
+          <div
+            className="mx-auto rounded-2xl shadow-2xl border bg-white border-gray-200 p-2 relative"
+            style={{ maxHeight: '38vh', overflow: 'hidden' }}
+          >
+            <div className="relative w-full">
+              <Image
+                src={getProxyUrl(msg.fileUrl)}
+                alt={msg.fileName || 'Ảnh'}
+                width={800}
+                height={600}
+                className="w-full h-auto object-contain"
+              />
             </div>
           </div>
         </div>
