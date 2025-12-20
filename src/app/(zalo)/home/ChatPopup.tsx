@@ -967,10 +967,10 @@ export default function ChatWindow({
   const handleMobileLongPress = useCallback((msg: Message, el: HTMLElement, startX: number, startY: number) => {
     try {
       const rect = el.getBoundingClientRect();
-      const menuHeight = 240;
+      const menuHeight = 260;
       const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
       const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
-      const focusTop = Math.max(8, Math.min(Math.floor(viewportH * 0.27), viewportH - rect.height - menuHeight - 16));
+      const focusTop = Math.max(8, Math.min(Math.floor(viewportH * 0.24), viewportH - rect.height - menuHeight - 16));
       const placement: 'above' | 'below' = 'below';
       const yBelow = focusTop + rect.height + 12;
       setContextMenu({
@@ -2549,7 +2549,7 @@ export default function ChatWindow({
               onPinMessage={handlePinMessage}
               onToggleReaction={handleToggleReaction}
               contextMenu={contextMenu}
-              isSidebarOpen={showPopup}
+              isSidebarOpen={!isMobile && (showPopup || showSearchSidebar)}
             />
             <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>
@@ -2747,7 +2747,7 @@ export default function ChatWindow({
         </div>
 
         {showPopup && (
-          <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full z-10 ">
+          <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full z-20 ">
             <ChatInfoPopup
               onClose={() => setShowPopup(false)}
               onShowCreateGroup={onShowCreateGroup}

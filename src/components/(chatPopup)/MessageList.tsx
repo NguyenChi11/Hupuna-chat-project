@@ -1275,10 +1275,10 @@ export default function MessageList({
                     id={`msg-${msg._id}`}
                     onContextMenu={(e) => {
                       e.preventDefault();
-                      onReplyMessage?.(msg);
-                    }}
-                    className={`
-                  w-full  sm:max-w-[23rem]
+                    onReplyMessage?.(msg);
+                  }}
+                  className={`
+                  w-full sm:max-w-[36rem] lg:max-w-[46rem]
                   flex gap-2 group relative
                   ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
                   ${isGrouped ? 'mt-1' : 'mt-4'}
@@ -1319,7 +1319,7 @@ export default function MessageList({
                       {repliedToMsg && (
                         <div
                           onClick={() => onJumpToMessage(repliedToMsg._id)}
-                          className="max-w-[70vw] sm:max-w-[18rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-4 border-blue-500 rounded-xl cursor-pointer"
+                          className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-4 border-blue-500 rounded-xl cursor-pointer"
                         >
                           <p className="font-semibold text-blue-600">{msg.replyToMessageName || senderName}</p>
                           <p className="truncate text-gray-600">
@@ -1331,11 +1331,15 @@ export default function MessageList({
                       {/* MAIN BUBBLE */}
                       <div
                         className={`  
-                  px-4 py-2 rounded-lg shadow-md max-w-[50vw] sm:max-w-[17rem] break-words mt-1 
+                  px-4 py-2 rounded-lg shadow-md max-w-[70vw] ${
+                    !isRecalled && msg.type === 'text' && isSidebarOpen && !isMobile
+                      ? 'sm:max-w-[26rem] lg:max-w-[32rem]'
+                      : 'sm:max-w-[34rem] lg:max-w-[44rem]'
+                  } break-words mt-1 
                   ${isMe ? 'bg-[#E5F1FF] text-white' : 'bg-white text-gray-800 border border-gray-200'}
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
                       ${!isGrouped && !isMe ? 'rounded-tl-md' : ''}
-                      ${isRecalled ? '!bg-gray-200 !text-gray-500 italic !px-4 !py-2 sm:!max-w-[18rem]' : ''}
+                      ${isRecalled ? '!bg-gray-200 !text-gray-500 italic !px-4 !py-2 !max-w-[92vw] sm:!max-w-[34rem] lg:!max-w-[44rem]' : ''}
                       ${!isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image') ? '!p-0 !shadow-none ' : ''}
                     ${!isRecalled && msg.type === 'image' ? '!p-0' : ''}
                     ${!isRecalled && msg.type === 'file' ? '!px-2 !py-2' : ''}
@@ -1353,7 +1357,7 @@ export default function MessageList({
                                 transform: 'translateX(-50%)',
                                 top: contextMenu.focusTop,
                                 zIndex: 10002,
-                                maxWidth: '75vw',
+                                maxWidth: '92vw',
                               }
                             : undefined
                         }
@@ -1619,7 +1623,11 @@ export default function MessageList({
 
                         {/* TEXT */}
                         {msg.type === 'text' && !isRecalled && !isEditing && (
-                          <div className="text-[1.125rem] leading-relaxed text-black whitespace-pre-wrap">
+                          <div
+                            className={`text-[1.05rem] ${
+                              isSidebarOpen && !isMobile ? 'sm:text-[0.95rem]' : 'sm:text-[1.125rem]'
+                            } leading-relaxed text-black whitespace-pre-wrap`}
+                          >
                             {renderMessageContent(msg.content || '', msg.mentions, isMe)}
                             {(() => {
                               const linkMatch = (msg.content || '').match(/(https?:\/\/|www\.)\S+/i);
