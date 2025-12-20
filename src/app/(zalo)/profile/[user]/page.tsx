@@ -151,12 +151,12 @@ export default function ProfileByIdPage() {
           <div className="absolute top-0 left-0 right-0 z-30 flex md:justify-end justify-between items-center p-4 text-white">
             <button
               onClick={() => router.back()}
-              className="md:hidden block p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
+              className="cursor-pointer md:hidden block p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
             >
               <HiChevronLeft className="w-6 h-6" />
             </button>
             <div className="flex gap-3">
-              <button className="p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors">
+              <button className="cursor-pointer p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors">
                 <HiClock className="w-6 h-6" />
               </button>
               <button
@@ -164,7 +164,7 @@ export default function ProfileByIdPage() {
                   setTabMobile('more_actions');
                   setIsMobileSheetOpen(true);
                 }}
-                className="p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
+                className="cursor-pointer p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
               >
                 <HiEllipsisHorizontal className="w-6 h-6" />
               </button>
@@ -312,7 +312,7 @@ export default function ProfileByIdPage() {
           {/* Horizontal Actions */}
           <div className="mt-6 pl-4 flex justify-center  gap-3 overflow-x-auto custom-scrollbar pb-2 mx-2">
             {/* Cài zStyle (Placeholder for Settings/Style) */}
-            <button className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform">
+            <button className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform">
               <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
                 <HiSparkles className="w-5 h-5" />
               </div>
@@ -320,7 +320,7 @@ export default function ProfileByIdPage() {
             </button>
 
             {/* Ảnh của tôi */}
-            <button className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform">
+            <button className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform">
               <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
                 <HiPhoto className="w-5 h-5" />
               </div>
@@ -328,7 +328,7 @@ export default function ProfileByIdPage() {
             </button>
 
             {/* Kho khoảnh khắc */}
-            <button className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform">
+            <button className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform">
               <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
                 <HiArchiveBox className="w-5 h-5" />
               </div>
@@ -341,7 +341,7 @@ export default function ProfileByIdPage() {
                 setTabMobile('info');
                 setIsMobileSheetOpen(true);
               }}
-              className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform"
+              className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform"
             >
               <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
                 <HiInformationCircle className="w-5 h-5" />
@@ -355,7 +355,7 @@ export default function ProfileByIdPage() {
                 setTabMobile('qr');
                 setIsMobileSheetOpen(true);
               }}
-              className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform mr-4"
+              className="cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform mr-4"
             >
               <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
                 <HiQrCode className="w-5 h-5" />
@@ -391,7 +391,7 @@ export default function ProfileByIdPage() {
             Đây là Nhật ký của bạn - Hãy làm đầy Nhật ký với những dấu ấn cuộc đời và kỷ niệm đáng nhớ nhé!
           </p>
 
-          <button className="bg-blue-600 text-white font-semibold px-8 py-3 rounded-full shadow-lg shadow-blue-200 active:scale-95 transition-transform hover:bg-blue-700">
+          <button className="cursor-pointer bg-blue-600 text-white font-semibold px-8 py-3 rounded-full shadow-lg shadow-blue-200 active:scale-95 transition-transform hover:bg-blue-700">
             Đăng lên Nhật ký
           </button>
         </div>
