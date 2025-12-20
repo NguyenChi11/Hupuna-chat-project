@@ -9,8 +9,6 @@ import { useUploadImage } from '@/hooks/(profile)/useUploadImage';
 import { useCurrentUser } from '@/hooks/(profile)/useCurrentUser';
 import { getProxyUrl } from '@/utils/utils';
 
-import ProfileHeader from '@/components/(profile)/ProfileHeader';
-import ProfileTabs from '@/components/(profile)/ProfileTabs';
 import ProfileContent from '@/components/(profile)/ProfileContent';
 import MobileProfileSheet from '@/components/(profile)/MobileProfileSheet';
 
@@ -74,8 +72,6 @@ export default function ProfileByIdPage() {
     setBackground,
   );
 
-  const [tabLeft, setTabLeft] = useState<'profile' | 'qr'>('profile');
-  const [tabRight, setTabRight] = useState<'info' | 'settings' | 'qr'>('info');
   const [tabMobile, setTabMobile] = useState<
     'profile' | 'qr' | 'info' | 'settings' | 'edit_intro' | 'more_actions' | 'general_settings' | 'privacy' | 'account'
   >('profile');
@@ -123,8 +119,6 @@ export default function ProfileByIdPage() {
     }
   };
 
-  const tabsLeft = isOwner ? ['profile', 'qr'] : [];
-  const tabsRight = isOwner ? ['info', 'settings'] : ['info', 'qr'];
   const tabsMobile = isOwner ? ['profile', 'qr', 'info', 'settings'] : ['profile', 'qr'];
 
   const departmentLabel = useMemo(() => {
@@ -139,21 +133,6 @@ export default function ProfileByIdPage() {
     return opts.find((o) => o.value === val)?.label || val || 'Chưa xác định';
   }, [displayDept, overviewData.department]);
 
-  const getTabIcon = (tab: string) => {
-    switch (tab) {
-      case 'profile':
-        return <HiUserCircle className="w-5 h-5" />;
-      case 'qr':
-        return <HiQrCode className="w-5 h-5" />;
-      case 'info':
-        return <HiInformationCircle className="w-5 h-5" />;
-      case 'settings':
-        return <HiCog6Tooth className="w-5 h-5" />;
-      default:
-        return null;
-    }
-  };
-
   const handleProfileUpdate = (data: Record<string, unknown>) => {
     setOverviewData((prev) => ({ ...prev, ...data }));
     if (data.title !== undefined) setDisplayTitle(String(data.title));
@@ -164,12 +143,18 @@ export default function ProfileByIdPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 ">
-      {/* ==================== MOBILE (<= md) & TABLET SMALL (<= lg) ==================== */}
-      <div className="mx-auto md:hidden bg-gray-50 h-screen overflow-y-auto custom-scrollbar pb-[5rem]  ">
+      {/* ==================== UNIFIED MOBILE-LIKE VIEW ==================== */}
+      <div className="w-full bg-gray-50 h-screen overflow-y-auto custom-scrollbar pb-[5rem] md:pb-0 relative no-scrollbar">
         {/* Top Header Section */}
         <div className="relative bg-white pb-4 mb-2">
           {/* Header Actions */}
-          <div className="absolute top-0 left-0 right-0 z-30 flex justify-end items-center p-4 text-white">
+          <div className="absolute top-0 left-0 right-0 z-30 flex md:justify-end justify-between items-center p-4 text-white">
+            <button
+              onClick={() => router.back()}
+              className="md:hidden block p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
+            >
+              <HiChevronLeft className="w-6 h-6" />
+            </button>
             <div className="flex gap-3">
               <button className="p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors">
                 <HiClock className="w-6 h-6" />
@@ -187,9 +172,9 @@ export default function ProfileByIdPage() {
           </div>
 
           {/* Cover Image */}
-          <div className="relative h-64 w-full">
+          <div className="relative h-64 w-full z-0">
             {background ? (
-              <Image src={getProxyUrl(background)} alt="Cover" fill className="object-cover" priority />
+              <Image src={getProxyUrl(background)} alt="Cover" fill className="object-cover" priority sizes="100vw" />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500" />
             )}
@@ -217,17 +202,23 @@ export default function ProfileByIdPage() {
           </div>
 
           {/* Avatar & Info */}
-          <div className="relative px-4 flex flex-col items-center -mt-16">
-            <div className="relative">
+          <div className="relative px-4 flex flex-col items-center -mt-16 pointer-events-none">
+            <div className="relative pointer-events-auto">
               {/* Status Bubble */}
               <div className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white text-gray-700 text-xs font-medium px-3 py-1.5 rounded-2xl shadow-lg border border-gray-100 after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-white animate-bounce">
                 Trạng thái hiện tại
               </div>
 
               {/* Avatar */}
-              <div className="w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden relative bg-gray-200">
+              <div className="w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden relative bg-gray-200 z-10">
                 {avatar ? (
-                  <Image src={getProxyUrl(avatar)} alt="Avatar" fill className="object-cover" />
+                  <Image
+                    src={getProxyUrl(avatar)}
+                    alt="Avatar"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-500">
                     <HiUserCircle className="w-20 h-20" />
@@ -257,7 +248,7 @@ export default function ProfileByIdPage() {
             </div>
 
             {/* Name */}
-            <h1 className="mt-3 text-2xl font-bold text-gray-900">{displayName}</h1>
+            <h1 className="mt-3 text-2xl font-bold text-gray-900 pointer-events-auto">{displayName}</h1>
 
             {/* Edit Intro Link */}
             <button
@@ -266,13 +257,13 @@ export default function ProfileByIdPage() {
                 setIntroText(displayBio || '');
                 setIsMobileSheetOpen(true);
               }}
-              className="mt-1 flex items-center gap-1 text-blue-600 text-sm font-medium hover:underline"
+              className="mt-1 flex items-center gap-1 text-blue-600 text-sm font-medium hover:underline pointer-events-auto"
             >
               <HiPencilSquare className="w-4 h-4" />
               {displayBio || 'Cập nhật giới thiệu bản thân'}
             </button>
             {/* Additional Info (Mobile) */}
-            <div className="flex flex-wrap justify-center gap-2 mt-4 w-full">
+            <div className="flex flex-wrap justify-center gap-2 mt-4 w-full pointer-events-auto">
               {(overviewData.title || displayTitle) && (
                 <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
                   <HiBriefcase className="w-3.5 h-3.5 text-purple-500" />
@@ -319,7 +310,7 @@ export default function ProfileByIdPage() {
           </div>
 
           {/* Horizontal Actions */}
-          <div className="mt-6 pl-4 flex gap-3 overflow-x-auto custom-scrollbar pb-2 mx-2">
+          <div className="mt-6 pl-4 flex justify-center  gap-3 overflow-x-auto custom-scrollbar pb-2 mx-2">
             {/* Cài zStyle (Placeholder for Settings/Style) */}
             <button className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform">
               <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
@@ -588,122 +579,6 @@ export default function ProfileByIdPage() {
             />
           )}
         </MobileProfileSheet>
-      </div>
-
-      {/* ==================== DESKTOP / TABLET LARGE (>= lg) ==================== */}
-      <div className="hidden md:flex max-w-7xl mx-auto  max-h-[90vh]">
-        <div className="flex-1 flex gap-6">
-          {/* CỘT TRÁI */}
-          <div className=" w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden custom-scrollbar border border-white/60">
-            <ProfileHeader
-              isOwner={!!isOwner}
-              background={background ?? null}
-              avatar={avatar ?? null}
-              handleUpload={handleUpload}
-              isUploadingAvatar={isUploadingAvatar}
-              isUploadingBackground={isUploadingBackground}
-            />
-
-            <div className="px-8 pt-20 pb-2 text-center bg-gradient-to-b from-white to-gray-50">
-              <h1 className="text-xl font-black bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                {displayName}
-              </h1>
-              {departmentLabel && (
-                <p className="mt-3 text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  {departmentLabel} {displayTitle ? `- ${displayTitle}` : ''}
-                </p>
-              )}
-              {displayBio && <p className="mt-2 text-base text-gray-600 font-medium">{displayBio}</p>}
-
-              {/* Info Tags - Desktop */}
-              <div className="flex flex-wrap justify-center gap-2 mt-4 w-full px-4 mb-4">
-                {(overviewData.title || displayTitle) && (
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
-                    <HiBriefcase className="w-3.5 h-3.5 text-purple-500" />
-                    {overviewData.title || displayTitle}
-                  </div>
-                )}
-                {(overviewData.department || displayDept) && (
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
-                    <HiBuildingOffice2 className="w-3.5 h-3.5 text-orange-500" />
-                    {departmentLabel}
-                  </div>
-                )}
-                {overviewData.gender && (
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
-                    <HiUserCircle className="w-3.5 h-3.5 text-indigo-500" />
-                    {overviewData.gender}
-                  </div>
-                )}
-                {overviewData.birthday && (
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
-                    <HiCalendar className="w-3.5 h-3.5 text-pink-500" />
-                    {overviewData.birthday}
-                  </div>
-                )}
-                {overviewData.phone && (
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
-                    <HiPhone className="w-3.5 h-3.5 text-green-500" />
-                    {overviewData.phone}
-                  </div>
-                )}
-                {overviewData.email && (
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
-                    <HiEnvelope className="w-3.5 h-3.5 text-blue-500" />
-                    <span className="truncate max-w-[150px]">{overviewData.email}</span>
-                  </div>
-                )}
-                {overviewData.address && (
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
-                    <HiMapPin className="w-3.5 h-3.5 text-red-500" />
-                    <span className="truncate max-w-[150px]">{overviewData.address}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Tabs trái (chỉ owner) */}
-            {isOwner && (
-              <ProfileTabs
-                tabs={tabsLeft}
-                tab={tabLeft}
-                setTab={(item) => setTabLeft(item as 'profile' | 'qr')}
-                icon={getTabIcon}
-              />
-            )}
-
-            {/* Nội dung trái */}
-            {isOwner && (
-              <div className=" overflow-y-auto bg-gradient-to-br from-gray-50 to-white h-[20rem] custom-scrollbar">
-                <ProfileContent
-                  tab={tabLeft}
-                  isOwner={true}
-                  overviewData={overviewData}
-                  handleOverviewData={handleProfileUpdate}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* CỘT PHẢI */}
-          <div className="flex-1 bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/60 ">
-            <ProfileTabs
-              tabs={tabsRight}
-              tab={tabRight}
-              setTab={(item) => setTabRight(item as 'info' | 'settings' | 'qr')}
-              icon={getTabIcon}
-            />
-
-            <div className="h-full  bg-gradient-to-b from-gray-50/30 to-white">
-              <ProfileContent
-                tab={tabRight}
-                isOwner={!!isOwner}
-                overviewData={overviewData}
-                handleOverviewData={handleProfileUpdate}
-              />
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

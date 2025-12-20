@@ -157,77 +157,84 @@ export default function SidebarMenu() {
 
           {/* Avatar Menu */}
           {openMenu.avatar && userInfo && (
-            <div className="absolute left-13 top-0 w-70 bg-white text-gray-800 rounded-3xl shadow-2xl  z-50 animate-in fade-in slide-in-from-left-4 duration-300">
-              {/* Header */}
+            <div className="absolute left-4 top-12 w-80 bg-white text-gray-800 rounded-3xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+              {/* Header - Thông tin người dùng */}
               <div
-                className="px-4 py-3 rounded-t-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white cursor-pointer hover:from-indigo-700 hover:to-purple-700 transition-all"
+                className="px-5 py-4 bg-[#0068ff] text-white cursor-pointer hover:bg-[#005edc] transition-all duration-200"
                 onClick={() => {
                   setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
                   router.push(`/profile/${userInfo.username}`);
                 }}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-3xl overflow-hidden ring-2 ring-white/40 shadow-xl">
+                  <div className="w-14 h-14 rounded-full overflow-hidden ring-4 ring-white/30 shadow-xl">
                     {userInfo.avatar ? (
                       <Image
                         src={getProxyUrl(userInfo.avatar)}
-                        width={64}
-                        height={64}
+                        width={80}
+                        height={80}
                         alt=""
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-white/30 backdrop-blur flex items-center justify-center text-3xl font-bold">
+                      <div className="w-full h-full bg-white/30 backdrop-blur-md flex items-center justify-center text-3xl font-bold">
                         {(userInfo.name || 'U').charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
-                  <div>
-                    <p className="text-xl font-bold truncate">{userInfo.name}</p>
-                    <p className="text-sm opacity-90">@{userInfo.username}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-lg font-bold truncate">{userInfo.name}</p>
+                    <p className="text-sm opacity-90 truncate">@{userInfo.username}</p>
                   </div>
                 </div>
               </div>
 
               {/* Menu Items */}
-              <div className="p-3 space-y-1">
+              <div className="py-2">
+                {/* Thông tin tài khoản */}
                 <div
-                  className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 rounded-2xl cursor-pointer transition-all"
+                  className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-all duration-150"
                   onClick={() => {
                     setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
                     setShowAccountModal(true);
                   }}
                 >
-                  <HiUserCircle className="w-6 h-6 text-indigo-600" />
-                  <span className="font-medium">Thông tin tài khoản</span>
+                  <HiUserCircle className="w-6 h-6 text-[#0068ff]" />
+                  <span className="font-medium text-gray-800">Thông tin tài khoản</span>
                 </div>
 
                 {/* Ngôn ngữ */}
                 <div className="relative">
                   <div
-                    className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-gray-50 rounded-2xl cursor-pointer transition-all"
+                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-all duration-150"
                     onClick={() =>
                       setOpenMenu((prev) => ({ ...prev, submenu: prev.submenu === 'lang' ? null : 'lang' }))
                     }
                   >
                     <div className="flex items-center gap-4">
                       <HiOutlineTranslate className="w-6 h-6 text-green-600" />
-                      <span className="font-medium">Ngôn ngữ</span>
+                      <span className="font-medium text-gray-800">Ngôn ngữ</span>
                     </div>
-                    {openMenu.submenu === 'lang' ? <HiChevronDown /> : <HiChevronRight />}
+                    <HiChevronRight
+                      className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${
+                        openMenu.submenu === 'lang' ? 'rotate-90' : ''
+                      }`}
+                    />
                   </div>
+
+                  {/* Submenu Ngôn ngữ */}
                   {openMenu.submenu === 'lang' && (
                     <div
-                      className="absolute left-full top-0 ml-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-50"
+                      className="absolute left-full top-0 ml-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {['Tiếng Việt', 'English', '中文 (简体)'].map((lang, i) => (
                         <div
                           key={i}
-                          className="px-5 py-3 hover:bg-indigo-50 flex items-center justify-between cursor-pointer"
+                          className="px-5 py-3.5 hover:bg-[#0068ff]/5 flex items-center justify-between cursor-pointer transition-all"
                         >
-                          <span>{lang}</span>
-                          {i === 0 && <HiCheck className="w-5 h-5 text-indigo-600" />}
+                          <span className="font-medium">{lang}</span>
+                          {i === 0 && <HiCheck className="w-5 h-5 text-[#0068ff]" />}
                         </div>
                       ))}
                     </div>
@@ -237,52 +244,58 @@ export default function SidebarMenu() {
                 {/* Hỗ trợ */}
                 <div className="relative">
                   <div
-                    className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-gray-50 rounded-2xl cursor-pointer transition-all"
+                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-all duration-150"
                     onClick={() =>
                       setOpenMenu((prev) => ({ ...prev, submenu: prev.submenu === 'support' ? null : 'support' }))
                     }
                   >
                     <div className="flex items-center gap-4">
                       <HiQuestionMarkCircle className="w-6 h-6 text-blue-600" />
-                      <span className="font-medium">Hỗ trợ</span>
+                      <span className="font-medium text-gray-800">Hỗ trợ</span>
                     </div>
-                    {openMenu.submenu === 'support' ? <HiChevronDown /> : <HiChevronRight />}
+                    <HiChevronRight
+                      className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${
+                        openMenu.submenu === 'support' ? 'rotate-90' : ''
+                      }`}
+                    />
                   </div>
+
+                  {/* Submenu Hỗ trợ */}
                   {openMenu.submenu === 'support' && (
                     <div
-                      className="absolute left-full top-0 ml-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-50"
+                      className="absolute left-full top-0 ml-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {[
                         {
-                          icon: <HiInformationCircle />,
+                          icon: <HiInformationCircle className="w-5 h-5 text-gray-600" />,
                           label: 'Thông tin phiên bản',
                           onClick: () => {
                             setShowContactCard(true);
                             setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
                           },
                         },
-                        { icon: <HiSupport />, label: 'Liên hệ hỗ trợ' },
-                        { icon: <HiUpload />, label: 'Gửi file log tới Zalo' },
-                        { icon: <HiBookOpen />, label: 'Hướng dẫn sử dụng' },
+                        { icon: <HiSupport className="w-5 h-5 text-gray-600" />, label: 'Liên hệ hỗ trợ' },
+                        { icon: <HiUpload className="w-5 h-5 text-gray-600" />, label: 'Gửi file log tới Zalo' },
+                        { icon: <HiBookOpen className="w-5 h-5 text-gray-600" />, label: 'Hướng dẫn sử dụng' },
                       ].map((item, i) => (
                         <div
                           key={i}
-                          className="px-5 py-3 hover:bg-indigo-50 flex items-center gap-4 cursor-pointer"
+                          className="px-5 py-3.5 hover:bg-[#0068ff]/5 flex items-center gap-4 cursor-pointer transition-all"
                           onClick={item.onClick}
                         >
-                          {React.cloneElement(item.icon, { className: 'w-5 h-5 text-gray-600' })}
-                          <span>{item.label}</span>
+                          {item.icon}
+                          <span className="font-medium text-gray-800">{item.label}</span>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
 
-                {/* Đăng xuất */}
-                <div className="border-t border-gray-200 mt-3 pt-2">
+                {/* Đăng xuất - phân cách bằng divider */}
+                <div className="border-t border-gray-100 mt-2 pt-2">
                   <div
-                    className="flex items-center gap-4 px-4 py-3 hover:bg-red-50 rounded-2xl cursor-pointer transition-all text-red-600 font-medium"
+                    className="flex items-center gap-4 px-5 py-4 hover:bg-red-50 cursor-pointer transition-all duration-150 text-red-600 font-medium"
                     onClick={() => {
                       setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
                       handleLogout();
@@ -386,7 +399,6 @@ export default function SidebarMenu() {
           </div>
 
           <button
-            onClick={() => navigate('/setting', 'setting')}
             className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'setting' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <HiCog className="w-5 h-5" />

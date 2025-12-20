@@ -51,7 +51,7 @@ export default function MobileProfileSheet({
   if (!shouldRender) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] md:hidden">
+    <div className="fixed inset-0 z-[9999] flex justify-center items-end md:items-center">
       {/* Backdrop */}
       <div
         className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
@@ -62,8 +62,8 @@ export default function MobileProfileSheet({
 
       {/* Sheet Container */}
       <div
-        className={`absolute inset-y-0 right-0 w-full bg-white shadow-2xl transition-transform duration-300 ease-in-out transform flex flex-col ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`relative w-full h-full md:h-[90vh] md:max-w-[480px] md:rounded-3xl md:overflow-hidden bg-white shadow-2xl transition-all duration-300 ease-in-out transform flex flex-col ${
+          isOpen ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full md:translate-x-0 md:opacity-0 md:scale-95'
         }`}
       >
         {/* Header */}
