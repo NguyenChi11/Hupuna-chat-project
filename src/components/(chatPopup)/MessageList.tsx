@@ -100,6 +100,7 @@ export default function MessageList({
   const [reactionDetail, setReactionDetail] = useState<{ msgId: string; emoji: string } | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const [mobileCollapsedId, setMobileCollapsedId] = useState<string | null>(null);
 
   // Đóng menu reaction/folder khi click ra ngoài
   useEffect(() => {
@@ -132,6 +133,9 @@ export default function MessageList({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [activeMoreId]);
+  useEffect(() => {
+    if (!contextMenu?.visible) setMobileCollapsedId(null);
+  }, [contextMenu]);
 
   const formatTimestamp = (ts: number) => {
     const d = new Date(ts);
@@ -1346,21 +1350,7 @@ export default function MessageList({
                   relative ${hasReactions ? 'mb-4' : ''}
                   ${contextMenu?.visible && String(contextMenu.message._id) === String(msg._id) ? 'z-[9998]' : ''}
                   `}
-                        style={
-                          isMobile &&
-                          contextMenu?.visible &&
-                          String(contextMenu.message._id) === String(msg._id) &&
-                          typeof contextMenu.focusTop === 'number'
-                            ? {
-                                position: 'fixed',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                top: contextMenu.focusTop,
-                                zIndex: 10002,
-                                maxWidth: '92vw',
-                              }
-                            : undefined
-                        }
+                        style={undefined}
                         onClick={() => {
                           setTimeVisibleId((prev) => (prev === msg._id ? null : msg._id));
                           setActiveMoreId(msg._id);
@@ -1381,6 +1371,9 @@ export default function MessageList({
                               longPressTriggeredRef.current = true;
                               setActiveMoreId(msg._id);
                               setReactionDetail(null);
+                              if (isMobile && msg.type === 'text') {
+                                setMobileCollapsedId(msg._id);
+                              }
                               onMobileLongPress?.(msg, el, x0, y0);
                             }, 420);
                           } catch {}
@@ -1624,11 +1617,38 @@ export default function MessageList({
                         {/* TEXT */}
                         {msg.type === 'text' && !isRecalled && !isEditing && (
                           <div
-                            className={`text-[1.05rem] ${
+                            className={`relative text-[1.05rem] ${
                               isSidebarOpen && !isMobile ? 'sm:text-[0.95rem]' : 'sm:text-[1.125rem]'
                             } leading-relaxed text-black whitespace-pre-wrap`}
+                            style={
+                              isMobile &&
+                              contextMenu?.visible &&
+                              String(contextMenu.message._id) === String(msg._id) &&
+                              mobileCollapsedId === msg._id
+                                ? { maxHeight: 'calc(var(--vvh) * 0.42)', overflow: 'hidden' }
+                                : undefined
+                            }
                           >
                             {renderMessageContent(msg.content || '', msg.mentions, isMe)}
+                            {isMobile &&
+                              contextMenu?.visible &&
+                              String(contextMenu.message._id) === String(msg._id) &&
+                              mobileCollapsedId === msg._id && (
+                                <div className="absolute bottom-0 left-0 right-0 h-16 flex items-end justify-center pointer-events-none">
+                                  <div className="absolute inset-x-0 bottom-8 h-16 bg-gradient-to-t from-white/95 to-transparent" />
+                                  <button
+                                    onClick={() => {
+                                      setMobileCollapsedId(null);
+                                      try {
+                                        document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                                      } catch {}
+                                    }}
+                                    className="pointer-events-auto mb-2 px-3 py-1 rounded-full bg-white/90 border border-gray-200 text-sm text-blue-600 shadow hover:bg-blue-50 active:scale-95"
+                                  >
+                                    Xem thêm
+                                  </button>
+                                </div>
+                              )}
                             {(() => {
                               const linkMatch = (msg.content || '').match(/(https?:\/\/|www\.)\S+/i);
                               if (!linkMatch) return null;

@@ -34,6 +34,7 @@ export default function MessageMobileContextMenu({
 }: MessageMobileContextMenuProps) {
   const startYRef = useRef<number | null>(null);
   const movedRef = useRef(false);
+  const focusTop = contextMenu?.focusTop ?? undefined;
 
   const isVisible = !!contextMenu?.visible;
   const msg = contextMenu?.message as Message | undefined;
@@ -139,6 +140,24 @@ export default function MessageMobileContextMenu({
           if (dy > 60) onClose();
         }}
       />
+      {/* Preview bubble fixed at center top */}
+      {msg.type === 'text' && typeof focusTop === 'number' && (
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[92vw] max-w-[24rem] px-2"
+          style={{ top: focusTop }}
+        >
+          <div
+            className={`mx-auto rounded-2xl shadow-2xl border ${
+              isMe ? 'bg-[#E5F1FF] border-blue-200' : 'bg-white border-gray-200'
+            } px-4 py-3 text-[1rem] text-black relative`}
+            style={{ maxHeight: '38vh', overflow: 'hidden' }}
+          >
+            <div className="whitespace-pre-wrap break-words">{msg.content || ''}</div>
+            <div className=" left-0 right-0 bottom-0 h-16 flex items-end justify-center pointer-events-none">
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className={`absolute ${placement === 'above' ? 'bottom-auto' : 'top-auto'} ${placement === 'above' ? '' : ''}`}
         data-context-menu="true"

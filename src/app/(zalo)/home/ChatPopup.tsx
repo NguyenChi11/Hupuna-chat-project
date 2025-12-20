@@ -970,9 +970,21 @@ export default function ChatWindow({
       const menuHeight = 260;
       const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
       const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
-      const focusTop = Math.max(8, Math.min(Math.floor(viewportH * 0.24), viewportH - rect.height - menuHeight - 16));
+      const collapsedHeight = Math.floor(viewportH * 0.42);
+      const effectiveHeight = Math.min(rect.height, collapsedHeight);
+      try {
+        el.scrollIntoView({ behavior: 'auto', block: 'center' });
+      } catch {}
+      const heavy = effectiveHeight > viewportH * 0.36;
+      const medium = effectiveHeight > viewportH * 0.28;
+      const baseTopRatio = heavy ? 0.14 : medium ? 0.18 : 0.22;
+      const baseTop = Math.floor(viewportH * baseTopRatio);
+      const safeBottomGap = 20;
+      const clamp = (v: number, minV: number, maxV: number) => Math.max(minV, Math.min(v, maxV));
+      const maxTop = viewportH - effectiveHeight - menuHeight - safeBottomGap;
+      const focusTop = clamp(baseTop, 8, maxTop);
       const placement: 'above' | 'below' = 'below';
-      const yBelow = focusTop + rect.height + 12;
+      const yBelow = focusTop + effectiveHeight + 16;
       setContextMenu({
         visible: true,
         x: Math.floor(viewportW / 2),
