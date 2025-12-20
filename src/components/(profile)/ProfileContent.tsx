@@ -49,37 +49,39 @@ export default function ProfileContent({
 
         {/* Mã QR */}
         {tab === 'qr' && (
-          <div className="flex justify-center py-6">
-            <div className=" p-2  ">
-              <ProfileQR />
+          <div className="bg-white rounded-lg p-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Mã QR</h3>
+            <div className="flex justify-center py-6">
+              <div className=" p-2  ">
+                <ProfileQR />
+              </div>
             </div>
           </div>
         )}
 
         {/* Cài đặt – chỉ owner */}
         {tab === 'settings' && isOwner && (
-          <div className="bg-gray-50/70 rounded-3xl p-6 border border-gray-200">
+          <div className="bg-white rounded-lg p-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Cài đặt</h3>
             <ProfileSettings />
           </div>
         )}
 
         {/* Hồ sơ công khai (profile tab) */}
         {tab === 'profile' && (
-          <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/30 rounded-3xl p-6 border border-blue-100">
-            <ProfileOverview
-              data={
-                overviewData as {
-                  phone: string;
-                  gender: string;
-                  birthday: string;
-                  email: string;
-                  address: string;
-                  department: string;
-                  title: string;
-                }
+          <ProfileOverview
+            data={
+              overviewData as {
+                phone: string;
+                gender: string;
+                birthday: string;
+                email: string;
+                address: string;
+                department: string;
+                title: string;
               }
-            />
-          </div>
+            }
+          />
         )}
       </div>
 

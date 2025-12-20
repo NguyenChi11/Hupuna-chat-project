@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
         let newData = {
           ...data,
           timestamp: Date.now(),
-          readBy: [data.sender],
+          readBy: [String(data.sender)],
         } as Record<string, unknown>;
 
         if (t === 'poll') {
@@ -450,15 +450,21 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing roomId or userId' }, { status: 400 });
         }
 
-        // 1. Filter: Tìm các tin nhắn trong roomId có userId CHƯA đọc ($ne: not equal)
+        const userIdStr = String(userId);
+        const variants: (string | number)[] = [userIdStr];
+        if (!isNaN(Number(userIdStr))) {
+          variants.push(Number(userIdStr));
+        }
+
+        // 1. Filter: Tìm các tin nhắn trong roomId có userId CHƯA đọc
         const filter = {
           roomId,
-          readBy: { $ne: userId },
+          readBy: { $nin: variants as unknown as string[] },
         };
 
         // 2. Update: Thêm userId vào mảng readBy của các tin nhắn tìm được ($addToSet)
         const updateData = {
-          $addToSet: { readBy: userId },
+          $addToSet: { readBy: userIdStr },
         };
 
         const result = await updateMany<Message>(collectionName, filter, updateData);

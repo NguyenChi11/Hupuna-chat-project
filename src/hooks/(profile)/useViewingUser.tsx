@@ -11,11 +11,13 @@ export function useViewingUser(viewingId: string, isOwner: boolean, currentUser:
     address: '',
     department: '',
     title: '',
+    bio: '',
   });
 
   const [displayName, setDisplayName] = useState('');
   const [displayDept, setDisplayDept] = useState('');
   const [displayTitle, setDisplayTitle] = useState('');
+  const [displayBio, setDisplayBio] = useState('');
   const [avatar, setAvatar] = useState<string | undefined>(undefined);
   const [background, setBackground] = useState<string | undefined>(undefined);
 
@@ -24,6 +26,7 @@ export function useViewingUser(viewingId: string, isOwner: boolean, currentUser:
     setDisplayName(String(u['name'] || u['username'] || ''));
     setDisplayDept(String(u['department'] || ''));
     setDisplayTitle(String(u['title'] || ''));
+    setDisplayBio(String(u['bio'] || ''));
     setAvatar(typeof u['avatar'] === 'string' ? (u['avatar'] as string) : undefined);
     setBackground(typeof u['background'] === 'string' ? (u['background'] as string) : undefined);
 
@@ -35,6 +38,7 @@ export function useViewingUser(viewingId: string, isOwner: boolean, currentUser:
       address: String(u['address'] || ''),
       department: String(u['department'] || ''),
       title: String(u['title'] || ''),
+      bio: String(u['bio'] || ''),
     });
   }, []);
 
@@ -67,8 +71,13 @@ export function useViewingUser(viewingId: string, isOwner: boolean, currentUser:
   return {
     overviewData,
     displayName,
+    setDisplayName,
     displayDept,
+    setDisplayDept,
     displayTitle,
+    setDisplayTitle,
+    displayBio,
+    setDisplayBio,
     avatar,
     background,
     setAvatar,

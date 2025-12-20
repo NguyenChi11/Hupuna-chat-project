@@ -1,7 +1,7 @@
 // components/(profile)/ProfileInfo.tsx
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useViewingUser } from '@/hooks/(profile)/useViewingUser';
@@ -32,7 +32,11 @@ import {
   HiSparkles,
   HiArchiveBox,
   HiCheck,
+  HiBuildingOffice2,
+  HiBriefcase,
+  HiOutlineMagnifyingGlass,
 } from 'react-icons/hi2';
+import { HiChevronRight } from 'react-icons/hi';
 
 export default function ProfileByIdPage() {
   const params = useParams();
@@ -50,8 +54,13 @@ export default function ProfileByIdPage() {
     overviewData,
     setOverviewData,
     displayName,
+    setDisplayName,
     displayDept,
+    setDisplayDept,
     displayTitle,
+    setDisplayTitle,
+    displayBio,
+    setDisplayBio,
     avatar,
     background,
     setAvatar,
@@ -67,10 +76,52 @@ export default function ProfileByIdPage() {
 
   const [tabLeft, setTabLeft] = useState<'profile' | 'qr'>('profile');
   const [tabRight, setTabRight] = useState<'info' | 'settings' | 'qr'>('info');
-  const [tabMobile, setTabMobile] = useState<'profile' | 'qr' | 'info' | 'settings' | 'edit_intro'>('profile');
+  const [tabMobile, setTabMobile] = useState<
+    'profile' | 'qr' | 'info' | 'settings' | 'edit_intro' | 'more_actions' | 'general_settings' | 'privacy' | 'account'
+  >('profile');
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
   const [introText, setIntroText] = useState('');
   const [shareToDiary, setShareToDiary] = useState(false);
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const backgroundInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpdateProfile = async (field: string, value: string) => {
+    if (!currentId || !isOwner) return;
+    try {
+      await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update',
+          field: '_id',
+          value: currentId,
+          data: { [field]: value },
+        }),
+      });
+
+      // Update local storage
+      try {
+        const raw = localStorage.getItem('info_user');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          localStorage.setItem('info_user', JSON.stringify({ ...parsed, [field]: value }));
+        }
+      } catch {}
+
+      // Update local state
+      if (field === 'title') {
+        setDisplayTitle(value);
+        setOverviewData((prev) => ({ ...prev, title: value }));
+      }
+      if (field === 'bio') {
+        setDisplayBio(value);
+        setOverviewData((prev) => ({ ...prev, bio: value }));
+      }
+    } catch (error) {
+      console.error('Failed to update profile', error);
+    }
+  };
 
   const tabsLeft = isOwner ? ['profile', 'qr'] : [];
   const tabsRight = isOwner ? ['info', 'settings'] : ['info', 'qr'];
@@ -103,6 +154,14 @@ export default function ProfileByIdPage() {
     }
   };
 
+  const handleProfileUpdate = (data: Record<string, unknown>) => {
+    setOverviewData((prev) => ({ ...prev, ...data }));
+    if (data.title !== undefined) setDisplayTitle(String(data.title));
+    if (data.bio !== undefined) setDisplayBio(String(data.bio));
+    if (data.department !== undefined) setDisplayDept(String(data.department));
+    if (data.name !== undefined) setDisplayName(String(data.name));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 ">
       {/* ==================== MOBILE (<= md) & TABLET SMALL (<= lg) ==================== */}
@@ -115,7 +174,13 @@ export default function ProfileByIdPage() {
               <button className="p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors">
                 <HiClock className="w-6 h-6" />
               </button>
-              <button className="p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors">
+              <button
+                onClick={() => {
+                  setTabMobile('more_actions');
+                  setIsMobileSheetOpen(true);
+                }}
+                className="p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
+              >
                 <HiEllipsisHorizontal className="w-6 h-6" />
               </button>
             </div>
@@ -128,11 +193,20 @@ export default function ProfileByIdPage() {
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500" />
             )}
+
+            {/* Loading Overlay for Background */}
+            {isUploadingBackground && (
+              <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center backdrop-blur-sm">
+                <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+              </div>
+            )}
+
             {/* Edit Cover Button (Owner only) */}
-            {isOwner && (
-              <label className="absolute bottom-4 right-4 p-2 bg-black/30 backdrop-blur-md rounded-full text-white cursor-pointer hover:bg-black/40 transition-colors">
+            {isOwner && !isUploadingBackground && (
+              <label className="absolute bottom-4 right-4 p-2 bg-black/30 backdrop-blur-md rounded-full text-white cursor-pointer hover:bg-black/40 transition-colors z-10">
                 <HiCamera className="w-5 h-5" />
                 <input
+                  ref={backgroundInputRef}
                   type="file"
                   accept="image/*"
                   className="hidden"
@@ -159,9 +233,17 @@ export default function ProfileByIdPage() {
                     <HiUserCircle className="w-20 h-20" />
                   </div>
                 )}
+
+                {/* Loading Overlay for Avatar */}
+                {isUploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center backdrop-blur-sm">
+                    <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  </div>
+                )}
+
                 {/* Edit Avatar (Owner) */}
-                {isOwner && (
-                  <label className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                {isOwner && !isUploadingAvatar && (
+                  <label className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-10">
                     <HiCamera className="w-8 h-8 text-white" />
                     <input
                       type="file"
@@ -181,16 +263,28 @@ export default function ProfileByIdPage() {
             <button
               onClick={() => {
                 setTabMobile('edit_intro');
-                setIntroText(displayTitle || '');
+                setIntroText(displayBio || '');
                 setIsMobileSheetOpen(true);
               }}
               className="mt-1 flex items-center gap-1 text-blue-600 text-sm font-medium hover:underline"
             >
               <HiPencilSquare className="w-4 h-4" />
-              {displayTitle || 'Cập nhật giới thiệu bản thân'}
+              {displayBio || 'Cập nhật giới thiệu bản thân'}
             </button>
             {/* Additional Info (Mobile) */}
             <div className="flex flex-wrap justify-center gap-2 mt-4 w-full">
+              {(overviewData.title || displayTitle) && (
+                <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+                  <HiBriefcase className="w-3.5 h-3.5 text-purple-500" />
+                  {overviewData.title || displayTitle}
+                </div>
+              )}
+              {(overviewData.department || displayDept) && (
+                <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+                  <HiBuildingOffice2 className="w-3.5 h-3.5 text-orange-500" />
+                  {departmentLabel}
+                </div>
+              )}
               {overviewData.gender && (
                 <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
                   <HiUserCircle className="w-3.5 h-3.5 text-indigo-500" />
@@ -227,10 +321,7 @@ export default function ProfileByIdPage() {
           {/* Horizontal Actions */}
           <div className="mt-6 pl-4 flex gap-3 overflow-x-auto custom-scrollbar pb-2 mx-2">
             {/* Cài zStyle (Placeholder for Settings/Style) */}
-            <button
-              onClick={() => isOwner && (setTabMobile('settings'), setIsMobileSheetOpen(true))}
-              className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform"
-            >
+            <button className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform">
               <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
                 <HiSparkles className="w-5 h-5" />
               </div>
@@ -313,7 +404,6 @@ export default function ProfileByIdPage() {
             Đăng lên Nhật ký
           </button>
         </div>
-
         <MobileProfileSheet
           isOpen={isMobileSheetOpen}
           onClose={() => setIsMobileSheetOpen(false)}
@@ -326,18 +416,35 @@ export default function ProfileByIdPage() {
                   ? 'Thông tin'
                   : tabMobile === 'edit_intro'
                     ? 'Chỉnh sửa lời giới thiệu'
-                    : 'Cài đặt'
+                    : tabMobile === 'more_actions'
+                      ? displayName
+                      : tabMobile === 'general_settings'
+                        ? 'Cài đặt'
+                        : tabMobile === 'privacy'
+                          ? 'Quyền riêng tư'
+                          : tabMobile === 'account'
+                            ? 'Quản lý tài khoản'
+                            : 'Cài đặt'
+          }
+          headerClassName={tabMobile === 'more_actions' ? 'bg-blue-500 text-white border-blue-500' : undefined}
+          titleClassName={tabMobile === 'more_actions' ? 'text-white' : undefined}
+          backButtonClassName={
+            tabMobile === 'more_actions' ? 'text-white hover:bg-blue-600 active:bg-blue-700' : undefined
           }
           rightAction={
             tabMobile === 'edit_intro' ? (
               <button
                 onClick={() => {
-                  setOverviewData({ ...overviewData, title: introText });
+                  handleUpdateProfile('bio', introText);
                   setIsMobileSheetOpen(false);
                 }}
                 className="text-blue-600 font-bold text-base"
               >
                 Lưu
+              </button>
+            ) : tabMobile === 'general_settings' ? (
+              <button className="text-gray-800">
+                <HiOutlineMagnifyingGlass className="w-6 h-6" />
               </button>
             ) : undefined
           }
@@ -367,12 +474,117 @@ export default function ProfileByIdPage() {
                 <span className="text-gray-600 font-medium">Chia sẻ lên nhật ký</span>
               </div>
             </div>
+          ) : tabMobile === 'more_actions' ? (
+            <div className="bg-gray-50 min-h-[50vh] pb-8">
+              {/* Group 1 */}
+              <div className="bg-white">
+                <button
+                  onClick={() => setTabMobile('info')}
+                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                >
+                  Thông tin
+                </button>
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                >
+                  Đổi ảnh đại diện
+                </button>
+                <button
+                  onClick={() => backgroundInputRef.current?.click()}
+                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                >
+                  Đổi ảnh bìa
+                </button>
+                <button
+                  onClick={() => {
+                    setTabMobile('edit_intro');
+                    setIntroText(displayBio || '');
+                  }}
+                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                >
+                  Cập nhật giới thiệu bản thân
+                </button>
+                <button
+                  onClick={() => alert('Tính năng Ví của tôi đang được phát triển')}
+                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 active:bg-gray-100"
+                >
+                  Ví của tôi
+                </button>
+              </div>
+
+              {/* Spacer */}
+              <div className="h-2 bg-transparent"></div>
+
+              {/* Group 2 */}
+              <div className="bg-white">
+                <div className="px-4 py-3 text-blue-500 font-medium text-sm border-b border-gray-100">Cài đặt</div>
+                <button
+                  onClick={() => setTabMobile('qr')}
+                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                >
+                  Mã QR của tôi
+                </button>
+                <button
+                  onClick={() => setTabMobile('privacy')}
+                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                >
+                  Quyền riêng tư
+                </button>
+                <button
+                  onClick={() => setTabMobile('account')}
+                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                >
+                  Quản lý tài khoản
+                </button>
+                <button
+                  onClick={() => setTabMobile('settings')}
+                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 active:bg-gray-100"
+                >
+                  Cài đặt chung
+                </button>
+              </div>
+            </div>
+          ) : tabMobile === 'privacy' ? (
+            <div className="flex flex-col bg-gray-100 min-h-[80vh]">
+              <div className="bg-white mb-2 mt-2">
+                <button className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100 last:border-0">
+                  <span className="text-base text-gray-800">Nhật ký</span>
+                  <span className="text-gray-500 text-sm">Công khai</span>
+                </button>
+                <button className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100 last:border-0">
+                  <span className="text-base text-gray-800">Tin nhắn</span>
+                  <span className="text-gray-500 text-sm">Mọi người</span>
+                </button>
+                <button className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100 last:border-0">
+                  <span className="text-base text-gray-800">Sinh nhật</span>
+                  <span className="text-gray-500 text-sm">Bạn bè</span>
+                </button>
+              </div>
+            </div>
+          ) : tabMobile === 'account' ? (
+            <div className="flex flex-col bg-gray-100 min-h-[80vh]">
+              <div className="bg-white mb-2 mt-2">
+                <button className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100 last:border-0">
+                  <span className="text-base text-gray-800">Thông tin tài khoản</span>
+                  <HiChevronRight className="w-5 h-5 text-gray-400" />
+                </button>
+                <button className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100 last:border-0">
+                  <span className="text-base text-gray-800">Đổi mật khẩu</span>
+                  <HiChevronRight className="w-5 h-5 text-gray-400" />
+                </button>
+                <button className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100 last:border-0">
+                  <span className="text-base text-red-500">Xóa tài khoản</span>
+                  <HiChevronRight className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+            </div>
           ) : (
             <ProfileContent
               tab={tabMobile}
               isOwner={!!isOwner}
               overviewData={overviewData}
-              handleOverviewData={(data) => setOverviewData(data as Parameters<typeof setOverviewData>[0])}
+              handleOverviewData={handleProfileUpdate}
             />
           )}
         </MobileProfileSheet>
@@ -398,10 +610,56 @@ export default function ProfileByIdPage() {
               </h1>
               {departmentLabel && (
                 <p className="mt-3 text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  {departmentLabel}
+                  {departmentLabel} {displayTitle ? `- ${displayTitle}` : ''}
                 </p>
               )}
-              {displayTitle && <p className="mt-2 text-base text-gray-600 font-medium">{displayTitle}</p>}
+              {displayBio && <p className="mt-2 text-base text-gray-600 font-medium">{displayBio}</p>}
+
+              {/* Info Tags - Desktop */}
+              <div className="flex flex-wrap justify-center gap-2 mt-4 w-full px-4 mb-4">
+                {(overviewData.title || displayTitle) && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
+                    <HiBriefcase className="w-3.5 h-3.5 text-purple-500" />
+                    {overviewData.title || displayTitle}
+                  </div>
+                )}
+                {(overviewData.department || displayDept) && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
+                    <HiBuildingOffice2 className="w-3.5 h-3.5 text-orange-500" />
+                    {departmentLabel}
+                  </div>
+                )}
+                {overviewData.gender && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
+                    <HiUserCircle className="w-3.5 h-3.5 text-indigo-500" />
+                    {overviewData.gender}
+                  </div>
+                )}
+                {overviewData.birthday && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
+                    <HiCalendar className="w-3.5 h-3.5 text-pink-500" />
+                    {overviewData.birthday}
+                  </div>
+                )}
+                {overviewData.phone && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
+                    <HiPhone className="w-3.5 h-3.5 text-green-500" />
+                    {overviewData.phone}
+                  </div>
+                )}
+                {overviewData.email && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
+                    <HiEnvelope className="w-3.5 h-3.5 text-blue-500" />
+                    <span className="truncate max-w-[150px]">{overviewData.email}</span>
+                  </div>
+                )}
+                {overviewData.address && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors cursor-default">
+                    <HiMapPin className="w-3.5 h-3.5 text-red-500" />
+                    <span className="truncate max-w-[150px]">{overviewData.address}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Tabs trái (chỉ owner) */}
@@ -421,7 +679,7 @@ export default function ProfileByIdPage() {
                   tab={tabLeft}
                   isOwner={true}
                   overviewData={overviewData}
-                  handleOverviewData={(data) => setOverviewData(data as Parameters<typeof setOverviewData>[0])}
+                  handleOverviewData={handleProfileUpdate}
                 />
               </div>
             )}
@@ -441,7 +699,7 @@ export default function ProfileByIdPage() {
                 tab={tabRight}
                 isOwner={!!isOwner}
                 overviewData={overviewData}
-                handleOverviewData={(data) => setOverviewData(data as Parameters<typeof setOverviewData>[0])}
+                handleOverviewData={handleProfileUpdate}
               />
             </div>
           </div>

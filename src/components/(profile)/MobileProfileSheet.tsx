@@ -10,9 +10,21 @@ interface MobileProfileSheetProps {
   title: string;
   children: React.ReactNode;
   rightAction?: React.ReactNode;
+  headerClassName?: string;
+  titleClassName?: string;
+  backButtonClassName?: string;
 }
 
-export default function MobileProfileSheet({ isOpen, onClose, title, children, rightAction }: MobileProfileSheetProps) {
+export default function MobileProfileSheet({
+  isOpen,
+  onClose,
+  title,
+  children,
+  rightAction,
+  headerClassName = '',
+  titleClassName = '',
+  backButtonClassName = '',
+}: MobileProfileSheetProps) {
   const [mounted, setMounted] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -55,15 +67,21 @@ export default function MobileProfileSheet({ isOpen, onClose, title, children, r
         }`}
       >
         {/* Header */}
-        <div className="flex-none px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
+        <div
+          className={`flex-none px-4 py-3 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10 ${
+            headerClassName || 'bg-white/80 backdrop-blur-md'
+          }`}
+        >
           <button
             onClick={onClose}
-            className="p-2 -ml-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
+            className={`p-2 -ml-2 rounded-full transition-colors ${
+              backButtonClassName || 'text-gray-600 hover:bg-gray-100 active:bg-gray-200'
+            }`}
           >
             <HiChevronLeft className="w-6 h-6" />
           </button>
 
-          <h2 className="text-lg font-bold text-gray-800 flex-1 text-center pr-8">{title}</h2>
+          <h2 className={`text-lg font-bold flex-1 text-center pr-8 ${titleClassName || 'text-gray-800'}`}>{title}</h2>
           {rightAction && <div className="absolute right-4">{rightAction}</div>}
         </div>
 

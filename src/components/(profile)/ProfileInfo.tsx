@@ -8,6 +8,8 @@ import { useToast } from '@/components/base/toast';
 import ProfileInfoView from './ProfileInfoView';
 import ProfileInfoEdit from './ProfileInfoEdit';
 
+import { HiPencil } from 'react-icons/hi2';
+
 export function ProfileInfo({
   onDataChange,
   isOwner: isOwnerProp,
@@ -28,6 +30,7 @@ export function ProfileInfo({
     title: '',
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -85,6 +88,7 @@ export function ProfileInfo({
       localStorage.setItem('info_user', JSON.stringify({ ...currentUser, ...form }));
       onDataChange?.(form);
       toast({ type: 'success', message: 'Đã lưu thông tin!' });
+      setIsEditing(false);
     } catch (err: unknown) {
       toast({ type: 'error', message: (err as Error).message || 'Lỗi hệ thống' });
     } finally {
@@ -94,10 +98,81 @@ export function ProfileInfo({
 
   if (!mounted) return null;
 
-  return isOwner ? (
-    <ProfileInfoEdit form={form} setForm={setForm} isSaving={isSaving} onSave={handleSave} />
-  ) : (
-    <ProfileInfoView form={form} />
+  if (!isOwner) return <ProfileInfoView form={form} />;
+
+  if (isEditing) {
+    return <ProfileInfoEdit form={form} setForm={setForm} isSaving={isSaving} onSave={handleSave} />;
+  }
+
+  const departmentOptions = [
+    { value: '101', label: 'Kinh doanh' },
+    { value: '102', label: 'Marketing' },
+    { value: '103', label: 'Kỹ thuật' },
+    { value: '104', label: 'Nhân sự' },
+    { value: '105', label: 'Tài chính' },
+  ];
+  const deptLabel =
+    departmentOptions.find((o) => o.value === String(form.department))?.label || form.department || 'Chưa cập nhật';
+
+  return (
+    <div className="bg-white rounded-lg p-4">
+      <h3 className="text-lg font-bold text-gray-900 mb-4">Thông tin cá nhân</h3>
+
+      <div className="space-y-4">
+        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+          <span className="text-gray-500 w-32">Tên hiển thị</span>
+          <span className="text-gray-900 font-medium flex-1 text-right">{form.name || 'Chưa cập nhật'}</span>
+        </div>
+
+        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+          <span className="text-gray-500 w-32">Giới tính</span>
+          <span className="text-gray-900 font-medium flex-1 text-right">{form.gender || 'Chưa cập nhật'}</span>
+        </div>
+
+        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+          <span className="text-gray-500 w-32">Ngày sinh</span>
+          <span className="text-gray-900 font-medium flex-1 text-right">{form.birthday || 'Chưa cập nhật'}</span>
+        </div>
+
+        <div className="py-2 border-b border-gray-100">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 w-32">Điện thoại</span>
+            <span className="text-gray-900 font-medium flex-1 text-right">{form.phone || 'Chưa cập nhật'}</span>
+          </div>
+          <p className="text-xs text-gray-500 mt-2 pl-32">
+            Số điện thoại chỉ hiển thị với người có lưu số bạn trong danh bạ máy
+          </p>
+        </div>
+
+        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+          <span className="text-gray-500 w-32">Email</span>
+          <span className="text-gray-900 font-medium flex-1 text-right">{form.email || 'Chưa cập nhật'}</span>
+        </div>
+
+        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+          <span className="text-gray-500 w-32">Địa chỉ</span>
+          <span className="text-gray-900 font-medium flex-1 text-right">{form.address || 'Chưa cập nhật'}</span>
+        </div>
+
+        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+          <span className="text-gray-500 w-32">Phòng ban</span>
+          <span className="text-gray-900 font-medium flex-1 text-right">{deptLabel}</span>
+        </div>
+
+        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+          <span className="text-gray-500 w-32">Chức vụ</span>
+          <span className="text-gray-900 font-medium flex-1 text-right">{form.title || 'Chưa cập nhật'}</span>
+        </div>
+      </div>
+
+      <button
+        onClick={() => setIsEditing(true)}
+        className="w-full mt-6 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 rounded-full flex items-center justify-center gap-2 transition-colors"
+      >
+        <HiPencil className="w-4 h-4" />
+        Chỉnh sửa
+      </button>
+    </div>
   );
 }
 
