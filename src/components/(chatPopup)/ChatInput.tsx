@@ -615,18 +615,35 @@ export default function ChatInput({
               updateSlashState();
             }}
             onTouchMove={(e) => {
-              e.preventDefault();
+              // Chỉ cho phép cuộn nếu element có overflow
+              const el = e.currentTarget as HTMLDivElement;
+              if (el.scrollHeight > el.clientHeight) {
+                e.stopPropagation(); // Ngăn bubble lên parent
+                // KHÔNG preventDefault() để cho phép cuộn nội bộ
+              } else {
+                e.preventDefault(); // Chặn khi không cần cuộn
+              }
             }}
             onWheel={(e) => {
-              e.preventDefault();
+              // Tương tự cho wheel
+              const el = e.currentTarget as HTMLDivElement;
+              if (el.scrollHeight > el.clientHeight) {
+                e.stopPropagation();
+              } else {
+                e.preventDefault();
+              }
             }}
-            onScroll={(e) => {
-              try {
-                (e.currentTarget as HTMLDivElement).scrollTop = 0;
-              } catch {}
+            // onScroll={(e) => {
+            //   try {
+            //     (e.currentTarget as HTMLDivElement).scrollTop = 0;
+            //   } catch {}
+            // }}
+            style={{
+              touchAction: 'pan-y', // Cho phép cuộn dọc
+              overscrollBehavior: 'contain', // Ngăn overscroll
+              WebkitOverflowScrolling: 'touch', // Smooth scroll trên iOS
             }}
-            style={{ touchAction: 'none', overscrollBehavior: 'contain' }}
-            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-base text-gray-800 overflow-hidden no-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
+            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-base text-gray-800 overflow-hidden overflow-y-auto w-full max-w-full break-words whitespace-pre-wrap"
             data-placeholder="Nhập tin nhắn..."
           />
 

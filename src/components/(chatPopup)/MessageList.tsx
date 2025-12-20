@@ -20,12 +20,13 @@ import {
   HiUserGroup,
 } from 'react-icons/hi2';
 import { HiPhone, HiVideoCamera, HiArrowDown, HiArrowUp } from 'react-icons/hi2';
-import { HiLink, HiOutlineLogout } from 'react-icons/hi';
+import { HiLink, HiOutlineLogout, HiOutlineShare } from 'react-icons/hi';
 import ReminderDetailModal from './components/ReminderDetailModal';
 import PollDetailModal from './components/PollDetailModal';
 import ReactionButton from './components/ReactionButton';
 import FolderButton from './components/Folder/FolderButton';
 import { ContextMenuState } from './MessageContextMenu';
+import ICShareMessage from '../svg/ICShareMessage';
 
 interface SenderInfo {
   _id: string;
@@ -60,6 +61,7 @@ interface MessageListProps {
   isSidebarOpen?: boolean;
   onMobileLongPress?: (msg: Message, el: HTMLElement, startX: number, startY: number) => void;
   isMobile?: boolean;
+  onShareMessage: (msg: Message) => void;
 }
 
 export default function MessageList({
@@ -89,6 +91,7 @@ export default function MessageList({
   scrollManagedExternally = false,
   isSidebarOpen = false,
   isMobile = false,
+  onShareMessage,
 }: MessageListProps) {
   const [, setTimeVisibleId] = useState<string | null>(null);
   const [expandedOriginalId, setExpandedOriginalId] = useState<string | null>(null);
@@ -267,6 +270,29 @@ export default function MessageList({
                           >
                             {!isRecalled && (
                               <>
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    const batchMsg = {
+                                      ...msg,
+                                      batchItems: mediaGroup.map((m) => ({
+                                        id: m._id,
+                                        content: m.content || '',
+                                        type: m.type === 'video' ? 'video' : 'image',
+                                        fileUrl: m.fileUrl || m.previewUrl,
+                                        fileName: m.fileName,
+                                      })),
+                                    } as Message;
+                                    onShareMessage(batchMsg);
+                                  }}
+                                  className={`absolute cursor-pointer top-1/2 -translate-y-1/2 p-1.5 bg-white/90 rounded-full shadow hover:bg-indigo-50 ${
+                                    isMeGroup ? 'right-full mr-2' : 'left-full ml-2'
+                                  }`}
+                                  aria-label="Chia sẻ nhóm media"
+                                  title="Chia sẻ nhóm media"
+                                >
+                                  <ICShareMessage className="w-4 h-4 text-indigo-600" />
+                                </button>
                                 {!isMobile && (
                                   <>
                                     <button
@@ -274,7 +300,7 @@ export default function MessageList({
                                         e.preventDefault();
                                         onContextMenu(e, msg);
                                       }}
-                                      className={`absolute top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-2' : 'left-full ml-2'} opacity-100 pointer-events-auto`}
+                                      className={`absolute cursor-pointer top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} opacity-100 pointer-events-auto`}
                                       aria-label="Mở menu"
                                       title="Thêm"
                                     >
@@ -290,7 +316,7 @@ export default function MessageList({
                                       onToggleReaction?.(msg, emoji);
                                       setActiveMoreId(null);
                                     }}
-                                    className={`${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} ${
+                                    className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
                                       activeMoreId === msg._id
                                         ? 'opacity-100 pointer-events-auto'
                                         : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
@@ -303,7 +329,7 @@ export default function MessageList({
                                     messageId={String(msg._id)}
                                     isMine={isMeGroup}
                                     visible={activeMoreId === msg._id}
-                                    className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
+                                    className={`${isMeGroup ? 'right-full mr-26' : 'left-full ml-26'} ${
                                       activeMoreId === msg._id
                                         ? 'opacity-100 pointer-events-auto'
                                         : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
@@ -365,11 +391,12 @@ export default function MessageList({
                                       playsInline
                                       preload="metadata"
                                     />
-                                    {!up && (
-                                      <div className="absolute inset-0 flex items-center justify-center opacity-100">
-                                        <div className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow">
-                                          <HiPlay className="w-5 h-5 text-blue-600 ml-0.5" />
-                                        </div>
+                                    
+                                  {!up && (
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                                      <div className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow">
+                                        <HiPlay className="w-5 h-5 text-blue-600 ml-0.5" />
+                                      </div>
                                       </div>
                                     )}
                                     {up && (
@@ -406,6 +433,8 @@ export default function MessageList({
                                         className="w-full h-auto object-cover"
                                       />
                                     )}
+                                    
+                                   
                                     {up && (
                                       <div className="absolute inset-0 bg-black/70 text-white flex items-center justify-center text-sm font-semibold">
                                         {Math.round(prog as number)}%
@@ -1299,9 +1328,9 @@ export default function MessageList({
                         </div>
                       )}
 
-                {/* MAIN BUBBLE */}
-                <div
-                  className={`  
+                      {/* MAIN BUBBLE */}
+                      <div
+                        className={`  
                   px-4 py-2 rounded-lg shadow-md max-w-[50vw] sm:max-w-[17rem] break-words mt-1 
                   ${isMe ? 'bg-[#E5F1FF] text-white' : 'bg-white text-gray-800 border border-gray-200'}
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
@@ -1313,26 +1342,26 @@ export default function MessageList({
                   relative ${hasReactions ? 'mb-4' : ''}
                   ${contextMenu?.visible && String(contextMenu.message._id) === String(msg._id) ? 'z-[9998]' : ''}
                   `}
-                  style={
-                    isMobile &&
-                    contextMenu?.visible &&
-                    String(contextMenu.message._id) === String(msg._id) &&
-                    typeof contextMenu.focusTop === 'number'
-                      ? {
-                          position: 'fixed',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          top: contextMenu.focusTop,
-                          zIndex: 10002,
-                          maxWidth: '75vw',
+                        style={
+                          isMobile &&
+                          contextMenu?.visible &&
+                          String(contextMenu.message._id) === String(msg._id) &&
+                          typeof contextMenu.focusTop === 'number'
+                            ? {
+                                position: 'fixed',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                top: contextMenu.focusTop,
+                                zIndex: 10002,
+                                maxWidth: '75vw',
+                              }
+                            : undefined
                         }
-                      : undefined
-                  }
-                  onClick={() => {
-                    setTimeVisibleId((prev) => (prev === msg._id ? null : msg._id));
-                    setActiveMoreId(msg._id);
-                    setReactionDetail(null);
-                  }}
+                        onClick={() => {
+                          setTimeVisibleId((prev) => (prev === msg._id ? null : msg._id));
+                          setActiveMoreId(msg._id);
+                          setReactionDetail(null);
+                        }}
                         onTouchStart={(e) => {
                           try {
                             longPressTriggeredRef.current = false;
@@ -1383,60 +1412,47 @@ export default function MessageList({
                       >
                         {!isRecalled && (
                           <>
-                            {/* Button menu ba chấm */}
-                              {!isMobile && (
+                            {(msg.type === 'image' || msg.type === 'video') && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  onShareMessage(msg);
+                                }}
+                                className={`absolute top-1/2 -translate-y-1/2  cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMe ? 'right-full mr-2' : 'left-full ml-2'} opacity-100 pointer-events-auto`}
+                                aria-label="Chia sẻ"
+                                title="Chia sẻ"
+                              >
+                                <ICShareMessage className="w-4 h-4 text-indigo-600" />
+                              </button>
+                            )}
+                            {!isMobile && (
+                              <>
                                 <button
                                   onClick={(e) => {
                                     e.preventDefault();
                                     onContextMenu(e, msg);
                                   }}
-                                  className={`
-                                 absolute top-1/2 -translate-y-1/2 z-10
-                                 cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50
-                                 ${isMe ? 'right-full mr-2' : 'left-full ml-2'}
-                                 opacity-100 pointer-events-auto
-                               `}
+                                  className={`absolute top-1/2 -translate-y-1/2 z-10 cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMe ? 'right-full mr-10' : 'left-full ml-10'} opacity-100 pointer-events-auto`}
                                   aria-label="Mở menu"
                                   title="Thêm"
                                 >
                                   <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
                                 </button>
-                              )}
-
-                              {/* Reaction Button - cách xa button menu */}
-                              {!isMobile && (
                                 <ReactionButton
                                   isMine={isMe}
-                                  visible={activeMoreId === msg._id} // Truyền prop visible thay vì dùng className
+                                  visible={activeMoreId === msg._id}
                                   onPick={(emoji) => {
                                     onToggleReaction?.(msg, emoji);
-                                    setActiveMoreId(null); // Đóng sau khi chọn emoji
+                                    setActiveMoreId(null);
                                   }}
-                                  className={`
-                                  ${isMe ? 'right-full mr-10' : 'left-full ml-10'}
-                                  ${
-                                    activeMoreId === msg._id
-                                      ? 'opacity-100 pointer-events-auto'
-                                      : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                  }
-                                  z-[10002]
-                                `}
+                                  className={`absolute top-1/2 -translate-y-1/2  ${isMe ? 'right-full mr-18' : 'left-full ml-18'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'} transition-opacity duration-200`}
                                 />
-                              )}
-                              {!isMobile && (
                                 <FolderButton
                                   roomId={String(msg.roomId)}
                                   messageId={String(msg._id)}
                                   isMine={isMe}
                                   visible={activeMoreId === msg._id}
-                                  className={`
-                              ${isMe ? 'right-full mr-18' : 'left-full ml-18'}
-                              ${
-                                activeMoreId === msg._id
-                                  ? 'opacity-100 pointer-events-auto'
-                                  : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                              }
-                            `}
+                                  className={`absolute top-1/2 -translate-y-1/2  ${isMe ? 'right-full mr-26' : 'left-full ml-26'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'} transition-opacity duration-200`}
                                   preview={
                                     msg.type === 'text'
                                       ? msg.content || ''
@@ -1462,12 +1478,11 @@ export default function MessageList({
                                     setActiveMoreId(null);
                                   }}
                                 />
-                              )}
+                              </>
+                            )}
                           </>
                         )}
-                        {/* {!isRecalled && (
-                      
-                    )} */}
+                
                         {!isRecalled && (
                           <>
                             {(() => {
@@ -1525,19 +1540,15 @@ export default function MessageList({
                                     )}
                                   </div>
 
-                                  {/* Hiệu ứng nổi nhẹ khi hover toàn bộ bubble */}
                                   <div className="absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
                                 </div>
                               );
                             })()}
 
-                            {/* Reaction Detail Popover - Hiển thị danh sách người thả */}
                             {reactionDetail && reactionDetail.msgId === msg._id && (
                               <>
-                                {/* Backdrop để đóng popover */}
                                 <div className="fixed inset-0 z-30" onClick={() => setReactionDetail(null)} />
 
-                                {/* Popover content */}
                                 <div
                                   ref={(el) => {
                                     if (el && reactionDetail.msgId === msg._id) {
@@ -1545,18 +1556,17 @@ export default function MessageList({
                                       if (rect) {
                                         const spaceBelow = window.innerHeight - rect.bottom;
                                         const spaceAbove = rect.top;
-                                        const popoverHeight = 250; // Estimate height
+                                        const popoverHeight = 250;
 
-                                        // Nếu không đủ chỗ ở dưới và có nhiều chỗ hơn ở trên
                                         if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
                                           el.style.bottom = '100%';
                                           el.style.top = 'auto';
-                                          el.style.marginBottom = '0.625rem'; // mb-2.5
+                                          el.style.marginBottom = '0.625rem';
                                           el.style.marginTop = '0';
                                         } else {
                                           el.style.top = '100%';
                                           el.style.bottom = 'auto';
-                                          el.style.marginTop = '0.625rem'; // mt-2.5
+                                          el.style.marginTop = '0.625rem';
                                           el.style.marginBottom = '0';
                                         }
                                       }

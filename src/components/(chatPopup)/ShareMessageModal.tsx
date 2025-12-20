@@ -8,6 +8,7 @@ import { GroupConversation } from '@/types/Group';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 import { Message } from '@/types/Message';
+import { HiPlay } from 'react-icons/hi';
 
 // Mock types
 
@@ -112,15 +113,79 @@ export default function ShareMessageModal({
   };
 
   const renderMessagePreview = () => {
+    const batchItems =
+      (
+        message as unknown as {
+          batchItems?: Array<{
+            id: string;
+            type: 'image' | 'video' | 'file' | 'text';
+            fileUrl?: string;
+            fileName?: string;
+            content?: string;
+          }>;
+        }
+      ).batchItems || [];
+    if (Array.isArray(batchItems) && batchItems.length > 1) {
+      const items = batchItems.slice(0, 6);
+      return (
+        <div>
+          <p className="text-xs text-gray-500 mb-2">{batchItems.length} mục sẽ được chia sẻ</p>
+          <div className="grid grid-cols-10 gap-1">
+            {items.map((it, idx) => {
+              const url = getProxyUrl(String(it.fileUrl || ''));
+              if (it.type === 'image') {
+                return (
+                  <div
+                    key={`share-preview-img-${idx}`}
+                    className="relative w-full max-w-[5rem] aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-100"
+                  >
+                    {url ? (
+                      <Image src={url} alt="Ảnh" width={200} height={200} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100" />
+                    )}
+                  </div>
+                );
+              }
+              if (it.type === 'video') {
+                return (
+                  <div
+                    key={`share-preview-vid-${idx}`}
+                    className="relative w-full max-w-[5rem] aspect-square bg-black rounded-lg overflow-hidden border border-gray-100"
+                  >
+                    {url ? (
+                      <video src={url} preload="metadata" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-900" />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                      <div className=" rounded-full flex items-center justify-center shadow">
+                        <HiPlay className="w-3 h-3 text-blue-600 ml-1" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div
+                  key={`share-preview-other-${idx}`}
+                  className="flex items-center justify-center w-full aspect-square rounded-lg border border-gray-200 bg-white"
+                >
+                  <HiOutlineDocumentText className="w-6 h-6 text-gray-500" />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
     if (message.type === 'text') {
-      const text =
-        (message.content || '').slice(0, 120) +
-        ((message.content || '').length > 120 ? '...' : '');
+      const text = (message.content || '').slice(0, 120) + ((message.content || '').length > 120 ? '...' : '');
       return <p className="text-sm text-gray-700 leading-relaxed">{text}</p>;
     }
- 
+
     const mediaUrl = getProxyUrl(message.fileUrl || message.previewUrl);
- 
+
     if (message.type === 'image' && mediaUrl) {
       return (
         <div className="w-full max-w-[5rem]">
@@ -134,7 +199,7 @@ export default function ShareMessageModal({
         </div>
       );
     }
- 
+
     if (message.type === 'video' && mediaUrl) {
       return (
         <div className="w-full max-w-[7rem]">
@@ -147,7 +212,7 @@ export default function ShareMessageModal({
         </div>
       );
     }
- 
+
     if (message.type === 'file') {
       return (
         <a
@@ -159,17 +224,15 @@ export default function ShareMessageModal({
           <div className="p-2 bg-blue-600 rounded-xl">
             <HiOutlineDocumentText className="w-6 h-6 text-white" />
           </div>
- 
+
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800 truncate">
-              {message.fileName || 'Tệp đính kèm'}
-            </p>
+            <p className="text-sm font-semibold text-gray-800 truncate">{message.fileName || 'Tệp đính kèm'}</p>
             <p className="text-xs text-gray-500 truncate">Nhấn để tải xuống</p>
           </div>
         </a>
       );
     }
- 
+
     if (message.type === 'sticker') {
       return <p className="text-sm text-gray-700">😊 Sticker</p>;
     }
@@ -180,7 +243,7 @@ export default function ShareMessageModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
         {/* Header - Modern gradient */}
         <div className="relative p-2 bg-blue-500 text-white rounded-t-2xl">
           <button
@@ -258,16 +321,12 @@ export default function ShareMessageModal({
                     key={target.id}
                     onClick={() => toggleSelect(target.id)}
                     className={`w-full p-2 mb-2 flex items-center gap-4 transition-all hover:cursor-pointer duration-200 ${
-                      isSelected
-                        ? 'bg-blue-50   '
-                        : 'hover:bg-gray-50 border-l-2 border-transparent'
+                      isSelected ? 'bg-blue-50   ' : 'hover:bg-gray-50 border-l-2 border-transparent'
                     }`}
                   >
                     {/* Avatar with selection indicator */}
                     <div className="relative flex-shrink-0">
-                      <div
-                        className={`w-10 h-10 rounded-full overflow-hidden  transition-all duration-200 `}
-                      >
+                      <div className={`w-10 h-10 rounded-full overflow-hidden  transition-all duration-200 `}>
                         {target.avatar ? (
                           <Image
                             src={getProxyUrl(target.avatar)}

@@ -20,7 +20,7 @@ export default function ReplyBanner({ replyingTo, getSenderName, onCancel }: Rep
         <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
           Trả lời {getSenderName(replyingTo.sender)}
         </div>
-        <p className="truncate text-xs text-gray-700">
+        <p className="text-xs text-gray-700 w-full">
           {replyingTo.isRecalled ? 'đã thu hồi tin nhắn' : replyingTo.content || `[${replyingTo.type}]`}
         </p>
       </div>

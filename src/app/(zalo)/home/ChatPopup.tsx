@@ -2212,73 +2212,133 @@ export default function ChatWindow({
   }, []);
 
   const handleShareToRooms = useCallback(
-    async (targetRoomIds: string[], message: Message) => {
+    async (targetRoomIds: string[], message: Message, attachedText?: string) => {
       try {
-        // Tạo nội dung tin nhắn share
         let shareContent = '';
         const originalSenderName = getSenderName(message.sender);
+        if (message.type === 'text') shareContent = message.content || '';
 
-        if (message.type === 'text') {
-          shareContent = message.content || '';
-        }
+        const batchItems =
+          (message as unknown as {
+            batchItems?: Array<{
+              id: string;
+              type: MessageCreate['type'];
+              fileUrl?: string;
+              fileName?: string;
+              content?: string;
+            }>;
+          }).batchItems || [];
+
         const safeGroups = Array.isArray(groups) ? groups : [];
-        // Gửi tin nhắn đến từng room
         for (const targetRoomId of targetRoomIds) {
           const isGroupChat = safeGroups.some((g) => String(g._id) === String(targetRoomId));
 
-          const newMsg: MessageCreate = {
-            roomId: targetRoomId,
-            sender: currentUser._id,
-            type: message.type,
-            content: message.type === 'text' ? shareContent : message.content,
-            fileUrl: message.fileUrl,
-            fileName: message.fileName,
-            timestamp: Date.now(),
-            // Thêm metadata về shared message
-            sharedFrom: {
-              messageId: String(message._id),
-              originalSender: originalSenderName,
-              originalRoomId: String(message.roomId),
-            },
-          };
+          const sockBase = isGroupChat
+            ? {
+                roomId: targetRoomId,
+                sender: currentUser._id,
+                senderName: currentUser.name,
+                isGroup: true,
+                receiver: null,
+                members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
+              }
+            : {
+                roomId: targetRoomId,
+                sender: currentUser._id,
+                senderName: currentUser.name,
+                isGroup: false,
+                receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
+                members: [],
+              };
 
-          // Gọi API tạo tin nhắn
-          const res = await fetch('/api/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'create',
-              data: newMsg,
-            }),
-          });
-
-          const json = await res.json();
-
-          if (json.success && typeof json._id === 'string') {
-            // Emit socket
-            const sockBase = isGroupChat
-              ? {
-                  roomId: targetRoomId,
-                  sender: currentUser._id,
-                  senderName: currentUser.name,
-                  isGroup: true,
-                  receiver: null,
-                  members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
-                }
-              : {
-                  roomId: targetRoomId,
-                  sender: currentUser._id,
-                  senderName: currentUser.name,
-                  isGroup: false,
-                  receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
-                  members: [],
-                };
-
-            socketRef.current?.emit('send_message', {
-              ...sockBase,
-              ...newMsg,
-              _id: json._id,
+          const attached = String(attachedText || '').trim();
+          if (attached.length > 0) {
+            const attachMsg: MessageCreate = {
+              roomId: targetRoomId,
+              sender: currentUser._id,
+              type: 'text',
+              content: attached,
+              timestamp: Date.now(),
+            };
+            const r = await fetch('/api/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'create', data: attachMsg }),
             });
+            const jr = await r.json();
+            if (jr?.success && typeof jr?._id === 'string') {
+              socketRef.current?.emit('send_message', {
+                ...sockBase,
+                ...attachMsg,
+                _id: jr._id,
+              });
+            }
+          }
+
+          if (Array.isArray(batchItems) && batchItems.length > 0) {
+            for (const it of batchItems) {
+              const newMsg: MessageCreate = {
+                roomId: targetRoomId,
+                sender: currentUser._id,
+                type: it.type,
+                content: it.type === 'text' ? String(it.content || '') : message.content,
+                fileUrl: it.fileUrl,
+                fileName: it.fileName,
+                timestamp: Date.now(),
+                sharedFrom: {
+                  messageId: String(message._id),
+                  originalSender: originalSenderName,
+                  originalRoomId: String(message.roomId),
+                },
+              };
+              const res = await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create',
+                  data: newMsg,
+                }),
+              });
+              const json = await res.json();
+              if (json?.success && typeof json?._id === 'string') {
+                socketRef.current?.emit('send_message', {
+                  ...sockBase,
+                  ...newMsg,
+                  _id: json._id,
+                });
+              }
+            }
+          } else {
+            const newMsg: MessageCreate = {
+              roomId: targetRoomId,
+              sender: currentUser._id,
+              type: message.type,
+              content: message.type === 'text' ? shareContent : message.content,
+              fileUrl: message.fileUrl,
+              fileName: message.fileName,
+              timestamp: Date.now(),
+              sharedFrom: {
+                messageId: String(message._id),
+                originalSender: originalSenderName,
+                originalRoomId: String(message.roomId),
+              },
+            };
+            const res = await fetch('/api/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create',
+                data: newMsg,
+              }),
+            });
+            const json = await res.json();
+            if (json.success && typeof json._id === 'string') {
+              socketRef.current?.emit('send_message', {
+                ...sockBase,
+                ...newMsg,
+                _id: json._id,
+              });
+            }
           }
         }
       } catch (error) {
@@ -2462,6 +2522,7 @@ export default function ChatWindow({
               </div>
             )}
             <MessageList
+              onShareMessage={handleShareMessage}
               messagesGrouped={messagesGrouped}
               messages={messages}
               currentUser={currentUser}
