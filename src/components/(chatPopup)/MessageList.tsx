@@ -177,7 +177,7 @@ export default function MessageList({
                 if (consumedIds.has(msg._id)) return null;
                 const isLastMsg = msg._id === messages[messages.length - 1]?._id;
                 const senderInfo = getSenderInfo(msg.sender);
-                const isMe = senderInfo._id === currentUser._id;
+                const isMe = String(senderInfo._id) === String(currentUser._id);
                 const repliedToMsg = msg.replyToMessageId ? messages.find((m) => m._id === msg.replyToMessageId) : null;
 
                 const uploadProgress = uploadingFiles[msg._id];
@@ -217,7 +217,7 @@ export default function MessageList({
                   if (mediaGroup.length > 1) {
                     mediaGroup.slice(1).forEach((m) => consumedIds.add(m._id));
                     const lastInGroup = mediaGroup[mediaGroup.length - 1];
-                    const isMeGroup = senderInfo._id === currentUser._id;
+                    const isMeGroup = String(senderInfo._id) === String(currentUser._id);
                     const groupIsLast = lastInGroup._id === messages[messages.length - 1]?._id;
                     return (
                       <div
@@ -531,7 +531,7 @@ export default function MessageList({
                   if (fileGroup.length > 1) {
                     fileGroup.slice(1).forEach((m) => consumedIds.add(m._id));
                     const lastInGroup = fileGroup[fileGroup.length - 1];
-                    const isMeGroup = senderInfo._id === currentUser._id;
+                    const isMeGroup = String(senderInfo._id) === String(currentUser._id);
                     const groupIsLast = lastInGroup._id === messages[messages.length - 1]?._id;
                     return (
                       <div
@@ -931,7 +931,8 @@ export default function MessageList({
                   // Hiển thị rõ tên người join bằng link (clickable) — luôn ưu tiên tên thật
                   let displayNode: React.ReactNode = <p className="text-xs text-gray-500 truncate">{display}</p>;
                   if (isJoinByLink) {
-                    const actualName = senderInfo._id === currentUser._id ? currentUser.name || nameLabel : nameLabel;
+                    const actualName =
+                      String(senderInfo._id) === String(currentUser._id) ? currentUser.name || nameLabel : nameLabel;
                     const needle = 'đã tham gia nhóm';
                     const idx = rawLower.indexOf(needle);
                     const tail = idx > -1 ? rawDisplay.slice(idx) : 'đã tham gia nhóm qua link mời';

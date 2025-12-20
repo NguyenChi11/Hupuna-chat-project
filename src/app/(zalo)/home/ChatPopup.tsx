@@ -1203,7 +1203,7 @@ export default function ChatWindow({
         showMessageNotification(data);
         void markAsReadApi(roomId, String(currentUser._id));
       }
-      const shouldScroll = data.sender === currentUser._id || isAtBottomRef.current;
+      const shouldScroll = String(data.sender) === String(currentUser._id) || isAtBottomRef.current;
       if (shouldScroll) {
         setTimeout(() => {
           const el = messagesContainerRef.current;
@@ -1929,7 +1929,7 @@ export default function ChatWindow({
       const mentionMatch = part.match(/@\[([^\]]+)\]\(([^)]+)\)/);
       if (mentionMatch) {
         const [, displayName, userId] = mentionMatch;
-        const isMentioningMe = userId === currentUser._id;
+        const isMentioningMe = userId === String(currentUser._id);
 
         return (
           <span
