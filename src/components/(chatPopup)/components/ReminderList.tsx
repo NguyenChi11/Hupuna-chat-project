@@ -68,10 +68,10 @@ export default function ReminderList({ onClose }: ReminderListProps) {
   }, [openMenuId]);
 
   useEffect(() => {
-       const socket = io(resolveSocketUrl(), { 
-                transports: ['websocket'], 
-                withCredentials: false 
-          });
+    const socket = io(resolveSocketUrl(), {
+      transports: ['websocket'],
+      withCredentials: false,
+    });
     socket.emit('join_room', roomId);
 
     socket.on('receive_message', (data: Message) => {
@@ -182,10 +182,10 @@ export default function ReminderList({ onClose }: ReminderListProps) {
       });
 
       if (createRes?.success) {
-           const socket = io(resolveSocketUrl(), { 
-                    transports: ['websocket'], 
-                    withCredentials: false 
-              });
+        const socket = io(resolveSocketUrl(), {
+          transports: ['websocket'],
+          withCredentials: false,
+        });
         const receiver = isGroup ? null : String((selectedChat as User)._id);
         const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
         const sockBase = {
@@ -232,7 +232,6 @@ export default function ReminderList({ onClose }: ReminderListProps) {
         }
         socket.disconnect();
         await load();
-
       } else {
         alert('Tạo lịch hẹn thất bại. Vui lòng kiểm tra kết nối máy chủ.');
       }
@@ -251,10 +250,10 @@ export default function ReminderList({ onClose }: ReminderListProps) {
 
     try {
       await deleteMessageApi(String(item._id));
-           const socket = io(resolveSocketUrl(), { 
-                    transports: ['websocket'], 
-                    withCredentials: false 
-              });
+      const socket = io(resolveSocketUrl(), {
+        transports: ['websocket'],
+        withCredentials: false,
+      });
       socket.emit('message_deleted', { _id: item._id, roomId });
       socket.disconnect();
       setOpenMenuId(null); // 🔥 Đóng menu sau khi xóa
@@ -429,11 +428,12 @@ export default function ReminderList({ onClose }: ReminderListProps) {
         </div>
       </div>
 
-      <CreateReminderModal 
-       isOpen={showCreate}
-       onClose={() => setShowCreate(false)}
+      <CreateReminderModal
+        isOpen={showCreate}
+        onClose={() => setShowCreate(false)}
         onCreate={handleCreate}
-         createLoading={create} />
+        createLoading={create}
+      />
 
       <ReminderDetailModal
         isOpen={!!detailMsg}

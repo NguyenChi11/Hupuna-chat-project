@@ -208,7 +208,13 @@ export default function ChatWindow({
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
-  const chatName = selectedChat.name;
+
+  const chatName = useMemo(() => {
+    if (isGroup) return selectedChat.name;
+    const user = selectedChat as User;
+    const myId = String(currentUser._id || (currentUser as { id?: string })?.id || '');
+    return user.nicknames?.[myId] || user.name || user.username || 'Người dùng';
+  }, [selectedChat, isGroup, currentUser]);
 
   const [showSearchSidebar, setShowSearchSidebar] = useState(false);
   const chatAvatar = (selectedChat as { avatar?: string }).avatar;
@@ -1155,21 +1161,28 @@ export default function ChatWindow({
 
   const allUsersMap = useMemo(() => {
     const map = new Map<string, string>();
+    const myId = String(currentUser?._id || '');
+
     if (currentUser) {
       const name = currentUser.name || 'Bạn';
       if (currentUser._id) map.set(String(currentUser._id), name);
     }
     if (Array.isArray(allUsers)) {
       allUsers.forEach((user) => {
-        if (user.name) {
-          if (user._id) map.set(String(user._id), user.name);
+        const nickname = user.nicknames?.[myId];
+        const displayName = nickname || user.name;
+        if (displayName) {
+          if (user._id) map.set(String(user._id), displayName);
         }
       });
     }
 
     if (isGroup && Array.isArray(activeMembers)) {
       activeMembers.forEach((mem) => {
-        if (mem._id) map.set(String(mem._id), mem.name || 'Thành viên');
+        const memUser = mem as unknown as User;
+        const nickname = memUser.nicknames?.[myId];
+        const displayName = nickname || memUser.name || 'Thành viên';
+        if (mem._id) map.set(String(mem._id), displayName);
       });
     }
     return map;
@@ -1724,18 +1737,24 @@ export default function ChatWindow({
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const getSenderName = (sender: User | string): string => {
-    if (typeof sender === 'object' && sender && 'name' in sender && (sender as User).name) {
-      return (sender as User).name as string;
-    }
     const id = normalizeId(sender);
+
+    // 1. Ưu tiên tìm trong map (đã có nickname)
     const direct = allUsersMap.get(id);
     if (direct) return direct;
+
     const asNumber = Number(id);
     if (!Number.isNaN(asNumber)) {
       const numericKey = String(asNumber);
       const val = allUsersMap.get(numericKey);
       if (val) return val;
     }
+
+    // 2. Fallback nếu là object (user lạ chưa có trong list?)
+    if (typeof sender === 'object' && sender && 'name' in sender && (sender as User).name) {
+      return (sender as User).name as string;
+    }
+
     return 'Người dùng';
   };
 
@@ -1879,44 +1898,24 @@ export default function ChatWindow({
       };
     }
 
-    // 2. Tìm trong allUsers array
-    const foundUser = allUsers.find((u) => compareIds(u._id || u.id, senderId));
-    if (foundUser) {
-      return {
-        _id: senderId,
-        name: foundUser.name || 'Người dùng',
-        avatar: foundUser.avatar ?? null,
-      };
-    }
-
-    // 3. Tìm trong activeMembers (cho group chat)
-    if (isGroup && Array.isArray(activeMembers)) {
-      const foundMember = activeMembers.find((m) => compareIds(m._id || m.id, senderId));
-      if (foundMember) {
-        return {
-          _id: senderId,
-          name: foundMember.name || 'Thành viên',
-          avatar: foundMember.avatar ?? null,
-        };
-      }
-    }
-
-    // 4. Nếu sender là object có đầy đủ data, dùng luôn
-    if (typeof sender === 'object' && sender !== null && 'name' in sender && sender.name) {
-      return {
-        _id: senderId,
-        name: sender.name,
-        avatar: sender.avatar ?? null,
-      };
-    }
-
-    // 5. Fallback cuối cùng - dùng allUsersMap
+    // 2. Ưu tiên lấy tên từ map (đã xử lý nickname)
     const mapName = allUsersMap.get(senderId) || allUsersMap.get(String(Number(senderId)));
+
+    // 3. Tìm user object để lấy avatar
+    const foundUser = allUsers.find((u) => compareIds(u._id || u.id, senderId));
+    const foundMember =
+      isGroup && Array.isArray(activeMembers) ? activeMembers.find((m) => compareIds(m._id || m.id, senderId)) : null;
+
+    const userObj = foundUser || foundMember;
+    const senderObj = typeof sender === 'object' && sender !== null ? sender : null;
+
+    const finalName = mapName || userObj?.name || senderObj?.name || 'Người dùng';
+    const finalAvatar = userObj?.avatar || senderObj?.avatar || null;
 
     return {
       _id: senderId,
-      name: mapName || 'Người dùng',
-      avatar: null,
+      name: finalName,
+      avatar: finalAvatar,
     };
   };
   // Render tin nhắn với highlight mentions + link clickable

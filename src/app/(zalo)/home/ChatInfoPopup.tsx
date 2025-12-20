@@ -328,6 +328,30 @@ export default function ChatInfoPopup({
     return data.inviteCode;
   }, [isGroup, selectedChat, reLoad]);
 
+  const handleUpdateNickname = useCallback(
+    async (nickname: string) => {
+      if (!selectedChat?._id || !currentUser?._id) return;
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'updateNickname',
+            roomId: (selectedChat as User)._id,
+            currentUserId: currentUser._id,
+            data: { nickname },
+          }),
+        });
+
+        if (!res.ok) throw new Error();
+        reLoad?.();
+      } catch {
+        alert('Cập nhật biệt danh thất bại');
+      }
+    },
+    [selectedChat, currentUser, reLoad],
+  );
+
   return (
     <>
       {isReminderOpen ? (
@@ -364,8 +388,14 @@ export default function ChatInfoPopup({
                 />
               ) : (
                 <UserAvatarSection
-                  userName={(selectedChat as User).name || (selectedChat as User).username || 'Người dùng'}
+                  userName={
+                    (selectedChat as User).nicknames?.[myId] ||
+                    (selectedChat as User).name ||
+                    (selectedChat as User).username ||
+                    'Người dùng'
+                  }
                   userAvatar={(selectedChat as User).avatar}
+                  onUpdateNickname={handleUpdateNickname}
                 />
               )}
 

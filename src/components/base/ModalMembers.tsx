@@ -131,7 +131,9 @@ export default function GroupMembersModal({
           foundUser = userMap.get(String(Number(memberId)));
         }
 
-        const name = raw.name || foundUser?.name || 'Thành viên';
+        const myId = normalizeId(currentUser._id || currentUser.id);
+        const nickname = foundUser?.nicknames?.[myId];
+        const name = nickname || raw.name || foundUser?.name || 'Thành viên';
         const avatar = raw.avatar || foundUser?.avatar;
 
         return {
