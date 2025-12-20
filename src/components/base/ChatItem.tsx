@@ -147,7 +147,7 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
         onTouchCancel={clearLongPressTimer}
         onTouchMove={handleTouchMove}
         className={`
-          group relative mx-3 my-2 rounded-3xl transition-all duration-300 cursor-pointer
+          group relative mx-3 my-2 rounded-xl transition-all duration-300 cursor-pointer
           ${
             isSelected
               ? 'bg-gradient-to-r from-indigo-100 to-purple-100 shadow-xl ring-2 ring-indigo-300'
@@ -157,12 +157,12 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
           active:scale-98
         `}
       >
-        <div className="flex items-center gap-4 py-4 px-2 md:py-2 ">
+        <div className="flex items-center gap-4 py-3 px-2 md:py-2 ">
           {/* Avatar + Online + Group Icon */}
           <div className="relative flex-shrink-0">
             <div
               className={`
-                w-12 h-12 rounded-3xl overflow-hidden ring-2 ring-white shadow-2xl flex items-center justify-center text-white font-bold text-2xl
+                w-14 h-14 rounded-4xl overflow-hidden ring-2 ring-white shadow-2xl flex items-center justify-center text-white font-bold text-2xl
                 ${
                   isGroup
                     ? 'bg-gradient-to-br from-sky-500 via-blue-500 to-blue-500'
@@ -215,11 +215,11 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
           </div>
 
           {/* Nội dung */}
-          <div className="flex-1 min-w-0 ml-2">
+          <div className="flex-1 min-w-0 ml-2  transition-colors duration-150 border-b pb-1 border-gray-200">
             <div className="flex items-center justify-between mb-1">
               <h4
                 className={`
-                  text-lg font-medium truncate max-w-[11rem]
+                  text-[1.28rem] font-medium truncate max-w-[11rem]
                   ${unreadCount > 0 ? 'text-gray-900' : 'text-gray-500'}
                 `}
               >

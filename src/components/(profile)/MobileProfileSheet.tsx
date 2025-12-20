@@ -9,9 +9,10 @@ interface MobileProfileSheetProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  rightAction?: React.ReactNode;
 }
 
-export default function MobileProfileSheet({ isOpen, onClose, title, children }: MobileProfileSheetProps) {
+export default function MobileProfileSheet({ isOpen, onClose, title, children, rightAction }: MobileProfileSheetProps) {
   const [mounted, setMounted] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -63,6 +64,7 @@ export default function MobileProfileSheet({ isOpen, onClose, title, children }:
           </button>
 
           <h2 className="text-lg font-bold text-gray-800 flex-1 text-center pr-8">{title}</h2>
+          {rightAction && <div className="absolute right-4">{rightAction}</div>}
         </div>
 
         {/* Content */}

@@ -335,10 +335,10 @@ export default function MessageList({
                                 return isVid ? (
                                   <div
                                     key={`${m._id}-${idx}`}
-                                    className={`relative bg-black rounded-[0.25rem] overflow-hidden cursor-pointer ${
+                                    className={`relative bg-black rounded-[0.25rem] overflow-hidden cursor-pointer h-[8rem] w-[8rem]  ${
                                       isSidebarOpen
                                         ? 'sm:w-[6rem] sm:h-[6rem] aspect-square'
-                                        : 'sm:aspect-video aspect-square'
+                                        : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
                                     }`}
                                     onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
                                   >

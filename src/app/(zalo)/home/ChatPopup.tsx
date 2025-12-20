@@ -1823,13 +1823,21 @@ export default function ChatWindow({
     try {
       const el = editableRef.current;
       if (el) {
-        el.focus();
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        range.collapse(false);
-        const sel = window.getSelection();
-        sel?.removeAllRanges();
-        sel?.addRange(range);
+        // 🔥 Fix: Nếu có attachment (hasAtt), blur để đóng keyboard trên mobile/tablet
+        if (hasAtt) {
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+        } else {
+          // Nếu chỉ gửi text, focus lại input để user gõ tiếp
+          el.focus();
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          range.collapse(false);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        }
       }
     } catch {}
   };
