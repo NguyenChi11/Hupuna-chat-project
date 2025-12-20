@@ -336,6 +336,18 @@ export default function SidebarMenu() {
           >
             <HiUserGroup className="w-5 h-5" />
           </button>
+          <button
+            onClick={() => {
+              if (userInfo?._id) {
+                navigate(`/profile/${userInfo._id}`, 'profile');
+              } else {
+                console.warn('User info or ID missing');
+              }
+            }}
+            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'profile' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+          >
+            <HiUserCircle className="w-5 h-5" />
+          </button>
         </nav>
 
         {/* Bottom Actions */}
