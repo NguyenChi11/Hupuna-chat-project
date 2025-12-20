@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Message } from '@/types/Message';
 import { User } from '@/types/User';
 import Image from 'next/image';
@@ -11,13 +11,26 @@ interface SearchSidebarProps {
   roomId: string;
   onJumpToMessage: (messageId: string) => void;
   getSenderName: (sender: User | string) => string;
+  initialKeyword?: string | null;
+  onKeywordClear?: () => void;
 }
 
-const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, onJumpToMessage, getSenderName }) => {
+const SearchSidebar: React.FC<SearchSidebarProps> = ({ 
+  isOpen, 
+  onClose, 
+  roomId, 
+  onJumpToMessage, 
+  getSenderName,
+  initialKeyword,
+  onKeywordClear,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Message[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const hasAutoSearchedRef = useRef(false);
+  const lastJumpedTermRef = useRef<string>('');
 
   const fetchSearchResults = useCallback(
     async (query: string) => {
@@ -39,13 +52,24 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
               searchQuery: query.trim(),
               isRecalled: { $ne: true },
               isDeleted: { $ne: true },
+              type: { $ne: 'notify' },
             },
             limit: 100,
             sort: { timestamp: -1 },
           }),
         });
         const data = await res.json();
-        setSearchResults(data.data || []);
+        const results: Message[] = (data.data || []).slice().sort((a: Message, b: Message) => Number(b.timestamp) - Number(a.timestamp));
+        setSearchResults(results);
+        if (results.length > 0) {
+          const term = query.trim();
+          const firstIdx = 0;
+          setCurrentResultIndex(firstIdx);
+          onJumpToMessage(results[firstIdx]._id);
+          lastJumpedTermRef.current = term;
+        } else {
+          setCurrentResultIndex(-1);
+        }
       } catch (error) {
         console.error('Fetch search results error:', error);
         setSearchResults([]);
@@ -53,36 +77,74 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
         setIsSearching(false);
       }
     },
-    [roomId],
+    [roomId, onJumpToMessage],
   );
-  // 🔥 THÊM LOGIC DEBOUNCING DÙNG useEffect
   useEffect(() => {
-    // 1. Nếu searchTerm rỗng, xóa kết quả ngay lập tức
-    if (!searchTerm.trim()) {
-      setSearchResults([]);
+    if (initialKeyword && initialKeyword.trim() && !hasAutoSearchedRef.current && isOpen) {
+      setSearchTerm(initialKeyword);
+      hasAutoSearchedRef.current = true;
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      fetchSearchResults(initialKeyword);
+    }
+  }, [initialKeyword, isOpen, fetchSearchResults]);
+
+  // Reset when sidebar closes
+  useEffect(() => {
+    if (!isOpen) {
+      hasAutoSearchedRef.current = false;
+      setCurrentResultIndex(-1);
+      if (onKeywordClear) {
+        onKeywordClear();
+      }
+    }
+  }, [isOpen, onKeywordClear]);
+
+  useEffect(() => {
+    if (initialKeyword && searchTerm === initialKeyword && hasAutoSearchedRef.current) {
       return;
     }
 
-    // 2. Thiết lập timer: Trì hoãn gọi API 500ms
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      setCurrentResultIndex(-1);
+      return;
+    }
+
     const handler = setTimeout(() => {
       fetchSearchResults(searchTerm);
-    }, 500); // <-- 500ms (Nửa giây) là thời gian chờ hợp lý
+    }, 500);
 
-    // 3. Hàm cleanup: Xóa timer cũ nếu searchTerm thay đổi trước 500ms
     return () => {
       clearTimeout(handler);
     };
-  }, [searchTerm, fetchSearchResults]); // Chạy lại hiệu ứng mỗi khi searchTerm thay đổi
+  }, [searchTerm, fetchSearchResults, initialKeyword]); 
+  const sortedResults = useMemo(
+    () => searchResults.slice().sort((a, b) => Number(b.timestamp) - Number(a.timestamp)),
+    [searchResults],
+  );
+
+  useEffect(() => {
+    if (sortedResults.length > 0 && currentResultIndex === -1) {
+      setCurrentResultIndex(0);
+    } else if (sortedResults.length === 0) {
+      setCurrentResultIndex(-1);
+    }
+  }, [sortedResults.length, currentResultIndex]);
 
   if (!isOpen) return null;
 
-  const handleJump = (messageId: string) => {
+  const handleJump = (messageId: string, index?: number) => {
+    if (index !== undefined) {
+      setCurrentResultIndex(index);
+    }
     onJumpToMessage(messageId);
     const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
     if (isMobile) {
       setTimeout(() => {
         onClose();
-      }, 0);
+      }, 300);
     } else {
       setTimeout(() => {
         inputRef.current?.focus();
@@ -90,10 +152,50 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
     }
   };
 
+  const handlePrevious = () => {
+    if (sortedResults.length === 0) return;
+    const newIndex = currentResultIndex <= 0 ? sortedResults.length - 1 : currentResultIndex - 1;
+    setCurrentResultIndex(newIndex);
+    handleJump(sortedResults[newIndex]._id, newIndex);
+  };
+
+  const handleNext = () => {
+    if (sortedResults.length === 0) return;
+    const newIndex = currentResultIndex >= sortedResults.length - 1 ? 0 : currentResultIndex + 1;
+    setCurrentResultIndex(newIndex);
+    handleJump(sortedResults[newIndex]._id, newIndex);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       fetchSearchResults(searchTerm);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      handlePrevious();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      handleNext();
     }
+  };
+
+  // Highlight keyword function
+  const highlightKeyword = (text: string, keyword: string) => {
+    if (!keyword.trim() || !text) return text;
+    const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    return (
+      <>
+        {parts.map((part, i) =>
+          regex.test(part) ? (
+            <mark key={i} className="bg-yellow-200 text-yellow-900 px-0.5 rounded font-medium">
+              {part}
+            </mark>
+          ) : (
+            <span key={i}>{part}</span>
+          ),
+        )}
+      </>
+    );
   };
 
   return (
@@ -170,14 +272,12 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
           <p className="text-center text-gray-400 text-sm">Nhập từ khóa để tìm kiếm trong hội thoại này.</p>
         )}
 
-        {searchResults
-          .slice()
-          .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
-          .map((msg: Message) => {
+        {sortedResults.map((msg: Message, index: number) => {
           const isRecalled = msg.isRecalled === true;
           const contentDisplay = isRecalled
             ? 'đã thu hồi tin nhắn'
             : msg.content || `[${msg.type.charAt(0).toUpperCase() + msg.type.slice(1)}]`;
+          const isCurrentResult = index === currentResultIndex;
 
           // Lấy tên người gửi (sender được khai báo là string ID trong Message)
           const senderName = getSenderName(msg.sender);
@@ -197,19 +297,52 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, 
           return (
             <div
               key={msg._id}
-              className="p-3 bg-white rounded-lg shadow-sm hover:bg-gray-100 cursor-pointer transition-colors border border-gray-200"
-              onClick={() => handleJump(msg._id)}
+              className={`p-3 rounded-lg shadow-sm hover:bg-gray-100 cursor-pointer transition-colors border ${
+                isCurrentResult ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200'
+              }`}
+              onClick={() => handleJump(msg._id, index)}
             >
               <p className="text-xs text-blue-600 font-semibold">
                 {senderName} • {dateLabel} • {timeLabel}
               </p>
               <p className={`text-sm mt-1 line-clamp-2 ${isRecalled ? 'italic text-gray-500' : 'text-gray-800'}`}>
-                {contentDisplay}
+                {highlightKeyword(contentDisplay, searchTerm)}
               </p>
             </div>
           );
         })}
       </div>
+
+      {/* Navigation bar - chỉ hiển thị khi có kết quả (mobile only) */}
+      {searchResults.length > 0 && typeof window !== 'undefined' && window.innerWidth < 768 && (
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-t border-gray-200">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrevious}
+              className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Kết quả trước"
+            >
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span className="text-xs text-gray-600 font-medium min-w-[80px] text-center">
+              {currentResultIndex >= 0 && currentResultIndex < sortedResults.length
+                ? `Kết quả ${currentResultIndex + 1}/${sortedResults.length}`
+                : `0/${sortedResults.length}`}
+            </span>
+            <button
+              onClick={handleNext}
+              className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Kết quả tiếp theo"
+            >
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

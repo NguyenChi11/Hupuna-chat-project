@@ -12,6 +12,7 @@ import {
   HiUserGroup,
   HiPhone,
   HiVideoCamera,
+  HiXMark,
 } from 'react-icons/hi2';
 
 interface ChatHeaderProps {
@@ -29,6 +30,13 @@ interface ChatHeaderProps {
   presenceOnline?: boolean;
   onVoiceCall?: () => void;
   onVideoCall?: () => void;
+  // Mobile inline search props
+  isMobile?: boolean;
+  isSearchActive?: boolean;
+  searchTerm?: string;
+  onSearchTermChange?: (term: string) => void;
+  onSearchFocus?: () => void;
+  searchInputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 export default function ChatHeader({
@@ -46,6 +54,12 @@ export default function ChatHeader({
   presenceOnline,
   onVoiceCall,
   onVideoCall,
+  isMobile = false,
+  isSearchActive = false,
+  searchTerm = '',
+  onSearchTermChange,
+  onSearchFocus,
+  searchInputRef,
 }: ChatHeaderProps) {
   const avatarChar = chatName?.trim()?.charAt(0)?.toUpperCase() || (isGroup ? 'N' : 'U');
   const [imgError, setImgError] = useState(false);
@@ -54,6 +68,51 @@ export default function ChatHeader({
     setImgError(false);
   }, [avatar]);
 
+  // Mobile: Show inline search bar when active
+  if (isMobile && isSearchActive) {
+    return (
+      <div className="flex items-center gap-2 px-2 py-2 bg-white border-b border-gray-200 shadow-sm">
+        {/* Back button */}
+        <button
+          onClick={() => {
+            if (onSearchTermChange) onSearchTermChange('');
+            if (onToggleSearchSidebar) onToggleSearchSidebar();
+          }}
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
+          title="Quay lại"
+        >
+          <HiArrowLeft className="w-5 h-5 text-gray-700" />
+        </button>
+
+        {/* Search icon */}
+        <HiMagnifyingGlass className="w-5 h-5 text-gray-500 flex-shrink-0" />
+
+        {/* Search input */}
+        <div className="flex-1 relative">
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchTerm}
+            onChange={(e) => onSearchTermChange?.(e.target.value)}
+            onFocus={onSearchFocus}
+            placeholder="Tìm kiếm..."
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+            autoFocus
+          />
+          {searchTerm && (
+            <button
+              onClick={() => onSearchTermChange?.('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
+            >
+              <HiXMark className="w-4 h-4 text-gray-500" />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop/Normal header
   return (
     <div className="flex items-center cursor-pointer justify-between px-2 bg-white border-b border-gray-200 shadow-sm">
       {/* Left: Back + Avatar + Tên */}
@@ -149,15 +208,21 @@ export default function ChatHeader({
           </>
         )}
 
-        {/* Nút tìm kiếm */}
+        {/* Nút tìm kiếm - Mobile: Toggle inline search, Desktop: Toggle sidebar */}
         <button
           onClick={() => {
-            if (showPopup) onTogglePopup();
-            onToggleSearchSidebar();
+            if (isMobile) {
+              // Mobile: Toggle inline search
+              if (onToggleSearchSidebar) onToggleSearchSidebar();
+            } else {
+              // Desktop: Toggle sidebar
+              if (showPopup) onTogglePopup();
+              if (onToggleSearchSidebar) onToggleSearchSidebar();
+            }
           }}
           className={`
             p-2.5 rounded-full cursor-pointer transition-all duration-200
-            ${showSearchSidebar ? 'bg-blue-100 text-blue-600 shadow-sm' : 'hover:bg-gray-100 text-gray-600'}
+            ${showSearchSidebar || isSearchActive ? 'bg-blue-100 text-blue-600 shadow-sm' : 'hover:bg-gray-100 text-gray-600'}
           `}
           title="Tìm kiếm tin nhắn"
         >

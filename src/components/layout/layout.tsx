@@ -1,8 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import SidebarMenu from '../(menu)/menu';
 import { useRouter, usePathname } from 'next/navigation';
+import io, { type Socket } from 'socket.io-client';
+import { resolveSocketUrl } from '@/utils/utils';
+import { createMessageApi } from '@/fetch/messages';
+import type { GroupConversation } from '@/types/Group';
+import type { User } from '@/types/User';
 
 // React Icons – Bộ hiện đại nhất 2025
 import {
@@ -13,8 +18,7 @@ import {
   HiSparkles,
   HiRectangleGroup,
 } from 'react-icons/hi2';
-import type { User } from '@/types/User';
-import type { GroupConversation } from '@/types/Group';
+
 
 const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [isAuthed, setIsAuthed] = useState<boolean>(false);
@@ -24,6 +28,9 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [totalUnread, setTotalUnread] = useState<number>(0);
   const [unreadGroups, setUnreadGroups] = useState<number>(0);
   const [unreadContacts, setUnreadContacts] = useState<number>(0);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const groupMembersRef = useRef<Map<string, Array<{ _id: string } | string>>>(new Map());
 
   const router = useRouter();
   const pathname = usePathname();
@@ -40,17 +47,26 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         if (res.ok) {
           const meRes = await fetch('/api/users/me', { credentials: 'include' });
           const meJson = await meRes.json();
-          if (mounted) setIsAuthed(!!meJson?.success);
+          if (mounted) {
+            setIsAuthed(!!meJson?.success);
+            if (meJson?.success && meJson?.user) setCurrentUser(meJson.user as User);
+          }
         } else {
           const meRes = await fetch('/api/users/me', { credentials: 'include' });
           const meJson = await meRes.json();
-          if (mounted) setIsAuthed(!!meJson?.success);
+          if (mounted) {
+            setIsAuthed(!!meJson?.success);
+            if (meJson?.success && meJson?.user) setCurrentUser(meJson.user as User);
+          }
         }
       } catch {
         try {
           const raw = localStorage.getItem('info_user');
           const u = raw ? JSON.parse(raw) : null;
-          if (mounted) setIsAuthed(!!u && !!u._id);
+          if (mounted) {
+            setIsAuthed(!!u && !!u._id);
+            if (u && u._id) setCurrentUser(u as User);
+          }
         } catch {
           if (mounted) setIsAuthed(false);
         }
@@ -177,6 +193,107 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       router.push('/login');
     }
   }, [checked, isAuthed, pathname, router]);
+
+  useEffect(() => {
+    if (!checked || !isAuthed || !currentUser) return;
+    if (socketRef.current?.connected) return;
+    const s = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+    socketRef.current = s;
+    s.emit('join_user', { userId: String(currentUser._id) });
+    (async () => {
+      try {
+        const res = await fetch('/api/groups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'readGroups', _id: String(currentUser._id) }),
+        });
+        const j = await res.json();
+        const arr = (j?.data || []) as GroupConversation[];
+        const m = new Map<string, Array<{ _id: string } | string>>();
+        arr.forEach((g) => {
+          const gid = String(g._id);
+          const members = (Array.isArray(g.members) ? g.members : []) as Array<{ _id: string } | string>;
+          m.set(gid, members);
+        });
+        groupMembersRef.current = m;
+      } catch {}
+    })();
+    s.on(
+      'call_notify',
+      async (data: {
+        roomId: string;
+        sender: string;
+        callerId: string;
+        calleeId: string;
+        type: 'voice' | 'video';
+        status: 'answered' | 'rejected' | 'timeout';
+        durationSec?: number;
+      }) => {
+        if (String(data.sender) !== String(currentUser._id)) return;
+        const kind = data.type === 'video' ? 'video' : 'thoại';
+        const incoming = String(data.sender) === String(data.calleeId);
+        const dir = incoming ? 'đến' : 'đi';
+        const s2 = data.status;
+        const d = Math.max(0, Math.floor(Number(data.durationSec || 0)));
+        const m2 = Math.floor(d / 60);
+        const ss = d % 60;
+        const durStr = `${m2} phút ${ss} giây`;
+        const content =
+          s2 === 'answered'
+            ? `Cuộc gọi ${kind} ${dir} – ${durStr}`
+            : s2 === 'rejected'
+              ? `Cuộc gọi ${kind} ${dir} – Bị từ chối`
+              : `Cuộc gọi ${kind} ${dir} – Không phản hồi`;
+        const ts = Date.now();
+        const notifyRes = await createMessageApi({
+          roomId: String(data.roomId),
+          sender: String(currentUser._id),
+          type: 'notify',
+          content,
+          timestamp: ts,
+          callerId: String(data.callerId),
+          calleeId: String(data.calleeId),
+          callType: data.type,
+          callStatus: data.status,
+          callDurationSec: d,
+        });
+        if (notifyRes?.success && typeof notifyRes._id === 'string') {
+          const parts = String(data.roomId).split('_').filter(Boolean);
+          const isOneToOne = parts.length === 2;
+          const isGroup = !isOneToOne;
+          const receiver = isOneToOne
+            ? parts[0] === String(currentUser._id)
+              ? parts[1]
+              : parts[0]
+            : null;
+          const members = isGroup ? groupMembersRef.current.get(String(data.roomId)) || [] : [];
+          s.emit('send_message', {
+            roomId: String(data.roomId),
+            sender: String(currentUser._id),
+            senderName: currentUser.name,
+            isGroup,
+            receiver,
+            members,
+            _id: notifyRes._id,
+            type: 'notify',
+            content,
+            timestamp: ts,
+            callerId: String(data.callerId),
+            calleeId: String(data.calleeId),
+            callType: data.type,
+            callStatus: data.status,
+            callDurationSec: d,
+          });
+        }
+      },
+    );
+    return () => {
+      try {
+        socketRef.current?.disconnect();
+      } catch {}
+      socketRef.current = null;
+    };
+  }, [checked, isAuthed, currentUser]);
 
   // Xác định tab active
   const isActive = (paths: string[]) => {

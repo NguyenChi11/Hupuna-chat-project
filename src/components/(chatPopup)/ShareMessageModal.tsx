@@ -8,6 +8,7 @@ import { GroupConversation } from '@/types/Group';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 import { Message } from '@/types/Message';
+import { HiPlay, HiXCircle } from 'react-icons/hi';
 
 // Mock types
 
@@ -112,15 +113,79 @@ export default function ShareMessageModal({
   };
 
   const renderMessagePreview = () => {
+    const batchItems =
+      (
+        message as unknown as {
+          batchItems?: Array<{
+            id: string;
+            type: 'image' | 'video' | 'file' | 'text';
+            fileUrl?: string;
+            fileName?: string;
+            content?: string;
+          }>;
+        }
+      ).batchItems || [];
+    if (Array.isArray(batchItems) && batchItems.length > 1) {
+      const items = batchItems.slice(0, 6);
+      return (
+        <div>
+          <p className="text-xs text-gray-500 mb-2">{batchItems.length} mục sẽ được chia sẻ</p>
+          <div className="grid grid-cols-10 gap-1">
+            {items.map((it, idx) => {
+              const url = getProxyUrl(String(it.fileUrl || ''));
+              if (it.type === 'image') {
+                return (
+                  <div
+                    key={`share-preview-img-${idx}`}
+                    className="relative w-full max-w-[5rem] aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-100"
+                  >
+                    {url ? (
+                      <Image src={url} alt="Ảnh" width={200} height={200} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100" />
+                    )}
+                  </div>
+                );
+              }
+              if (it.type === 'video') {
+                return (
+                  <div
+                    key={`share-preview-vid-${idx}`}
+                    className="relative w-full max-w-[5rem] aspect-square bg-black rounded-lg overflow-hidden border border-gray-100"
+                  >
+                    {url ? (
+                      <video src={url} preload="metadata" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-900" />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                      <div className=" rounded-full flex items-center justify-center shadow">
+                        <HiPlay className="w-3 h-3 text-blue-600 ml-1" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div
+                  key={`share-preview-other-${idx}`}
+                  className="flex items-center justify-center w-full aspect-square rounded-lg border border-gray-200 bg-white"
+                >
+                  <HiOutlineDocumentText className="w-6 h-6 text-gray-500" />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
     if (message.type === 'text') {
-      const text =
-        (message.content || '').slice(0, 120) +
-        ((message.content || '').length > 120 ? '...' : '');
+      const text = (message.content || '').slice(0, 120) + ((message.content || '').length > 120 ? '...' : '');
       return <p className="text-sm text-gray-700 leading-relaxed">{text}</p>;
     }
- 
+
     const mediaUrl = getProxyUrl(message.fileUrl || message.previewUrl);
- 
+
     if (message.type === 'image' && mediaUrl) {
       return (
         <div className="w-full max-w-[5rem]">
@@ -134,7 +199,7 @@ export default function ShareMessageModal({
         </div>
       );
     }
- 
+
     if (message.type === 'video' && mediaUrl) {
       return (
         <div className="w-full max-w-[7rem]">
@@ -147,7 +212,7 @@ export default function ShareMessageModal({
         </div>
       );
     }
- 
+
     if (message.type === 'file') {
       return (
         <a
@@ -159,17 +224,15 @@ export default function ShareMessageModal({
           <div className="p-2 bg-blue-600 rounded-xl">
             <HiOutlineDocumentText className="w-6 h-6 text-white" />
           </div>
- 
+
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800 truncate">
-              {message.fileName || 'Tệp đính kèm'}
-            </p>
+            <p className="text-sm font-semibold text-gray-800 truncate">{message.fileName || 'Tệp đính kèm'}</p>
             <p className="text-xs text-gray-500 truncate">Nhấn để tải xuống</p>
           </div>
         </a>
       );
     }
- 
+
     if (message.type === 'sticker') {
       return <p className="text-sm text-gray-700">😊 Sticker</p>;
     }
@@ -179,8 +242,8 @@ export default function ShareMessageModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="w-screen h-screen sm:w-full sm:h-auto sm:max-w-lg bg-white rounded-none sm:rounded-2xl shadow-2xl flex flex-col sm:max-h-[90vh] animate-in zoom-in-95 duration-200">
         {/* Header - Modern gradient */}
         <div className="relative p-2 bg-blue-500 text-white rounded-t-2xl">
           <button
@@ -195,30 +258,45 @@ export default function ShareMessageModal({
             </div>
             <div>
               <h3 className="text-xl font-bold">Chia sẻ tin nhắn</h3>
-              <p className="text-blue-100 text-sm mt-0.5">Chọn người hoặc nhóm để chia sẻ</p>
+              <p className="text-blue-100 text-sm mt-0.5">
+                {selectedTargets.size > 0 &&
+                  `Đã chọn: ${selectedTargets.size} ${selectedTargets.size > 1 ? 'người' : 'người'}`}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="py-1.5 px-3 bg-white">
-          <input
-            type="text"
-            placeholder="Nhập tin nhắn đính kèm (tùy chọn)"
-            value={attachedText}
-            onChange={(e) => setAttachedText(e.target.value)}
-            className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white"
-          />
-        </div>
+        <div className="py-1.5 px-3 bg-white border-b border-gray-300 pb-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Nhập tin nhắn đính kèm (tùy chọn)"
+              value={attachedText}
+              onChange={(e) => setAttachedText(e.target.value)}
+              className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white"
+            />
+            <button
+              onClick={handleShare}
+              disabled={selectedTargets.size === 0 || isSharing}
+              className="flex-1 px-4 py-4 hover:cursor-pointer bg-blue-400 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            >
+              {isSharing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                </>
+              ) : (
+                <>
+                  <IoSend className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
 
-        {/* Message Preview - Enhanced */}
-        <div className="py-1.5 px-3 bg-gradient-to-br from-gray-50 to-blue-50/30 ">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nội dung chia sẻ</p>
-          <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm">{renderMessagePreview()}</div>
-        </div>
-
-        {/* Search - Modern design */}
-        <div className="px-3 py-1.5  bg-white">
-          <div className="relative">
+          <div className="py-2  bg-gradient-to-br from-gray-50 to-blue-50/30 ">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nội dung chia sẻ</p>
+            <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm">{renderMessagePreview()}</div>
+          </div>
+          <div className="relative ">
             <IoSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
@@ -228,137 +306,176 @@ export default function ShareMessageModal({
               className="w-full pl-12 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white"
             />
           </div>
-
-          {selectedTargets.size > 0 && (
-            <div className="mt-3 flex items-center gap-2 text-sm">
-              <div className="flex items-center gap-1.5 text-blue-600 font-medium">
-                <IoCheckmark className="w-5 h-5" />
-                <span>{selectedTargets.size} đã chọn</span>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Target List - Improved styling */}
+        {/* Main content scrollable (mobile fullscreen) */}
         <div className="flex-1 overflow-y-auto">
-          {filteredTargets.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <IoSearch className="w-8 h-8 text-gray-400" />
+          {/* Message Preview - Enhanced */}
+
+          {/* Search - Modern design */}
+          <div className="px-3 py-1.5 bg-white">
+            {selectedTargets.size > 0 && (
+              <div className="mt-3 flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-1.5 text-blue-600 font-medium">
+                  <IoCheckmark className="w-5 h-5" />
+                  <span>{selectedTargets.size} đã chọn</span>
+                </div>
               </div>
-              <p className="text-gray-500 font-medium">Không tìm thấy kết quả</p>
-              <p className="text-gray-400 text-sm mt-1">Thử tìm kiếm với từ khóa khác</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {filteredTargets.map((target) => {
-                const isSelected = selectedTargets.has(target.id);
-                return (
-                  <button
-                    key={target.id}
-                    onClick={() => toggleSelect(target.id)}
-                    className={`w-full p-2 mb-2 flex items-center gap-4 transition-all hover:cursor-pointer duration-200 ${
-                      isSelected
-                        ? 'bg-blue-50   '
-                        : 'hover:bg-gray-50 border-l-2 border-transparent'
-                    }`}
-                  >
-                    {/* Avatar with selection indicator */}
-                    <div className="relative flex-shrink-0">
+            )}
+          </div>
+
+          {/* Target List - Improved styling */}
+          <div className="px-3 pb-2">
+            {filteredTargets.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <IoSearch className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-500 font-medium">Không tìm thấy kết quả</p>
+                <p className="text-gray-400 text-sm mt-1">Thử tìm kiếm với từ khóa khác</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {filteredTargets.map((target) => {
+                  const isSelected = selectedTargets.has(target.id);
+                  return (
+                    <button
+                      key={target.id}
+                      onClick={() => toggleSelect(target.id)}
+                      className={`w-full p-2 mb-2 flex items-center gap-4 transition-all hover:cursor-pointer duration-200 ${
+                        isSelected ? 'bg-blue-50   ' : 'hover:bg-gray-50 border-l-2 border-transparent'
+                      }`}
+                    >
+                      <div className="relative flex-shrink-0">
+                        <div className={`w-10 h-10 rounded-full overflow-hidden transition-all duration-200`}>
+                          {target.avatar ? (
+                            <Image
+                              src={getProxyUrl(target.avatar)}
+                              alt=""
+                              width={36}
+                              height={36}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Image
+                              src="/logo/avata.webp"
+                              alt={target.name}
+                              width={64}
+                              height={64}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        {isSelected && (
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-in zoom-in duration-200">
+                            <IoCheckmark className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                        {target.isGroup && !isSelected && (
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                            <HiUsers className="w-3.5 h-3.5 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 text-left min-w-0">
+                        <p className="font-semibold text-gray-800 truncate">{target.name}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {target.isGroup ? (
+                            <>
+                              <HiUsers className="w-4 h-4 text-purple-500" />
+                              <span className="text-xs text-purple-600 font-medium">Nhóm</span>
+                            </>
+                          ) : (
+                            <>
+                              <HiUser className="w-4 h-4 text-gray-400" />
+                              <span className="text-xs text-gray-500">Người dùng</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
                       <div
-                        className={`w-10 h-10 rounded-full overflow-hidden  transition-all duration-200 `}
+                        className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'}`}
                       >
-                        {target.avatar ? (
-                          <Image
-                            src={getProxyUrl(target.avatar)}
-                            alt=""
-                            width={36}
-                            height={36}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
-                            {target.name?.charAt(0).toUpperCase()}
+                        {isSelected && <IoCheckmark className="w-5 h-5 text-white" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer - Modern actions */}
+        {/* Footer - Hiển thị các target đã chọn */}
+        <div className="py-2 px-4 bg-gradient-to-br from-gray-50 to-white border-t border-gray-200 rounded-none sm:rounded-b-2xl">
+          {selectedTargets.size === 0 ? (
+            <p className="text-center text-gray-400 text-sm">Chưa chọn người nhận nào</p>
+          ) : (
+            <>
+              <div className="mb-3">
+                <p className="text-sm font-semibold text-gray-700">Đã chọn ({selectedTargets.size})</p>
+              </div>
+
+              {/* Danh sách cuộn ngang các người đã chọn */}
+              <div className="flex gap-3 overflow-x-auto  scrollbar-thin scrollbar-thumb-gray-300">
+                {Array.from(selectedTargets).map((targetId) => {
+                  const target = shareTargets.find((t) => t.id === targetId);
+                  if (!target) return null;
+
+                  return (
+                    <div key={targetId} className="flex-shrink-0 flex flex-col items-center gap-2 group">
+                      <div className="relative flex-shrink-0">
+                        {/* Avatar */}
+                        <div className="w-14 h-14 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                          {target.avatar ? (
+                            <Image
+                              src={getProxyUrl(target.avatar)}
+                              alt={target.name}
+                              width={56}
+                              height={56}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Image
+                              src="/logo/avata.webp"
+                              alt={target.name}
+                              width={56}
+                              height={56}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+
+                        {/* Nút xóa - Dấu X đỏ ở góc trên phải */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Ngăn click lan ra toggleSelect toàn bộ item
+                            toggleSelect(targetId);
+                          }}
+                          className="absolute -top-[2px] cursor-pointer -right-1 w-5 h-5 bg-gray-400 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-all duration-200 opacity-0 opacity-100 hover:scale-110"
+                          aria-label="Xóa khỏi danh sách chia sẻ"
+                        >
+                          <IoClose className="w-4 h-4 text-white" />
+                        </button>
+
+                        {/* Icon nhóm ở góc dưới phải (nếu là group) */}
+                        {target.isGroup && (
+                          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center border-3 border-white shadow-md">
+                            <HiUsers className="w-4.5 h-4.5 text-white" />
                           </div>
                         )}
                       </div>
 
-                      {/* Selection Badge */}
-                      {isSelected && (
-                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-in zoom-in duration-200">
-                          <IoCheckmark className="w-4 h-4 text-white" />
-                        </div>
-                      )}
-
-                      {/* Group Badge */}
-                      {target.isGroup && !isSelected && (
-                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                          <HiUsers className="w-3.5 h-3.5 text-white" />
-                        </div>
-                      )}
+                      <p className="text-xs font-medium text-gray-700 max-w-[64px] truncate text-center mt-1">
+                        {target.name}
+                      </p>
                     </div>
-
-                    {/* Info */}
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="font-semibold text-gray-800 truncate">{target.name}</p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        {target.isGroup ? (
-                          <>
-                            <HiUsers className="w-4 h-4 text-purple-500" />
-                            <span className="text-xs text-purple-600 font-medium">Nhóm</span>
-                          </>
-                        ) : (
-                          <>
-                            <HiUser className="w-4 h-4 text-gray-400" />
-                            <span className="text-xs text-gray-500">Người dùng</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Selection Checkbox */}
-                    <div
-                      className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
-                        isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'
-                      }`}
-                    >
-                      {isSelected && <IoCheckmark className="w-5 h-5 text-white" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </>
           )}
-        </div>
-
-        {/* Footer - Modern actions */}
-        <div className="p-5  bg-gradient-to-br from-gray-50 to-white rounded-b-2xl">
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-2  hover:cursor-pointer border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 hover:border-gray-400 transition-all duration-200 disabled:opacity-50"
-              disabled={isSharing}
-            >
-              Hủy
-            </button>
-            <button
-              onClick={handleShare}
-              disabled={selectedTargets.size === 0 || isSharing}
-              className="flex-1 px-4 py-2 hover:cursor-pointer bg-blue-400 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
-            >
-              {isSharing ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Đang chia sẻ...</span>
-                </>
-              ) : (
-                <>
-                  <IoSend className="w-4 h-4" />
-                  <span>Chia sẻ {selectedTargets.size > 0 && `(${selectedTargets.size})`}</span>
-                </>
-              )}
-            </button>
-          </div>
         </div>
       </div>
     </div>

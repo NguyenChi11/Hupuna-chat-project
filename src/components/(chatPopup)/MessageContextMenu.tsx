@@ -26,6 +26,7 @@ export interface ContextMenuState {
   y: number;
   message: Message;
   placement?: 'above' | 'below';
+  focusTop?: number;
 }
 
 interface MenuItemProps {
@@ -45,7 +46,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   href = '#',
   download = '',
 }) => {
-  const className = `w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-3 ${isRed ? 'text-red-500' : 'text-gray-700'}`;
+  const className = `cursor-pointer w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-3 ${isRed ? 'text-red-500' : 'text-gray-700'}`;
 
   if (isAnchor) {
     return (

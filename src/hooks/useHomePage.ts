@@ -62,8 +62,14 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
   });
 
   const [scrollToMessageId, setScrollToMessageId] = useState<string | null>(null);
+  const [roomSearchKeyword, setRoomSearchKeyword] = useState<string | null>(null);
   const reminderTimersRef = useRef<Map<string, number>>(new Map());
   const scheduledReminderIdsRef = useRef<Set<string>>(new Set());
+
+  // 🔥 Đồng bộ searchTerm từ sidebar sang globalSearchTerm
+  useEffect(() => {
+    setGlobalSearchTerm(searchTerm);
+  }, [searchTerm]);
 
   useEffect(() => {
     allUsersRef.current = allUsers;
@@ -361,18 +367,25 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
     setShowGlobalSearchModal((prev) => {
       const next = !prev;
       if (next) {
-        // Khi mở lại modal thì reset state tìm kiếm
-        setGlobalSearchTerm('');
-        setGlobalSearchResults({ contacts: [], messages: [] });
+        // Khi mở modal, sync searchTerm từ sidebar sang globalSearchTerm nếu có
+        // Chỉ reset nếu không có searchTerm từ sidebar
+        if (!searchTerm.trim()) {
+          setGlobalSearchTerm('');
+          setGlobalSearchResults({ contacts: [], messages: [] });
+        } else {
+          // Nếu có searchTerm từ sidebar, sync và trigger search
+          setGlobalSearchTerm(searchTerm);
+          handleGlobalSearch(searchTerm);
+        }
       }
       return next;
     });
-  }, []);
+  }, [searchTerm, handleGlobalSearch]);
 
   // Thay thế hàm handleNavigateToMessage trong useHomePage.ts
 
     const handleNavigateToMessage = useCallback(
-      (message: GlobalSearchMessage) => {
+      (message: GlobalSearchMessage, searchKeyword?: string) => {
         let targetChat: ChatItem | null = null;
         const myId = String(currentUser?._id);
 
@@ -402,6 +415,10 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
           setShowGlobalSearchModal(false);
           handleSelectChat(targetChat);
 
+          if (searchKeyword && searchKeyword.trim()) {
+            setRoomSearchKeyword(searchKeyword);
+            return;
+          }
           setTimeout(() => {
             setScrollToMessageId(String(message._id));
           }, 200);
@@ -717,6 +734,8 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
     globalSearchResults,
     scrollToMessageId,
     setScrollToMessageId,
+    roomSearchKeyword,
+    setRoomSearchKeyword,
     handleOpenGlobalSearch,
     handleGlobalSearch,
     handleSelectContact,

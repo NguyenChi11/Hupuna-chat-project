@@ -47,6 +47,7 @@ import { stopGlobalRingTone } from '@/utils/callRing';
 import { useCallSession } from '@/hooks/useCallSession';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
 import { HiChevronDoubleDown } from 'react-icons/hi2';
+import MessageMobileContextMenu from '@/components/(chatPopup)/MessageMobileContextMenu';
 
 const STICKERS = [
   'https://cdn-icons-png.flaticon.com/512/9408/9408176.png',
@@ -65,6 +66,8 @@ interface ChatWindowProps {
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroupChat: boolean) => void;
   scrollToMessageId?: string | null; // 🔥 MỚI: ID tin nhắn cần scroll đến
   onScrollComplete?: () => void;
+  roomSearchKeyword?: string | null; // 🔥 MỚI: Keyword từ global search
+  setRoomSearchKeyword?: (keyword: string | null) => void;
   onBackFromChat?: () => void;
   groups: GroupConversation[];
 }
@@ -122,6 +125,8 @@ export default function ChatWindow({
   onChatAction,
   scrollToMessageId, // 🔥 Thêm
   onScrollComplete,
+  roomSearchKeyword, // 🔥 Thêm
+  setRoomSearchKeyword,
   onBackFromChat,
   groups,
 }: ChatWindowProps) {
@@ -219,6 +224,327 @@ export default function ChatWindow({
   const [showSearchSidebar, setShowSearchSidebar] = useState(false);
   const chatAvatar = (selectedChat as { avatar?: string }).avatar;
 
+  const handleJumpToMessage = useCallback(
+    async (messageId: string) => {
+      jumpLoadingRef.current = true;
+      scrollLockUntilRef.current = Date.now() + 1800;
+      const container = messagesContainerRef.current;
+
+      if (!container) {
+        console.error('❌ [JUMP] Container not found');
+        jumpLoadingRef.current = false;
+        return;
+      }
+
+      isAtBottomRef.current = false;
+
+      const computeTopInContainer = (el: HTMLElement, parent: HTMLElement) => {
+        const elRect = el.getBoundingClientRect();
+        const parentRect = parent.getBoundingClientRect();
+        return parent.scrollTop + (elRect.top - parentRect.top);
+      };
+
+      const isFullyVisible = (el: HTMLElement, parent: HTMLElement) => {
+        const cTop = parent.scrollTop;
+        const cBottom = cTop + parent.clientHeight;
+        const eTop = computeTopInContainer(el, parent);
+        const eBottom = eTop + el.clientHeight;
+        return eTop >= cTop && eBottom <= cBottom;
+      };
+
+      const centerElement = (el: HTMLElement) => {
+        try {
+          const elTopInContainer = computeTopInContainer(el, container);
+          const rawTarget = elTopInContainer - container.clientHeight / 2 + el.clientHeight / 2;
+          const maxScroll = Math.max(0, container.scrollHeight - container.clientHeight);
+          const targetTop = Math.max(0, Math.min(rawTarget, maxScroll));
+          container.scrollTo({ top: targetTop, behavior: 'smooth' });
+        } catch {}
+      };
+
+      const scrollToElement = (elementId: string, attempt = 0): boolean => {
+        const element =
+          (messagesContainerRef.current?.querySelector(`[id="${elementId}"]`) as HTMLElement | null) ||
+          (document.getElementById(elementId) as HTMLElement | null);
+
+        if (element) {
+          try {
+            (element as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          } catch {}
+          centerElement(element);
+
+          setHighlightedMsgId(messageId);
+          setTimeout(() => setHighlightedMsgId(null), 2500);
+
+          setTimeout(() => {
+            const e =
+              (messagesContainerRef.current?.querySelector(`[id="${elementId}"]`) as HTMLElement | null) ||
+              (document.getElementById(elementId) as HTMLElement | null);
+            if (e && !isFullyVisible(e, container)) {
+              centerElement(e);
+            }
+            jumpLoadingRef.current = false;
+            scrollLockUntilRef.current = 0;
+          }, 320);
+
+          return true;
+        }
+
+        if (attempt < 15) {
+          setTimeout(() => scrollToElement(elementId, attempt + 1), 200);
+          return false;
+        }
+
+        console.warn('❌ [JUMP] Element not found after 10 attempts');
+        jumpLoadingRef.current = false;
+        return false;
+      };
+
+      const existingElement = document.getElementById(`msg-${messageId}`);
+      if (existingElement) {
+        scrollToElement(`msg-${messageId}`);
+        return;
+      }
+
+      const messageInState = messages.find((m) => String(m._id) === String(messageId));
+      if (messageInState) {
+        setTimeout(() => scrollToElement(`msg-${messageId}`), 100);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getById', _id: messageId }),
+        });
+
+        const result = await response.json();
+        const targetMessage = (result?.row?.row || result?.row) as Message | null;
+
+        if (!targetMessage || String(targetMessage.roomId) !== String(roomId)) {
+          console.error('❌ [JUMP] Message not found or wrong room');
+          alert('Không tìm thấy tin nhắn này trong cuộc trò chuyện.');
+          jumpLoadingRef.current = false;
+          return;
+        }
+
+        const targetTs = Number(targetMessage.timestamp);
+
+        const [olderRes, newerRes] = await Promise.all([
+          readMessagesApi(roomId, {
+            limit: 100,
+            sortOrder: 'desc',
+            extraFilters: { timestamp: { $lte: targetTs } },
+          }),
+          readMessagesApi(roomId, {
+            limit: 50,
+            sortOrder: 'asc',
+            extraFilters: { timestamp: { $gt: targetTs } },
+          }),
+        ]);
+
+        const olderMessages = Array.isArray(olderRes.data) ? (olderRes.data as Message[]) : [];
+        const newerMessages = Array.isArray(newerRes.data) ? (newerRes.data as Message[]) : [];
+
+        const olderAsc = olderMessages.reverse();
+        const allNewMessages = [...olderAsc, ...newerMessages];
+
+        const existingIds = new Set(messages.map((m) => String(m._id)));
+        const messagesToAdd = allNewMessages.filter((m) => !existingIds.has(String(m._id)));
+
+        if (messagesToAdd.length > 0) {
+          setMessages((prev) => {
+            const combined = [...prev, ...messagesToAdd];
+            combined.sort((a, b) => {
+              const ta = Number(a.timestamp) || 0;
+              const tb = Number(b.timestamp) || 0;
+              return ta - tb;
+            });
+            return combined;
+          });
+
+          const minTimestamp = Math.min(...messagesToAdd.map((m) => Number(m.timestamp)));
+          setOldestTs((prev) => Math.min(minTimestamp, prev ?? Infinity));
+          setHasMore(olderMessages.length === 100);
+        }
+
+        setTimeout(() => {
+          scrollToElement(`msg-${messageId}`);
+        }, 300);
+      } catch (error) {
+        console.error('❌ [JUMP] Error:', error);
+        alert('Có lỗi xảy ra khi tải tin nhắn.');
+        jumpLoadingRef.current = false;
+        scrollLockUntilRef.current = 0;
+      }
+    },
+    [roomId, messages, oldestTs],
+  );
+
+  // Mobile inline search state
+  const [mobileSearchTerm, setMobileSearchTerm] = useState('');
+  const [mobileSearchResults, setMobileSearchResults] = useState<Message[]>([]);
+  const [isMobileSearching, setIsMobileSearching] = useState(false);
+  const [mobileCurrentResultIndex, setMobileCurrentResultIndex] = useState<number>(-1);
+  const mobileSearchInputRef = useRef<HTMLInputElement | null>(null);
+  const hasAutoSearchedRef = useRef(false);
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  const scrollLockUntilRef = useRef<number>(0);
+  const mobileSelectingRef = useRef(false);
+  const mobileSelectedMsgIdRef = useRef<string | null>(null);
+  const mobileCurrentIndexRef = useRef<number>(-1);
+  useEffect(() => {
+    mobileCurrentIndexRef.current = mobileCurrentResultIndex;
+  }, [mobileCurrentResultIndex]);
+
+  useEffect(() => {
+    if (!isMobile && roomSearchKeyword && roomSearchKeyword.trim()) {
+      setShowSearchSidebar(true);
+    }
+  }, [roomSearchKeyword, isMobile]);
+
+  const fetchMobileSearchResults = useCallback(
+    async (query: string) => {
+      if (!query.trim() || !roomId) {
+        setMobileSearchResults([]);
+        setMobileCurrentResultIndex(-1);
+        return;
+      }
+      setIsMobileSearching(true);
+
+      try {
+        const res = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'read',
+            filters: {
+              roomId,
+              searchQuery: query.trim(),
+              isRecalled: { $ne: true },
+              isDeleted: { $ne: true },
+              type: { $ne: 'notify' },
+            },
+            limit: 100,
+            sort: { timestamp: -1 },
+          }),
+        });
+        const data = await res.json();
+        const results: Message[] = data.data || [];
+        setMobileSearchResults(results);
+        if (results.length > 0) {
+          const selectedId = mobileSelectedMsgIdRef.current;
+          if (mobileSelectingRef.current && selectedId) {
+            const idx = results.findIndex((m) => String(m._id) === String(selectedId));
+            if (idx >= 0) {
+              setMobileCurrentResultIndex(idx);
+            } else {
+              const prevIdx = mobileCurrentIndexRef.current;
+              const safeIdx = Math.max(0, Math.min(results.length - 1, prevIdx));
+              setMobileCurrentResultIndex(safeIdx);
+            }
+            mobileSelectingRef.current = false;
+            mobileSelectedMsgIdRef.current = null;
+          } else if (mobileCurrentIndexRef.current === -1) {
+            const lastIdx = results.length - 1;
+            setMobileCurrentResultIndex(lastIdx);
+            setTimeout(() => {
+              handleJumpToMessage(results[lastIdx]._id);
+            }, 300);
+          } else {
+            const prevIdx = mobileCurrentIndexRef.current;
+            const safeIdx = Math.max(0, Math.min(results.length - 1, prevIdx));
+            setMobileCurrentResultIndex(safeIdx);
+          }
+        } else {
+          setMobileCurrentResultIndex(-1);
+        }
+      } catch (error) {
+        console.error('Fetch search results error:', error);
+        setMobileSearchResults([]);
+        setMobileCurrentResultIndex(-1);
+      } finally {
+        setIsMobileSearching(false);
+      }
+    },
+    [roomId, handleJumpToMessage],
+  );
+
+  useEffect(() => {
+    if (isMobile && roomSearchKeyword && roomSearchKeyword.trim() && !hasAutoSearchedRef.current) {
+      setMobileSearchTerm(roomSearchKeyword);
+      hasAutoSearchedRef.current = true;
+      setShowSearchSidebar(true);
+      fetchMobileSearchResults(roomSearchKeyword);
+      setTimeout(() => {
+        mobileSearchInputRef.current?.focus();
+      }, 100);
+    }
+  }, [roomSearchKeyword, isMobile, fetchMobileSearchResults]);
+
+  // Mobile: Debounced search
+  useEffect(() => {
+    if (!isMobile) return;
+
+    if (roomSearchKeyword && mobileSearchTerm === roomSearchKeyword && hasAutoSearchedRef.current) {
+      // Initial search already done
+      return;
+    }
+
+    if (!mobileSearchTerm.trim()) {
+      setMobileSearchResults([]);
+      setMobileCurrentResultIndex(-1);
+      return;
+    }
+
+    const handler = setTimeout(() => {
+      fetchMobileSearchResults(mobileSearchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [mobileSearchTerm, isMobile, roomSearchKeyword, fetchMobileSearchResults]);
+
+  // Mobile: Navigation handlers
+  const handlePreviousResult = useCallback(() => {
+    if (mobileSearchResults.length === 0) return;
+    const newIndex = mobileCurrentResultIndex <= 0 ? mobileSearchResults.length - 1 : mobileCurrentResultIndex - 1;
+    setMobileCurrentResultIndex(newIndex);
+    mobileSelectingRef.current = true;
+    mobileSelectedMsgIdRef.current = mobileSearchResults[newIndex]._id;
+    handleJumpToMessage(mobileSearchResults[newIndex]._id);
+    setTimeout(() => {
+      mobileSelectingRef.current = false;
+      mobileSelectedMsgIdRef.current = null;
+    }, 1200);
+  }, [mobileSearchResults, mobileCurrentResultIndex]);
+
+  const handleNextResult = useCallback(() => {
+    if (mobileSearchResults.length === 0) return;
+    const newIndex = mobileCurrentResultIndex >= mobileSearchResults.length - 1 ? 0 : mobileCurrentResultIndex + 1;
+    setMobileCurrentResultIndex(newIndex);
+    mobileSelectingRef.current = true;
+    mobileSelectedMsgIdRef.current = mobileSearchResults[newIndex]._id;
+    handleJumpToMessage(mobileSearchResults[newIndex]._id);
+    setTimeout(() => {
+      mobileSelectingRef.current = false;
+      mobileSelectedMsgIdRef.current = null;
+    }, 1200);
+  }, [mobileSearchResults, mobileCurrentResultIndex]);
+
+  // Reset mobile search when sidebar closes
+  useEffect(() => {
+    if (!showSearchSidebar && isMobile) {
+      setMobileSearchTerm('');
+      setMobileSearchResults([]);
+      setMobileCurrentResultIndex(-1);
+      hasAutoSearchedRef.current = false;
+      if (setRoomSearchKeyword) setRoomSearchKeyword(null);
+    }
+  }, [showSearchSidebar, isMobile, setRoomSearchKeyword]);
+
   const presenceInfo = useMemo(() => {
     if (isGroup) return { online: undefined as boolean | undefined, text: '' };
     const partnerId = getId(selectedChat);
@@ -234,19 +560,26 @@ export default function ChatWindow({
     return { online, text };
   }, [isGroup, selectedChat, allUsers]);
 
-  const scrollToBottom = useCallback(() => {
-    const el = messagesContainerRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-    const end = messagesEndRef.current;
-    if (end && typeof end.scrollIntoView === 'function') {
-      end.scrollIntoView({ block: 'end' });
-    }
-    setPendingNewCount(0);
-    pendingNewCountRef.current = 0;
-    hasScrolledUpRef.current = false;
-    setShowScrollDown(false);
-  }, []);
+  const scrollToBottom = useCallback(
+    (force = false) => {
+      if (!force && (showSearchSidebar || (scrollLockUntilRef.current && Date.now() < scrollLockUntilRef.current))) {
+        return;
+      }
+      if (jumpLoadingRef.current) return;
+      const el = messagesContainerRef.current;
+      if (!el) return;
+      el.scrollTop = el.scrollHeight;
+      const end = messagesEndRef.current;
+      if (end && typeof end.scrollIntoView === 'function') {
+        end.scrollIntoView({ block: 'end' });
+      }
+      setPendingNewCount(0);
+      pendingNewCountRef.current = 0;
+      hasScrolledUpRef.current = false;
+      setShowScrollDown(false);
+    },
+    [showSearchSidebar],
+  );
 
   const ensureBottom = useCallback(() => {
     scrollToBottom();
@@ -423,7 +756,8 @@ export default function ChatWindow({
     if (!el) return;
     const imgs = Array.from(el.querySelectorAll('img'));
     const handler = () => {
-      if (isAtBottomRef.current) {
+      const locked = !!scrollLockUntilRef.current && Date.now() < scrollLockUntilRef.current;
+      if (isAtBottomRef.current && !locked && !showSearchSidebar) {
         scrollToBottom();
       }
     };
@@ -431,7 +765,7 @@ export default function ChatWindow({
     return () => {
       imgs.forEach((img) => img.removeEventListener('load', handler));
     };
-  }, [messages.length, scrollToBottom]);
+  }, [messages.length, scrollToBottom, showSearchSidebar]);
 
   const { memberCount, activeMembers, handleMemberRemoved, handleRoleChange, handleMembersAdded } = useChatMembers({
     selectedChat,
@@ -636,6 +970,38 @@ export default function ChatWindow({
     });
   }, []);
 
+  const handleMobileLongPress = useCallback((msg: Message, el: HTMLElement, startX: number, startY: number) => {
+    try {
+      const rect = el.getBoundingClientRect();
+      const menuHeight = 260;
+      const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
+      const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
+      const collapsedHeight = Math.floor(viewportH * 0.42);
+      const effectiveHeight = Math.min(rect.height, collapsedHeight);
+      try {
+        el.scrollIntoView({ behavior: 'auto', block: 'center' });
+      } catch {}
+      const heavy = effectiveHeight > viewportH * 0.36;
+      const medium = effectiveHeight > viewportH * 0.28;
+      const baseTopRatio = heavy ? 0.14 : medium ? 0.18 : 0.22;
+      const baseTop = Math.floor(viewportH * baseTopRatio);
+      const safeBottomGap = 20;
+      const clamp = (v: number, minV: number, maxV: number) => Math.max(minV, Math.min(v, maxV));
+      const maxTop = viewportH - effectiveHeight - menuHeight - safeBottomGap;
+      const focusTop = clamp(baseTop, 8, maxTop);
+      const placement: 'above' | 'below' = 'below';
+      const yBelow = focusTop + effectiveHeight + 16;
+      setContextMenu({
+        visible: true,
+        x: Math.floor(viewportW / 2),
+        y: Math.max(8, yBelow),
+        placement,
+        message: msg,
+        focusTop,
+      });
+    } catch {}
+  }, []);
+
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
   }, []);
@@ -675,16 +1041,22 @@ export default function ChatWindow({
 
   useEffect(() => {
     if (!scrollToMessageId) return;
-  }, [scrollToMessageId]);
+    initialScrolledRef.current = true;
+    setTimeout(() => {
+      handleJumpToMessage(scrollToMessageId);
+      if (typeof onScrollComplete === 'function') onScrollComplete();
+    }, 50);
+  }, [scrollToMessageId, handleJumpToMessage, onScrollComplete]);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
+    if (isMobile && showSearchSidebar) return;
     if (!initialScrolledRef.current && messages.length > 0 && !jumpLoadingRef.current && !scrollToMessageId) {
       container.scrollTop = container.scrollHeight;
       initialScrolledRef.current = true;
     }
-  }, [messages.length, roomId, scrollToMessageId]);
+  }, [messages.length, roomId, scrollToMessageId, isMobile, showSearchSidebar]);
   // 🔥 USEMEMO: Phân loại tin nhắn
   const messagesGrouped = useMemo(() => groupMessagesByDate(messages), [messages]);
 
@@ -798,8 +1170,6 @@ export default function ChatWindow({
         setOldestTs(newOldest ?? oldestTs);
         added = true;
       }
-      // Với truy vấn "before=oldestTs", tổng trả về chỉ là số lượng bản ghi cũ hơn oldestTs,
-      // không phải tổng toàn bộ room. Để tránh dừng sớm, dùng ngưỡng theo limit.
       setHasMore(raw.length === LIMIT);
       if (container && !jumpLoadingRef.current) {
         setTimeout(() => {
@@ -821,7 +1191,7 @@ export default function ChatWindow({
     const el = messagesContainerRef.current;
     if (!el) return;
     const handler = () => {
-      if (el.scrollTop <= 50 && !jumpLoadingRef.current) {
+      if (el.scrollTop <= 50 && !jumpLoadingRef.current && !showSearchSidebar) {
         void loadMoreMessages();
       }
       const bottomGap = el.scrollHeight - el.scrollTop - el.clientHeight;
@@ -845,158 +1215,7 @@ export default function ChatWindow({
     setReplyingTo(message);
   }, []);
 
-  const handleJumpToMessage = useCallback(
-    async (messageId: string) => {
-      jumpLoadingRef.current = true;
-      const container = messagesContainerRef.current;
-
-      if (!container) {
-        console.error('❌ [JUMP] Container not found');
-        jumpLoadingRef.current = false;
-        return;
-      }
-
-      const getOffsetTop = (el: HTMLElement, parent: HTMLElement) => {
-        let top = 0;
-        let node: HTMLElement | null = el;
-        while (node && node !== parent) {
-          top += node.offsetTop;
-          node = node.offsetParent as HTMLElement | null;
-        }
-        return top;
-      };
-
-      const centerElement = (el: HTMLElement) => {
-        const elTopInContainer = getOffsetTop(el, container);
-        const targetTop = elTopInContainer - container.clientHeight / 2 + el.clientHeight / 2;
-        container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-      };
-
-      const scrollToElement = (elementId: string, attempt = 0): boolean => {
-        const element = document.getElementById(elementId);
-
-        if (element) {
-          centerElement(element as HTMLElement);
-
-          setHighlightedMsgId(messageId);
-          setTimeout(() => setHighlightedMsgId(null), 2500);
-
-          setTimeout(() => {
-            const e1 = document.getElementById(elementId);
-            if (e1) centerElement(e1 as HTMLElement);
-          }, 250);
-          setTimeout(() => {
-            const e2 = document.getElementById(elementId);
-            if (e2) centerElement(e2 as HTMLElement);
-            jumpLoadingRef.current = false;
-          }, 800);
-
-          return true;
-        }
-
-        if (attempt < 10) {
-          setTimeout(() => scrollToElement(elementId, attempt + 1), 200);
-          return false;
-        }
-
-        console.warn('❌ [JUMP] Element not found after 10 attempts');
-        jumpLoadingRef.current = false;
-        return false;
-      };
-
-      // 1️⃣ Check nếu message đã có trong DOM
-      const existingElement = document.getElementById(`msg-${messageId}`);
-      if (existingElement) {
-        scrollToElement(`msg-${messageId}`);
-        return;
-      }
-
-      // 2️⃣ Check nếu message đã có trong state (đã load nhưng chưa render)
-      const messageInState = messages.find((m) => String(m._id) === String(messageId));
-      if (messageInState) {
-        // Wait for render then scroll
-        setTimeout(() => scrollToElement(`msg-${messageId}`), 100);
-        return;
-      }
-
-      try {
-        // Get target message info
-        const response = await fetch('/api/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getById', _id: messageId }),
-        });
-
-        const result = await response.json();
-        const targetMessage = (result?.row?.row || result?.row) as Message | null;
-
-        if (!targetMessage || String(targetMessage.roomId) !== String(roomId)) {
-          console.error('❌ [JUMP] Message not found or wrong room');
-          alert('Không tìm thấy tin nhắn này trong cuộc trò chuyện.');
-          jumpLoadingRef.current = false;
-          return;
-        }
-
-        const targetTs = Number(targetMessage.timestamp);
-
-        // Load surrounding messages (100 messages before + 50 after)
-        const [olderRes, newerRes] = await Promise.all([
-          readMessagesApi(roomId, {
-            limit: 100,
-            sortOrder: 'desc',
-            extraFilters: { timestamp: { $lte: targetTs } },
-          }),
-          readMessagesApi(roomId, {
-            limit: 50,
-            sortOrder: 'asc',
-            extraFilters: { timestamp: { $gt: targetTs } },
-          }),
-        ]);
-
-        // Process and merge messages
-        const olderMessages = Array.isArray(olderRes.data) ? (olderRes.data as Message[]) : [];
-        const newerMessages = Array.isArray(newerRes.data) ? (newerRes.data as Message[]) : [];
-
-        const olderAsc = olderMessages.reverse();
-        const allNewMessages = [...olderAsc, ...newerMessages];
-
-        // Update messages state
-        const existingIds = new Set(messages.map((m) => String(m._id)));
-        const messagesToAdd = allNewMessages.filter((m) => !existingIds.has(String(m._id)));
-
-        if (messagesToAdd.length > 0) {
-          setMessages((prev) => {
-            const combined = [...prev, ...messagesToAdd];
-
-            // Sort by timestamp
-            combined.sort((a, b) => {
-              const ta = Number(a.timestamp) || 0;
-              const tb = Number(b.timestamp) || 0;
-              return ta - tb;
-            });
-
-            return combined;
-          });
-
-          // Update oldestTs
-          const minTimestamp = Math.min(...messagesToAdd.map((m) => Number(m.timestamp)));
-          setOldestTs((prev) => Math.min(minTimestamp, prev ?? Infinity));
-          setHasMore(olderMessages.length === 100);
-        }
-
-        // Wait for DOM render then scroll
-        setTimeout(() => {
-          console.log('⏳ [JUMP] Waiting for DOM render...');
-          scrollToElement(`msg-${messageId}`);
-        }, 300);
-      } catch (error) {
-        console.error('❌ [JUMP] Error:', error);
-        alert('Có lỗi xảy ra khi tải tin nhắn.');
-        jumpLoadingRef.current = false;
-      }
-    },
-    [roomId, messages, oldestTs],
-  );
+  
   useEffect(() => {
     if (!scrollToMessageId) return;
     const timer = setTimeout(() => {
@@ -1216,7 +1435,8 @@ export default function ChatWindow({
         showMessageNotification(data);
         void markAsReadApi(roomId, String(currentUser._id));
       }
-      const shouldScroll = String(data.sender) === String(currentUser._id) || isAtBottomRef.current;
+      const locked = !!scrollLockUntilRef.current && Date.now() < scrollLockUntilRef.current;
+      const shouldScroll = !locked && (data.sender === currentUser._id || isAtBottomRef.current);
       if (shouldScroll) {
         setTimeout(() => {
           const el = messagesContainerRef.current;
@@ -1239,70 +1459,6 @@ export default function ChatWindow({
         }
       }
     });
-
-    socketRef.current.on(
-      'call_notify',
-      async (data: {
-        roomId: string;
-        sender: string;
-        callerId: string;
-        calleeId: string;
-        type: 'voice' | 'video';
-        status: 'answered' | 'rejected' | 'timeout';
-        durationSec?: number;
-      }) => {
-        if (String(data.roomId) !== String(roomId)) return;
-        if (String(currentUser._id) !== String(data.sender)) return;
-        const kind = data.type === 'video' ? 'video' : 'thoại';
-        const incoming = String(data.sender) === String(data.calleeId);
-        const dir = incoming ? 'đến' : 'đi';
-        const s = data.status;
-        const d = Math.max(0, Math.floor(Number(data.durationSec || 0)));
-        const m = Math.floor(d / 60);
-        const ss = d % 60;
-        const durStr = `${m} phút ${ss} giây`;
-        const content =
-          s === 'answered'
-            ? `Cuộc gọi ${kind} ${dir} – ${durStr}`
-            : s === 'rejected'
-              ? `Cuộc gọi ${kind} ${dir} – Bị từ chối`
-              : `Cuộc gọi ${kind} ${dir} – Không phản hồi`;
-        const ts = Date.now();
-        const notifyRes = await createMessageApi({
-          roomId,
-          sender: String(currentUser._id),
-          type: 'notify',
-          content,
-          timestamp: ts,
-          callerId: String(data.callerId),
-          calleeId: String(data.calleeId),
-          callType: data.type,
-          callStatus: data.status,
-          callDurationSec: d,
-        });
-        if (notifyRes?.success && typeof notifyRes._id === 'string') {
-          const receiver = isGroup ? null : getId(selectedChat);
-          const members = isGroup ? (selectedChat as GroupConversation).members : [];
-          socketRef.current?.emit('send_message', {
-            roomId,
-            sender: String(currentUser._id),
-            senderName: currentUser.name,
-            isGroup,
-            receiver,
-            members,
-            _id: notifyRes._id,
-            type: 'notify',
-            content,
-            timestamp: ts,
-            callerId: String(data.callerId),
-            calleeId: String(data.calleeId),
-            callType: data.type,
-            callStatus: data.status,
-            callDurationSec: d,
-          });
-        }
-      },
-    );
 
     socketRef.current.on(
       'reaction_updated',
@@ -1918,9 +2074,33 @@ export default function ChatWindow({
       avatar: finalAvatar,
     };
   };
-  // Render tin nhắn với highlight mentions + link clickable
-  const renderMessageContent = (content: string, mentionedUserIds?: string[], isMe?: boolean) => {
+  // Render tin nhắn với highlight mentions + link clickable + search keyword
+  const renderMessageContent = (
+    content: string,
+    mentionedUserIds?: string[],
+    isMe?: boolean,
+    searchKeyword?: string | null,
+  ) => {
     if (!content) return null;
+
+    const highlightKeyword = (text: string, keyword: string | null | undefined) => {
+      if (!keyword || !keyword.trim() || !text) return text;
+      const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      const parts = text.split(regex);
+      return (
+        <>
+          {parts.map((part, i) =>
+            regex.test(part) ? (
+              <mark key={i} className="bg-yellow-200 text-yellow-900 px-0.5 rounded font-medium">
+                {part}
+              </mark>
+            ) : (
+              <span key={i}>{part}</span>
+            ),
+          )}
+        </>
+      );
+    };
 
     const parts = content.split(/(@\[[^\]]+\]\([^)]+\))/g);
 
@@ -1955,7 +2135,8 @@ export default function ChatWindow({
         const start = match.index;
         const end = start + match[0].length;
         if (start > lastIndex) {
-          nodes.push(<span key={`t-${index}-${lastIndex}`}>{text.slice(lastIndex, start)}</span>);
+          const beforeLink = text.slice(lastIndex, start);
+          nodes.push(<span key={`t-${index}-${lastIndex}`}>{highlightKeyword(beforeLink, searchKeyword)}</span>);
         }
         const url = match[0];
         const href = url.startsWith('http') ? url : `https://${url}`;
@@ -1967,13 +2148,14 @@ export default function ChatWindow({
             rel="noreferrer"
             className="text-blue-600 hover:underline break-all"
           >
-            {url}
+            {highlightKeyword(url, searchKeyword)}
           </a>,
         );
         lastIndex = end;
       }
       if (lastIndex < text.length) {
-        nodes.push(<span key={`t-${index}-${lastIndex}-end`}>{text.slice(lastIndex)}</span>);
+        const remaining = text.slice(lastIndex);
+        nodes.push(<span key={`t-${index}-${lastIndex}-end`}>{highlightKeyword(remaining, searchKeyword)}</span>);
       }
       return <React.Fragment key={`p-${index}`}>{nodes}</React.Fragment>;
     });
@@ -2049,73 +2231,133 @@ export default function ChatWindow({
   }, []);
 
   const handleShareToRooms = useCallback(
-    async (targetRoomIds: string[], message: Message) => {
+    async (targetRoomIds: string[], message: Message, attachedText?: string) => {
       try {
-        // Tạo nội dung tin nhắn share
         let shareContent = '';
         const originalSenderName = getSenderName(message.sender);
+        if (message.type === 'text') shareContent = message.content || '';
 
-        if (message.type === 'text') {
-          shareContent = message.content || '';
-        }
+        const batchItems =
+          (message as unknown as {
+            batchItems?: Array<{
+              id: string;
+              type: MessageCreate['type'];
+              fileUrl?: string;
+              fileName?: string;
+              content?: string;
+            }>;
+          }).batchItems || [];
+
         const safeGroups = Array.isArray(groups) ? groups : [];
-        // Gửi tin nhắn đến từng room
         for (const targetRoomId of targetRoomIds) {
           const isGroupChat = safeGroups.some((g) => String(g._id) === String(targetRoomId));
 
-          const newMsg: MessageCreate = {
-            roomId: targetRoomId,
-            sender: currentUser._id,
-            type: message.type,
-            content: message.type === 'text' ? shareContent : message.content,
-            fileUrl: message.fileUrl,
-            fileName: message.fileName,
-            timestamp: Date.now(),
-            // Thêm metadata về shared message
-            sharedFrom: {
-              messageId: String(message._id),
-              originalSender: originalSenderName,
-              originalRoomId: String(message.roomId),
-            },
-          };
+          const sockBase = isGroupChat
+            ? {
+                roomId: targetRoomId,
+                sender: currentUser._id,
+                senderName: currentUser.name,
+                isGroup: true,
+                receiver: null,
+                members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
+              }
+            : {
+                roomId: targetRoomId,
+                sender: currentUser._id,
+                senderName: currentUser.name,
+                isGroup: false,
+                receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
+                members: [],
+              };
 
-          // Gọi API tạo tin nhắn
-          const res = await fetch('/api/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'create',
-              data: newMsg,
-            }),
-          });
-
-          const json = await res.json();
-
-          if (json.success && typeof json._id === 'string') {
-            // Emit socket
-            const sockBase = isGroupChat
-              ? {
-                  roomId: targetRoomId,
-                  sender: currentUser._id,
-                  senderName: currentUser.name,
-                  isGroup: true,
-                  receiver: null,
-                  members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
-                }
-              : {
-                  roomId: targetRoomId,
-                  sender: currentUser._id,
-                  senderName: currentUser.name,
-                  isGroup: false,
-                  receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
-                  members: [],
-                };
-
-            socketRef.current?.emit('send_message', {
-              ...sockBase,
-              ...newMsg,
-              _id: json._id,
+          const attached = String(attachedText || '').trim();
+          if (attached.length > 0) {
+            const attachMsg: MessageCreate = {
+              roomId: targetRoomId,
+              sender: currentUser._id,
+              type: 'text',
+              content: attached,
+              timestamp: Date.now(),
+            };
+            const r = await fetch('/api/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'create', data: attachMsg }),
             });
+            const jr = await r.json();
+            if (jr?.success && typeof jr?._id === 'string') {
+              socketRef.current?.emit('send_message', {
+                ...sockBase,
+                ...attachMsg,
+                _id: jr._id,
+              });
+            }
+          }
+
+          if (Array.isArray(batchItems) && batchItems.length > 0) {
+            for (const it of batchItems) {
+              const newMsg: MessageCreate = {
+                roomId: targetRoomId,
+                sender: currentUser._id,
+                type: it.type,
+                content: it.type === 'text' ? String(it.content || '') : message.content,
+                fileUrl: it.fileUrl,
+                fileName: it.fileName,
+                timestamp: Date.now(),
+                sharedFrom: {
+                  messageId: String(message._id),
+                  originalSender: originalSenderName,
+                  originalRoomId: String(message.roomId),
+                },
+              };
+              const res = await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create',
+                  data: newMsg,
+                }),
+              });
+              const json = await res.json();
+              if (json?.success && typeof json?._id === 'string') {
+                socketRef.current?.emit('send_message', {
+                  ...sockBase,
+                  ...newMsg,
+                  _id: json._id,
+                });
+              }
+            }
+          } else {
+            const newMsg: MessageCreate = {
+              roomId: targetRoomId,
+              sender: currentUser._id,
+              type: message.type,
+              content: message.type === 'text' ? shareContent : message.content,
+              fileUrl: message.fileUrl,
+              fileName: message.fileName,
+              timestamp: Date.now(),
+              sharedFrom: {
+                messageId: String(message._id),
+                originalSender: originalSenderName,
+                originalRoomId: String(message.roomId),
+              },
+            };
+            const res = await fetch('/api/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create',
+                data: newMsg,
+              }),
+            });
+            const json = await res.json();
+            if (json.success && typeof json._id === 'string') {
+              socketRef.current?.emit('send_message', {
+                ...sockBase,
+                ...newMsg,
+                _id: json._id,
+              });
+            }
           }
         }
       } catch (error) {
@@ -2156,51 +2398,79 @@ export default function ChatWindow({
 
   const viewportRef = useRef<HTMLElement>(null);
 
-  // Fix keyboard overlapping on mobile using VisualViewport API
-  useEffect(() => {
-    const handleVisualViewport = () => {
-      if (!viewportRef.current || !window.visualViewport) return;
-
-      // Trên iOS Safari, khi bàn phím hiện lên, visualViewport.height giảm.
-      // Layout Viewport (body) không đổi kích thước, nhưng visualViewport dịch chuyển.
-      // Ta cần set height của container bằng đúng visualViewport.height để tránh bị che.
-
-      const vv = window.visualViewport;
-
-      // Force scroll to top to prevent document scrolling
-      window.scrollTo(0, 0);
-
-      // Cập nhật height
-      viewportRef.current.style.height = `${vv.height}px`;
-
-      // QUAN TRỌNG: Nếu offsetTop > 0 (bị đẩy lên), ta cần dịch ngược lại
-      // hoặc đảm bảo container nằm đúng vị trí trong visual viewport.
-      // Với position: fixed ở parent (HomeMobile), top luôn là 0 của layout viewport.
-      // Nhưng nếu visual viewport bị pan xuống (offsetTop > 0), ta có thể cần điều chỉnh top?
-      // Thực tế với body fixed + window.scrollTo(0,0), offsetTop thường về 0.
-
-      scrollToBottom();
-    };
-
-    const vv = window.visualViewport;
-    if (vv) {
-      vv.addEventListener('resize', handleVisualViewport);
-      vv.addEventListener('scroll', handleVisualViewport);
-      // Init
-      handleVisualViewport();
+  const applyViewport = useCallback(() => {
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    const h = vv ? vv.height : window.innerHeight;
+    const w = vv ? vv.width : window.innerWidth;
+    const top = vv ? vv.offsetTop : 0;
+    const left = vv ? vv.offsetLeft : 0;
+    const root = document.documentElement;
+    root.style.setProperty('--vvh', `${h}px`);
+    root.style.setProperty('--vvw', `${w}px`);
+    root.style.setProperty('--vvTop', `${top}px`);
+    root.style.setProperty('--vvLeft', `${left}px`);
+    const footerEl = footerRef.current as HTMLElement | null;
+    const listEl = messagesContainerRef.current as HTMLElement | null;
+    if (footerEl && listEl) {
+      const fh = footerEl.offsetHeight || 0;
+      listEl.style.paddingBottom = `${fh}px`;
+      footerEl.style.position = 'sticky';
+      footerEl.style.bottom = '0px';
+      footerEl.style.left = '0px';
+      footerEl.style.right = '0px';
+      footerEl.style.zIndex = '20';
     }
+    window.scrollTo(0, 0);
+    if (!jumpLoadingRef.current && isAtBottomRef.current && !(isMobile && showSearchSidebar)) {
+      scrollToBottom();
+    }
+  }, [scrollToBottom, isMobile, showSearchSidebar]);
 
+  useEffect(() => {
+    if (!isMobile) return;
+    applyViewport();
+    const vv = window.visualViewport;
+    const onResize = () => applyViewport();
+    const onScrollVV = () => applyViewport();
+    const onWindowResize = () => applyViewport();
+    const onFocusIn = () => applyViewport();
+    const onFocusOut = () => applyViewport();
+    const onMobileActionsToggle = () => applyViewport();
+    if (vv) {
+      vv.addEventListener('resize', onResize);
+      vv.addEventListener('scroll', onScrollVV);
+    }
+    window.addEventListener('resize', onWindowResize);
+    window.addEventListener('orientationchange', onWindowResize);
+    window.addEventListener('focusin', onFocusIn);
+    window.addEventListener('focusout', onFocusOut);
+    window.addEventListener('mobileActionsToggle', onMobileActionsToggle as EventListener);
+    document.body.classList.add('vv-body-lock');
     return () => {
       if (vv) {
-        vv.removeEventListener('resize', handleVisualViewport);
-        vv.removeEventListener('scroll', handleVisualViewport);
+        vv.removeEventListener('resize', onResize);
+        vv.removeEventListener('scroll', onScrollVV);
       }
+      window.removeEventListener('resize', onWindowResize);
+      window.removeEventListener('orientationchange', onWindowResize);
+      window.removeEventListener('focusin', onFocusIn);
+      window.removeEventListener('focusout', onFocusOut);
+      window.removeEventListener('mobileActionsToggle', onMobileActionsToggle as EventListener);
+      document.body.classList.remove('vv-body-lock');
+      const root = document.documentElement;
+      root.style.removeProperty('--vvh');
+      root.style.removeProperty('--vvw');
+      root.style.removeProperty('--vvTop');
+      root.style.removeProperty('--vvLeft');
     };
-  }, [scrollToBottom]);
+  }, [isMobile, applyViewport]);
 
   return (
     <ChatProvider value={chatContextValue}>
-      <main ref={viewportRef} className="flex h-full bg-gray-700 overflow-hidden no-scrollbar">
+      <main
+        ref={viewportRef}
+        className={`flex ${isMobile ? 'vv-fixed' : 'h-full'} bg-gray-700 overflow-hidden no-scrollbar`}
+      >
         <div
           className={`flex flex-col h-full relative bg-gray-100 transition-all duration-300 ${showPopup ? 'sm:w-[calc(100%-21.875rem)]' : 'w-full'} border-r border-gray-200`}
         >
@@ -2226,6 +2496,11 @@ export default function ChatWindow({
             presenceOnline={!isGroup ? presenceInfo.online : undefined}
             onVoiceCall={handleVoiceCall}
             onVideoCall={handleVideoCall}
+            isMobile={isMobile}
+            isSearchActive={isMobile && showSearchSidebar}
+            searchTerm={mobileSearchTerm}
+            onSearchTermChange={setMobileSearchTerm}
+            searchInputRef={mobileSearchInputRef as React.RefObject<HTMLInputElement | null>}
           />
           <PinnedMessagesSection
             allPinnedMessages={allPinnedMessages}
@@ -2266,6 +2541,7 @@ export default function ChatWindow({
               </div>
             )}
             <MessageList
+              onShareMessage={handleShareMessage}
               messagesGrouped={messagesGrouped}
               messages={messages}
               currentUser={currentUser}
@@ -2274,10 +2550,14 @@ export default function ChatWindow({
               highlightedMsgId={highlightedMsgId}
               isGroup={isGroup}
               onContextMenu={handleContextMenu}
+              onMobileLongPress={handleMobileLongPress}
+              isMobile={isMobile}
               onReplyMessage={handleReplyTo}
               onJumpToMessage={handleJumpToMessage}
               getSenderInfo={getSenderInfo}
-              renderMessageContent={renderMessageContent}
+              renderMessageContent={(content, mentionedUserIds, isMe) =>
+                renderMessageContent(content, mentionedUserIds, isMe, isMobile ? mobileSearchTerm : roomSearchKeyword)
+              }
               onOpenMedia={(url, type) => setPreviewMedia({ url, type })}
               editingMessageId={editingMessageId}
               setEditingMessageId={setEditingMessageId}
@@ -2288,13 +2568,13 @@ export default function ChatWindow({
               onPinMessage={handlePinMessage}
               onToggleReaction={handleToggleReaction}
               contextMenu={contextMenu}
-              isSidebarOpen={showPopup}
+              isSidebarOpen={!isMobile && (showPopup || showSearchSidebar)}
             />
             <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>
 
           <button
-            onClick={scrollToBottom}
+            onClick={() => scrollToBottom(true)}
             aria-label="Cuộn xuống cuối"
             className={`absolute cursor-pointer hover:bg-gray-100 md:bottom-35 bottom-30   right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
               showScrollDown ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -2334,7 +2614,45 @@ export default function ChatWindow({
                 onSelectMention={selectMention}
               />
             )}
-
+            {/* Mobile Search Navigation Bar - chỉ hiển thị khi có kết quả tìm kiếm */}
+            {isMobile && mobileSearchResults.length > 0 && mobileSearchTerm.trim() && (
+              <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-t border-gray-200">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                  <span className="text-xs text-gray-600 font-medium">
+                    Kết quả thứ {mobileCurrentResultIndex >= 0 ? mobileCurrentResultIndex + 1 : 0}/
+                    {mobileSearchResults.length}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePreviousResult}
+                    className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Kết quả trước"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleNextResult}
+                    className="p-1.5 rounded cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Kết quả tiếp theo"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
             <ChatInput
               showEmojiPicker={showEmojiPicker}
               onToggleEmojiPicker={handleToggleEmojiPicker}
@@ -2448,7 +2766,7 @@ export default function ChatWindow({
         </div>
 
         {showPopup && (
-          <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full z-10 ">
+          <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full z-20 ">
             <ChatInfoPopup
               onClose={() => setShowPopup(false)}
               onShowCreateGroup={onShowCreateGroup}
@@ -2465,14 +2783,22 @@ export default function ChatWindow({
             />
           </div>
         )}
-        {showSearchSidebar && (
+        {/* Desktop: Search Sidebar */}
+        {showSearchSidebar && !isMobile && (
           <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full z-20 ">
             <SearchSidebar
               isOpen={showSearchSidebar}
-              onClose={() => setShowSearchSidebar(false)}
+              onClose={() => {
+                setShowSearchSidebar(false);
+                if (setRoomSearchKeyword) setRoomSearchKeyword(null);
+              }}
               roomId={roomId}
               onJumpToMessage={handleJumpToMessage}
               getSenderName={getSenderName}
+              initialKeyword={roomSearchKeyword || null}
+              onKeywordClear={() => {
+                if (setRoomSearchKeyword) setRoomSearchKeyword(null);
+              }}
             />
           </div>
         )}
@@ -2509,18 +2835,33 @@ export default function ChatWindow({
         )}
 
         {contextMenu && contextMenu.visible && (
-          <MessageContextMenu
-            contextMenu={contextMenu}
-            currentUserId={String(currentUser._id)}
-            onClose={closeContextMenu}
-            onPinMessage={handlePinMessage}
-            onRecallMessage={handleRecallMessage}
-            setEditingMessageId={setEditingMessageId}
-            setEditContent={setEditContent}
-            closeContextMenu={closeContextMenu}
-            onReplyMessage={handleReplyTo}
-            onShareMessage={handleShareMessage}
-          />
+          <>
+            {!isMobile ? (
+              <MessageContextMenu
+                contextMenu={contextMenu}
+                currentUserId={String(currentUser._id)}
+                onClose={closeContextMenu}
+                onPinMessage={handlePinMessage}
+                onRecallMessage={handleRecallMessage}
+                setEditingMessageId={setEditingMessageId}
+                setEditContent={setEditContent}
+                closeContextMenu={closeContextMenu}
+                onReplyMessage={handleReplyTo}
+                onShareMessage={handleShareMessage}
+              />
+            ) : (
+              <MessageMobileContextMenu
+                contextMenu={contextMenu}
+                currentUserId={String(currentUser._id)}
+                onClose={closeContextMenu}
+                onPinMessage={handlePinMessage}
+                onRecallMessage={handleRecallMessage}
+                onReplyMessage={handleReplyTo}
+                onShareMessage={handleShareMessage}
+                onToggleReaction={handleToggleReaction}
+              />
+            )}
+          </>
         )}
 
         <MediaPreviewModal

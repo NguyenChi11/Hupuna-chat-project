@@ -40,7 +40,7 @@ interface SidebarProps {
   selectedChat: ChatItemType | null;
   onSelectChat: (item: ChatItemType) => void;
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroup: boolean) => void;
-  onNavigateToMessage: (message: Message) => void;
+  onNavigateToMessage: (message: Message, searchKeyword?: string) => void;
   styleWidget?: string;
   onlyGroups?: boolean;
   onlyPersonal?: boolean;
@@ -507,7 +507,7 @@ export default function Sidebar({
             searchTerm={searchTerm}
             onSelectContact={handleSelectContact}
             onNavigateToMessage={(msg) => {
-              onNavigateToMessage(msg);
+              onNavigateToMessage(msg, searchTerm);
               setSearchTerm('');
               setGlobalSearchResults({ contacts: [], messages: [] });
             }}

@@ -36,9 +36,11 @@ interface HomeMobileProps {
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroupChat: boolean) => void;
   scrollToMessageId: string | null;
   onScrollComplete: () => void;
+  roomSearchKeyword: string | null;
+  setRoomSearchKeyword: (keyword: string | null) => void;
   fetchAllData: () => Promise<void> | void;
   onShowGlobalSearch: () => void;
-  onNavigateToMessage: (message: Message) => void;
+  onNavigateToMessage: (message: Message, searchKeyword?: string) => void;
   onlyGroups?: boolean;
   onlyPersonal?: boolean;
 }
@@ -56,6 +58,8 @@ export default function HomeMobile({
   onChatAction,
   scrollToMessageId,
   onScrollComplete,
+  roomSearchKeyword,
+  setRoomSearchKeyword,
   fetchAllData,
   onNavigateToMessage,
   onlyGroups = false,
@@ -92,6 +96,8 @@ export default function HomeMobile({
             onChatAction={onChatAction}
             scrollToMessageId={scrollToMessageId}
             onScrollComplete={onScrollComplete}
+            roomSearchKeyword={roomSearchKeyword}
+            setRoomSearchKeyword={setRoomSearchKeyword}
             // Nút quay lại sẽ được render bên trong ChatHeader (mobile)
             onBackFromChat={onBackFromChat}
             groups={groups}

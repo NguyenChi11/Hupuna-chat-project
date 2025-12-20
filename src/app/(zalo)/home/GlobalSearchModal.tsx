@@ -47,7 +47,7 @@ interface Props {
   onClose: () => void;
   onSearch: (term: string) => void;
   allUsers: User[];
-  onNavigateToMessage: (message: Message) => void;
+  onNavigateToMessage: (message: Message, searchKeyword: string) => void;
   onSelectContact: (phonebook: PhonebookContact) => void;
 }
 
@@ -63,6 +63,11 @@ export default function GlobalSearchModal({
   const [activeTab, setActiveTab] = useState<'all' | 'contacts' | 'messages' | 'files'>('all');
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const [isSearching, setIsSearching] = useState(false);
+
+  // 🔥 Sync localSearchTerm khi searchTerm prop thay đổi
+  useEffect(() => {
+    setLocalSearchTerm(searchTerm);
+  }, [searchTerm]);
 
   // Keep the useMemo for processing messages
   const { regularMessages, fileMessages } = useMemo(() => {
@@ -181,11 +186,6 @@ export default function GlobalSearchModal({
 
   const hasResults = (results?.contacts?.length || 0) > 0 || (results?.messages?.length || 0) > 0;
 
-  // Update localSearchTerm when prop changes
-  useEffect(() => {
-    setLocalSearchTerm(searchTerm);
-  }, [searchTerm]);
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-6 sm:p-4"
@@ -220,7 +220,7 @@ export default function GlobalSearchModal({
                   groupedMessages={groupedMessages}
                   searchTerm={localSearchTerm}
                   allUsers={allUsers}
-                  onNavigateToMessage={onNavigateToMessage}
+                  onNavigateToMessage={(msg) => onNavigateToMessage(msg, localSearchTerm)}
                 />
               )}
 
@@ -228,7 +228,7 @@ export default function GlobalSearchModal({
                 <FileResults
                   groupedFiles={groupedFiles}
                   searchTerm={localSearchTerm}
-                  onNavigateToMessage={onNavigateToMessage}
+                  onNavigateToMessage={(msg) => onNavigateToMessage(msg, localSearchTerm)}
                 />
               )}
             </>

@@ -35,6 +35,8 @@ export default function HomePage() {
     globalSearchResults,
     scrollToMessageId,
     setScrollToMessageId,
+    roomSearchKeyword,
+    setRoomSearchKeyword,
     handleOpenGlobalSearch,
     handleGlobalSearch,
     handleSelectContact,
@@ -174,6 +176,8 @@ export default function HomePage() {
         onChatAction={handleChatAction}
         scrollToMessageId={scrollToMessageId}
         onScrollComplete={() => setScrollToMessageId(null)}
+        roomSearchKeyword={roomSearchKeyword}
+        setRoomSearchKeyword={setRoomSearchKeyword}
         fetchAllData={fetchAllData}
         onShowGlobalSearch={handleOpenGlobalSearch}
       />
@@ -190,7 +194,12 @@ export default function HomePage() {
         onBackFromChat={() => setSelectedChat(null)}
         onChatAction={handleChatAction}
         scrollToMessageId={scrollToMessageId}
-        onScrollComplete={() => setScrollToMessageId(null)}
+        onScrollComplete={() => {
+          setScrollToMessageId(null);
+          setRoomSearchKeyword(null);
+        }}
+        roomSearchKeyword={roomSearchKeyword}
+        setRoomSearchKeyword={setRoomSearchKeyword}
         fetchAllData={fetchAllData}
         onShowGlobalSearch={handleOpenGlobalSearch}
         onNavigateToMessage={handleNavigateToMessage}

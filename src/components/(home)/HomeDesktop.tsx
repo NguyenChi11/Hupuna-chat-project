@@ -36,9 +36,11 @@ interface HomeDesktopProps {
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroupChat: boolean) => void;
   scrollToMessageId: string | null;
   onScrollComplete: () => void;
+  roomSearchKeyword?: string | null;
+  setRoomSearchKeyword?: (keyword: string | null) => void;
   fetchAllData: () => Promise<void> | void;
   onShowGlobalSearch: () => void;
-  onNavigateToMessage: (message: Message) => void;
+  onNavigateToMessage: (message: Message, searchKeyword?: string) => void;
   onlyGroups?: boolean;
   onlyPersonal?: boolean;
 }
@@ -56,6 +58,8 @@ export default function HomeDesktop({
   onChatAction,
   scrollToMessageId,
   onScrollComplete,
+  roomSearchKeyword,
+  setRoomSearchKeyword,
   fetchAllData,
   onNavigateToMessage,
   onlyGroups = false,
@@ -89,6 +93,8 @@ export default function HomeDesktop({
             onChatAction={onChatAction}
             scrollToMessageId={scrollToMessageId}
             onScrollComplete={onScrollComplete}
+            roomSearchKeyword={roomSearchKeyword || null}
+            setRoomSearchKeyword={setRoomSearchKeyword}
             onBackFromChat={onBackFromChat}
             groups={groups}
           />

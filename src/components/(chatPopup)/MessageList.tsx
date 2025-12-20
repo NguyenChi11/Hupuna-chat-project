@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import type { Message } from '@/types/Message';
 import type { User } from '@/types/User';
@@ -20,12 +20,13 @@ import {
   HiUserGroup,
 } from 'react-icons/hi2';
 import { HiPhone, HiVideoCamera, HiArrowDown, HiArrowUp } from 'react-icons/hi2';
-import { HiLink, HiOutlineLogout } from 'react-icons/hi';
+import { HiLink, HiOutlineLogout, HiOutlineShare } from 'react-icons/hi';
 import ReminderDetailModal from './components/ReminderDetailModal';
 import PollDetailModal from './components/PollDetailModal';
 import ReactionButton from './components/ReactionButton';
 import FolderButton from './components/Folder/FolderButton';
 import { ContextMenuState } from './MessageContextMenu';
+import ICShareMessage from '../svg/ICShareMessage';
 
 interface SenderInfo {
   _id: string;
@@ -56,7 +57,11 @@ interface MessageListProps {
   onPinMessage?: (msg: Message) => void;
   onToggleReaction?: (msg: Message, emoji: string) => void;
   contextMenu: ContextMenuState | null;
+  scrollManagedExternally?: boolean;
   isSidebarOpen?: boolean;
+  onMobileLongPress?: (msg: Message, el: HTMLElement, startX: number, startY: number) => void;
+  isMobile?: boolean;
+  onShareMessage: (msg: Message) => void;
 }
 
 export default function MessageList({
@@ -68,6 +73,7 @@ export default function MessageList({
   highlightedMsgId,
   isGroup,
   onContextMenu,
+  onMobileLongPress,
   onReplyMessage,
   onJumpToMessage,
   getSenderInfo,
@@ -81,13 +87,20 @@ export default function MessageList({
   onRefresh,
   onPinMessage,
   onToggleReaction,
+  contextMenu,
+  scrollManagedExternally = false,
   isSidebarOpen = false,
+  isMobile = false,
+  onShareMessage,
 }: MessageListProps) {
   const [, setTimeVisibleId] = useState<string | null>(null);
   const [expandedOriginalId, setExpandedOriginalId] = useState<string | null>(null);
   const [activeMoreId, setActiveMoreId] = useState<string | null>(null);
   const [detailMsg, setDetailMsg] = useState<Message | null>(null);
   const [reactionDetail, setReactionDetail] = useState<{ msgId: string; emoji: string } | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressTriggeredRef = useRef(false);
+  const [mobileCollapsedId, setMobileCollapsedId] = useState<string | null>(null);
 
   // Đóng menu reaction/folder khi click ra ngoài
   useEffect(() => {
@@ -120,6 +133,9 @@ export default function MessageList({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [activeMoreId]);
+  useEffect(() => {
+    if (!contextMenu?.visible) setMobileCollapsedId(null);
+  }, [contextMenu]);
 
   const formatTimestamp = (ts: number) => {
     const d = new Date(ts);
@@ -136,7 +152,7 @@ export default function MessageList({
         });
   };
   useEffect(() => {
-    if (!highlightedMsgId) return;
+    if (scrollManagedExternally || !highlightedMsgId) return;
 
     // Đợi DOM render xong
     setTimeout(() => {
@@ -158,7 +174,7 @@ export default function MessageList({
         }, 100);
       }
     }, 100);
-  }, [highlightedMsgId]);
+  }, [highlightedMsgId, scrollManagedExternally]);
 
   return (
     <>
@@ -261,69 +277,100 @@ export default function MessageList({
                                 <button
                                   onClick={(e) => {
                                     e.preventDefault();
-                                    onContextMenu(e, msg);
+                                    const batchMsg = {
+                                      ...msg,
+                                      batchItems: mediaGroup.map((m) => ({
+                                        id: m._id,
+                                        content: m.content || '',
+                                        type: m.type === 'video' ? 'video' : 'image',
+                                        fileUrl: m.fileUrl || m.previewUrl,
+                                        fileName: m.fileName,
+                                      })),
+                                    } as Message;
+                                    onShareMessage(batchMsg);
                                   }}
-                                  className={`absolute top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-2' : 'left-full ml-2'} opacity-100 pointer-events-auto`}
-                                  aria-label="Mở menu"
-                                  title="Thêm"
+                                  className={`absolute cursor-pointer top-1/2 -translate-y-1/2 p-1.5 bg-white/90 rounded-full shadow hover:bg-indigo-50 ${
+                                    isMeGroup ? 'right-full mr-2' : 'left-full ml-2'
+                                  }`}
+                                  aria-label="Chia sẻ nhóm media"
+                                  title="Chia sẻ nhóm media"
                                 >
-                                  <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
+                                  <ICShareMessage className="w-4 h-4 text-indigo-600" />
                                 </button>
-                                <ReactionButton
-                                  isMine={isMeGroup}
-                                  visible={activeMoreId === msg._id}
-                                  onPick={(emoji) => {
-                                    onToggleReaction?.(msg, emoji);
-                                    setActiveMoreId(null);
-                                  }}
-                                  className={`${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} ${
-                                    activeMoreId === msg._id
-                                      ? 'opacity-100 pointer-events-auto'
-                                      : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                  }`}
-                                />
-                                <FolderButton
-                                  roomId={String(msg.roomId)}
-                                  messageId={String(msg._id)}
-                                  isMine={isMeGroup}
-                                  visible={activeMoreId === msg._id}
-                                  className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
-                                    activeMoreId === msg._id
-                                      ? 'opacity-100 pointer-events-auto'
-                                      : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                  }`}
-                                  preview={
-                                    msg.type === 'text'
-                                      ? msg.content || ''
-                                      : msg.type === 'file'
-                                        ? msg.fileName
-                                          ? `[File] ${msg.fileName}`
-                                          : '[File]'
-                                        : msg.type === 'image'
-                                          ? '[Ảnh]'
-                                          : msg.type === 'video'
-                                            ? '[Video]'
-                                            : msg.type === 'sticker'
-                                              ? '[Sticker]'
-                                              : msg.type === 'reminder'
-                                                ? msg.content || '[Nhắc nhở]'
-                                                : `[${msg.type}]`
-                                  }
-                                  content={msg.content}
-                                  type={msg.type}
-                                  fileUrl={String(msg.fileUrl || msg.previewUrl || '')}
-                                  fileName={msg.fileName}
-                                  batchItems={mediaGroup.map((m) => ({
-                                    id: m._id,
-                                    content: m.content || '',
-                                    type: m.type === 'video' ? 'video' : 'image',
-                                    fileUrl: m.fileUrl,
-                                    fileName: m.fileName,
-                                  }))}
-                                  onSaved={() => {
-                                    setActiveMoreId(null);
-                                  }}
-                                />
+                                {!isMobile && (
+                                  <>
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        onContextMenu(e, msg);
+                                      }}
+                                      className={`absolute cursor-pointer top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} opacity-100 pointer-events-auto`}
+                                      aria-label="Mở menu"
+                                      title="Thêm"
+                                    >
+                                      <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
+                                    </button>
+                                  </>
+                                )}
+                                {!isMobile && (
+                                  <ReactionButton
+                                    isMine={isMeGroup}
+                                    visible={activeMoreId === msg._id}
+                                    onPick={(emoji) => {
+                                      onToggleReaction?.(msg, emoji);
+                                      setActiveMoreId(null);
+                                    }}
+                                    className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
+                                      activeMoreId === msg._id
+                                        ? 'opacity-100 pointer-events-auto'
+                                        : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
+                                    }`}
+                                  />
+                                )}
+                                {!isMobile && (
+                                  <FolderButton
+                                    roomId={String(msg.roomId)}
+                                    messageId={String(msg._id)}
+                                    isMine={isMeGroup}
+                                    visible={activeMoreId === msg._id}
+                                    className={`${isMeGroup ? 'right-full mr-26' : 'left-full ml-26'} ${
+                                      activeMoreId === msg._id
+                                        ? 'opacity-100 pointer-events-auto'
+                                        : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
+                                    }`}
+                                    preview={
+                                      msg.type === 'text'
+                                        ? msg.content || ''
+                                        : msg.type === 'file'
+                                          ? msg.fileName
+                                            ? `[File] ${msg.fileName}`
+                                            : '[File]'
+                                          : msg.type === 'image'
+                                            ? '[Ảnh]'
+                                            : msg.type === 'video'
+                                              ? '[Video]'
+                                              : msg.type === 'sticker'
+                                                ? '[Sticker]'
+                                                : msg.type === 'reminder'
+                                                  ? msg.content || '[Nhắc nhở]'
+                                                  : `[${msg.type}]`
+                                    }
+                                    content={msg.content}
+                                    type={msg.type}
+                                    fileUrl={String(msg.fileUrl || msg.previewUrl || '')}
+                                    fileName={msg.fileName}
+                                    batchItems={mediaGroup.map((m) => ({
+                                      id: m._id,
+                                      content: m.content || '',
+                                      type: m.type === 'video' ? 'video' : 'image',
+                                      fileUrl: m.fileUrl,
+                                      fileName: m.fileName,
+                                    }))}
+                                    onSaved={() => {
+                                      setActiveMoreId(null);
+                                    }}
+                                  />
+                                )}
                               </>
                             )}
                             <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
@@ -348,11 +395,12 @@ export default function MessageList({
                                       playsInline
                                       preload="metadata"
                                     />
-                                    {!up && (
-                                      <div className="absolute inset-0 flex items-center justify-center opacity-100">
-                                        <div className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow">
-                                          <HiPlay className="w-5 h-5 text-blue-600 ml-0.5" />
-                                        </div>
+                                    
+                                  {!up && (
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                                      <div className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow">
+                                        <HiPlay className="w-5 h-5 text-blue-600 ml-0.5" />
+                                      </div>
                                       </div>
                                     )}
                                     {up && (
@@ -389,6 +437,8 @@ export default function MessageList({
                                         className="w-full h-auto object-cover"
                                       />
                                     )}
+                                    
+                                   
                                     {up && (
                                       <div className="absolute inset-0 bg-black/70 text-white flex items-center justify-center text-sm font-semibold">
                                         {Math.round(prog as number)}%
@@ -572,72 +622,80 @@ export default function MessageList({
                           >
                             {!isRecalled && (
                               <>
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    onContextMenu(e, msg);
-                                  }}
-                                  className={`absolute top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-2' : 'left-full ml-2'} opacity-100 pointer-events-auto`}
-                                  aria-label="Mở menu"
-                                  title="Thêm"
-                                >
-                                  <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
-                                </button>
-                                <ReactionButton
-                                  isMine={isMeGroup}
-                                  visible={activeMoreId === msg._id}
-                                  onPick={(emoji) => {
-                                    onToggleReaction?.(msg, emoji);
-                                    setActiveMoreId(null);
-                                  }}
-                                  className={`${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} ${
-                                    activeMoreId === msg._id
-                                      ? 'opacity-100 pointer-events-auto'
-                                      : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                  }`}
-                                />
-                                <FolderButton
-                                  roomId={String(msg.roomId)}
-                                  messageId={String(msg._id)}
-                                  isMine={isMeGroup}
-                                  visible={activeMoreId === msg._id}
-                                  className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
-                                    activeMoreId === msg._id
-                                      ? 'opacity-100 pointer-events-auto'
-                                      : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                  }`}
-                                  preview={
-                                    msg.type === 'text'
-                                      ? msg.content || ''
-                                      : msg.type === 'file'
-                                        ? msg.fileName
-                                          ? `[File] ${msg.fileName}`
-                                          : '[File]'
-                                        : msg.type === 'image'
-                                          ? '[Ảnh]'
-                                          : msg.type === 'video'
-                                            ? '[Video]'
-                                            : msg.type === 'sticker'
-                                              ? '[Sticker]'
-                                              : msg.type === 'reminder'
-                                                ? msg.content || '[Nhắc nhở]'
-                                                : `[${msg.type}]`
-                                  }
-                                  content={msg.content}
-                                  type={msg.type}
-                                  fileUrl={String(msg.fileUrl || msg.previewUrl || '')}
-                                  fileName={msg.fileName}
-                                  batchItems={fileGroup.map((m) => ({
-                                    id: m._id,
-                                    content: m.content || '',
-                                    type: 'file',
-                                    fileUrl: m.fileUrl,
-                                    fileName: m.fileName,
-                                  }))}
-                                  onSaved={() => {
-                                    setActiveMoreId(null);
-                                  }}
-                                />
+                                {!isMobile && (
+                                  <>
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        onContextMenu(e, msg);
+                                      }}
+                                      className={`absolute top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-2' : 'left-full ml-2'} opacity-100 pointer-events-auto`}
+                                      aria-label="Mở menu"
+                                      title="Thêm"
+                                    >
+                                      <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
+                                    </button>
+                                  </>
+                                )}
+                                {!isMobile && (
+                                  <ReactionButton
+                                    isMine={isMeGroup}
+                                    visible={activeMoreId === msg._id}
+                                    onPick={(emoji) => {
+                                      onToggleReaction?.(msg, emoji);
+                                      setActiveMoreId(null);
+                                    }}
+                                    className={`${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} ${
+                                      activeMoreId === msg._id
+                                        ? 'opacity-100 pointer-events-auto'
+                                        : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
+                                    }`}
+                                  />
+                                )}
+                                {!isMobile && (
+                                  <FolderButton
+                                    roomId={String(msg.roomId)}
+                                    messageId={String(msg._id)}
+                                    isMine={isMeGroup}
+                                    visible={activeMoreId === msg._id}
+                                    className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
+                                      activeMoreId === msg._id
+                                        ? 'opacity-100 pointer-events-auto'
+                                        : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
+                                    }`}
+                                    preview={
+                                      msg.type === 'text'
+                                        ? msg.content || ''
+                                        : msg.type === 'file'
+                                          ? msg.fileName
+                                            ? `[File] ${msg.fileName}`
+                                            : '[File]'
+                                          : msg.type === 'image'
+                                            ? '[Ảnh]'
+                                            : msg.type === 'video'
+                                              ? '[Video]'
+                                              : msg.type === 'sticker'
+                                                ? '[Sticker]'
+                                                : msg.type === 'reminder'
+                                                  ? msg.content || '[Nhắc nhở]'
+                                                  : `[${msg.type}]`
+                                    }
+                                    content={msg.content}
+                                    type={msg.type}
+                                    fileUrl={String(msg.fileUrl || msg.previewUrl || '')}
+                                    fileName={msg.fileName}
+                                    batchItems={fileGroup.map((m) => ({
+                                      id: m._id,
+                                      content: m.content || '',
+                                      type: 'file',
+                                      fileUrl: m.fileUrl,
+                                      fileName: m.fileName,
+                                    }))}
+                                    onSaved={() => {
+                                      setActiveMoreId(null);
+                                    }}
+                                  />
+                                )}
                               </>
                             )}
                             <div className="space-y-2">
@@ -1222,10 +1280,10 @@ export default function MessageList({
                     id={`msg-${msg._id}`}
                     onContextMenu={(e) => {
                       e.preventDefault();
-                      onReplyMessage?.(msg);
-                    }}
-                    className={`
-                  w-full  sm:max-w-[23rem]
+                    onReplyMessage?.(msg);
+                  }}
+                  className={`
+                  w-full sm:max-w-[36rem] lg:max-w-[46rem]
                   flex gap-2 group relative
                   ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
                   ${isGrouped ? 'mt-1' : 'mt-4'}
@@ -1263,117 +1321,222 @@ export default function MessageList({
                         </span>
                       )}
                       {/* Reply preview */}
-                      {repliedToMsg && (
-                        <div
-                          onClick={() => onJumpToMessage(repliedToMsg._id)}
-                          className="max-w-[70vw] sm:max-w-[18rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-4 border-blue-500 rounded-xl cursor-pointer"
-                        >
-                          <p className="font-semibold text-blue-600">{msg.replyToMessageName || senderName}</p>
-                          <p className="truncate text-gray-600">
-                            {repliedToMsg.isRecalled ? 'Tin nhắn đã bị thu hồi' : repliedToMsg.content || '[Tệp]'}
-                          </p>
-                        </div>
-                      )}
+                      {repliedToMsg &&
+                        (() => {
+                          const url = String(repliedToMsg.fileUrl || repliedToMsg.previewUrl || '');
+                          const isVid =
+                            repliedToMsg.type === 'video' ||
+                            isVideoFile(repliedToMsg.fileName) ||
+                            isVideoFile(url);
+                          const isImg =
+                            repliedToMsg.type === 'image' ||
+                            /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(
+                              String(repliedToMsg.fileName || url || ''),
+                            );
+                          const label = repliedToMsg.isRecalled
+                            ? 'Tin nhắn đã bị thu hồi'
+                            : repliedToMsg.type === 'file'
+                              ? repliedToMsg.fileName || '[File]'
+                              : repliedToMsg.type === 'image'
+                                ? '[Ảnh]'
+                                : repliedToMsg.type === 'video'
+                                  ? '[Video]'
+                                  : repliedToMsg.type === 'sticker'
+                                    ? '[Sticker]'
+                                    : repliedToMsg.type === 'reminder'
+                                      ? repliedToMsg.content || '[Nhắc nhở]'
+                                      : repliedToMsg.content || 'Tin nhắn';
+                          return (
+                            <div
+                              onClick={() => onJumpToMessage(repliedToMsg._id)}
+                              className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-2 border-blue-500 rounded-xl cursor-pointer"
+                            >
+                              <p className="font-semibold text-blue-600">
+                                {msg.replyToMessageName || senderName}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                {!repliedToMsg.isRecalled && (isImg || isVid) && (
+                                  isImg ? (
+                                    <Image
+                                      src={getProxyUrl(url)}
+                                      alt="Ảnh"
+                                      width={40}
+                                      height={40}
+                                      className="w-10 h-10 rounded-md object-cover border border-blue-200"
+                                    />
+                                  ) : (
+                                    <div className="relative w-10 h-10 bg-black rounded-md overflow-hidden border border-blue-200">
+                                      <video
+                                        src={getProxyUrl(url)}
+                                        className="w-full h-full object-cover"
+                                        muted
+                                        playsInline
+                                        preload="metadata"
+                                      />
+                                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <div className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center">
+                                          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-gray-800">
+                                            <path d="M8 5v14l11-7z" fill="currentColor" />
+                                          </svg>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )
+                                )}
+                                <p className="truncate text-gray-600">{label}</p>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                       {/* MAIN BUBBLE */}
                       <div
                         className={`  
-                      px-4 py-2 rounded-lg shadow-md max-w-[50vw] sm:max-w-[17rem] break-words mt-1 
-                      ${isMe ? 'bg-[#E5F1FF] text-white' : 'bg-white text-gray-800 border border-gray-200'}
+                  px-4 py-2 rounded-lg shadow-md max-w-[70vw] ${
+                    !isRecalled && msg.type === 'text' && isSidebarOpen && !isMobile
+                      ? 'sm:max-w-[26rem] lg:max-w-[32rem]'
+                      : 'sm:max-w-[34rem] lg:max-w-[44rem]'
+                  } break-words mt-1 
+                  ${isMe ? 'bg-[#E5F1FF] text-white' : 'bg-white text-gray-800 border border-gray-200'}
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
                       ${!isGrouped && !isMe ? 'rounded-tl-md' : ''}
-                      ${isRecalled ? '!bg-gray-200 !text-gray-500 italic !px-4 !py-2 sm:!max-w-[18rem]' : ''}
+                      ${isRecalled ? '!bg-gray-200 !text-gray-500 italic !px-4 !py-2 !max-w-[92vw] sm:!max-w-[34rem] lg:!max-w-[44rem]' : ''}
                       ${!isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image') ? '!p-0 !shadow-none ' : ''}
-                      ${!isRecalled && msg.type === 'image' ? '!p-0' : ''}
-                      ${!isRecalled && msg.type === 'file' ? '!px-2 !py-2' : ''}
-                    relative ${hasReactions ? 'mb-4' : ''}
-                    `}
+                    ${!isRecalled && msg.type === 'image' ? '!p-0' : ''}
+                    ${!isRecalled && msg.type === 'file' ? '!px-2 !py-2' : ''}
+                  relative ${hasReactions ? 'mb-4' : ''}
+                  ${contextMenu?.visible && String(contextMenu.message._id) === String(msg._id) ? 'z-[9998]' : ''}
+                  `}
+                        style={undefined}
                         onClick={() => {
                           setTimeVisibleId((prev) => (prev === msg._id ? null : msg._id));
                           setActiveMoreId(msg._id);
                           setReactionDetail(null);
                         }}
+                        onTouchStart={(e) => {
+                          try {
+                            longPressTriggeredRef.current = false;
+                            if (longPressTimerRef.current != null) {
+                              clearTimeout(longPressTimerRef.current);
+                              longPressTimerRef.current = null;
+                            }
+                            const t = e.touches && e.touches[0];
+                            const x0 = t ? t.clientX : 0;
+                            const y0 = t ? t.clientY : 0;
+                            const el = e.currentTarget as HTMLElement;
+                            longPressTimerRef.current = window.setTimeout(() => {
+                              longPressTriggeredRef.current = true;
+                              setActiveMoreId(msg._id);
+                              setReactionDetail(null);
+                              if (isMobile && msg.type === 'text') {
+                                setMobileCollapsedId(msg._id);
+                              }
+                              onMobileLongPress?.(msg, el, x0, y0);
+                            }, 420);
+                          } catch {}
+                        }}
+                        onTouchEnd={(e) => {
+                          try {
+                            if (longPressTimerRef.current != null) {
+                              clearTimeout(longPressTimerRef.current);
+                              longPressTimerRef.current = null;
+                            }
+                            if (longPressTriggeredRef.current) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }
+                          } catch {}
+                        }}
+                        onTouchMove={() => {
+                          try {
+                            if (longPressTimerRef.current != null) {
+                              clearTimeout(longPressTimerRef.current);
+                              longPressTimerRef.current = null;
+                            }
+                          } catch {}
+                        }}
+                        onTouchCancel={() => {
+                          try {
+                            if (longPressTimerRef.current != null) {
+                              clearTimeout(longPressTimerRef.current);
+                              longPressTimerRef.current = null;
+                            }
+                          } catch {}
+                        }}
                       >
                         {!isRecalled && (
                           <>
-                            {/* Button menu ba chấm */}
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                onContextMenu(e, msg);
-                              }}
-                              className={`
-                              absolute top-1/2 -translate-y-1/2 z-10
-                              cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50
-                              ${isMe ? 'right-full mr-2' : 'left-full ml-2'}
-                              opacity-100 pointer-events-auto
-                            `}
-                              aria-label="Mở menu"
-                              title="Thêm"
-                            >
-                              <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
-                            </button>
-
-                            {/* Reaction Button - cách xa button menu */}
-                            <ReactionButton
-                              isMine={isMe}
-                              visible={activeMoreId === msg._id} // Truyền prop visible thay vì dùng className
-                              onPick={(emoji) => {
-                                onToggleReaction?.(msg, emoji);
-                                setActiveMoreId(null); // Đóng sau khi chọn emoji
-                              }}
-                              className={`
-                              ${isMe ? 'right-full mr-10' : 'left-full ml-10'}
-                              ${
-                                activeMoreId === msg._id
-                                  ? 'opacity-100 pointer-events-auto'
-                                  : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                              }
-                            `}
-                            />
-                            <FolderButton
-                              roomId={String(msg.roomId)}
-                              messageId={String(msg._id)}
-                              isMine={isMe}
-                              visible={activeMoreId === msg._id}
-                              className={`
-                            ${isMe ? 'right-full mr-18' : 'left-full ml-18'}
-                            ${
-                              activeMoreId === msg._id
-                                ? 'opacity-100 pointer-events-auto'
-                                : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                            }
-                          `}
-                              preview={
-                                msg.type === 'text'
-                                  ? msg.content || ''
-                                  : msg.type === 'file'
-                                    ? msg.fileName
-                                      ? `[File] ${msg.fileName}`
-                                      : '[File]'
-                                    : msg.type === 'image'
-                                      ? '[Ảnh]'
-                                      : msg.type === 'video'
-                                        ? '[Video]'
-                                        : msg.type === 'sticker'
-                                          ? '[Sticker]'
-                                          : msg.type === 'reminder'
-                                            ? msg.content || '[Nhắc nhở]'
-                                            : `[${msg.type}]`
-                              }
-                              content={msg.content}
-                              type={msg.type}
-                              fileUrl={String(msg.fileUrl || msg.previewUrl || '')}
-                              fileName={msg.fileName}
-                              onSaved={() => {
-                                setActiveMoreId(null);
-                              }}
-                            />
+                            {(msg.type === 'image' || msg.type === 'video') && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  onShareMessage(msg);
+                                }}
+                                className={`absolute top-1/2 -translate-y-1/2  cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMe ? 'right-full mr-2' : 'left-full ml-2'} opacity-100 pointer-events-auto`}
+                                aria-label="Chia sẻ"
+                                title="Chia sẻ"
+                              >
+                                <ICShareMessage className="w-4 h-4 text-indigo-600" />
+                              </button>
+                            )}
+                            {!isMobile && (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    onContextMenu(e, msg);
+                                  }}
+                                  className={`absolute top-1/2 -translate-y-1/2 z-10 cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMe ? 'right-full mr-10' : 'left-full ml-10'} opacity-100 pointer-events-auto`}
+                                  aria-label="Mở menu"
+                                  title="Thêm"
+                                >
+                                  <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
+                                </button>
+                                <ReactionButton
+                                  isMine={isMe}
+                                  visible={activeMoreId === msg._id}
+                                  onPick={(emoji) => {
+                                    onToggleReaction?.(msg, emoji);
+                                    setActiveMoreId(null);
+                                  }}
+                                  className={`absolute top-1/2 -translate-y-1/2  ${isMe ? 'right-full mr-18' : 'left-full ml-18'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'} transition-opacity duration-200`}
+                                />
+                                <FolderButton
+                                  roomId={String(msg.roomId)}
+                                  messageId={String(msg._id)}
+                                  isMine={isMe}
+                                  visible={activeMoreId === msg._id}
+                                  className={`absolute top-1/2 -translate-y-1/2  ${isMe ? 'right-full mr-26' : 'left-full ml-26'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'} transition-opacity duration-200`}
+                                  preview={
+                                    msg.type === 'text'
+                                      ? msg.content || ''
+                                      : msg.type === 'file'
+                                        ? msg.fileName
+                                          ? `[File] ${msg.fileName}`
+                                          : '[File]'
+                                        : msg.type === 'image'
+                                          ? '[Ảnh]'
+                                          : msg.type === 'video'
+                                            ? '[Video]'
+                                            : msg.type === 'sticker'
+                                              ? '[Sticker]'
+                                              : msg.type === 'reminder'
+                                                ? msg.content || '[Nhắc nhở]'
+                                                : `[${msg.type}]`
+                                  }
+                                  content={msg.content}
+                                  type={msg.type}
+                                  fileUrl={String(msg.fileUrl || msg.previewUrl || '')}
+                                  fileName={msg.fileName}
+                                  onSaved={() => {
+                                    setActiveMoreId(null);
+                                  }}
+                                />
+                              </>
+                            )}
                           </>
                         )}
-                        {/* {!isRecalled && (
-                      
-                    )} */}
+                
                         {!isRecalled && (
                           <>
                             {(() => {
@@ -1431,19 +1594,15 @@ export default function MessageList({
                                     )}
                                   </div>
 
-                                  {/* Hiệu ứng nổi nhẹ khi hover toàn bộ bubble */}
                                   <div className="absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
                                 </div>
                               );
                             })()}
 
-                            {/* Reaction Detail Popover - Hiển thị danh sách người thả */}
                             {reactionDetail && reactionDetail.msgId === msg._id && (
                               <>
-                                {/* Backdrop để đóng popover */}
                                 <div className="fixed inset-0 z-30" onClick={() => setReactionDetail(null)} />
 
-                                {/* Popover content */}
                                 <div
                                   ref={(el) => {
                                     if (el && reactionDetail.msgId === msg._id) {
@@ -1451,18 +1610,17 @@ export default function MessageList({
                                       if (rect) {
                                         const spaceBelow = window.innerHeight - rect.bottom;
                                         const spaceAbove = rect.top;
-                                        const popoverHeight = 250; // Estimate height
+                                        const popoverHeight = 250;
 
-                                        // Nếu không đủ chỗ ở dưới và có nhiều chỗ hơn ở trên
                                         if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
                                           el.style.bottom = '100%';
                                           el.style.top = 'auto';
-                                          el.style.marginBottom = '0.625rem'; // mb-2.5
+                                          el.style.marginBottom = '0.625rem';
                                           el.style.marginTop = '0';
                                         } else {
                                           el.style.top = '100%';
                                           el.style.bottom = 'auto';
-                                          el.style.marginTop = '0.625rem'; // mt-2.5
+                                          el.style.marginTop = '0.625rem';
                                           el.style.marginBottom = '0';
                                         }
                                       }
@@ -1515,8 +1673,39 @@ export default function MessageList({
 
                         {/* TEXT */}
                         {msg.type === 'text' && !isRecalled && !isEditing && (
-                          <div className="text-[1.125rem] leading-relaxed text-black whitespace-pre-wrap">
+                          <div
+                            className={`relative text-[1.05rem] ${
+                              isSidebarOpen && !isMobile ? 'sm:text-[0.95rem]' : 'sm:text-[1.125rem]'
+                            } leading-relaxed text-black whitespace-pre-wrap`}
+                            style={
+                              isMobile &&
+                              contextMenu?.visible &&
+                              String(contextMenu.message._id) === String(msg._id) &&
+                              mobileCollapsedId === msg._id
+                                ? { maxHeight: 'calc(var(--vvh) * 0.42)', overflow: 'hidden' }
+                                : undefined
+                            }
+                          >
                             {renderMessageContent(msg.content || '', msg.mentions, isMe)}
+                            {isMobile &&
+                              contextMenu?.visible &&
+                              String(contextMenu.message._id) === String(msg._id) &&
+                              mobileCollapsedId === msg._id && (
+                                <div className="absolute bottom-0 left-0 right-0 h-16 flex items-end justify-center pointer-events-none">
+                                  <div className="absolute inset-x-0 bottom-8 h-16 bg-gradient-to-t from-white/95 to-transparent" />
+                                  <button
+                                    onClick={() => {
+                                      setMobileCollapsedId(null);
+                                      try {
+                                        document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                                      } catch {}
+                                    }}
+                                    className="pointer-events-auto mb-2 px-3 py-1 rounded-full bg-white/90 border border-gray-200 text-sm text-blue-600 shadow hover:bg-blue-50 active:scale-95"
+                                  >
+                                    Xem thêm
+                                  </button>
+                                </div>
+                              )}
                             {(() => {
                               const linkMatch = (msg.content || '').match(/(https?:\/\/|www\.)\S+/i);
                               if (!linkMatch) return null;
@@ -1587,7 +1776,7 @@ export default function MessageList({
                         {/* IMAGE – FIX SIZE MOBILE */}
                         {msg.type === 'image' && msg.fileUrl && !isRecalled && (
                           <div
-                            className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[70vw] sm:max-w-[10rem]"
+                            className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[40vw] sm:max-w-[10rem]"
                             onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
                           >
                             {String(msg.fileUrl).startsWith('blob:') ? (
