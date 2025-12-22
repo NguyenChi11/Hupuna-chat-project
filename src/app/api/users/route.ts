@@ -361,6 +361,7 @@ export async function POST(req: NextRequest) {
             title: found['title'],
             background: found['background'],
             bio: found['bio'],
+            nicknames: found.nicknames,
           },
         });
 

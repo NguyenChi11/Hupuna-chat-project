@@ -250,13 +250,15 @@ export default function MessageList({
                         {!isMeGroup && (
                           <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
                             {senderInfo.avatar ? (
-                              <Image
-                                src={getProxyUrl(senderInfo.avatar)}
-                                width={38}
-                                height={38}
-                                alt={senderInfo.name}
-                                className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-                              />
+                              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                                <Image
+                                  width={38}
+                                  height={38}
+                                  src={getProxyUrl(senderInfo.avatar)}
+                                  alt={senderInfo.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
                                 {(senderInfo.name?.charAt(0).toUpperCase() || '?') as string}
@@ -395,12 +397,12 @@ export default function MessageList({
                                       playsInline
                                       preload="metadata"
                                     />
-                                    
-                                  {!up && (
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-100">
-                                      <div className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow">
-                                        <HiPlay className="w-5 h-5 text-blue-600 ml-0.5" />
-                                      </div>
+
+                                    {!up && (
+                                      <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                                        <div className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow">
+                                          <HiPlay className="w-5 h-5 text-blue-600 ml-0.5" />
+                                        </div>
                                       </div>
                                     )}
                                     {up && (
@@ -437,8 +439,7 @@ export default function MessageList({
                                         className="w-full h-auto object-cover"
                                       />
                                     )}
-                                    
-                                   
+
                                     {up && (
                                       <div className="absolute inset-0 bg-black/70 text-white flex items-center justify-center text-sm font-semibold">
                                         {Math.round(prog as number)}%
@@ -598,13 +599,15 @@ export default function MessageList({
                         {!isMeGroup && (
                           <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
                             {senderInfo.avatar ? (
-                              <Image
-                                src={getProxyUrl(senderInfo.avatar)}
-                                width={38}
-                                height={38}
-                                alt={senderInfo.name}
-                                className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-                              />
+                              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                                <Image
+                                  width={38}
+                                  height={38}
+                                  src={getProxyUrl(senderInfo.avatar)}
+                                  alt={senderInfo.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
                                 {(senderInfo.name?.charAt(0).toUpperCase() || '?') as string}
@@ -1280,9 +1283,9 @@ export default function MessageList({
                     id={`msg-${msg._id}`}
                     onContextMenu={(e) => {
                       e.preventDefault();
-                    onReplyMessage?.(msg);
-                  }}
-                  className={`
+                      onReplyMessage?.(msg);
+                    }}
+                    className={`
                   w-full sm:max-w-[36rem] lg:max-w-[46rem]
                   flex gap-2 group relative
                   ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
@@ -1295,13 +1298,15 @@ export default function MessageList({
                     {!isMe && (
                       <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
                         {senderInfo.avatar ? (
-                          <Image
-                            src={getProxyUrl(senderInfo.avatar)}
-                            width={38}
-                            height={38}
-                            alt={senderInfo.name}
-                            className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-                          />
+                          <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                            <Image
+                              width={38}
+                              height={38}
+                              src={getProxyUrl(senderInfo.avatar)}
+                              alt={senderInfo.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         ) : (
                           <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
                             {avatarChar}
@@ -1325,14 +1330,10 @@ export default function MessageList({
                         (() => {
                           const url = String(repliedToMsg.fileUrl || repliedToMsg.previewUrl || '');
                           const isVid =
-                            repliedToMsg.type === 'video' ||
-                            isVideoFile(repliedToMsg.fileName) ||
-                            isVideoFile(url);
+                            repliedToMsg.type === 'video' || isVideoFile(repliedToMsg.fileName) || isVideoFile(url);
                           const isImg =
                             repliedToMsg.type === 'image' ||
-                            /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(
-                              String(repliedToMsg.fileName || url || ''),
-                            );
+                            /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(String(repliedToMsg.fileName || url || ''));
                           const label = repliedToMsg.isRecalled
                             ? 'Tin nhắn đã bị thu hồi'
                             : repliedToMsg.type === 'file'
@@ -1351,12 +1352,11 @@ export default function MessageList({
                               onClick={() => onJumpToMessage(repliedToMsg._id)}
                               className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-2 border-blue-500 rounded-xl cursor-pointer"
                             >
-                              <p className="font-semibold text-blue-600">
-                                {msg.replyToMessageName || senderName}
-                              </p>
+                              <p className="font-semibold text-blue-600">{msg.replyToMessageName || senderName}</p>
                               <div className="flex items-center gap-2">
-                                {!repliedToMsg.isRecalled && (isImg || isVid) && (
-                                  isImg ? (
+                                {!repliedToMsg.isRecalled &&
+                                  (isImg || isVid) &&
+                                  (isImg ? (
                                     <Image
                                       src={getProxyUrl(url)}
                                       alt="Ảnh"
@@ -1381,8 +1381,7 @@ export default function MessageList({
                                         </div>
                                       </div>
                                     </div>
-                                  )
-                                )}
+                                  ))}
                                 <p className="truncate text-gray-600">{label}</p>
                               </div>
                             </div>
@@ -1536,7 +1535,7 @@ export default function MessageList({
                             )}
                           </>
                         )}
-                
+
                         {!isRecalled && (
                           <>
                             {(() => {

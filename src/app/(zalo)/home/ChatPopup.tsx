@@ -1593,18 +1593,8 @@ export default function ChatWindow({
       'room_nickname_updated',
       (data: { roomId: string; targetUserId: string; nickname: string }) => {
         if (String(data.roomId) === String(roomId)) {
-          try {
-            const k = `roomNicknames:${roomId}:${currentUser._id}`;
-            const raw = localStorage.getItem(k);
-            const map = raw ? (JSON.parse(raw) as Record<string, string>) : {};
-            if (data.nickname) {
-              map[data.targetUserId] = data.nickname;
-            } else {
-              delete map[data.targetUserId];
-            }
-            localStorage.setItem(k, JSON.stringify(map));
-            setNicknamesStamp(Date.now());
-          } catch {}
+          reLoad?.();
+          setNicknamesStamp(Date.now());
         }
       },
     );
