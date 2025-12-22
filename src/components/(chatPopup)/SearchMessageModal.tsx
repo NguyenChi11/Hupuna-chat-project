@@ -32,6 +32,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasAutoSearchedRef = useRef(false);
+  const lastInitialKeywordRef = useRef<string | null>(null);
   const initialSelectedIdRef = useRef<string | null>(null);
 
   const fetchSearchResults = useCallback(
@@ -76,21 +77,24 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
     [roomId, onJumpToMessage],
   );
   useEffect(() => {
-    if (initialKeyword && initialKeyword.trim() && !hasAutoSearchedRef.current && isOpen) {
-      setSearchTerm(initialKeyword);
-      hasAutoSearchedRef.current = true;
-      initialSelectedIdRef.current = initialSelectedMessageId || null;
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-      fetchSearchResults(initialKeyword);
-    }
+    const kw = (initialKeyword || '').trim();
+    if (!isOpen || !kw) return;
+    if (lastInitialKeywordRef.current === kw && hasAutoSearchedRef.current) return;
+    setSearchTerm(kw);
+    hasAutoSearchedRef.current = true;
+    lastInitialKeywordRef.current = kw;
+    initialSelectedIdRef.current = initialSelectedMessageId || null;
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+    fetchSearchResults(kw);
   }, [initialKeyword, initialSelectedMessageId, isOpen, fetchSearchResults]);
 
   // Reset when sidebar closes
   useEffect(() => {
     if (!isOpen) {
       hasAutoSearchedRef.current = false;
+      lastInitialKeywordRef.current = null;
       initialSelectedIdRef.current = null;
       setCurrentResultIndex(-1);
       if (onKeywordClear) {
