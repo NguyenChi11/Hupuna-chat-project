@@ -86,7 +86,7 @@ export default function MobileProfileSheet({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar p-4">{children}</div>
+        <div className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar">{children}</div>
       </div>
     </div>,
     document.body,

@@ -19,7 +19,7 @@ export default function ProfileContent({
   handleOverviewData: (data: Record<string, unknown>) => void;
 }) {
   return (
-    <div className="p-4">
+    <div className="">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
         {/* Thông tin cá nhân (chỉ owner chỉnh sửa được) */}
         {tab === 'info' && (

@@ -26,6 +26,12 @@ import FolderDashboard from '@/components/(chatPopup)/components/Folder/FolderDa
 import FolderSaveWizard from '@/components/(chatPopup)/components/Folder/FolderSaveWizard';
 import ChatFlashDashboard from '@/components/(chatPopup)/components/Chat-Flash/ChatFlashDashboard';
 import UploadProgressBar from '@/components/(chatPopup)/UploadProgressBar';
+import ICIcon1 from '@/components/svg/ICIcon1';
+import ImageIconZalo from '@/components/svg/ICIconImageZalo';
+import MicIcon from '@/components/svg/MicIcon';
+import IconFile from '@/components/svg/IConFile';
+import ICFolder from '@/components/svg/ICFolder';
+import { AiTwotoneLike } from 'react-icons/ai';
 
 interface ChatInputProps {
   showEmojiPicker: boolean;
@@ -440,19 +446,19 @@ export default function ChatInput({
           </div>
         </div>
       ) : null}
-      <div className="hidden md:flex items-center gap-2 mb-2 p-1 rounded-xl bg-white ">
+      <div className="hidden md:flex items-center gap-2 mb-1  rounded-xl bg-white ">
         <button
           onClick={onVoiceInput}
-          className={`p-2 rounded-lg cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+          className={`rounded-lg cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Nhập bằng giọng nói"
         >
-          <HiMicrophone className="w-6 h-6" />
+          <MicIcon className="w-9 h-9" />
         </button>
         <label
-          className="p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
+          className=" rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Gửi ảnh hoặc video"
         >
-          <HiPhoto className="w-6 h-6" />
+          <ImageIconZalo className="w-9 h-9" />
           <input
             type="file"
             accept="image/*,video/*"
@@ -466,10 +472,10 @@ export default function ChatInput({
           />
         </label>
         <label
-          className="p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
+          className=" rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Gửi file"
         >
-          <HiPaperClip className="w-6 h-6 rotate-12" />
+          <IconFile className="w-9 h-9" />
           <input
             type="file"
             className="sr-only"
@@ -483,10 +489,10 @@ export default function ChatInput({
         </label>
         <button
           onClick={() => setShowFolderDashboard(true)}
-          className="p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
+          className=" rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Mở Folder"
         >
-          <HiFolder className="w-6 h-6" />
+          <ICFolder className="w-9 h-9" />
         </button>
       </div>
 
@@ -700,32 +706,32 @@ export default function ChatInput({
                   }`}
                   aria-label="Gửi like"
                 >
-                  <HiHandThumbUp className="w-7 h-7" />
+                  <AiTwotoneLike className="w-7 h-7" />
                 </button>
               </div>
               <div className="md:hidden flex items-center gap-2">
                 <button
                   ref={toggleMobileActionsBtnRef}
                   onClick={handleToggleMobileActions}
-                  className="block p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                  className="block rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
                   aria-label="Mở thêm hành động"
                 >
-                  <HiEllipsisHorizontal className="w-7 h-7" />
+                  <ICIcon1 className="w-11 h-11" />
                 </button>
                 <button
                   onClick={onVoiceInput}
-                  className={`p-2 rounded-full cursor-pointer transition-all duration-300 active:scale-90 ${
+                  className={` rounded-full cursor-pointer transition-all duration-300 active:scale-90 ${
                     isListening ? 'text-red-500 animate-pulse bg-red-50' : 'text-gray-500 hover:bg-gray-100'
                   }`}
                   aria-label="Nhập bằng giọng nói"
                 >
-                  <HiMicrophone className="w-7 h-7" />
+                  <MicIcon className="w-11 h-11 text-black" />
                 </button>
                 <label
-                  className="p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                  className=" rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
                   aria-label="Gửi ảnh hoặc video"
                 >
-                  <HiPhoto className="w-7 h-7" />
+                  <ImageIconZalo className="w-11 h-11" />
                   <input
                     type="file"
                     accept="image/*,video/*"
