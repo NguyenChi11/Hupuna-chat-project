@@ -1,12 +1,41 @@
 import { getProxyUrl } from '@/utils/utils';
 import Image from 'next/image';
+import { useState, useRef, useEffect } from 'react';
+import { HiPencil, HiCheck, HiX } from 'react-icons/hi';
 
 interface UserAvatarSectionProps {
   userName: string;
   userAvatar?: string;
+  onUpdateNickname?: (name: string) => void;
 }
 
-export default function UserAvatarSection({ userName, userAvatar }: UserAvatarSectionProps) {
+export default function UserAvatarSection({ userName, userAvatar, onUpdateNickname }: UserAvatarSectionProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(userName);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setEditName(userName);
+  }, [userName]);
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    if (editName.trim() && editName.trim() !== userName) {
+      onUpdateNickname?.(editName.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditName(userName);
+    setIsEditing(false);
+  };
+
   return (
     <div className="flex flex-col items-center">
       {/* Avatar người dùng */}
@@ -41,10 +70,49 @@ export default function UserAvatarSection({ userName, userAvatar }: UserAvatarSe
       </div>
 
       {/* Tên người dùng */}
-      <div className="mt-6 text-center">
-        <h3 className="text-xl font-bold text-gray-900 tracking-tight">{userName || 'Người dùng'}</h3>
-        <p className="mt-1 text-sm text-gray-500 font-medium">Đang trò chuyện riêng</p>
+      <div className="mt-6 text-center relative group/name w-full flex justify-center">
+        {isEditing ? (
+          <div className="flex items-center justify-center gap-2">
+            <input
+              ref={inputRef}
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              className="text-xl font-bold text-gray-900 text-center border-b-2 border-blue-500 focus:outline-none bg-transparent min-w-[150px] max-w-[250px]"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSave();
+                if (e.key === 'Escape') handleCancel();
+              }}
+            />
+            <button
+              onClick={handleSave}
+              className="p-1 rounded-full hover:bg-green-100 text-green-500 transition-colors"
+            >
+              <HiCheck className="w-5 h-5" />
+            </button>
+            <button onClick={handleCancel} className="p-1 rounded-full hover:bg-red-100 text-red-500 transition-colors">
+              <HiX className="w-5 h-5" />
+            </button>
+          </div>
+        ) : (
+          <div
+            className="flex items-center justify-center gap-2 group/edit cursor-pointer"
+            onClick={() => onUpdateNickname && setIsEditing(true)}
+          >
+            <h3 className="text-xl font-bold text-gray-900 tracking-tight truncate max-w-[15.625rem]">
+              {userName || 'Người dùng'}
+            </h3>
+            {onUpdateNickname && (
+              <button
+                className="opacity-0 group-hover/edit:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-blue-500"
+                title="Đặt biệt danh"
+              >
+                <HiPencil className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
+      <p className="mt-1 text-sm text-gray-500 font-medium">Đang trò chuyện riêng</p>
     </div>
   );
 }

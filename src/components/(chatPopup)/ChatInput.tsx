@@ -517,23 +517,7 @@ export default function ChatInput({
               try {
                 window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
               } catch {}
-              // const el = editableRef.current;
-              // if (el) {
-              //   try {
-              //     el.focus();
-              //     const range = document.createRange();
-              //     range.selectNodeContents(el);
-              //     range.collapse(false);
-              //     const sel = window.getSelection();
-              //     sel?.removeAllRanges();
-              //     sel?.addRange(range);
-              //   } catch {}
-              //   setTimeout(() => {
-              //     try {
-              //       el.focus();
-              //     } catch {}
-              //   }, 100);
-              // }
+              // Keep caret at the click position by letting browser handle selection
             }}
             onInput={() => {
               onInputEditable();
@@ -614,32 +598,8 @@ export default function ChatInput({
               onPasteEditable(e);
               updateSlashState();
             }}
-            onTouchMove={(e) => {
-              // Chỉ cho phép cuộn nếu element có overflow
-              const el = e.currentTarget as HTMLDivElement;
-              if (el.scrollHeight > el.clientHeight) {
-                e.stopPropagation(); // Ngăn bubble lên parent
-                // KHÔNG preventDefault() để cho phép cuộn nội bộ
-              } else {
-                e.preventDefault(); // Chặn khi không cần cuộn
-              }
-            }}
-            onWheel={(e) => {
-              // Tương tự cho wheel
-              const el = e.currentTarget as HTMLDivElement;
-              if (el.scrollHeight > el.clientHeight) {
-                e.stopPropagation();
-              } else {
-                e.preventDefault();
-              }
-            }}
-           
-            style={{
-              touchAction: 'pan-y', // Cho phép cuộn dọc
-              overscrollBehavior: 'contain', // Ngăn overscroll
-              WebkitOverflowScrolling: 'touch', // Smooth scroll trên iOS
-            }}
-            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-base text-gray-800 overflow-hidden overflow-y-auto w-full max-w-full break-words whitespace-pre-wrap"
+            style={{ overscrollBehavior: 'contain' }}
+            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-base text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
             data-placeholder="Nhập tin nhắn..."
           />
 

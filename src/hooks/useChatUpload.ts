@@ -28,7 +28,14 @@ export function useChatUpload({
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
 
   const handleUploadAndSend = useCallback(
-    async (file: File, type: MessageType, caption?: string, replyToMessageId?: string, mentions?: string[]) => {
+    async (
+      file: File,
+      type: MessageType,
+      caption?: string,
+      replyToMessageId?: string,
+      mentions?: string[],
+      senderName?: string,
+    ) => {
       const sanitizeName = (name: string) => {
         return name
           .normalize('NFD')
@@ -105,7 +112,7 @@ export function useChatUpload({
               _id: res.data._id || Date.now().toString(),
               roomId,
               sender: currentUser._id,
-              senderName: currentUser.name,
+              senderName: senderName || currentUser.name,
               isGroup,
               receiver: isGroup ? null : '_id' in selectedChat ? selectedChat._id : '',
               members: isGroup ? (selectedChat as GroupConversation).members : [],

@@ -259,13 +259,15 @@ export default function MessageList({
                         {!isMeGroup && (
                           <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
                             {senderInfo.avatar ? (
-                              <Image
-                                src={getProxyUrl(senderInfo.avatar)}
-                                width={38}
-                                height={38}
-                                alt={senderInfo.name}
-                                className="w-9 h-9 rounded-full object-cover"
-                              />
+                              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                                <Image
+                                  width={38}
+                                  height={38}
+                                  src={getProxyUrl(senderInfo.avatar)}
+                                  alt={senderInfo.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
                                 {(senderInfo.name?.charAt(0).toUpperCase() || '?') as string}
@@ -606,13 +608,15 @@ export default function MessageList({
                         {!isMeGroup && (
                           <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
                             {senderInfo.avatar ? (
-                              <Image
-                                src={getProxyUrl(senderInfo.avatar)}
-                                width={38}
-                                height={38}
-                                alt={senderInfo.name}
-                                className="w-9 h-9 rounded-full object-cover"
-                              />
+                              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                                <Image
+                                  width={38}
+                                  height={38}
+                                  src={getProxyUrl(senderInfo.avatar)}
+                                  alt={senderInfo.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
                                 {(senderInfo.name?.charAt(0).toUpperCase() || '?') as string}
@@ -1303,13 +1307,15 @@ export default function MessageList({
                     {!isMe && (
                       <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
                         {senderInfo.avatar ? (
-                          <Image
-                            src={getProxyUrl(senderInfo.avatar)}
-                            width={38}
-                            height={38}
-                            alt={senderInfo.name}
-                            className="w-9 h-9 rounded-full object-cover"
-                          />
+                          <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                            <Image
+                              width={38}
+                              height={38}
+                              src={getProxyUrl(senderInfo.avatar)}
+                              alt={senderInfo.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         ) : (
                           <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
                             {avatarChar}
@@ -1714,9 +1720,11 @@ export default function MessageList({
                             )}
                           </>
                         )}
-                        {/* Group sender name */}
-                        {!isMe && isGroup && !isGrouped && !isRecalled && (
-                          <p className="text-blue-600 text-xs font-bold mb-1">{senderName}</p>
+                        {/* Group sender name - Show for everyone including me if set */}
+                        {isGroup && !isGrouped && !isRecalled && (
+                          <p className={`text-xs font-bold mb-1 ${isMe ? 'text-gray-500' : 'text-blue-600'}`}>
+                            {senderName}
+                          </p>
                         )}
 
                         {/* TEXT */}

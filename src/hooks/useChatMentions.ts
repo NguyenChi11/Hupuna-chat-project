@@ -9,9 +9,10 @@ interface UseChatMentionsParams {
   allUsers: User[];
   activeMembers: MemberInfo[];
   currentUserId: string;
+  allUsersMap?: Map<string, string>;
 }
 
-export function useChatMentions({ allUsers, activeMembers, currentUserId }: UseChatMentionsParams) {
+export function useChatMentions({ allUsers, activeMembers, currentUserId, allUsersMap }: UseChatMentionsParams) {
   const [showMentionMenu, setShowMentionMenu] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionStartPos, setMentionStartPos] = useState<number | null>(null);
@@ -86,14 +87,27 @@ export function useChatMentions({ allUsers, activeMembers, currentUserId }: UseC
   };
 
   const mentionSuggestions = useMemo(() => {
-    if (!mentionQuery)
-      return activeMembers.length > 0 ? activeMembers : allUsers.filter((u) => u._id !== currentUserId);
+    const getName = (u: User | MemberInfo) => {
+      if (allUsersMap) {
+        const id = u._id || (u as unknown as { id: string }).id;
+        const name = allUsersMap.get(String(id));
+        if (name) return name;
+      }
+      return (u as unknown as User).name || (u as unknown as MemberInfo).name;
+    };
+
+    const usersList =
+      activeMembers.length > 0 ? (activeMembers as unknown as User[]) : allUsers.filter((u) => u._id !== currentUserId);
+
+    if (!mentionQuery) return usersList;
 
     const query = mentionQuery.toLowerCase();
-    const usersList = activeMembers.length > 0 ? activeMembers : allUsers.filter((u) => u._id !== currentUserId);
 
-    return usersList.filter((user) => user.name && user.name.toLowerCase().includes(query));
-  }, [mentionQuery, activeMembers, allUsers, currentUserId]);
+    return usersList.filter((user) => {
+      const name = getName(user);
+      return name && name.toLowerCase().includes(query);
+    });
+  }, [mentionQuery, activeMembers, allUsers, currentUserId, allUsersMap]);
 
   const handleInputChangeEditable = () => {
     if (!editableRef.current) return;
@@ -127,7 +141,7 @@ export function useChatMentions({ allUsers, activeMembers, currentUserId }: UseC
 
     const editable = editableRef.current;
     const userId = user._id;
-    const userName = user.name || 'User';
+    const userName = allUsersMap?.get(String(userId)) || user.name || 'User';
 
     const cursorPos = getCursorPosition();
 

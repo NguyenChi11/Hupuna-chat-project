@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 import type { ChatItem as ChatItemType } from '@/types/Group';
+import type { User } from '@/types/User';
 
 // React Icons – Bộ hiện đại nhất 2025
 import {
@@ -58,6 +59,7 @@ interface SearchResultsProps {
   searchTerm: string;
   onSelectContact: (contact: ChatItemType) => void;
   onNavigateToMessage: (message: Message) => void;
+  currentUserId?: string;
 }
 
 // === TABS SIÊU ĐẸP ===
@@ -180,10 +182,12 @@ const ContactsSection = ({
   contacts,
   searchTerm,
   onSelectContact,
+  currentUserId,
 }: {
   contacts: ChatItemType[];
   searchTerm: string;
   onSelectContact: (contact: ChatItemType) => void;
+  currentUserId?: string;
 }) => {
   if (contacts.length === 0) return null;
 
@@ -196,7 +200,14 @@ const ContactsSection = ({
 
       {contacts.map((contact) => {
         const isGroup = Boolean((contact as ChatItemType & { isGroup?: boolean }).isGroup);
-        const displayName = String(contact.name || contact.username || 'Người dùng').trim();
+        let displayName = String(contact.name || contact.username || 'Người dùng').trim();
+
+        if (!isGroup && currentUserId) {
+          const user = contact as User;
+          if (user.nicknames?.[currentUserId]) {
+            displayName = user.nicknames[currentUserId];
+          }
+        }
 
         return (
           <button
@@ -487,6 +498,7 @@ export default function SearchResults({
   searchTerm,
   onSelectContact,
   onNavigateToMessage,
+  currentUserId,
 }: SearchResultsProps) {
   const handleClearSearch = () => {
     // Gọi từ Sidebar
@@ -507,7 +519,12 @@ export default function SearchResults({
       {!isSearching && hasResults && (
         <div className="space-y-10 px-2 pt-4">
           {(activeTab === 'all' || activeTab === 'contacts') && (
-            <ContactsSection contacts={contacts} searchTerm={searchTerm} onSelectContact={onSelectContact} />
+            <ContactsSection
+              contacts={contacts}
+              searchTerm={searchTerm}
+              onSelectContact={onSelectContact}
+              currentUserId={currentUserId}
+            />
           )}
           {(activeTab === 'all' || activeTab === 'messages') && (
             <MessagesSection

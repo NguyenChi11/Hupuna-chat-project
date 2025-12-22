@@ -67,7 +67,7 @@ interface GlobalSearchResult {
   messages: Message[];
 }
 
-const getChatDisplayName = (chat: ChatItemType): string => {
+const getChatDisplayName = (chat: ChatItemType, currentUserId?: string): string => {
   const maybeGroup = chat as GroupConversation;
   const isGroupChat = maybeGroup.isGroup === true || Array.isArray(maybeGroup.members);
 
@@ -76,6 +76,9 @@ const getChatDisplayName = (chat: ChatItemType): string => {
   }
 
   const user = chat as User;
+  if (currentUserId && user.nicknames?.[currentUserId]) {
+    return user.nicknames[currentUserId].trim();
+  }
   return (user.name || user.username || 'Người dùng').trim();
 };
 
@@ -508,6 +511,7 @@ export default function Sidebar({
               setSearchTerm('');
               setGlobalSearchResults({ contacts: [], messages: [] });
             }}
+            currentUserId={String(currentUserId)}
           />
         ) : (
           <>

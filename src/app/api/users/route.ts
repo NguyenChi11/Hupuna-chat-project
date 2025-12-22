@@ -32,7 +32,8 @@ interface UsersRequestBody {
     | 'toggleChatStatus'
     | 'login'
     | 'logout'
-    | 'changePassword';
+    | 'changePassword'
+    | 'updateNickname';
   collectionName?: string;
   data?: UsersRequestData;
   field?: keyof User;
@@ -284,6 +285,20 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, result });
       }
 
+      case 'updateNickname': {
+        if (!currentUserId || !data || !roomId) {
+          return NextResponse.json({ error: 'Missing currentUserId, roomId or data' }, { status: 400 });
+        }
+        const nicknameData = data as { nickname: string };
+        const partnerId = roomId;
+
+        const updateFields: Record<string, string> = {};
+        updateFields[`nicknames.${currentUserId}`] = nicknameData.nickname;
+
+        const result = await updateByField<User>(collectionName, '_id', partnerId, updateFields);
+        return NextResponse.json({ success: true, result });
+      }
+
       case 'login': {
         const loginData = (data || {}) as LoginPayload;
         const { username, password } = loginData;
@@ -346,6 +361,7 @@ export async function POST(req: NextRequest) {
             title: found['title'],
             background: found['background'],
             bio: found['bio'],
+            nicknames: found.nicknames,
           },
         });
 

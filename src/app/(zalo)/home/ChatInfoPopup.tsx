@@ -23,9 +23,11 @@ import { useChatContext } from '@/context/ChatContext';
 import ReminderList from '@/components/(chatPopup)/components/ReminderList';
 import PollList from '@/components/(chatPopup)/components/PollList';
 import io from 'socket.io-client';
-import { resolveSocketUrl } from '@/utils/utils';
+import { getProxyUrl, resolveSocketUrl } from '@/utils/utils';
 import GroupInviteLinkSection from '@/components/(chatPopup)/components/GroupInviteLinkSection';
 import ChatFlashSection from '@/components/(chatPopup)/components/ChatFlashSection';
+import { HiPencil } from 'react-icons/hi';
+import Image from 'next/image';
 
 interface ChatInfoPopupProps {
   onClose: () => void;
@@ -40,6 +42,7 @@ interface ChatInfoPopupProps {
   onLeftGroup?: () => void;
   onRefresh?: () => void;
   sendNotifyMessage?: (text: string, membersOverride?: string[]) => Promise<void> | void;
+  lastUpdated?: number;
 }
 
 export default function ChatInfoPopup({
@@ -55,6 +58,7 @@ export default function ChatInfoPopup({
   onLeftGroup,
   onRefresh,
   sendNotifyMessage,
+  lastUpdated,
 }: ChatInfoPopupProps) {
   const { messages, currentUser, allUsers, chatName, isGroup, selectedChat } = useChatContext();
   const [openMember, setOpenMember] = useState(false);
@@ -77,6 +81,16 @@ export default function ChatInfoPopup({
     const member = members.find((m) => String(m._id || (m as { id?: string }).id) === myId);
     return (member?.role || 'MEMBER') as GroupRole;
   }, [members, myId, isGroup]);
+  const [editingPersonalNickname, setEditingPersonalNickname] = useState<{
+    id: string;
+    name: string;
+    currentVal: string;
+  } | null>(null);
+  const [editingSelfNickname, setEditingSelfNickname] = useState<{
+    id: string;
+    name: string;
+    currentVal: string;
+  } | null>(null);
 
   const canLeaveGroup = isGroup;
   const canDisbandGroup = isGroup && myRole === 'OWNER';
@@ -121,6 +135,35 @@ export default function ChatInfoPopup({
   const roomId = isGroup
     ? String((selectedChat as GroupConversation)._id)
     : getOneToOneRoomId(String(currentUser._id), String((selectedChat as User)._id));
+
+  const [partnerNicknameOverride, setPartnerNicknameOverride] = useState<string>(
+    isGroup ? '' : String((selectedChat as User).nicknames?.[myId] || ''),
+  );
+  const [selfNicknameOverride, setSelfNicknameOverride] = useState<string>(() => {
+    const partnerId = String((selectedChat as User)._id);
+    return String(currentUser.nicknames?.[partnerId] || '');
+  });
+  useEffect(() => {
+    if (isGroup) return;
+    setPartnerNicknameOverride(String((selectedChat as User).nicknames?.[myId] || ''));
+  }, [isGroup, selectedChat, myId]);
+  useEffect(() => {
+    if (isGroup) return;
+    const partnerId = String((selectedChat as User)._id);
+    (async () => {
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getById', _id: String(currentUser._id) }),
+        });
+        const data = await res.json();
+        const doc = data?.row ?? data;
+        const nn = doc?.nicknames?.[partnerId] ?? '';
+        setSelfNicknameOverride(String(nn || ''));
+      } catch {}
+    })();
+  }, [isGroup, selectedChat, currentUser._id]);
 
   const handleToggleMediaExpanded = useCallback(() => {
     void fetchAssets('media', !isMediaExpanded);
@@ -328,6 +371,93 @@ export default function ChatInfoPopup({
     return data.inviteCode;
   }, [isGroup, selectedChat, reLoad]);
 
+  const handleUpdateNicknameForPartner = useCallback(
+    async (nickname: string) => {
+      if (!selectedChat?._id || !currentUser?._id) return;
+      try {
+        const v = String(nickname || '').trim();
+        setPartnerNicknameOverride(v);
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'updateNickname',
+            roomId: (selectedChat as User)._id,
+            currentUserId: currentUser._id,
+            data: { nickname: v },
+          }),
+        });
+        const ok = res.ok;
+        if (!ok) throw new Error();
+        try {
+          const room = getOneToOneRoomId(String(currentUser._id), String((selectedChat as User)._id));
+          window.dispatchEvent(
+            new CustomEvent('roomNicknamesUpdated', {
+              detail: { roomId: room, targetUserId: String((selectedChat as User)._id), nickname: v },
+            }),
+          );
+        } catch {}
+        if (sendNotifyMessage) {
+          const actorName = currentUser.name || 'Bạn';
+          const targetName = (selectedChat as User).name || (selectedChat as User).username || 'Người dùng';
+          const msg = v
+            ? `${actorName} đã đặt biệt danh cho ${targetName} là "${v}".`
+            : `${actorName} đã xóa biệt danh của ${targetName}.`;
+          void sendNotifyMessage(msg);
+        }
+      } catch {
+        setPartnerNicknameOverride(
+          String((selectedChat as User).nicknames?.[myId] || (selectedChat as User).name || ''),
+        );
+        alert('Cập nhật biệt danh thất bại');
+      }
+    },
+    [selectedChat, currentUser, sendNotifyMessage, myId],
+  );
+
+  const handleUpdateNicknameForMe = useCallback(
+    async (nickname: string) => {
+      if (!selectedChat?._id || !currentUser?._id) return;
+      try {
+        const partnerId = String((selectedChat as User)._id);
+        const v = String(nickname || '').trim();
+        setSelfNicknameOverride(v);
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'updateNickname',
+            roomId: currentUser._id,
+            currentUserId: (selectedChat as User)._id,
+            data: { nickname: v },
+          }),
+        });
+        const ok = res.ok;
+        if (!ok) throw new Error();
+        try {
+          const room = getOneToOneRoomId(String(currentUser._id), String(partnerId));
+          window.dispatchEvent(
+            new CustomEvent('roomNicknamesUpdated', {
+              detail: { roomId: room, targetUserId: String(currentUser._id), nickname: v },
+            }),
+          );
+        } catch {}
+        if (sendNotifyMessage) {
+          const actorName = currentUser.name || 'Bạn';
+          const msg = v
+            ? `${actorName} đã đặt biệt danh của chính mình là "${v}".`
+            : `${actorName} đã xóa biệt danh của chính mình.`;
+          void sendNotifyMessage(msg);
+        }
+      } catch {
+        const partnerId = String((selectedChat as User)._id);
+        setSelfNicknameOverride(String(currentUser.nicknames?.[partnerId] || currentUser.name || ''));
+        alert('Cập nhật biệt danh thất bại');
+      }
+    },
+    [selectedChat, currentUser, sendNotifyMessage],
+  );
+
   return (
     <>
       {isReminderOpen ? (
@@ -364,8 +494,15 @@ export default function ChatInfoPopup({
                 />
               ) : (
                 <UserAvatarSection
-                  userName={(selectedChat as User).name || (selectedChat as User).username || 'Người dùng'}
+                  userName={
+                    partnerNicknameOverride ||
+                    (selectedChat as User).nicknames?.[myId] ||
+                    (selectedChat as User).name ||
+                    (selectedChat as User).username ||
+                    'Người dùng'
+                  }
                   userAvatar={(selectedChat as User).avatar}
+                  onUpdateNickname={handleUpdateNicknameForPartner}
                 />
               )}
 
@@ -379,6 +516,111 @@ export default function ChatInfoPopup({
                   onClose();
                 }}
               />
+
+              {!isGroup && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
+                  <div className="px-4 py-3 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Thành viên</h3>
+                    <span className="text-xs font-bold text-indigo-600">2</span>
+                  </div>
+                  <div className="px-4 pb-4 space-y-3">
+                    <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-gray-200">
+                      <div className="w-8 h-8 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
+                        {currentUser.avatar ? (
+                          <Image
+                            width={40}
+                            height={40}
+                            src={getProxyUrl(currentUser.avatar)}
+                            alt={currentUser.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-sm flex items-center justify-center">
+                            {(currentUser.name || 'B').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <p className="text-[0.875rem] font-bold text-gray-900">
+                            {(selfNicknameOverride || '').trim() ||
+                              (currentUser.nicknames?.[String((selectedChat as User)._id)] || '').trim() ||
+                              currentUser.name ||
+                              'Bạn'}
+                          </p>
+                          <span className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-[0.675rem] font-bold">
+                            Bạn
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            const partnerId = String((selectedChat as User)._id);
+                            const cur = (currentUser.nicknames && currentUser.nicknames?.[partnerId]) || '';
+                            setEditingSelfNickname({
+                              id: String(currentUser._id),
+                              name: currentUser.name || 'Bạn',
+                              currentVal: String(cur),
+                            });
+                          }}
+                          className="p-3 cursor-pointer bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all active:scale-95"
+                          title="Đặt biệt danh cho chính mình"
+                        >
+                          <HiPencil className="w-4 h-4 text-gray-700" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-gray-200">
+                      <div className="w-8 h-8 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
+                        {(selectedChat as User).avatar ? (
+                          <Image
+                            width={40}
+                            height={40}
+                            src={getProxyUrl((selectedChat as User).avatar as string)}
+                            alt={(selectedChat as User).name || 'Người dùng'}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-sm flex items-center justify-center">
+                            {((selectedChat as User).name || (selectedChat as User).username || 'N')
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <p className="text-[0.875rem] font-bold text-gray-900">
+                            {(partnerNicknameOverride || '').trim() ||
+                              ((selectedChat as User).nicknames?.[myId] || '').trim() ||
+                              (selectedChat as User).name ||
+                              (selectedChat as User).username ||
+                              'Người dùng'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            const cur =
+                              ((selectedChat as User).nicknames && (selectedChat as User).nicknames?.[myId]) || '';
+                            setEditingPersonalNickname({
+                              id: String((selectedChat as User)._id),
+                              name: (selectedChat as User).name || (selectedChat as User).username || 'Người dùng',
+                              currentVal: String(cur),
+                            });
+                          }}
+                          className="p-3 cursor-pointer bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all active:scale-95"
+                          title="Đặt biệt danh"
+                        >
+                          <HiPencil className="w-4 h-4 text-gray-700" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {isGroup && (
                 <GroupMembersSection
@@ -469,9 +711,119 @@ export default function ChatInfoPopup({
           conversationId={selectedChat._id}
           onMemberRemoved={onMemberRemoved}
           onRoleChange={onRoleChange}
+          sendNotifyMessage={sendNotifyMessage}
+          lastUpdated={lastUpdated}
         />
       )}
 
+      {editingPersonalNickname && !isGroup && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-800">Đặt biệt danh</h3>
+              <button
+                onClick={() => setEditingPersonalNickname(null)}
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <HiX className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <p className="text-sm text-gray-600">
+                Đặt biệt danh cho <b>{editingPersonalNickname.name}</b> trong cuộc trò chuyện này.
+              </p>
+              <input
+                type="text"
+                autoFocus
+                defaultValue={editingPersonalNickname.currentVal || editingPersonalNickname.name}
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Nhập biệt danh..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const v = (e.currentTarget.value || '').trim();
+                    void handleUpdateNicknameForPartner(v);
+                    setEditingPersonalNickname(null);
+                  }
+                }}
+                id="personal-nickname-input"
+              />
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  onClick={() => setEditingPersonalNickname(null)}
+                  className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={() => {
+                    const val = (document.getElementById('personal-nickname-input') as HTMLInputElement)?.value;
+                    const v = String(val || '').trim();
+                    void handleUpdateNicknameForPartner(v);
+                    setEditingPersonalNickname(null);
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                >
+                  Lưu
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {editingSelfNickname && !isGroup && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-800">Đặt biệt danh của bạn</h3>
+              <button
+                onClick={() => setEditingSelfNickname(null)}
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <HiX className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <p className="text-sm text-gray-600">
+                Biệt danh của bạn sẽ hiển thị với <b>{(selectedChat as User).name || 'đối phương'}</b>.
+              </p>
+              <input
+                type="text"
+                autoFocus
+                defaultValue={editingSelfNickname.currentVal || editingSelfNickname.name}
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Nhập biệt danh..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const v = (e.currentTarget.value || '').trim();
+                    void handleUpdateNicknameForMe(v);
+                    setEditingSelfNickname(null);
+                  }
+                }}
+                id="self-nickname-input"
+              />
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  onClick={() => setEditingSelfNickname(null)}
+                  className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={() => {
+                    const val = (document.getElementById('self-nickname-input') as HTMLInputElement)?.value;
+                    const v = String(val || '').trim();
+                    void handleUpdateNicknameForMe(v);
+                    setEditingSelfNickname(null);
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                >
+                  Lưu
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {isRenameModalOpen && isGroup && (
         <RenameGroupModal
           isOpen={isRenameModalOpen}

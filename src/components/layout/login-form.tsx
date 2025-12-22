@@ -49,7 +49,7 @@ export default function LoginForm() {
         }
 
         setIsLoading(false);
-        router.push('/home');
+        router.replace('/home');
       } else {
         toast({ type: 'error', message: result.message || 'Đăng nhập thất bại', duration: 3000 });
         setIsLoading(false);
@@ -115,6 +115,19 @@ export default function LoginForm() {
     }
   }, []);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/users/me');
+        const data = await res.json();
+        if (data.success) {
+          router.replace('/home');
+        }
+      } catch {}
+    };
+    void checkAuth();
+  }, [router]);
+
   return (
     <main className="relative flex items-center justify-center min-h-screen w-full overflow-hidden bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 px-4 py-10">
       {isLoading && <LoadingFull />}
@@ -127,7 +140,6 @@ export default function LoginForm() {
       </div>
 
       <div className="relative z-10 w-full max-w-6xl">
-        
         {/* Card */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white/10 backdrop-blur-2xl rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
           {/* Left Side */}

@@ -23,6 +23,7 @@ export interface User {
   isHiddenBy?: Record<string, boolean>;
   isRecall?: boolean;
   onesignalSubs?: string[];
+  nicknames?: Record<string, string>;
 }
 export interface UserCreate {
   [key: string]: unknown;

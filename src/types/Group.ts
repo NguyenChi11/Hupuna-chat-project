@@ -8,6 +8,7 @@ export interface GroupMemberSchema {
   _id: string; // User ID
   role: GroupRole;
   joinedAt: number;
+  nickname?: string; // ✅ Nickname in group
 }
 
 export interface MemberInfo extends GroupMemberSchema {

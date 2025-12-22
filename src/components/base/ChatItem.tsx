@@ -20,7 +20,14 @@ interface ChatItemProps {
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroupChat: boolean) => void;
 }
 
-export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, onChatAction }: ChatItemProps) {
+export default function ChatItem({
+  item,
+  isGroup,
+  selectedChat,
+  onSelectChat,
+  onChatAction,
+  currentUserId,
+}: ChatItemProps) {
   const isSelected = selectedChat?._id === item._id;
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
@@ -50,8 +57,8 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
       return names || 'Nhóm trống';
     }
     const user = item as User;
-    return user.name || user.username || 'Người dùng';
-  }, [item, isGroup]);
+    return user.nicknames?.[currentUserId] || user.name || user.username || 'Người dùng';
+  }, [item, isGroup, currentUserId]);
 
   const lastMessage = item.lastMessage || (isGroup ? 'Nhóm mới tạo' : 'Bắt đầu trò chuyện');
   const timeDisplay = formatTimeAgo(item.lastMessageAt);
