@@ -18,6 +18,8 @@ import {
   HiUserMinus,
   HiShieldCheck,
   HiUserGroup,
+  HiArrowUturnLeft,
+  HiArrowUturnRight,
 } from 'react-icons/hi2';
 import { HiPhone, HiVideoCamera, HiArrowDown, HiArrowUp } from 'react-icons/hi2';
 import { HiLink, HiOutlineLogout, HiOutlineShare } from 'react-icons/hi';
@@ -101,6 +103,13 @@ export default function MessageList({
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
   const [mobileCollapsedId, setMobileCollapsedId] = useState<string | null>(null);
+  const [swipeState, setSwipeState] = useState<{ id: string | null; dx: number }>({ id: null, dx: 0 });
+  const swipeStartRef = useRef<{ x: number; y: number; id: string | null; isMe: boolean }>({
+    x: 0,
+    y: 0,
+    id: null,
+    isMe: false,
+  });
 
   // Đóng menu reaction/folder khi click ra ngoài
   useEffect(() => {
@@ -1406,7 +1415,11 @@ export default function MessageList({
                   relative ${hasReactions ? 'mb-4' : ''}
                   ${contextMenu?.visible && String(contextMenu.message._id) === String(msg._id) ? 'z-[9998]' : ''}
                   `}
-                        style={undefined}
+                        style={
+                          isMobile && swipeState.id === msg._id
+                            ? { transform: `translateX(${Math.max(-100, Math.min(100, swipeState.dx))}px)` }
+                            : undefined
+                        }
                         onClick={() => {
                           setTimeVisibleId((prev) => (prev === msg._id ? null : msg._id));
                           setActiveMoreId(msg._id);
@@ -1423,6 +1436,8 @@ export default function MessageList({
                             const x0 = t ? t.clientX : 0;
                             const y0 = t ? t.clientY : 0;
                             const el = e.currentTarget as HTMLElement;
+                            swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe };
+                            setSwipeState({ id: null, dx: 0 });
                             longPressTimerRef.current = window.setTimeout(() => {
                               longPressTriggeredRef.current = true;
                               setActiveMoreId(msg._id);
@@ -1444,13 +1459,35 @@ export default function MessageList({
                               e.preventDefault();
                               e.stopPropagation();
                             }
+                            if (isMobile && swipeStartRef.current.id === msg._id) {
+                              const okDir = swipeStartRef.current.isMe ? swipeState.dx < -64 : swipeState.dx > 64;
+                              if (okDir) {
+                                onReplyMessage?.(msg);
+                              }
+                              setSwipeState({ id: null, dx: 0 });
+                              swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
+                            }
                           } catch {}
                         }}
-                        onTouchMove={() => {
+                        onTouchMove={(e) => {
                           try {
                             if (longPressTimerRef.current != null) {
                               clearTimeout(longPressTimerRef.current);
                               longPressTimerRef.current = null;
+                            }
+                            if (!isMobile) return;
+                            const t = e.touches && e.touches[0];
+                            const x = t ? t.clientX : 0;
+                            const y = t ? t.clientY : 0;
+                            const dx = x - swipeStartRef.current.x;
+                            const dy = y - swipeStartRef.current.y;
+                            if (swipeStartRef.current.id === msg._id) {
+                              const horizontal = Math.abs(dx) > 8 && Math.abs(dy) < 24;
+                              if (horizontal) {
+                                const dirOk = swipeStartRef.current.isMe ? dx < 0 : dx > 0;
+                                setSwipeState({ id: msg._id, dx: dirOk ? dx : 0 });
+                                e.preventDefault();
+                              }
                             }
                           } catch {}
                         }}
@@ -1459,6 +1496,10 @@ export default function MessageList({
                             if (longPressTimerRef.current != null) {
                               clearTimeout(longPressTimerRef.current);
                               longPressTimerRef.current = null;
+                            }
+                            if (isMobile && swipeStartRef.current.id === msg._id) {
+                              setSwipeState({ id: null, dx: 0 });
+                              swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
                             }
                           } catch {}
                         }}
@@ -1477,6 +1518,20 @@ export default function MessageList({
                               >
                                 <ICShareMessage className="w-4 h-4 text-indigo-600" />
                               </button>
+                            )}
+                            {isMobile && swipeState.id === msg._id && (
+                              <div
+                                className={`absolute top-1/2 -translate-y-1/2 ${isMe ? 'left-full ml-2' : 'right-full mr-2'}`}
+                                style={{ opacity: Math.min(Math.abs(swipeState.dx) / 64, 1) }}
+                              >
+                                <div className="p-2 bg-white rounded-full shadow border border-gray-200">
+                                  {isMe ? (
+                                    <HiArrowUturnLeft className="w-5 h-5 text-blue-600" />
+                                  ) : (
+                                    <HiArrowUturnRight className="w-5 h-5 text-blue-600" />
+                                  )}
+                                </div>
+                              </div>
                             )}
                             {!isMobile && (
                               <>
