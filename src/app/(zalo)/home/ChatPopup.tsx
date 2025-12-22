@@ -2508,33 +2508,40 @@ export default function ChatWindow({
   }, [roomId]);
 
   const viewportRef = useRef<HTMLElement>(null);
+  const applyViewport = useCallback(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const root = document.documentElement;
+    root.style.setProperty('--vvh', `${vv.height}px`);
+    root.style.setProperty('--vvw', `${vv.width}px`);
+    root.style.setProperty('--vvTop', `${vv.offsetTop || 0}px`);
+    root.style.setProperty('--vvLeft', `${vv.offsetLeft || 0}px`);
+  }, []);
 
   // Fix keyboard overlapping on mobile using VisualViewport API
   useEffect(() => {
     const handleVisualViewport = () => {
       if (!viewportRef.current || !window.visualViewport) return;
-
-      // Trên iOS Safari, khi bàn phím hiện lên, visualViewport.height giảm.
-      // Layout Viewport (body) không đổi kích thước, nhưng visualViewport dịch chuyển.
-      // Ta cần set height của container bằng đúng visualViewport.height để tránh bị che.
-
       const vv = window.visualViewport;
-
-      // Force scroll to top to prevent document scrolling
       window.scrollTo(0, 0);
-
-      // Cập nhật height
       viewportRef.current.style.height = `${vv.height}px`;
-
-      // QUAN TRỌNG: Nếu offsetTop > 0 (bị đẩy lên), ta cần dịch ngược lại
-      // hoặc đảm bảo container nằm đúng vị trí trong visual viewport.
-      // Với position: fixed ở parent (HomeMobile), top luôn là 0 của layout viewport.
-      // Nhưng nếu visual viewport bị pan xuống (offsetTop > 0), ta có thể cần điều chỉnh top?
-      // Thực tế với body fixed + window.scrollTo(0,0), offsetTop thường về 0.
-
       scrollToBottom();
     };
-  }, [scrollToBottom, isMobile, showSearchSidebar]);
+
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener('resize', handleVisualViewport);
+      vv.addEventListener('scroll', handleVisualViewport);
+      handleVisualViewport();
+    }
+
+    return () => {
+      if (vv) {
+        vv.removeEventListener('resize', handleVisualViewport);
+        vv.removeEventListener('scroll', handleVisualViewport);
+      }
+    };
+  }, [scrollToBottom]);
 
   useEffect(() => {
     if (!isMobile) return;
