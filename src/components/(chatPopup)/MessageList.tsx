@@ -255,7 +255,7 @@ export default function MessageList({
                                 width={38}
                                 height={38}
                                 alt={senderInfo.name}
-                                className="w-9 h-9 rounded-full object-cover"
+                                className="w-9 h-9 rounded-full object-cover flex-shrink-0"
                               />
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
@@ -603,7 +603,7 @@ export default function MessageList({
                                 width={38}
                                 height={38}
                                 alt={senderInfo.name}
-                                className="w-9 h-9 rounded-full object-cover"
+                                className="w-9 h-9 rounded-full object-cover flex-shrink-0"
                               />
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
@@ -1300,7 +1300,7 @@ export default function MessageList({
                             width={38}
                             height={38}
                             alt={senderInfo.name}
-                            className="w-9 h-9 rounded-full object-cover"
+                            className="w-9 h-9 rounded-full object-cover flex-shrink-0"
                           />
                         ) : (
                           <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
@@ -1666,9 +1666,11 @@ export default function MessageList({
                             )}
                           </>
                         )}
-                        {/* Group sender name */}
-                        {!isMe && isGroup && !isGrouped && !isRecalled && (
-                          <p className="text-blue-600 text-xs font-bold mb-1">{senderName}</p>
+                        {/* Group sender name - Show for everyone including me if set */}
+                        {isGroup && !isGrouped && !isRecalled && (
+                          <p className={`text-xs font-bold mb-1 ${isMe ? 'text-gray-500' : 'text-blue-600'}`}>
+                            {senderName}
+                          </p>
                         )}
 
                         {/* TEXT */}

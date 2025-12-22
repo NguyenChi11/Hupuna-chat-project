@@ -98,7 +98,7 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
             className="flex items-center justify-center gap-2 group/edit cursor-pointer"
             onClick={() => onUpdateNickname && setIsEditing(true)}
           >
-            <h3 className="text-xl font-bold text-gray-900 tracking-tight truncate max-w-[250px]">
+            <h3 className="text-xl font-bold text-gray-900 tracking-tight truncate max-w-[15.625rem]">
               {userName || 'Người dùng'}
             </h3>
             {onUpdateNickname && (

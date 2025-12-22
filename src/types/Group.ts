@@ -10,6 +10,7 @@ export interface GroupMemberSchema {
   _id: string; // User ID
   role: GroupRole;
   joinedAt: number;
+  nickname?: string; // ✅ Nickname in group
 }
 
 // 3. Cấu trúc hiển thị ở Frontend (đã populate thông tin User)

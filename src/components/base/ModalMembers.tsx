@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { HiX, HiSearch, HiShieldCheck, HiCheck, HiChevronDown } from 'react-icons/hi';
+import { HiX, HiSearch, HiShieldCheck, HiCheck, HiChevronDown, HiPencil } from 'react-icons/hi';
 
 import CreateGroupModal from '../../app/(zalo)/home/CreateGroupModal';
 import { User } from '../../types/User';
@@ -14,6 +14,8 @@ import { confirmAlert } from './alert';
 import { HiUserMinus, HiUserPlus } from 'react-icons/hi2';
 import ICPeopleGroup from '@/components/svg/ICPeopleGroup';
 import io from 'socket.io-client';
+
+type LocalMemberInfo = MemberInfo & { originalName?: string };
 
 interface Props {
   isOpen: boolean;
@@ -27,6 +29,8 @@ interface Props {
   onMembersAdded: (users: User[]) => void;
   onMemberRemoved?: (memberId: string, memberName: string) => void;
   onRoleChange?: (memberId: string, memberName: string, newRole: 'ADMIN' | 'MEMBER') => void;
+  sendNotifyMessage?: (text: string) => Promise<void> | void;
+  lastUpdated?: number;
 }
 
 // 🔥 Helper function để normalize ID
@@ -68,11 +72,18 @@ export default function GroupMembersModal({
   onMembersAdded,
   onMemberRemoved,
   onRoleChange,
+  sendNotifyMessage,
+  lastUpdated,
 }: Props) {
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [localMembers, setLocalMembers] = useState<MemberInfo[]>([]);
+  const [localMembers, setLocalMembers] = useState<LocalMemberInfo[]>([]);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [editingNicknameMember, setEditingNicknameMember] = useState<{
+    id: string;
+    name: string;
+    currentVal: string;
+  } | null>(null);
   const toast = useToast();
   const router = useRouter();
 
@@ -132,8 +143,11 @@ export default function GroupMembersModal({
         }
 
         const myId = normalizeId(currentUser._id || currentUser.id);
-        const nickname = foundUser?.nicknames?.[myId];
-        const name = nickname || raw.name || foundUser?.name || 'Thành viên';
+
+        const originalName = raw.name || foundUser?.name || 'Thành viên';
+        // 🔥 Use nickname from Group Member Data (Global) or Personal Nickname (Local)
+        const nickname = raw.nickname || foundUser?.nicknames?.[myId];
+        const name = nickname || originalName;
         const avatar = raw.avatar || foundUser?.avatar;
 
         return {
@@ -142,12 +156,13 @@ export default function GroupMembersModal({
           avatar,
           role: baseRole,
           joinedAt: baseJoinedAt,
-        } as MemberInfo;
+          originalName,
+        } as LocalMemberInfo;
       })
-      .filter(Boolean) as MemberInfo[];
+      .filter(Boolean) as LocalMemberInfo[];
 
     setLocalMembers(enriched);
-  }, [members, allUsers, userMap, currentUser]);
+  }, [members, allUsers, userMap, currentUser, conversationId, lastUpdated]);
 
   if (!isOpen) return null;
 
@@ -188,7 +203,6 @@ export default function GroupMembersModal({
 
     const targetMember = localMembers.find((m) => compareIds(m._id || m.id, targetUserId));
     const targetName = targetMember ? targetMember.name : 'Thành viên';
-
 
     try {
       const prevMembersSnapshot = [...localMembers];
@@ -257,6 +271,72 @@ export default function GroupMembersModal({
 
   const searchUser = localMembers.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
   const existingMemberIds = localMembers.map((m) => normalizeId(m._id || m.id));
+  const setNickname = async (targetId: string, nickname: string) => {
+    if (!conversationId) return;
+
+    try {
+      // 1. Call API
+      const res = await fetch('/api/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updateMemberNickname',
+          conversationId,
+          targetUserId: targetId,
+          data: { nickname },
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to update nickname');
+
+      // 2. Optimistic Update Local State
+      const v = String(nickname || '').trim();
+      setLocalMembers((prev) =>
+        prev.map((m) => {
+          if (compareIds(m._id || m.id, targetId)) {
+            const foundUser = userMap.get(normalizeId(targetId)) || userMap.get(String(Number(targetId)));
+            const globalNickname = foundUser?.nicknames?.[myId];
+            const originalName = (m as LocalMemberInfo).originalName || foundUser?.name || m.name;
+            const resolvedName = v || globalNickname || originalName;
+            return { ...m, name: resolvedName || 'Thành viên', nickname: v };
+          }
+          return m;
+        }),
+      );
+
+      // 3. Emit Socket Event for real-time update
+      try {
+        const socket = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+        socket.emit('room_nickname_updated', {
+          roomId: conversationId,
+          targetUserId: targetId,
+          nickname: v,
+        });
+        setTimeout(() => socket.disconnect(), 500);
+      } catch {}
+
+      // 4. Reload data
+      reLoad?.();
+
+      // 5. Send Notification
+      if (sendNotifyMessage) {
+        const actorName = currentUser.name || 'Một thành viên';
+        const targetMember = localMembers.find((m) => compareIds(m._id || m.id, targetId));
+        const foundUser = userMap.get(normalizeId(targetId)) || userMap.get(String(Number(targetId)));
+        const targetName = foundUser?.name || targetMember?.name || 'Thành viên';
+
+        let msg = '';
+        if (v) {
+          msg = `${actorName} đã đặt biệt danh cho ${targetName} là "${v}".`;
+        } else {
+          msg = `${actorName} đã xóa biệt danh của ${targetName}.`;
+        }
+        sendNotifyMessage(msg);
+      }
+    } catch {
+      toast({ type: 'error', message: 'Cập nhật biệt danh thất bại', duration: 3000 });
+    }
+  };
 
   const RoleBadge = ({ role }: { role: GroupRole }) => {
     if (role === 'OWNER')
@@ -300,16 +380,70 @@ export default function GroupMembersModal({
 
         {/* BODY */}
         <div className="flex-1 flex flex-col min-h-0 bg-gray-50/60">
+          {/* NICKNAME MODAL */}
+          {editingNicknameMember && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                  <h3 className="font-bold text-gray-800">Đặt biệt danh</h3>
+                  <button
+                    onClick={() => setEditingNicknameMember(null)}
+                    className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                  >
+                    <HiX className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+                <div className="p-4 space-y-4">
+                  <p className="text-sm text-gray-600">
+                    Đặt biệt danh cho <b>{editingNicknameMember.name}</b> trong cuộc trò chuyện này.
+                  </p>
+                  <input
+                    type="text"
+                    autoFocus
+                    defaultValue={editingNicknameMember.currentVal || editingNicknameMember.name}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Nhập biệt danh..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setNickname(editingNicknameMember.id, e.currentTarget.value);
+                        setEditingNicknameMember(null);
+                      }
+                    }}
+                    id="nickname-input"
+                  />
+                  <div className="flex gap-2 justify-end pt-2">
+                    <button
+                      onClick={() => setEditingNicknameMember(null)}
+                      className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      onClick={() => {
+                        const val = (document.getElementById('nickname-input') as HTMLInputElement)?.value;
+                        setNickname(editingNicknameMember.id, val);
+                        setEditingNicknameMember(null);
+                      }}
+                      className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                    >
+                      Lưu
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Search & Add Section */}
           <div className="flex-none p-2 space-y-3 bg-white shadow-sm z-10">
             {/* {(myRole === 'OWNER' || myRole === 'ADMIN') && ( */}
-              <button
-                onClick={() => setShowCreateGroupModal(true)}
-                className="w-full py-1 cursor-pointer sm:py-2 flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold sm:text-sm rounded-2xl shadow-xl transition-all duration-300 active:scale-98"
-              >
-                <HiUserPlus className="sm:w-6 sm:h-6 w-4 h-4" />
-                Thêm thành viên mới
-              </button>
+            <button
+              onClick={() => setShowCreateGroupModal(true)}
+              className="w-full py-1 cursor-pointer sm:py-2 flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold sm:text-sm rounded-2xl shadow-xl transition-all duration-300 active:scale-98"
+            >
+              <HiUserPlus className="sm:w-6 sm:h-6 w-4 h-4" />
+              Thêm thành viên mới
+            </button>
             {/* )} */}
 
             <div className="relative">
@@ -380,43 +514,62 @@ export default function GroupMembersModal({
                     </div>
 
                     {/* Actions */}
-                    {!isMe && !isLoading && (
+                    {!isLoading && (
                       <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
-                        {canPromote(memberRole) && (
-                          <button
-                            onClick={() => handleAction('promote', memberId)}
-                            className="p-3 cursor-pointer bg-green-100 hover:bg-green-200 rounded-2xl transition-all active:scale-95"
-                            title="Bổ nhiệm làm Phó nhóm"
-                          >
-                            <HiCheck className="w-4 h-4 text-green-700" />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            const currentRoomNick = String(member.nickname || '');
+                            setEditingNicknameMember({
+                              id: memberId,
+                              name: member.name,
+                              currentVal: currentRoomNick,
+                            });
+                          }}
+                          className="p-3 cursor-pointer bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all active:scale-95"
+                          title="Đặt biệt danh"
+                        >
+                          <HiPencil className="w-4 h-4 text-gray-700" />
+                        </button>
 
-                        {canDemote(memberRole) && (
-                          <button
-                            onClick={() => handleAction('demote', memberId)}
-                            className="p-3 cursor-pointer bg-yellow-100 hover:bg-yellow-200 rounded-2xl transition-all active:scale-95"
-                            title="Bãi nhiệm"
-                          >
-                            <HiUserMinus className="w-4 h-4 text-yellow-700" />
-                          </button>
-                        )}
+                        {!isMe && (
+                          <>
+                            {canPromote(memberRole) && (
+                              <button
+                                onClick={() => handleAction('promote', memberId)}
+                                className="p-3 cursor-pointer bg-green-100 hover:bg-green-200 rounded-2xl transition-all active:scale-95"
+                                title="Bổ nhiệm làm Phó nhóm"
+                              >
+                                <HiCheck className="w-4 h-4 text-green-700" />
+                              </button>
+                            )}
 
-                        {canKick(memberRole) && (
-                          <button
-                            onClick={() =>
-                              confirmAlert({
-                                title: 'Xóa thành viên',
-                                message: `Xóa ${member.name} khỏi nhóm?`,
-                                okText: 'Xóa',
-                                onOk: () => handleAction('kick', memberId),
-                              })
-                            }
-                            className="p-3 cursor-pointer bg-red-100 hover:bg-red-200 rounded-2xl transition-all active:scale-95"
-                            title="Xóa khỏi nhóm"
-                          >
-                            <HiUserMinus className="w-4 h-4 text-red-600" />
-                          </button>
+                            {canDemote(memberRole) && (
+                              <button
+                                onClick={() => handleAction('demote', memberId)}
+                                className="p-3 cursor-pointer bg-yellow-100 hover:bg-yellow-200 rounded-2xl transition-all active:scale-95"
+                                title="Bãi nhiệm"
+                              >
+                                <HiUserMinus className="w-4 h-4 text-yellow-700" />
+                              </button>
+                            )}
+
+                            {canKick(memberRole) && (
+                              <button
+                                onClick={() =>
+                                  confirmAlert({
+                                    title: 'Xóa thành viên',
+                                    message: `Xóa ${member.name} khỏi nhóm?`,
+                                    okText: 'Xóa',
+                                    onOk: () => handleAction('kick', memberId),
+                                  })
+                                }
+                                className="p-3 cursor-pointer bg-red-100 hover:bg-red-200 rounded-2xl transition-all active:scale-95"
+                                title="Xóa khỏi nhóm"
+                              >
+                                <HiUserMinus className="w-4 h-4 text-red-600" />
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     )}

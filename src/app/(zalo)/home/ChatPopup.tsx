@@ -9,7 +9,7 @@ import ChatInfoPopup from './ChatInfoPopup';
 import ModalMembers from '../../../components/base/ModalMembers';
 import { User } from '../../../types/User';
 import { Message, MessageCreate } from '../../../types/Message';
-import { ChatItem, GroupConversation } from '../../../types/Group';
+import { ChatItem, GroupConversation, MemberInfo } from '../../../types/Group';
 
 import { EmojiClickData } from 'emoji-picker-react';
 import ChatHeader from '@/components/(chatPopup)/ChatHeader';
@@ -1215,7 +1215,6 @@ export default function ChatWindow({
     setReplyingTo(message);
   }, []);
 
-  
   useEffect(() => {
     if (!scrollToMessageId) return;
     const timer = setTimeout(() => {
@@ -1378,17 +1377,24 @@ export default function ChatWindow({
     initialScrolledRef.current = false;
   }, [roomId, fetchMessages, fetchPinnedMessages]);
 
+  const [nicknamesStamp, setNicknamesStamp] = useState(0);
   const allUsersMap = useMemo(() => {
     const map = new Map<string, string>();
     const myId = String(currentUser?._id || '');
+    let roomNickMap: Record<string, string> = {};
+    try {
+      const raw = roomId && myId ? localStorage.getItem(`roomNicknames:${roomId}:${myId}`) : null;
+      roomNickMap = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+    } catch {}
 
     if (currentUser) {
-      const name = currentUser.name || 'Bạn';
+      const myRoomNick = roomNickMap[String(currentUser._id)];
+      const name = myRoomNick || currentUser.name || 'Bạn';
       if (currentUser._id) map.set(String(currentUser._id), name);
     }
     if (Array.isArray(allUsers)) {
       allUsers.forEach((user) => {
-        const nickname = user.nicknames?.[myId];
+        const nickname = roomNickMap[String(user._id)] || user.nicknames?.[myId];
         const displayName = nickname || user.name;
         if (displayName) {
           if (user._id) map.set(String(user._id), displayName);
@@ -1399,20 +1405,42 @@ export default function ChatWindow({
     if (isGroup && Array.isArray(activeMembers)) {
       activeMembers.forEach((mem) => {
         const memUser = mem as unknown as User;
-        const nickname = memUser.nicknames?.[myId];
+        // 🔥 Use nickname from Group Member Data (Global) or Personal Nickname (Local)
+        const nickname = (mem as MemberInfo).nickname || memUser.nicknames?.[myId];
         const displayName = nickname || memUser.name || 'Thành viên';
         if (mem._id) map.set(String(mem._id), displayName);
       });
     }
     return map;
-  }, [currentUser, allUsers, isGroup, activeMembers]);
+  }, [currentUser, allUsers, isGroup, activeMembers, roomId, nicknamesStamp]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const anyE = e as unknown as {
+        detail?: { roomId?: string; userId?: string; targetUserId?: string; nickname?: string };
+      };
+      const d = anyE.detail || {};
+      if (String(d.roomId) !== String(roomId)) return;
+      setNicknamesStamp((s) => s + 1);
+      if (isGroup && d.targetUserId) {
+        try {
+          const nick = typeof d.nickname === 'string' ? d.nickname : '';
+          socketRef.current?.emit('room_nickname_updated', {
+            roomId,
+            targetUserId: String(d.targetUserId),
+            nickname: nick,
+          });
+        } catch {}
+      }
+    };
+    window.addEventListener('roomNicknamesUpdated', handler as EventListener);
+    return () => window.removeEventListener('roomNicknamesUpdated', handler as EventListener);
+  }, [roomId]);
 
   useEffect(() => {
     if (!roomId) return;
 
     socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-    socketRef.current.emit('join_room', roomId);
-    socketRef.current.emit('join_user', { userId: String(currentUser._id) });
 
     socketRef.current.on('receive_message', (data: Message) => {
       if (String(data.roomId) !== String(roomId)) return;
@@ -1459,6 +1487,88 @@ export default function ChatWindow({
         }
       }
     });
+    socketRef.current.on(
+      'room_nickname_updated',
+      (payload: { roomId: string; targetUserId: string; nickname: string }) => {
+        if (String(payload.roomId) !== String(roomId)) return;
+        // 🔥 Reload data to get updated nicknames
+        reLoad?.();
+      },
+    );
+    socketRef.current.on('room_nicknames_state', (payload: { roomId: string; map: Record<string, string> }) => {
+      if (String(payload.roomId) !== String(roomId)) return;
+      try {
+        const myId = String(currentUser._id || '');
+        const key = `roomNicknames:${roomId}:${myId}`;
+        const incoming = payload.map || {};
+        localStorage.setItem(key, JSON.stringify(incoming));
+      } catch {}
+      setNicknamesStamp((s) => s + 1);
+    });
+
+    socketRef.current.on(
+      'call_notify',
+      async (data: {
+        roomId: string;
+        sender: string;
+        callerId: string;
+        calleeId: string;
+        type: 'voice' | 'video';
+        status: 'answered' | 'rejected' | 'timeout';
+        durationSec?: number;
+      }) => {
+        if (String(data.roomId) !== String(roomId)) return;
+        if (String(currentUser._id) !== String(data.sender)) return;
+        const kind = data.type === 'video' ? 'video' : 'thoại';
+        const incoming = String(data.sender) === String(data.calleeId);
+        const dir = incoming ? 'đến' : 'đi';
+        const s = data.status;
+        const d = Math.max(0, Math.floor(Number(data.durationSec || 0)));
+        const m = Math.floor(d / 60);
+        const ss = d % 60;
+        const durStr = `${m} phút ${ss} giây`;
+        const content =
+          s === 'answered'
+            ? `Cuộc gọi ${kind} ${dir} – ${durStr}`
+            : s === 'rejected'
+              ? `Cuộc gọi ${kind} ${dir} – Bị từ chối`
+              : `Cuộc gọi ${kind} ${dir} – Không phản hồi`;
+        const ts = Date.now();
+        const notifyRes = await createMessageApi({
+          roomId,
+          sender: String(currentUser._id),
+          type: 'notify',
+          content,
+          timestamp: ts,
+          callerId: String(data.callerId),
+          calleeId: String(data.calleeId),
+          callType: data.type,
+          callStatus: data.status,
+          callDurationSec: d,
+        });
+        if (notifyRes?.success && typeof notifyRes._id === 'string') {
+          const receiver = isGroup ? null : getId(selectedChat);
+          const members = isGroup ? (selectedChat as GroupConversation).members : [];
+          socketRef.current?.emit('send_message', {
+            roomId,
+            sender: String(currentUser._id),
+            senderName: currentUser.name,
+            isGroup,
+            receiver,
+            members,
+            _id: notifyRes._id,
+            type: 'notify',
+            content,
+            timestamp: ts,
+            callerId: String(data.callerId),
+            calleeId: String(data.calleeId),
+            callType: data.type,
+            callStatus: data.status,
+            callDurationSec: d,
+          });
+        }
+      },
+    );
 
     socketRef.current.on(
       'reaction_updated',
@@ -1474,6 +1584,27 @@ export default function ChatWindow({
                 : msg,
             ),
           );
+        }
+      },
+    );
+
+    // 🔥 Listener cho room_nickname_updated
+    socketRef.current.on(
+      'room_nickname_updated',
+      (data: { roomId: string; targetUserId: string; nickname: string }) => {
+        if (String(data.roomId) === String(roomId)) {
+          try {
+            const k = `roomNicknames:${roomId}:${currentUser._id}`;
+            const raw = localStorage.getItem(k);
+            const map = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+            if (data.nickname) {
+              map[data.targetUserId] = data.nickname;
+            } else {
+              delete map[data.targetUserId];
+            }
+            localStorage.setItem(k, JSON.stringify(map));
+            setNicknamesStamp(Date.now());
+          } catch {}
         }
       },
     );
@@ -1736,6 +1867,9 @@ export default function ChatWindow({
       }
     });
 
+    socketRef.current.emit('join_room', roomId);
+    socketRef.current.emit('join_user', { userId: String(currentUser._id) });
+
     return () => {
       socketRef.current?.disconnect();
     };
@@ -1971,9 +2105,14 @@ export default function ChatWindow({
     }
 
     if (plainText) {
+      // Lấy nickname hiện tại của người gửi
+      const myId = String(currentUser._id);
+      const senderNick = allUsersMap.get(myId) || currentUser.name;
+
       const textMsg: MessageCreate = {
         roomId,
         sender: currentUser._id,
+        senderName: senderNick, // Sử dụng nickname
         content: expandedText,
         type: 'text',
         timestamp: Date.now(),
@@ -1985,9 +2124,13 @@ export default function ChatWindow({
     }
 
     if (hasAtt) {
+      // Lấy nickname hiện tại của người gửi cho file
+      const myId = String(currentUser._id);
+      const senderNick = allUsersMap.get(myId) || currentUser.name;
+
       // 🔥 Fire all uploads concurrently so temp messages appear immediately
       currentAttachments.forEach((att) => {
-        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined).then(() => {
+        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined, senderNick).then(() => {
           // Revoke preview URL after upload completes/fails
           try {
             URL.revokeObjectURL(att.previewUrl);
@@ -2204,6 +2347,9 @@ export default function ChatWindow({
       });
 
       // 3. EMIT SOCKET EVENT
+      const myId = String(currentUser._id);
+      const senderNick = allUsersMap.get(myId) || currentUser.name;
+
       const socketData = {
         _id: messageId,
         roomId: roomId,
@@ -2211,7 +2357,7 @@ export default function ChatWindow({
         editedAt: editedAtTimestamp,
         originalContent: originalContentText,
         sender: currentUser._id,
-        senderName: currentUser.name,
+        senderName: senderNick, // Dùng nickname
         isGroup: isGroup,
         receiver: isGroup ? null : getId(selectedChat),
         members: isGroup ? (selectedChat as GroupConversation).members : [],
@@ -2238,126 +2384,78 @@ export default function ChatWindow({
         if (message.type === 'text') shareContent = message.content || '';
 
         const batchItems =
-          (message as unknown as {
-            batchItems?: Array<{
-              id: string;
-              type: MessageCreate['type'];
-              fileUrl?: string;
-              fileName?: string;
-              content?: string;
-            }>;
-          }).batchItems || [];
+          (
+            message as unknown as {
+              batchItems?: Array<{
+                id: string;
+                type: MessageCreate['type'];
+                fileUrl?: string;
+                fileName?: string;
+                content?: string;
+              }>;
+            }
+          ).batchItems || [];
 
         const safeGroups = Array.isArray(groups) ? groups : [];
         for (const targetRoomId of targetRoomIds) {
           const isGroupChat = safeGroups.some((g) => String(g._id) === String(targetRoomId));
 
-          const sockBase = isGroupChat
-            ? {
-                roomId: targetRoomId,
-                sender: currentUser._id,
-                senderName: currentUser.name,
-                isGroup: true,
-                receiver: null,
-                members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
-              }
-            : {
-                roomId: targetRoomId,
-                sender: currentUser._id,
-                senderName: currentUser.name,
-                isGroup: false,
-                receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
-                members: [],
-              };
+          const newMsg: MessageCreate = {
+            roomId: targetRoomId,
+            sender: currentUser._id,
+            type: message.type,
+            content: message.type === 'text' ? shareContent : message.content,
+            fileUrl: message.fileUrl,
+            fileName: message.fileName,
+            timestamp: Date.now(),
+            // Thêm metadata về shared message
+            sharedFrom: {
+              messageId: String(message._id),
+              originalSender: originalSenderName,
+              originalRoomId: String(message.roomId),
+            },
+          };
 
-          const attached = String(attachedText || '').trim();
-          if (attached.length > 0) {
-            const attachMsg: MessageCreate = {
-              roomId: targetRoomId,
-              sender: currentUser._id,
-              type: 'text',
-              content: attached,
-              timestamp: Date.now(),
-            };
-            const r = await fetch('/api/messages', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'create', data: attachMsg }),
-            });
-            const jr = await r.json();
-            if (jr?.success && typeof jr?._id === 'string') {
-              socketRef.current?.emit('send_message', {
-                ...sockBase,
-                ...attachMsg,
-                _id: jr._id,
-              });
-            }
-          }
+          // Gọi API tạo tin nhắn
+          const res = await fetch('/api/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'create',
+              data: newMsg,
+            }),
+          });
 
-          if (Array.isArray(batchItems) && batchItems.length > 0) {
-            for (const it of batchItems) {
-              const newMsg: MessageCreate = {
-                roomId: targetRoomId,
-                sender: currentUser._id,
-                type: it.type,
-                content: it.type === 'text' ? String(it.content || '') : message.content,
-                fileUrl: it.fileUrl,
-                fileName: it.fileName,
-                timestamp: Date.now(),
-                sharedFrom: {
-                  messageId: String(message._id),
-                  originalSender: originalSenderName,
-                  originalRoomId: String(message.roomId),
-                },
-              };
-              const res = await fetch('/api/messages', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'create',
-                  data: newMsg,
-                }),
-              });
-              const json = await res.json();
-              if (json?.success && typeof json?._id === 'string') {
-                socketRef.current?.emit('send_message', {
-                  ...sockBase,
-                  ...newMsg,
-                  _id: json._id,
-                });
-              }
-            }
-          } else {
-            const newMsg: MessageCreate = {
-              roomId: targetRoomId,
-              sender: currentUser._id,
-              type: message.type,
-              content: message.type === 'text' ? shareContent : message.content,
-              fileUrl: message.fileUrl,
-              fileName: message.fileName,
-              timestamp: Date.now(),
-              sharedFrom: {
-                messageId: String(message._id),
-                originalSender: originalSenderName,
-                originalRoomId: String(message.roomId),
-              },
-            };
-            const res = await fetch('/api/messages', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: 'create',
-                data: newMsg,
-              }),
+          const json = await res.json();
+
+          if (json.success && typeof json._id === 'string') {
+            // Emit socket
+            const myId = String(currentUser._id);
+            const senderNick = allUsersMap.get(myId) || currentUser.name;
+
+            const sockBase = isGroupChat
+              ? {
+                  roomId: targetRoomId,
+                  sender: currentUser._id,
+                  senderName: senderNick, // Dùng nickname
+                  isGroup: true,
+                  receiver: null,
+                  members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
+                }
+              : {
+                  roomId: targetRoomId,
+                  sender: currentUser._id,
+                  senderName: senderNick, // Dùng nickname
+                  isGroup: false,
+                  receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
+                  members: [],
+                };
+
+            socketRef.current?.emit('send_message', {
+              ...sockBase,
+              ...newMsg,
+              _id: json._id,
             });
-            const json = await res.json();
-            if (json.success && typeof json._id === 'string') {
-              socketRef.current?.emit('send_message', {
-                ...sockBase,
-                ...newMsg,
-                _id: json._id,
-              });
-            }
           }
         }
       } catch (error) {
@@ -2396,34 +2494,46 @@ export default function ChatWindow({
     return () => window.removeEventListener('shareMessage', handler as EventListener);
   }, [messages, handleShareMessage, roomId]);
 
+  // 🔥 Listen for local nickname updates and emit to socket
+  useEffect(() => {
+    const handleLocalNicknameUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail && String(detail.roomId) === String(roomId)) {
+        socketRef.current?.emit('room_nickname_updated', detail);
+      }
+    };
+
+    window.addEventListener('roomNicknamesUpdated', handleLocalNicknameUpdate);
+    return () => window.removeEventListener('roomNicknamesUpdated', handleLocalNicknameUpdate);
+  }, [roomId]);
+
   const viewportRef = useRef<HTMLElement>(null);
 
-  const applyViewport = useCallback(() => {
-    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-    const h = vv ? vv.height : window.innerHeight;
-    const w = vv ? vv.width : window.innerWidth;
-    const top = vv ? vv.offsetTop : 0;
-    const left = vv ? vv.offsetLeft : 0;
-    const root = document.documentElement;
-    root.style.setProperty('--vvh', `${h}px`);
-    root.style.setProperty('--vvw', `${w}px`);
-    root.style.setProperty('--vvTop', `${top}px`);
-    root.style.setProperty('--vvLeft', `${left}px`);
-    const footerEl = footerRef.current as HTMLElement | null;
-    const listEl = messagesContainerRef.current as HTMLElement | null;
-    if (footerEl && listEl) {
-      const fh = footerEl.offsetHeight || 0;
-      listEl.style.paddingBottom = `${fh}px`;
-      footerEl.style.position = 'sticky';
-      footerEl.style.bottom = '0px';
-      footerEl.style.left = '0px';
-      footerEl.style.right = '0px';
-      footerEl.style.zIndex = '20';
-    }
-    window.scrollTo(0, 0);
-    if (!jumpLoadingRef.current && isAtBottomRef.current && !(isMobile && showSearchSidebar)) {
+  // Fix keyboard overlapping on mobile using VisualViewport API
+  useEffect(() => {
+    const handleVisualViewport = () => {
+      if (!viewportRef.current || !window.visualViewport) return;
+
+      // Trên iOS Safari, khi bàn phím hiện lên, visualViewport.height giảm.
+      // Layout Viewport (body) không đổi kích thước, nhưng visualViewport dịch chuyển.
+      // Ta cần set height của container bằng đúng visualViewport.height để tránh bị che.
+
+      const vv = window.visualViewport;
+
+      // Force scroll to top to prevent document scrolling
+      window.scrollTo(0, 0);
+
+      // Cập nhật height
+      viewportRef.current.style.height = `${vv.height}px`;
+
+      // QUAN TRỌNG: Nếu offsetTop > 0 (bị đẩy lên), ta cần dịch ngược lại
+      // hoặc đảm bảo container nằm đúng vị trí trong visual viewport.
+      // Với position: fixed ở parent (HomeMobile), top luôn là 0 của layout viewport.
+      // Nhưng nếu visual viewport bị pan xuống (offsetTop > 0), ta có thể cần điều chỉnh top?
+      // Thực tế với body fixed + window.scrollTo(0,0), offsetTop thường về 0.
+
       scrollToBottom();
-    }
+    };
   }, [scrollToBottom, isMobile, showSearchSidebar]);
 
   useEffect(() => {
@@ -2780,6 +2890,7 @@ export default function ChatWindow({
               onLeftGroup={onBackFromChat}
               onRefresh={fetchMessages}
               sendNotifyMessage={(text) => sendNotifyMessage(text)}
+              lastUpdated={nicknamesStamp}
             />
           </div>
         )}
@@ -2831,6 +2942,8 @@ export default function ChatWindow({
             onMembersAdded={handleMembersAdded}
             onMemberRemoved={handleMemberRemoved}
             onRoleChange={handleRoleChange}
+            sendNotifyMessage={(text) => sendNotifyMessage(text)}
+            lastUpdated={nicknamesStamp}
           />
         )}
 
