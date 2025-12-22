@@ -34,11 +34,13 @@ interface Message {
 interface MessageGroup {
   roomId: string;
   roomName: string;
+  avatar: string;
   isGroupChat: boolean;
   messages: Message[];
 }
 interface FileGroup {
   roomId: string;
+  avatar: string,
   roomName: string;
   isGroupChat: boolean;
   files: Message[];
@@ -213,9 +215,13 @@ const ContactsSection = ({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
+                  <Image
+                    src="/logo/avata.webp"
+                    alt={displayName}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
                 )}
               </div>
               {isGroup && (
@@ -248,6 +254,7 @@ const MessagesSection = ({
   searchTerm,
   onNavigateToMessage,
   onClearSearch,
+  
 }: {
   groupedMessages: MessageGroup[];
   searchTerm: string;
@@ -267,10 +274,26 @@ const MessagesSection = ({
 
       {groupedMessages.map((group) => (
         <div key={group.roomId} className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-5 flex items-center gap-4">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-2 flex items-center gap-4">
             <div className="relative">
               <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-xl">
-                {group.roomName.charAt(0).toUpperCase()}
+                {group.avatar ? (
+                  <Image
+                    src={getProxyUrl(group.avatar as string)}
+                    width={56}
+                    height={56}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src="/logo/avata.webp"
+                    alt={group.roomName}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
               {group.isGroupChat && (
                 <div className="absolute -bottom-1 -right-1 p-1.5 bg-emerald-700 rounded-full">
@@ -328,7 +351,7 @@ const MessagesSection = ({
           </div>
 
           {group.messages.length > 8 && (
-            <div className="p-4 bg-green-50 text-center">
+            <div className="p-2 bg-green-50 text-center">
               <button
                 onClick={() => {
                   onNavigateToMessage(group.messages[0]);
@@ -370,9 +393,25 @@ const FilesSection = ({
 
       {groupedFiles.map((group) => (
         <div key={group.roomId} className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 p-5 flex items-center gap-4">
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 p-2 flex items-center gap-4">
             <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white text-2xl font-bold">
-              {group.roomName.charAt(0).toUpperCase()}
+              {group.avatar ? (
+                  <Image
+                    src={getProxyUrl(group.avatar as string)}
+                    width={56}
+                    height={56}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src="/logo/avata.webp"
+                    alt={group.roomName}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                )}
             </div>
             <div className="flex-1">
               <p className="font-bold text-gray-900 text-lg">{group.roomName}</p>

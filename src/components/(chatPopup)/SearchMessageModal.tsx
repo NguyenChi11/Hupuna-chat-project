@@ -13,6 +13,7 @@ interface SearchSidebarProps {
   getSenderName: (sender: User | string) => string;
   initialKeyword?: string | null;
   onKeywordClear?: () => void;
+  initialSelectedMessageId?: string | null;
 }
 
 const SearchSidebar: React.FC<SearchSidebarProps> = ({ 
@@ -23,6 +24,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
   getSenderName,
   initialKeyword,
   onKeywordClear,
+  initialSelectedMessageId,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Message[]>([]);
@@ -31,6 +33,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasAutoSearchedRef = useRef(false);
   const lastJumpedTermRef = useRef<string>('');
+  const initialSelectedIdRef = useRef<string | null>(null);
 
   const fetchSearchResults = useCallback(
     async (query: string) => {
@@ -63,9 +66,13 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
         setSearchResults(results);
         if (results.length > 0) {
           const term = query.trim();
-          const firstIdx = 0;
-          setCurrentResultIndex(firstIdx);
-          onJumpToMessage(results[firstIdx]._id);
+          let jumpIdx = 0;
+          if (initialSelectedIdRef.current) {
+            const idx = results.findIndex((m) => String(m._id) === String(initialSelectedIdRef.current));
+            if (idx >= 0) jumpIdx = idx;
+          }
+          setCurrentResultIndex(jumpIdx);
+          onJumpToMessage(results[jumpIdx]._id);
           lastJumpedTermRef.current = term;
         } else {
           setCurrentResultIndex(-1);
@@ -83,17 +90,19 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
     if (initialKeyword && initialKeyword.trim() && !hasAutoSearchedRef.current && isOpen) {
       setSearchTerm(initialKeyword);
       hasAutoSearchedRef.current = true;
+      initialSelectedIdRef.current = initialSelectedMessageId || null;
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
       fetchSearchResults(initialKeyword);
     }
-  }, [initialKeyword, isOpen, fetchSearchResults]);
+  }, [initialKeyword, initialSelectedMessageId, isOpen, fetchSearchResults]);
 
   // Reset when sidebar closes
   useEffect(() => {
     if (!isOpen) {
       hasAutoSearchedRef.current = false;
+      initialSelectedIdRef.current = null;
       setCurrentResultIndex(-1);
       if (onKeywordClear) {
         onKeywordClear();
@@ -133,7 +142,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
     }
   }, [sortedResults.length, currentResultIndex]);
 
-  if (!isOpen) return null;
+  if (!isOpen || (typeof window !== 'undefined' && window.innerWidth < 768)) return null;
 
   const handleJump = (messageId: string, index?: number) => {
     if (index !== undefined) {
