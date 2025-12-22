@@ -383,55 +383,53 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
   }, [searchTerm, handleGlobalSearch]);
 
   // Thay thế hàm handleNavigateToMessage trong useHomePage.ts
+  const handleNavigateToMessage = useCallback(
+    (message: GlobalSearchMessage, searchKeyword?: string) => {
+      let targetChat: ChatItem | null = null;
+      const myId = String(currentUser?._id);
 
-    const handleNavigateToMessage = useCallback(
-      (message: GlobalSearchMessage, searchKeyword?: string) => {
-        let targetChat: ChatItem | null = null;
-        const myId = String(currentUser?._id);
-
-        // 1. Tìm chat target
-        if (message.isGroupChat === true && message.roomId) {
-          targetChat = groups.find((g) => String(g._id) === String(message.roomId)) ?? null;
-        } else if (message.isGroupChat === false) {
-          let partnerId: string | null = null;
-          if (message.partnerId) {
-            partnerId = String(message.partnerId);
-          } else if (message.roomId && message.roomId.includes('_')) {
-            const parts = message.roomId.split('_');
-            partnerId = parts[0] === myId ? parts[1] : parts[0];
-          } else {
-            const senderId = String(message.sender);
-            const receiverId = message.receiver ? String(message.receiver) : null;
-            partnerId = senderId === myId ? receiverId : senderId;
-          }
-
-          if (partnerId) {
-            targetChat = allUsers.find((u) => String(u._id) === partnerId) ?? null;
-          }
-        }
-
-        // 2. Nếu tìm thấy chat, mở và scroll đến tin nhắn
-        if (targetChat) {
-          setShowGlobalSearchModal(false);
-          handleSelectChat(targetChat);
-
-          if (searchKeyword && searchKeyword.trim()) {
-            setRoomSearchKeyword(searchKeyword);
-            return;
-          }
-          setTimeout(() => {
-            setScrollToMessageId(String(message._id));
-          }, 200);
+      // 1. Tìm chat target
+      if (message.isGroupChat === true && message.roomId) {
+        targetChat = groups.find((g) => String(g._id) === String(message.roomId)) ?? null;
+      } else if (message.isGroupChat === false) {
+        let partnerId: string | null = null;
+        if (message.partnerId) {
+          partnerId = String(message.partnerId);
+        } else if (message.roomId && message.roomId.includes('_')) {
+          const parts = message.roomId.split('_');
+          partnerId = parts[0] === myId ? parts[1] : parts[0];
         } else {
-          // Fallback: Refetch data và thử lại
-          console.warn('❌ Chat not found locally. Refetching data...');
-          fetchAllData().then(() => {
-            alert('Không tìm thấy cuộc trò chuyện. Đã tải lại dữ liệu, vui lòng thử lại.');
-          });
+          const senderId = String(message.sender);
+          const receiverId = message.receiver ? String(message.receiver) : null;
+          partnerId = senderId === myId ? receiverId : senderId;
         }
-      },
-      [groups, allUsers, currentUser, fetchAllData, handleSelectChat],
-    );
+
+        if (partnerId) {
+          targetChat = allUsers.find((u) => String(u._id) === partnerId) ?? null;
+        }
+      }
+
+      // 2. Nếu tìm thấy chat, mở và cuộn đến đúng tin nhắn vừa chọn
+      if (targetChat) {
+        setShowGlobalSearchModal(false);
+        handleSelectChat(targetChat);
+
+        if (searchKeyword && searchKeyword.trim()) {
+          setRoomSearchKeyword(searchKeyword);
+        }
+        setTimeout(() => {
+          setScrollToMessageId(String(message._id));
+        }, 200);
+      } else {
+        // Fallback: Refetch data và thử lại
+        console.warn('❌ Chat not found locally. Refetching data...');
+        fetchAllData().then(() => {
+          alert('Không tìm thấy cuộc trò chuyện. Đã tải lại dữ liệu, vui lòng thử lại.');
+        });
+      }
+    },
+    [groups, allUsers, currentUser, fetchAllData, handleSelectChat],
+  );
 
   useEffect(() => {
     const fetchCurrentUser = async () => {

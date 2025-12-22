@@ -32,7 +32,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasAutoSearchedRef = useRef(false);
-  const lastJumpedTermRef = useRef<string>('');
   const initialSelectedIdRef = useRef<string | null>(null);
 
   const fetchSearchResults = useCallback(
@@ -42,7 +41,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
         return;
       }
       setIsSearching(true);
-      setSearchResults([]);
 
       try {
         const res = await fetch('/api/messages', {
@@ -64,19 +62,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
         const data = await res.json();
         const results: Message[] = (data.data || []).slice().sort((a: Message, b: Message) => Number(b.timestamp) - Number(a.timestamp));
         setSearchResults(results);
-        if (results.length > 0) {
-          const term = query.trim();
-          let jumpIdx = 0;
-          if (initialSelectedIdRef.current) {
-            const idx = results.findIndex((m) => String(m._id) === String(initialSelectedIdRef.current));
-            if (idx >= 0) jumpIdx = idx;
-          }
-          setCurrentResultIndex(jumpIdx);
-          onJumpToMessage(results[jumpIdx]._id);
-          lastJumpedTermRef.current = term;
-        } else {
-          setCurrentResultIndex(-1);
-        }
+        setCurrentResultIndex((prev) => {
+          if (results.length === 0) return -1;
+          return prev;
+        });
       } catch (error) {
         console.error('Fetch search results error:', error);
         setSearchResults([]);
@@ -135,12 +124,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
   );
 
   useEffect(() => {
-    if (sortedResults.length > 0 && currentResultIndex === -1) {
-      setCurrentResultIndex(0);
-    } else if (sortedResults.length === 0) {
+    if (sortedResults.length === 0) {
       setCurrentResultIndex(-1);
     }
-  }, [sortedResults.length, currentResultIndex]);
+  }, [sortedResults.length]);
 
   if (!isOpen || (typeof window !== 'undefined' && window.innerWidth < 768)) return null;
 

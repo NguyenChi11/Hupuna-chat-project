@@ -238,6 +238,15 @@ export default function Sidebar({
     }, 400);
   };
 
+  useEffect(() => {
+    if (searchTerm.trim() && globalSearchResults.contacts.length === 0 && globalSearchResults.messages.length === 0) {
+      setIsSearching(true);
+      void (async () => {
+        await handleGlobalSearch(searchTerm);
+        setIsSearching(false);
+      })();
+    }
+  }, [searchTerm, globalSearchResults.contacts.length, globalSearchResults.messages.length, handleGlobalSearch]);
   const regularMessages = useMemo(
     () => globalSearchResults.messages.filter((msg) => !['file', 'image', 'video'].includes(msg.type)),
     [globalSearchResults.messages],
@@ -508,8 +517,7 @@ export default function Sidebar({
             onSelectContact={handleSelectContact}
             onNavigateToMessage={(msg) => {
               onNavigateToMessage(msg, searchTerm);
-              setSearchTerm('');
-              setGlobalSearchResults({ contacts: [], messages: [] });
+              // Giữ nguyên searchTerm và danh sách kết quả để không bị mất
             }}
             currentUserId={String(currentUserId)}
           />
