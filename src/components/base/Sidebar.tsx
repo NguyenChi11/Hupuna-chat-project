@@ -187,7 +187,7 @@ export default function Sidebar({
       }
 
       const contactResults = allChats
-        .filter((c) => getChatDisplayName(c).toLowerCase().includes(lowerCaseTerm))
+        .filter((c) => getChatDisplayName(c, String(currentUserId)).toLowerCase().includes(lowerCaseTerm))
         .slice(0, 10);
 
       try {
@@ -218,7 +218,7 @@ export default function Sidebar({
         setGlobalSearchResults({ contacts: contactResults, messages: [] });
       }
     },
-    [currentUser, groups, allUsers, onlyGroups],
+    [currentUser, groups, allUsers, onlyGroups, onlyPersonal, currentUserId],
   );
 
   const handleSearchChange = (value: string) => {
@@ -303,12 +303,12 @@ export default function Sidebar({
       return [...allUsers];
     }
     return [...groups, ...allUsers];
-  }, [groups, allUsers, onlyGroups, onlyPersonal]);
+  }, [groups, allUsers, onlyGroups, onlyPersonal, currentUserId]);
 
   const filteredAndSortedChats = useMemo(() => {
     let filtered = mixedChats.filter((chat: ChatItemType) => {
       const isHidden = chat.isHidden;
-      const displayName = getChatDisplayName(chat);
+      const displayName = getChatDisplayName(chat, String(currentUserId));
       const matchesSearch = isSearchActive ? displayName.toLowerCase().includes(searchTerm.toLowerCase()) : true;
 
       if (isSearchActive) return matchesSearch;

@@ -193,6 +193,9 @@ export default function CreateGroupModal({
                   const isAlreadyMember = existingMemberIds.includes(userIdStr);
                   const isSelected = selectedMembers.includes(userIdStr);
                   const isMe = userIdStr === String(currentUser._id);
+                  const displayName =
+                    String(user.nicknames?.[String(currentUser._id)] || '').trim() ||
+                    String(user.name || user.username || 'Người dùng').trim();
 
                   return (
                     <label
@@ -228,7 +231,7 @@ export default function CreateGroupModal({
 
                         <div>
                           <div className="flex-1">
-                            <p className="sm:text-sm font-semibold text-gray-900 px-1">{user.name}</p>
+                            <p className="sm:text-sm font-semibold text-gray-900 px-1">{displayName}</p>
                           </div>
                           <span
                             className={`text-xs px-1 font-medium ${user.online ? 'text-green-600' : 'text-gray-500'}`}
@@ -315,7 +318,10 @@ export default function CreateGroupModal({
                       {user.avatar ? (
                         <Image
                           src={getProxyUrl(user.avatar)}
-                          alt={user.name}
+                          alt={
+                            String(user.nicknames?.[String(currentUser._id)] || '').trim() ||
+                            String(user.name || user.username || 'Người dùng').trim()
+                          }
                           width={40}
                           height={40}
                           className="w-full h-full object-cover"

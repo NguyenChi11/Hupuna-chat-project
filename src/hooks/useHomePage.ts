@@ -181,14 +181,30 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         allChats = [...allUsers];
       }
 
+      const myId = String(currentUser._id);
       const contactResults: GlobalSearchContact[] = allChats
-        .filter((c) => c.name?.toLowerCase().includes(lowerCaseTerm))
-        .filter((c) => !c.isHidden)
-        .map((c) => ({
-          _id: c._id,
-          name: c.name,
-          avatar: c.avatar,
-          isGroup: (c as GroupConversation).isGroup || !!(c as GroupConversation).members,
+        .map((c) => {
+          const isGroup = (c as GroupConversation).isGroup || !!(c as GroupConversation).members;
+          let displayName = String(c.name || '').trim();
+          if (!isGroup) {
+            const u = c as User;
+            if (u.nicknames?.[myId]) {
+              displayName = String(u.nicknames[myId]).trim() || displayName || String(u.username || 'Người dùng');
+            } else {
+              displayName = String(u.name || u.username || 'Người dùng').trim();
+            }
+          }
+          return { contact: c, isGroup, displayName };
+        })
+        .filter(({ contact, displayName }) => {
+          if (contact.isHidden) return false;
+          return displayName.toLowerCase().includes(lowerCaseTerm);
+        })
+        .map(({ contact, isGroup, displayName }) => ({
+          _id: contact._id,
+          name: displayName,
+          avatar: contact.avatar,
+          isGroup,
         }))
         .slice(0, 10); // Giới hạn 10 kết quả
 
@@ -242,7 +258,7 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         setGlobalSearchResults({ contacts: contactResults, messages: [] });
       }
     },
-    [currentUser, groups, allUsers, config?.onlyGroups],
+    [currentUser, groups, allUsers, config?.onlyGroups, config?.onlyPersonal],
   );
 
   const getSocketBaseForRoom = useCallback(
@@ -384,54 +400,54 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
 
   // Thay thế hàm handleNavigateToMessage trong useHomePage.ts
 
-    const handleNavigateToMessage = useCallback(
-      (message: GlobalSearchMessage, searchKeyword?: string) => {
-        let targetChat: ChatItem | null = null;
-        const myId = String(currentUser?._id);
+  const handleNavigateToMessage = useCallback(
+    (message: GlobalSearchMessage, searchKeyword?: string) => {
+      let targetChat: ChatItem | null = null;
+      const myId = String(currentUser?._id);
 
-        // 1. Tìm chat target
-        if (message.isGroupChat === true && message.roomId) {
-          targetChat = groups.find((g) => String(g._id) === String(message.roomId)) ?? null;
-        } else if (message.isGroupChat === false) {
-          let partnerId: string | null = null;
-          if (message.partnerId) {
-            partnerId = String(message.partnerId);
-          } else if (message.roomId && message.roomId.includes('_')) {
-            const parts = message.roomId.split('_');
-            partnerId = parts[0] === myId ? parts[1] : parts[0];
-          } else {
-            const senderId = String(message.sender);
-            const receiverId = message.receiver ? String(message.receiver) : null;
-            partnerId = senderId === myId ? receiverId : senderId;
-          }
-
-          if (partnerId) {
-            targetChat = allUsers.find((u) => String(u._id) === partnerId) ?? null;
-          }
-        }
-
-        // 2. Nếu tìm thấy chat, mở và scroll đến tin nhắn
-        if (targetChat) {
-          setShowGlobalSearchModal(false);
-          handleSelectChat(targetChat);
-
-          if (searchKeyword && searchKeyword.trim()) {
-            setRoomSearchKeyword(searchKeyword);
-            return;
-          }
-          setTimeout(() => {
-            setScrollToMessageId(String(message._id));
-          }, 200);
+      // 1. Tìm chat target
+      if (message.isGroupChat === true && message.roomId) {
+        targetChat = groups.find((g) => String(g._id) === String(message.roomId)) ?? null;
+      } else if (message.isGroupChat === false) {
+        let partnerId: string | null = null;
+        if (message.partnerId) {
+          partnerId = String(message.partnerId);
+        } else if (message.roomId && message.roomId.includes('_')) {
+          const parts = message.roomId.split('_');
+          partnerId = parts[0] === myId ? parts[1] : parts[0];
         } else {
-          // Fallback: Refetch data và thử lại
-          console.warn('❌ Chat not found locally. Refetching data...');
-          fetchAllData().then(() => {
-            alert('Không tìm thấy cuộc trò chuyện. Đã tải lại dữ liệu, vui lòng thử lại.');
-          });
+          const senderId = String(message.sender);
+          const receiverId = message.receiver ? String(message.receiver) : null;
+          partnerId = senderId === myId ? receiverId : senderId;
         }
-      },
-      [groups, allUsers, currentUser, fetchAllData, handleSelectChat],
-    );
+
+        if (partnerId) {
+          targetChat = allUsers.find((u) => String(u._id) === partnerId) ?? null;
+        }
+      }
+
+      // 2. Nếu tìm thấy chat, mở và scroll đến tin nhắn
+      if (targetChat) {
+        setShowGlobalSearchModal(false);
+        handleSelectChat(targetChat);
+
+        if (searchKeyword && searchKeyword.trim()) {
+          setRoomSearchKeyword(searchKeyword);
+          return;
+        }
+        setTimeout(() => {
+          setScrollToMessageId(String(message._id));
+        }, 200);
+      } else {
+        // Fallback: Refetch data và thử lại
+        console.warn('❌ Chat not found locally. Refetching data...');
+        fetchAllData().then(() => {
+          alert('Không tìm thấy cuộc trò chuyện. Đã tải lại dữ liệu, vui lòng thử lại.');
+        });
+      }
+    },
+    [groups, allUsers, currentUser, fetchAllData, handleSelectChat],
+  );
 
   useEffect(() => {
     const fetchCurrentUser = async () => {

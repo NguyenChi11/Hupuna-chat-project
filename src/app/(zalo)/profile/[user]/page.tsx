@@ -34,7 +34,7 @@ import {
   HiBriefcase,
   HiOutlineMagnifyingGlass,
 } from 'react-icons/hi2';
-import { HiChevronRight } from 'react-icons/hi';
+import { HiChevronRight, HiX } from 'react-icons/hi';
 
 export default function ProfileByIdPage() {
   const params = useParams();
@@ -81,6 +81,47 @@ export default function ProfileByIdPage() {
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [editNickname, setEditNickname] = useState(displayName);
+  const [isSavingNickname, setIsSavingNickname] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+
+  const handleSaveNickname = async (value: string) => {
+    if (!currentUser || !currentUser['_id'] || !viewingId) return;
+    const v = String(value || '').trim();
+    try {
+      setIsSavingNickname(true);
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updateNickname',
+          roomId: viewingId,
+          currentUserId: String(currentUser['_id']),
+          data: { nickname: v },
+        }),
+      });
+      if (!res.ok) throw new Error();
+      if (v) {
+        setDisplayName(v);
+      } else {
+        try {
+          const r = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getById', _id: viewingId }),
+          });
+          const j = await r.json();
+          const u = j?.row || j?.user || j;
+          const base = String(u?.name || u?.username || '');
+          setDisplayName(base);
+        } catch {}
+      }
+      setIsEditingNickname(false);
+    } finally {
+      setIsSavingNickname(false);
+    }
+  };
 
   const handleUpdateProfile = async (field: string, value: string) => {
     if (!currentId || !isOwner) return;
@@ -211,13 +252,16 @@ export default function ProfileByIdPage() {
 
               {/* Avatar */}
               <div className="w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden relative bg-gray-200 z-10">
-                {avatar ? (
+                {avatar && !avatarError ? (
                   <Image
                     src={getProxyUrl(avatar)}
                     alt="Avatar"
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
+                    onError={() => setAvatarError(true)}
+                    onLoadingComplete={() => setAvatarError(false)}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-500">
@@ -248,7 +292,67 @@ export default function ProfileByIdPage() {
             </div>
 
             {/* Name */}
-            <h1 className="mt-3 text-2xl font-bold text-gray-900 pointer-events-auto">{displayName}</h1>
+            {isEditingNickname ? (
+              <div className="mt-3 flex items-center gap-2 pointer-events-auto">
+                <input
+                  value={editNickname}
+                  onChange={(e) => setEditNickname(e.target.value)}
+                  className="px-3 py-2 text-xl font-bold text-gray-900 border-b-2 border-blue-500 bg-transparent focus:outline-none"
+                  disabled={isSavingNickname}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveNickname(editNickname);
+                    if (e.key === 'Escape') setIsEditingNickname(false);
+                  }}
+                />
+                <button
+                  onClick={() => handleSaveNickname(editNickname)}
+                  disabled={isSavingNickname}
+                  className={`p-2 rounded-full ${isSavingNickname ? 'bg-green-100 text-green-500 opacity-70' : 'hover:bg-green-100 text-green-600'}`}
+                  title="Lưu"
+                >
+                  {isSavingNickname ? (
+                    <span className="w-5 h-5 inline-block border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <HiCheck className="w-5 h-5" />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleSaveNickname('')}
+                  disabled={isSavingNickname}
+                  className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
+                  title="Xóa biệt danh"
+                >
+                  <HiArchiveBox className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditingNickname(false);
+                    setEditNickname(displayName);
+                  }}
+                  disabled={isSavingNickname}
+                  className="p-2 rounded-full hover:bg-red-100 text-red-500"
+                  title="Hủy"
+                >
+                  <HiX className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              <div className="mt-3 flex items-center gap-2 pointer-events-auto">
+                <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
+                {!isOwner && (
+                  <button
+                    onClick={() => {
+                      setEditNickname(displayName);
+                      setIsEditingNickname(true);
+                    }}
+                    className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
+                    title="Sửa biệt danh"
+                  >
+                    <HiPencilSquare className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Edit Intro Link */}
             <button

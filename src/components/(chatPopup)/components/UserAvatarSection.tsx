@@ -6,12 +6,13 @@ import { HiPencil, HiCheck, HiX } from 'react-icons/hi';
 interface UserAvatarSectionProps {
   userName: string;
   userAvatar?: string;
-  onUpdateNickname?: (name: string) => void;
+  onUpdateNickname?: (name: string, options?: { silent?: boolean }) => Promise<void> | void;
 }
 
 export default function UserAvatarSection({ userName, userAvatar, onUpdateNickname }: UserAvatarSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(userName);
+  const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -24,9 +25,16 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
     }
   }, [isEditing]);
 
-  const handleSave = () => {
-    if (editName.trim() && editName.trim() !== userName) {
-      onUpdateNickname?.(editName.trim());
+  const handleSave = async () => {
+    const newVal = editName.trim();
+    const oldVal = (userName || '').trim();
+    if (newVal !== oldVal || newVal === '') {
+      try {
+        setIsSaving(true);
+        await onUpdateNickname?.(newVal, { silent: true });
+      } finally {
+        setIsSaving(false);
+      }
     }
     setIsEditing(false);
   };
@@ -82,14 +90,24 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
                 if (e.key === 'Enter') handleSave();
                 if (e.key === 'Escape') handleCancel();
               }}
+              disabled={isSaving}
             />
             <button
               onClick={handleSave}
-              className="p-1 rounded-full hover:bg-green-100 text-green-500 transition-colors"
+              disabled={isSaving}
+              className={`p-1 rounded-full transition-colors ${isSaving ? 'bg-green-100 text-green-500 opacity-70' : 'hover:bg-green-100 text-green-500'}`}
             >
-              <HiCheck className="w-5 h-5" />
+              {isSaving ? (
+                <span className="w-5 h-5 inline-block border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <HiCheck className="w-5 h-5" />
+              )}
             </button>
-            <button onClick={handleCancel} className="p-1 rounded-full hover:bg-red-100 text-red-500 transition-colors">
+            <button
+              onClick={handleCancel}
+              disabled={isSaving}
+              className="p-1 rounded-full hover:bg-red-100 text-red-500 transition-colors"
+            >
               <HiX className="w-5 h-5" />
             </button>
           </div>

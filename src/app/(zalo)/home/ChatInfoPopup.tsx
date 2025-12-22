@@ -372,7 +372,7 @@ export default function ChatInfoPopup({
   }, [isGroup, selectedChat, reLoad]);
 
   const handleUpdateNicknameForPartner = useCallback(
-    async (nickname: string) => {
+    async (nickname: string, options?: { silent?: boolean }) => {
       if (!selectedChat?._id || !currentUser?._id) return;
       try {
         const v = String(nickname || '').trim();
@@ -397,7 +397,7 @@ export default function ChatInfoPopup({
             }),
           );
         } catch {}
-        if (sendNotifyMessage) {
+        if (sendNotifyMessage && !options?.silent) {
           const actorName = currentUser.name || 'Bạn';
           const targetName = (selectedChat as User).name || (selectedChat as User).username || 'Người dùng';
           const msg = v

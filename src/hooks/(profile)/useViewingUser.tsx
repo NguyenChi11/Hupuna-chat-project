@@ -21,26 +21,33 @@ export function useViewingUser(viewingId: string, isOwner: boolean, currentUser:
   const [avatar, setAvatar] = useState<string | undefined>(undefined);
   const [background, setBackground] = useState<string | undefined>(undefined);
 
-  const fillFrom = useCallback((u: Record<string, unknown> | null) => {
-    if (!u) return;
-    setDisplayName(String(u['name'] || u['username'] || ''));
-    setDisplayDept(String(u['department'] || ''));
-    setDisplayTitle(String(u['title'] || ''));
-    setDisplayBio(String(u['bio'] || ''));
-    setAvatar(typeof u['avatar'] === 'string' ? (u['avatar'] as string) : undefined);
-    setBackground(typeof u['background'] === 'string' ? (u['background'] as string) : undefined);
+  const fillFrom = useCallback(
+    (u: Record<string, unknown> | null) => {
+      if (!u) return;
+      const myId = String((currentUser as Record<string, unknown> | null)?.['_id'] || '');
+      const nickMap = (u['nicknames'] as Record<string, unknown> | undefined) || undefined;
+      const nick = !isOwner && myId && nickMap ? String((nickMap[myId] as unknown) || '').trim() : '';
+      const baseName = String(u['name'] || u['username'] || '');
+      setDisplayName(nick || baseName);
+      setDisplayDept(String(u['department'] || ''));
+      setDisplayTitle(String(u['title'] || ''));
+      setDisplayBio(String(u['bio'] || ''));
+      setAvatar(typeof u['avatar'] === 'string' ? (u['avatar'] as string) : undefined);
+      setBackground(typeof u['background'] === 'string' ? (u['background'] as string) : undefined);
 
-    setOverviewData({
-      phone: String(u['phone'] || ''),
-      gender: String(u['gender'] || ''),
-      birthday: String(u['birthday'] || ''),
-      email: String(u['email'] || ''),
-      address: String(u['address'] || ''),
-      department: String(u['department'] || ''),
-      title: String(u['title'] || ''),
-      bio: String(u['bio'] || ''),
-    });
-  }, []);
+      setOverviewData({
+        phone: String(u['phone'] || ''),
+        gender: String(u['gender'] || ''),
+        birthday: String(u['birthday'] || ''),
+        email: String(u['email'] || ''),
+        address: String(u['address'] || ''),
+        department: String(u['department'] || ''),
+        title: String(u['title'] || ''),
+        bio: String(u['bio'] || ''),
+      });
+    },
+    [isOwner, currentUser],
+  );
 
   useEffect(() => {
     if (isOwner) {
