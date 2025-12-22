@@ -391,6 +391,52 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, result });
       }
 
+      case 'updateMemberNickname': {
+        if (!conversationId || !targetUserId || data?.nickname === undefined) {
+          return NextResponse.json({ error: 'Missing info' }, { status: 400 });
+        }
+
+        const group = await collection.findOne({
+          _id: new ObjectId(conversationId),
+        } as unknown as Filter<GroupConversation>);
+
+        if (!group) {
+          return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+        }
+
+        const members: MemberInput[] = Array.isArray(group.members) ? (group.members as MemberInput[]) : [];
+        const targetStr = String(targetUserId);
+
+        let memberIndex = -1;
+        for (let i = 0; i < members.length; i++) {
+          const m = members[i];
+          const mId = normalizeMemberId(m);
+          if (mId === targetStr) {
+            memberIndex = i;
+            break;
+          }
+          if (!isNaN(Number(mId)) && !isNaN(Number(targetStr)) && Number(mId) === Number(targetStr)) {
+            memberIndex = i;
+            break;
+          }
+        }
+
+        if (memberIndex === -1) {
+          return NextResponse.json({ error: 'Member not found in group' }, { status: 404 });
+        }
+
+        const nickname = String(data.nickname).trim();
+        const updateField = `members.${memberIndex}.nickname`;
+        const updateOp = nickname ? { $set: { [updateField]: nickname } } : { $unset: { [updateField]: '' } };
+
+        const result = await collection.updateOne(
+          { _id: new ObjectId(conversationId) } as unknown as Filter<GroupConversation>,
+          updateOp as unknown as UpdateFilter<GroupConversation>,
+        );
+
+        return NextResponse.json({ success: true, result });
+      }
+
       case 'kickMember': {
         if (!conversationId || !targetUserId) {
           return NextResponse.json({ error: 'Missing info' }, { status: 400 });

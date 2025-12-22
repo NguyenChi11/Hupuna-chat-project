@@ -9,7 +9,7 @@ import ChatInfoPopup from './ChatInfoPopup';
 import ModalMembers from '../../../components/base/ModalMembers';
 import { User } from '../../../types/User';
 import { Message, MessageCreate } from '../../../types/Message';
-import { ChatItem, GroupConversation } from '../../../types/Group';
+import { ChatItem, GroupConversation, MemberInfo } from '../../../types/Group';
 
 import { EmojiClickData } from 'emoji-picker-react';
 import ChatHeader from '@/components/(chatPopup)/ChatHeader';
@@ -1159,17 +1159,24 @@ export default function ChatWindow({
     initialScrolledRef.current = false;
   }, [roomId, fetchMessages, fetchPinnedMessages]);
 
+  const [nicknamesStamp, setNicknamesStamp] = useState(0);
   const allUsersMap = useMemo(() => {
     const map = new Map<string, string>();
     const myId = String(currentUser?._id || '');
+    let roomNickMap: Record<string, string> = {};
+    try {
+      const raw = roomId && myId ? localStorage.getItem(`roomNicknames:${roomId}:${myId}`) : null;
+      roomNickMap = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+    } catch {}
 
     if (currentUser) {
-      const name = currentUser.name || 'Bạn';
+      const myRoomNick = roomNickMap[String(currentUser._id)];
+      const name = myRoomNick || currentUser.name || 'Bạn';
       if (currentUser._id) map.set(String(currentUser._id), name);
     }
     if (Array.isArray(allUsers)) {
       allUsers.forEach((user) => {
-        const nickname = user.nicknames?.[myId];
+        const nickname = roomNickMap[String(user._id)] || user.nicknames?.[myId];
         const displayName = nickname || user.name;
         if (displayName) {
           if (user._id) map.set(String(user._id), displayName);
@@ -1180,20 +1187,42 @@ export default function ChatWindow({
     if (isGroup && Array.isArray(activeMembers)) {
       activeMembers.forEach((mem) => {
         const memUser = mem as unknown as User;
-        const nickname = memUser.nicknames?.[myId];
+        // 🔥 Use nickname from Group Member Data (Global) or Personal Nickname (Local)
+        const nickname = (mem as MemberInfo).nickname || memUser.nicknames?.[myId];
         const displayName = nickname || memUser.name || 'Thành viên';
         if (mem._id) map.set(String(mem._id), displayName);
       });
     }
     return map;
-  }, [currentUser, allUsers, isGroup, activeMembers]);
+  }, [currentUser, allUsers, isGroup, activeMembers, roomId, nicknamesStamp]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const anyE = e as unknown as {
+        detail?: { roomId?: string; userId?: string; targetUserId?: string; nickname?: string };
+      };
+      const d = anyE.detail || {};
+      if (String(d.roomId) !== String(roomId)) return;
+      setNicknamesStamp((s) => s + 1);
+      if (isGroup && d.targetUserId) {
+        try {
+          const nick = typeof d.nickname === 'string' ? d.nickname : '';
+          socketRef.current?.emit('room_nickname_updated', {
+            roomId,
+            targetUserId: String(d.targetUserId),
+            nickname: nick,
+          });
+        } catch {}
+      }
+    };
+    window.addEventListener('roomNicknamesUpdated', handler as EventListener);
+    return () => window.removeEventListener('roomNicknamesUpdated', handler as EventListener);
+  }, [roomId]);
 
   useEffect(() => {
     if (!roomId) return;
 
     socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-    socketRef.current.emit('join_room', roomId);
-    socketRef.current.emit('join_user', { userId: String(currentUser._id) });
 
     socketRef.current.on('receive_message', (data: Message) => {
       if (String(data.roomId) !== String(roomId)) return;
@@ -1238,6 +1267,24 @@ export default function ChatWindow({
           setShowScrollDown(hasScrolledUpRef.current || pendingNewCountRef.current > 0);
         }
       }
+    });
+    socketRef.current.on(
+      'room_nickname_updated',
+      (payload: { roomId: string; targetUserId: string; nickname: string }) => {
+        if (String(payload.roomId) !== String(roomId)) return;
+        // 🔥 Reload data to get updated nicknames
+        reLoad?.();
+      },
+    );
+    socketRef.current.on('room_nicknames_state', (payload: { roomId: string; map: Record<string, string> }) => {
+      if (String(payload.roomId) !== String(roomId)) return;
+      try {
+        const myId = String(currentUser._id || '');
+        const key = `roomNicknames:${roomId}:${myId}`;
+        const incoming = payload.map || {};
+        localStorage.setItem(key, JSON.stringify(incoming));
+      } catch {}
+      setNicknamesStamp((s) => s + 1);
     });
 
     socketRef.current.on(
@@ -1318,6 +1365,27 @@ export default function ChatWindow({
                 : msg,
             ),
           );
+        }
+      },
+    );
+
+    // 🔥 Listener cho room_nickname_updated
+    socketRef.current.on(
+      'room_nickname_updated',
+      (data: { roomId: string; targetUserId: string; nickname: string }) => {
+        if (String(data.roomId) === String(roomId)) {
+          try {
+            const k = `roomNicknames:${roomId}:${currentUser._id}`;
+            const raw = localStorage.getItem(k);
+            const map = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+            if (data.nickname) {
+              map[data.targetUserId] = data.nickname;
+            } else {
+              delete map[data.targetUserId];
+            }
+            localStorage.setItem(k, JSON.stringify(map));
+            setNicknamesStamp(Date.now());
+          } catch {}
         }
       },
     );
@@ -1580,6 +1648,9 @@ export default function ChatWindow({
       }
     });
 
+    socketRef.current.emit('join_room', roomId);
+    socketRef.current.emit('join_user', { userId: String(currentUser._id) });
+
     return () => {
       socketRef.current?.disconnect();
     };
@@ -1815,9 +1886,14 @@ export default function ChatWindow({
     }
 
     if (plainText) {
+      // Lấy nickname hiện tại của người gửi
+      const myId = String(currentUser._id);
+      const senderNick = allUsersMap.get(myId) || currentUser.name;
+
       const textMsg: MessageCreate = {
         roomId,
         sender: currentUser._id,
+        senderName: senderNick, // Sử dụng nickname
         content: expandedText,
         type: 'text',
         timestamp: Date.now(),
@@ -1829,9 +1905,13 @@ export default function ChatWindow({
     }
 
     if (hasAtt) {
+      // Lấy nickname hiện tại của người gửi cho file
+      const myId = String(currentUser._id);
+      const senderNick = allUsersMap.get(myId) || currentUser.name;
+
       // 🔥 Fire all uploads concurrently so temp messages appear immediately
       currentAttachments.forEach((att) => {
-        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined).then(() => {
+        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined, senderNick).then(() => {
           // Revoke preview URL after upload completes/fails
           try {
             URL.revokeObjectURL(att.previewUrl);
@@ -2022,6 +2102,9 @@ export default function ChatWindow({
       });
 
       // 3. EMIT SOCKET EVENT
+      const myId = String(currentUser._id);
+      const senderNick = allUsersMap.get(myId) || currentUser.name;
+
       const socketData = {
         _id: messageId,
         roomId: roomId,
@@ -2029,7 +2112,7 @@ export default function ChatWindow({
         editedAt: editedAtTimestamp,
         originalContent: originalContentText,
         sender: currentUser._id,
-        senderName: currentUser.name,
+        senderName: senderNick, // Dùng nickname
         isGroup: isGroup,
         receiver: isGroup ? null : getId(selectedChat),
         members: isGroup ? (selectedChat as GroupConversation).members : [],
@@ -2093,11 +2176,14 @@ export default function ChatWindow({
 
           if (json.success && typeof json._id === 'string') {
             // Emit socket
+            const myId = String(currentUser._id);
+            const senderNick = allUsersMap.get(myId) || currentUser.name;
+
             const sockBase = isGroupChat
               ? {
                   roomId: targetRoomId,
                   sender: currentUser._id,
-                  senderName: currentUser.name,
+                  senderName: senderNick, // Dùng nickname
                   isGroup: true,
                   receiver: null,
                   members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
@@ -2105,7 +2191,7 @@ export default function ChatWindow({
               : {
                   roomId: targetRoomId,
                   sender: currentUser._id,
-                  senderName: currentUser.name,
+                  senderName: senderNick, // Dùng nickname
                   isGroup: false,
                   receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
                   members: [],
@@ -2153,6 +2239,19 @@ export default function ChatWindow({
     window.addEventListener('shareMessage', handler as EventListener);
     return () => window.removeEventListener('shareMessage', handler as EventListener);
   }, [messages, handleShareMessage, roomId]);
+
+  // 🔥 Listen for local nickname updates and emit to socket
+  useEffect(() => {
+    const handleLocalNicknameUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail && String(detail.roomId) === String(roomId)) {
+        socketRef.current?.emit('room_nickname_updated', detail);
+      }
+    };
+
+    window.addEventListener('roomNicknamesUpdated', handleLocalNicknameUpdate);
+    return () => window.removeEventListener('roomNicknamesUpdated', handleLocalNicknameUpdate);
+  }, [roomId]);
 
   const viewportRef = useRef<HTMLElement>(null);
 
@@ -2462,6 +2561,7 @@ export default function ChatWindow({
               onLeftGroup={onBackFromChat}
               onRefresh={fetchMessages}
               sendNotifyMessage={(text) => sendNotifyMessage(text)}
+              lastUpdated={nicknamesStamp}
             />
           </div>
         )}
@@ -2505,6 +2605,8 @@ export default function ChatWindow({
             onMembersAdded={handleMembersAdded}
             onMemberRemoved={handleMemberRemoved}
             onRoleChange={handleRoleChange}
+            sendNotifyMessage={(text) => sendNotifyMessage(text)}
+            lastUpdated={nicknamesStamp}
           />
         )}
 

@@ -40,6 +40,7 @@ interface ChatInfoPopupProps {
   onLeftGroup?: () => void;
   onRefresh?: () => void;
   sendNotifyMessage?: (text: string, membersOverride?: string[]) => Promise<void> | void;
+  lastUpdated?: number;
 }
 
 export default function ChatInfoPopup({
@@ -55,6 +56,7 @@ export default function ChatInfoPopup({
   onLeftGroup,
   onRefresh,
   sendNotifyMessage,
+  lastUpdated,
 }: ChatInfoPopupProps) {
   const { messages, currentUser, allUsers, chatName, isGroup, selectedChat } = useChatContext();
   const [openMember, setOpenMember] = useState(false);
@@ -499,6 +501,8 @@ export default function ChatInfoPopup({
           conversationId={selectedChat._id}
           onMemberRemoved={onMemberRemoved}
           onRoleChange={onRoleChange}
+          sendNotifyMessage={sendNotifyMessage}
+          lastUpdated={lastUpdated}
         />
       )}
 

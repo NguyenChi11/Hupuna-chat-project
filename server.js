@@ -12,6 +12,7 @@ const io = new Server(
 const presence = new Map();
 const callSessions = new Map();
 const roomCalls = new Map();
+const roomNicknames = new Map();
 
 const formatDuration = (sec) => {
   const s = Math.max(0, Math.floor(Number(sec || 0)));
@@ -47,6 +48,10 @@ io.on('connection', (socket) => {
   socket.on('join_room', (room) => {
     const roomId = String(room);
     socket.join(roomId);
+    try {
+      const current = roomNicknames.get(roomId) || {};
+      socket.emit('room_nicknames_state', { roomId, map: current });
+    } catch {}
   });
 
   socket.on('join_user', (payload) => {
@@ -187,6 +192,20 @@ io.on('connection', (socket) => {
         timestamp: data.editedAt || Date.now(),
       });
     }
+  });
+  // 🔥 Broadcast cập nhật biệt danh phòng tới tất cả thành viên trong room
+  socket.on('room_nickname_updated', (data) => {
+    try {
+      const roomId = String(data.roomId);
+      const targetUserId = String(data.targetUserId || '');
+      const nickname = String(data.nickname || '');
+      if (!roomId || !targetUserId) return;
+      const map = roomNicknames.get(roomId) || {};
+      if (nickname) map[targetUserId] = nickname;
+      else delete map[targetUserId];
+      roomNicknames.set(roomId, map);
+      io.in(roomId).emit('room_nickname_updated', { roomId, targetUserId, nickname });
+    } catch {}
   });
   // 🔥 THÊM SOCKET EVENT CHO EDIT MESSAGE
   socket.on('edit_message', (data) => {
