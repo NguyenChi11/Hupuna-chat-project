@@ -449,9 +449,7 @@ export default function ChatWindow({
           } else if (mobileCurrentIndexRef.current === -1) {
             const lastIdx = results.length - 1;
             setMobileCurrentResultIndex(lastIdx);
-            setTimeout(() => {
-              handleJumpToMessage(results[lastIdx]._id);
-            }, 300);
+          
           } else {
             const prevIdx = mobileCurrentIndexRef.current;
             const safeIdx = Math.max(0, Math.min(results.length - 1, prevIdx));
