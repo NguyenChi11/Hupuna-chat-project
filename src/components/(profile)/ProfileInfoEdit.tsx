@@ -58,7 +58,7 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
               type="button"
               onClick={() => setIsOpen(!isOpen)}
               className={`
-      w-full px-5 p-2 rounded-2xl  text-base font-medium text-left
+      w-full px-5 p-2 rounded-2xl  text-base font-medium text-left cursor-pointer
       flex items-center justify-between transition-all duration-200
       focus:outline-none
       ${isOpen ? 'bg-white ring-4 ring-[#0068ff]/20 border-2 border-[#0068ff]' : 'border-2 border-transparent '}
@@ -88,7 +88,7 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
                         setIsOpen(false);
                       }}
                       className={`
-              w-full px-5 py-4 text-left font-medium transition-all duration-150
+              w-full px-5 py-4 text-left font-medium transition-all duration-150 cursor-pointer
               ${form.gender === option ? 'bg-[#0068ff]/5 text-[#0068ff]' : 'text-gray-800 hover:bg-gray-100'}
               active:bg-gray-200 flex items-center justify-between
             `}
@@ -106,11 +106,11 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
         </div>
 
         {/* Ngày sinh */}
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+        <div className="flex justify-between items-center py-2 border-b border-gray-100 ">
           <span className="text-gray-500 w-32">Ngày sinh</span>
           <input
             type="date"
-            className="flex-1 text-right text-gray-900 font-medium focus:outline-none bg-transparent"
+            className="flex-1 text-right cursor-pointer text-gray-900 font-medium focus:outline-none bg-transparent"
             value={form.birthday}
             onChange={(e) => setForm({ ...form, birthday: e.target.value })}
           />
@@ -166,7 +166,7 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
               type="button"
               onClick={() => setIsOpenDepartment(!isOpenDepartment)}
               className={`
-        w-full px-4 py-1 text-right font-medium text-base transition-all duration-200
+        w-full px-4 py-1 text-right font-medium text-base transition-all duration-200 cursor-pointer
         flex items-center justify-end gap-3
         ${form.department ? 'text-gray-900' : 'text-gray-500'}
         focus:outline-none
@@ -196,7 +196,7 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
                       setIsOpenDepartment(false);
                     }}
                     className={`
-              w-full px-5 py-4 text-left font-medium transition-all duration-150
+              w-full px-5 py-4 text-left font-medium transition-all duration-150 cursor-pointer
               ${!form.department ? 'bg-[#0068ff]/5 text-[#0068ff]' : 'text-gray-800 hover:bg-gray-100'}
               active:bg-gray-200 flex items-center justify-between
             `}
@@ -215,7 +215,7 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
                         setIsOpenDepartment(false);
                       }}
                       className={`
-                w-full px-5 py-4 text-left font-medium transition-all duration-150 border-t border-gray-100
+                w-full px-5 py-4 text-left font-medium transition-all duration-150 cursor-pointer border-t border-gray-100
                 ${form.department === opt.value ? 'bg-[#0068ff]/5 text-[#0068ff]' : 'text-gray-800 hover:bg-gray-100'}
                 active:bg-gray-200 flex items-center justify-between
               `}
@@ -244,7 +244,7 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
       <button
         onClick={onSave}
         disabled={isSaving}
-        className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-full shadow-sm transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
+        className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-full shadow-sm transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
       >
         {isSaving ? (
           'Đang lưu...'

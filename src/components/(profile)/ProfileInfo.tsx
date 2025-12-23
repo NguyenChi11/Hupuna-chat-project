@@ -167,7 +167,7 @@ export function ProfileInfo({
 
       <button
         onClick={() => setIsEditing(true)}
-        className="w-full mt-6 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 rounded-full flex items-center justify-center gap-2 transition-colors"
+        className="w-full mt-6 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 rounded-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
       >
         <HiPencil className="w-4 h-4" />
         Chỉnh sửa

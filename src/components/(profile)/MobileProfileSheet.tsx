@@ -74,7 +74,7 @@ export default function MobileProfileSheet({
         >
           <button
             onClick={onClose}
-            className={`p-2 -ml-2 rounded-full transition-colors ${
+            className={`p-2 -ml-2 rounded-full transition-colors cursor-pointer ${
               backButtonClassName || 'text-gray-600 hover:bg-gray-100 active:bg-gray-200'
             }`}
           >

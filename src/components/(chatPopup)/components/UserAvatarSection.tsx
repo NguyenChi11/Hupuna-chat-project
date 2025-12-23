@@ -85,7 +85,7 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
               ref={inputRef}
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              className="text-xl font-bold text-gray-900 text-center border-b-2 border-blue-500 focus:outline-none bg-transparent min-w-[150px] max-w-[250px]"
+              className="text-xl font-bold text-gray-900 text-center border-b-2 border-blue-500 focus:outline-none bg-transparent min-w-[9.375rem] max-w-[15.625rem]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSave();
                 if (e.key === 'Escape') handleCancel();
@@ -95,7 +95,7 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className={`p-1 rounded-full transition-colors ${isSaving ? 'bg-green-100 text-green-500 opacity-70' : 'hover:bg-green-100 text-green-500'}`}
+              className={`p-1 rounded-full transition-colors cursor-pointer ${isSaving ? 'bg-green-100 text-green-500 opacity-70' : 'hover:bg-green-100 text-green-500'}`}
             >
               {isSaving ? (
                 <span className="w-5 h-5 inline-block border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
@@ -106,7 +106,7 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
             <button
               onClick={handleCancel}
               disabled={isSaving}
-              className="p-1 rounded-full hover:bg-red-100 text-red-500 transition-colors"
+              className="p-1 rounded-full hover:bg-red-100 text-red-500 transition-colors cursor-pointer"
             >
               <HiX className="w-5 h-5" />
             </button>

@@ -414,7 +414,7 @@ export default function ProfileByIdPage() {
           </div>
 
           {/* Horizontal Actions */}
-          <div className="mt-6 mx-4 flex justify-start  gap-3 overflow-x-auto custom-scrollbar pb-2 ">
+          <div className="mt-6 mx-4 flex justify-start md:justify-center gap-3 overflow-x-auto custom-scrollbar pb-2 ">
             {/* Cài zStyle (Placeholder for Settings/Style) */}
             <button className=" cursor-pointer flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-transform">
               <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
