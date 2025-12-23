@@ -17,8 +17,7 @@ export default function ReplyBanner({ replyingTo, getSenderName, onCancel }: Rep
   if (!replyingTo) return null;
 
   const url = String(replyingTo.fileUrl || replyingTo.previewUrl || '');
-  const isVid =
-    replyingTo.type === 'video' || isVideoFile(replyingTo.fileName) || isVideoFile(url);
+  const isVid = replyingTo.type === 'video' || isVideoFile(replyingTo.fileName) || isVideoFile(url);
   const isImg =
     replyingTo.type === 'image' ||
     /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(String(replyingTo.fileName || url || ''));
@@ -39,13 +38,14 @@ export default function ReplyBanner({ replyingTo, getSenderName, onCancel }: Rep
 
   return (
     <div className=" bottom-full left-0 right-0 p-3 bg-blue-50 border-t border-blue-200 flex justify-between items-center text-sm text-gray-700">
-      <div className="border-l-2 border-blue-600 pl-2">
+      <div className="border-l-2 border-blue-600 pl-2 max-w-[15rem] sm:max-w-[80rem] overflow-hidden ">
         <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
           Trả lời {getSenderName(replyingTo.sender)}
         </div>
         <div className="flex items-center gap-2 mt-1">
-          {!replyingTo.isRecalled && (isImg || isVid) && (
-            isImg ? (
+          {!replyingTo.isRecalled &&
+            (isImg || isVid) &&
+            (isImg ? (
               <Image
                 src={getProxyUrl(url)}
                 alt="Ảnh"
@@ -70,8 +70,7 @@ export default function ReplyBanner({ replyingTo, getSenderName, onCancel }: Rep
                   </div>
                 </div>
               </div>
-            )
-          )}
+            ))}
           <p className="text-xs text-gray-700 w-full">{contentLabel}</p>
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function GroupAvatarSection({
   if (!isGroup) return null;
 
   return (
-    <div className="flex flex-col items-center py-6 px-4">
+    <div className="flex flex-col items-center ">
       {/* Avatar lớn + hiệu ứng đổi ảnh */}
       <div className="relative group">
         <button
@@ -37,7 +37,7 @@ export default function GroupAvatarSection({
           disabled={isGroupAvatarUploading}
           title="Nhấn để thay đổi ảnh nhóm"
         >
-          <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-white shadow-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-1">
+          <div className="w-20 h-20 rounded-full overflow-hidden ring-1 ring-white shadow-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-1">
             <div className="w-full h-full rounded-full overflow-hidden bg-gray-200">
               {groupAvatar ? (
                 <Image
@@ -59,7 +59,13 @@ export default function GroupAvatarSection({
                   groupAvatar ? 'hidden' : ''
                 }`}
               >
-                {(groupName || 'G').charAt(0).toUpperCase()}
+                <Image
+                  width={40}
+                  height={40}
+                  src="/logo/avata.webp"
+                  alt={chatName || 'Avatar nhóm'}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
               </div>
             </div>
           </div>

@@ -181,14 +181,30 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         allChats = [...allUsers];
       }
 
+      const myId = String(currentUser._id);
       const contactResults: GlobalSearchContact[] = allChats
-        .filter((c) => c.name?.toLowerCase().includes(lowerCaseTerm))
-        .filter((c) => !c.isHidden)
-        .map((c) => ({
-          _id: c._id,
-          name: c.name,
-          avatar: c.avatar,
-          isGroup: (c as GroupConversation).isGroup || !!(c as GroupConversation).members,
+        .map((c) => {
+          const isGroup = (c as GroupConversation).isGroup || !!(c as GroupConversation).members;
+          let displayName = String(c.name || '').trim();
+          if (!isGroup) {
+            const u = c as User;
+            if (u.nicknames?.[myId]) {
+              displayName = String(u.nicknames[myId]).trim() || displayName || String(u.username || 'Người dùng');
+            } else {
+              displayName = String(u.name || u.username || 'Người dùng').trim();
+            }
+          }
+          return { contact: c, isGroup, displayName };
+        })
+        .filter(({ contact, displayName }) => {
+          if (contact.isHidden) return false;
+          return displayName.toLowerCase().includes(lowerCaseTerm);
+        })
+        .map(({ contact, isGroup, displayName }) => ({
+          _id: contact._id,
+          name: displayName,
+          avatar: contact.avatar,
+          isGroup,
         }))
         .slice(0, 10); // Giới hạn 10 kết quả
 
@@ -242,7 +258,7 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         setGlobalSearchResults({ contacts: contactResults, messages: [] });
       }
     },
-    [currentUser, groups, allUsers, config?.onlyGroups],
+    [currentUser, groups, allUsers, config?.onlyGroups, config?.onlyPersonal],
   );
 
   const getSocketBaseForRoom = useCallback(

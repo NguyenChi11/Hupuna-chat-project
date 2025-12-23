@@ -164,7 +164,7 @@ export default function ChatItem({
           active:scale-98
         `}
       >
-        <div className="flex items-center gap-4 py-3 px-2 md:py-2 ">
+        <div className="flex items-center gap-4 py-[0.625rem] px-2 md:py-2 ">
           {/* Avatar + Online + Group Icon */}
           <div className="relative flex-shrink-0">
             <div
@@ -226,7 +226,7 @@ export default function ChatItem({
             <div className="flex items-center justify-between mb-1">
               <h4
                 className={`
-                  text-[1.28rem] font-medium truncate max-w-[11rem]
+                  text-[1.125rem] font-medium truncate max-w-[11rem]
                   ${unreadCount > 0 ? 'text-gray-900' : 'text-gray-500'}
                 `}
               >

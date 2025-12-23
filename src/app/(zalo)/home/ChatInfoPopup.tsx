@@ -372,7 +372,7 @@ export default function ChatInfoPopup({
   }, [isGroup, selectedChat, reLoad]);
 
   const handleUpdateNicknameForPartner = useCallback(
-    async (nickname: string) => {
+    async (nickname: string, options?: { silent?: boolean }) => {
       if (!selectedChat?._id || !currentUser?._id) return;
       try {
         const v = String(nickname || '').trim();
@@ -397,7 +397,7 @@ export default function ChatInfoPopup({
             }),
           );
         } catch {}
-        if (sendNotifyMessage) {
+        if (sendNotifyMessage && !options?.silent) {
           const actorName = currentUser.name || 'Bạn';
           const targetName = (selectedChat as User).name || (selectedChat as User).username || 'Người dùng';
           const msg = v
@@ -467,7 +467,7 @@ export default function ChatInfoPopup({
       ) : (
         <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
           {/* Header cố định */}
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white px-5 py-4 flex items-center justify-between shadow-lg">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
             <h2 className="text-lg font-semibold">Thông tin trò chuyện</h2>
             <button
               onClick={onClose}
@@ -723,7 +723,7 @@ export default function ChatInfoPopup({
               <h3 className="font-bold text-gray-800">Đặt biệt danh</h3>
               <button
                 onClick={() => setEditingPersonalNickname(null)}
-                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer transition-colors"
               >
                 <HiX className="w-5 h-5 text-gray-500" />
               </button>
@@ -777,7 +777,7 @@ export default function ChatInfoPopup({
               <h3 className="font-bold text-gray-800">Đặt biệt danh của bạn</h3>
               <button
                 onClick={() => setEditingSelfNickname(null)}
-                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer transition-colors"
               >
                 <HiX className="w-5 h-5 text-gray-500" />
               </button>

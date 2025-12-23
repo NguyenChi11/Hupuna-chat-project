@@ -270,7 +270,7 @@ export default function RoomSearchResultsModal({
 
   return (
     <div
-      className={`${anchorToParent ? 'absolute' : 'fixed'} inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm px-0`}
+      className={`${anchorToParent ? 'absolute' : 'fixed'} inset-0 z-[50] flex items-center justify-center bg-black/40 backdrop-blur-sm px-0`}
     >
       <div className="bg-white w-full h-full rounded-none shadow-none border-none overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">

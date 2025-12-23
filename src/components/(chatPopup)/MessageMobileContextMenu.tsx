@@ -13,6 +13,7 @@ import ICTrashCan from '../svg/ICTrashCan';
 import ICTrash from '../svg/ICTrash';
 import ICFolder from '../svg/ICFolder';
 import ICDownload from '../svg/ICDownload';
+import ICFolder2 from '../svg/ICFolder2';
 
 interface MessageMobileContextMenuProps {
   contextMenu: ContextMenuState | null;
@@ -357,7 +358,7 @@ export default function MessageMobileContextMenu({
                 aria-label="Lưu vào thư mục"
                 title="Lưu vào thư mục"
               >
-                <ICFolder className="w-8 h-8 text-orange-300 hover:text-orange-500 cursor-pointer" />
+                <ICFolder2 className="w-8 h-8 text-orange-300 hover:text-orange-500 cursor-pointer" />
 
                 <span className="text-[0.75rem] text-gray-800">Thư mục</span>
               </button>

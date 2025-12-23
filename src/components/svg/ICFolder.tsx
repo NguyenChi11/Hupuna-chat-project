@@ -1,31 +1,31 @@
 import React from 'react';
 
-interface IconProps {
-  size?: number | string;
-  className?: string;
-  onClick?: () => void;
+interface FormIconProps extends React.SVGProps<SVGSVGElement> {
+  strokeWidth?: number;
 }
 
-const ICFolder: React.FC<IconProps> = ({
-  size = 16,
-  className = '',
-  onClick,
-}) => {
+const ICFolder: React.FC<FormIconProps> = ({ strokeWidth = 8, className, ...props }) => {
   return (
     <svg
+      viewBox="0 0 500 500"
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 16 16"
-      width={size}
-      height={size}
+      className={className}
       fill="none"
-      stroke="currentColor"
-      strokeWidth={1.2}
+      stroke="black"
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
-      onClick={onClick}
+      {...props}
     >
-      <path d="M1 1H5L8 3H13V5H3.75L2 11H4.1L5.25 7H15L13.5 14H1V1Z" />
+      {/* Khung */}
+      <path d="m314.8,347.88h-129.61c-18.24,0-33.08-14.84-33.08-33.08v-129.61c0-18.24,14.84-33.08,33.08-33.08h129.61c18.24,0,33.08,14.84,33.08,33.08v129.61c0,18.24-14.84,33.08-33.08,33.08Z" />
+
+      {/* Dòng nội dung */}
+      <line x1="155.36" y1="257.35" x2="300.48" y2="257.35" />
+      <line x1="239.53" y1="206.15" x2="295.04" y2="206.15" />
+
+      {/* Avatar */}
+      <circle cx="200.03" cy="206.15" r="13.74" />
     </svg>
   );
 };

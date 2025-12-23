@@ -74,7 +74,7 @@ export default function MobileProfileSheet({
         >
           <button
             onClick={onClose}
-            className={`p-2 -ml-2 rounded-full transition-colors ${
+            className={`p-2 -ml-2 rounded-full transition-colors cursor-pointer ${
               backButtonClassName || 'text-gray-600 hover:bg-gray-100 active:bg-gray-200'
             }`}
           >
@@ -86,7 +86,7 @@ export default function MobileProfileSheet({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar p-4">{children}</div>
+        <div className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar">{children}</div>
       </div>
     </div>,
     document.body,
