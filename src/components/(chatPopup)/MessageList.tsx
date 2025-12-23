@@ -221,12 +221,15 @@ export default function MessageList({
                 const canGroupMedia = !isRecalled && (msg.type === 'image' || msg.type === 'video');
                 if (canGroupMedia) {
                   const mediaGroup: Message[] = [msg];
+                  const groupBatchId = (msg as Message).batchId;
                   for (let k = index + 1; k < msgs.length; k++) {
                     const next = msgs[k];
                     if (next.isRecalled) break;
                     if (!(next.type === 'image' || next.type === 'video')) break;
                     const nextSender = getSenderInfo(next.sender);
                     const dt = Math.abs(Number(next.timestamp) - Number(mediaGroup[mediaGroup.length - 1].timestamp));
+                    const nextBatchId = (next as Message).batchId;
+                    if ((groupBatchId || nextBatchId) && groupBatchId !== nextBatchId) break;
                     if (nextSender._id !== senderInfo._id || dt > 120000) break;
                     mediaGroup.push(next);
                   }

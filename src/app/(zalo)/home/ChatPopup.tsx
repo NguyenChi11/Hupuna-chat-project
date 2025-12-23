@@ -2130,10 +2130,9 @@ export default function ChatWindow({
       const myId = String(currentUser._id);
       const senderNick = allUsersMap.get(myId) || currentUser.name;
 
-      // 🔥 Fire all uploads concurrently so temp messages appear immediately
+      const batchId = `batch_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       currentAttachments.forEach((att) => {
-        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined, senderNick).then(() => {
-          // Revoke preview URL after upload completes/fails
+        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined, senderNick, batchId).then(() => {
           try {
             URL.revokeObjectURL(att.previewUrl);
           } catch {}
@@ -2145,9 +2144,7 @@ export default function ChatWindow({
       if (el) {
         // 🔥 Fix: Nếu có attachment (hasAtt), blur để đóng keyboard trên mobile/tablet
         if (hasAtt) {
-          if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-          }
+          dismissKeyboardAndScroll();
         } else {
           // Nếu chỉ gửi text, focus lại input để user gõ tiếp
           el.focus();

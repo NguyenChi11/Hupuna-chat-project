@@ -74,6 +74,7 @@ export function useChatUpload({
       replyToMessageId?: string,
       mentions?: string[],
       senderName?: string,
+      batchId?: string,
     ) => {
       const sanitizeName = (name: string) => {
         return name
@@ -113,6 +114,7 @@ export function useChatUpload({
         roomId,
         sender: currentUser._id,
         senderModel: currentUser,
+        batchId,
         fileUrl: URL.createObjectURL(file),
         fileName: file.name,
         type,
@@ -191,6 +193,7 @@ export function useChatUpload({
                 content: caption,
                 replyToMessageId,
                 mentions,
+                batchId,
               } as unknown as MessageCreate;
               await sendMessageProcess(socketData);
             } else {
@@ -232,6 +235,7 @@ export function useChatUpload({
                 content: caption,
                 replyToMessageId,
                 mentions,
+                batchId,
               } as unknown as MessageCreate;
               await sendMessageProcess(socketData);
             } else {

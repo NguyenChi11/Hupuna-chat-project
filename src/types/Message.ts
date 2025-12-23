@@ -9,6 +9,7 @@ export interface Message {
   _id: string;
   roomId: string;
   sender: string | User;
+  batchId?: string;
   content?: string;
   fileUrl?: string;
   fileName?: string;
@@ -50,6 +51,7 @@ export interface MessageCreate {
   [key: string]: unknown;
   roomId: string;
   sender: string;
+  batchId?: string;
   content?: string;
   fileUrl?: string;
   fileName?: string;

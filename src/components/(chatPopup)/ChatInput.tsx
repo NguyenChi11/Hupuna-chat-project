@@ -581,6 +581,7 @@ export default function ChatInput({
               onKeyDownEditable(e);
               updateSlashState();
               if (e.key === 'Enter' && !e.shiftKey) {
+                if (attachments && attachments.length > 0) return;
                 try {
                   const el = editableRef.current;
                   if (el) {
@@ -626,6 +627,7 @@ export default function ChatInput({
                 onTouchStart={(e) => e.preventDefault()}
                 onClick={() => {
                   handleSendWrapper();
+                  if (attachments && attachments.length > 0) return;
                   if (!document.hidden && allowFocusRef.current) {
                     allowFocusRef.current = true;
                     try {
@@ -654,6 +656,7 @@ export default function ChatInput({
                 onTouchStart={(e) => e.preventDefault()}
                 onClick={() => {
                   handleSendWrapper();
+                  if (attachments && attachments.length > 0) return;
                   if (!document.hidden && allowFocusRef.current) {
                     allowFocusRef.current = true;
                     try {
