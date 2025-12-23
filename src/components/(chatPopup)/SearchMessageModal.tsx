@@ -4,6 +4,10 @@ import { Message } from '@/types/Message';
 import { User } from '@/types/User';
 import Image from 'next/image';
 import ArrowRightICon from '@/public/icons/arrow-right-icon.svg'; // Reuse existing icon
+import { getProxyUrl } from '@/utils/utils';
+import MediaPreviewModal from '@/components/(chatPopup)/MediaPreviewModal';
+import { IoReload } from 'react-icons/io5';
+import { HiPlay } from 'react-icons/hi2';
 
 interface SearchSidebarProps {
   isOpen: boolean;
@@ -16,11 +20,11 @@ interface SearchSidebarProps {
   initialSelectedMessageId?: string | null;
 }
 
-const SearchSidebar: React.FC<SearchSidebarProps> = ({ 
-  isOpen, 
-  onClose, 
-  roomId, 
-  onJumpToMessage, 
+const SearchSidebar: React.FC<SearchSidebarProps> = ({
+  isOpen,
+  onClose,
+  roomId,
+  onJumpToMessage,
   getSenderName,
   initialKeyword,
   onKeywordClear,
@@ -34,6 +38,10 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
   const hasAutoSearchedRef = useRef(false);
   const lastInitialKeywordRef = useRef<string | null>(null);
   const initialSelectedIdRef = useRef<string | null>(null);
+  const [senderFilter, setSenderFilter] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
 
   const fetchSearchResults = useCallback(
     async (query: string) => {
@@ -61,7 +69,9 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
           }),
         });
         const data = await res.json();
-        const results: Message[] = (data.data || []).slice().sort((a: Message, b: Message) => Number(b.timestamp) - Number(a.timestamp));
+        const results: Message[] = (data.data || [])
+          .slice()
+          .sort((a: Message, b: Message) => Number(b.timestamp) - Number(a.timestamp));
         setSearchResults(results);
         setCurrentResultIndex((prev) => {
           if (results.length === 0) return -1;
@@ -121,10 +131,44 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
     return () => {
       clearTimeout(handler);
     };
-  }, [searchTerm, fetchSearchResults, initialKeyword]); 
+  }, [searchTerm, fetchSearchResults, initialKeyword]);
+  const senderOptions = useMemo(() => {
+    const ids = new Set<string>();
+    const arr: { id: string; name: string }[] = [];
+    searchResults.forEach((m) => {
+      const id = typeof m.sender === 'object' && m.sender ? String((m.sender as User)._id) : String(m.sender || '');
+      if (id && !ids.has(id)) {
+        ids.add(id);
+        const name = getSenderName(m.sender);
+        arr.push({ id, name });
+      }
+    });
+    return arr.sort((a, b) => a.name.localeCompare(b.name));
+  }, [searchResults, getSenderName]);
+
+  const filteredResults = useMemo(() => {
+    const startTs = startDate ? new Date(startDate + 'T00:00:00').getTime() : null;
+    const endTs = endDate ? new Date(endDate + 'T23:59:59').getTime() : null;
+    return searchResults.filter((m) => {
+      const sid = typeof m.sender === 'object' && m.sender ? String((m.sender as User)._id) : String(m.sender || '');
+      const passSender = senderFilter ? sid === senderFilter : true;
+      const ts = Number(m.timestamp || 0);
+      const passStart = startTs ? ts >= startTs : true;
+      const passEnd = endTs ? ts <= endTs : true;
+      return passSender && passStart && passEnd;
+    });
+  }, [searchResults, senderFilter, startDate, endDate]);
+
   const sortedResults = useMemo(
-    () => searchResults.slice().sort((a, b) => Number(b.timestamp) - Number(a.timestamp)),
-    [searchResults],
+    () => filteredResults.slice().sort((a, b) => Number(b.timestamp) - Number(a.timestamp)),
+    [filteredResults],
+  );
+  const mediaResults = useMemo(
+    () =>
+      sortedResults
+        .filter((m) => (m.type === 'image' || m.type === 'video') && m.fileUrl)
+        .map((m) => ({ url: String(m.fileUrl), type: m.type as 'image' | 'video' })),
+    [sortedResults],
   );
 
   useEffect(() => {
@@ -258,6 +302,56 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
             )}
           </button>
         </div>
+        <div className="mt-3 space-y-2 items-center gap-2 ">
+          <select
+            value={senderFilter}
+            onChange={(e) => setSenderFilter(e.target.value)}
+            className=" cursor-pointer border border-gray-300 rounded-lg px-2 py-1 text-sm cursor-pointer flex-1"
+          >
+            <option value="">Tất cả</option>
+            {senderOptions.map((opt) => (
+              <option className="cursor-pointer" key={opt.id} value={opt.id}>
+                {opt.name || opt.id}
+              </option>
+            ))}
+          </select>
+          <div className="flex items-center gap-1">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              onInput={(e) => setStartDate((e.target as HTMLInputElement).value)}
+              className="border border-gray-300 rounded-lg px-1 py-1 text-sm cursor-pointer"
+            />
+            <span className="text-gray-500 text-xs"> → </span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              onInput={(e) => setEndDate((e.target as HTMLInputElement).value)}
+              className="border border-gray-300 rounded-lg px-1 py-1 text-sm cursor-pointer"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setStartDate('');
+                setEndDate('');
+              }}
+              className="ml-1 px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-100 cursor-pointer"
+            >
+              <IoReload className="w-5 h-5" />
+            </button>
+            {mediaResults.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setPreviewMedia(mediaResults[0])}
+                className="ml-1 px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-100 cursor-pointer"
+              >
+                Xem ảnh/video
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Kết quả Tìm kiếm */}
@@ -274,9 +368,13 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
 
         {sortedResults.map((msg: Message, index: number) => {
           const isRecalled = msg.isRecalled === true;
-          const contentDisplay = isRecalled
-            ? 'đã thu hồi tin nhắn'
-            : msg.content || `[${msg.type.charAt(0).toUpperCase() + msg.type.slice(1)}]`;
+
+          const contentDisplay =
+            msg.type === 'file'
+              ? msg.fileName || 'File'
+              : msg.type === 'sticker'
+                ? '[Sticker]'
+                : String(msg.content || '');
           const isCurrentResult = index === currentResultIndex;
 
           // Lấy tên người gửi (sender được khai báo là string ID trong Message)
@@ -305,9 +403,39 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
               <p className="text-xs text-blue-600 font-semibold">
                 {senderName} • {dateLabel} • {timeLabel}
               </p>
-              <p className={`text-sm mt-1 line-clamp-2 ${isRecalled ? 'italic text-gray-500' : 'text-gray-800'}`}>
-                {highlightKeyword(contentDisplay, searchTerm)}
-              </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2"></div>
+                {msg.type === 'image' && msg.fileUrl ? (
+                  <div className="mt-1">
+                    <Image
+                      src={getProxyUrl(String(msg.fileUrl))}
+                      alt=""
+                      width={320}
+                      height={240}
+                      className="w-10 h-18 rounded-lg object-cover"
+                    />
+                  </div>
+                ) : msg.type === 'video' && msg.fileUrl ? (
+                  <div className="relative rounded-2xl overflow-hidden cursor-pointer shadow-lg max-w-[8vw] sm:max-w-[6rem] aspect-video bg-black">
+                    <video
+                      src={getProxyUrl(String(msg.fileUrl))}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                      loop
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                      <div className="w-4 h-4 bg-white/80 rounded-full flex items-center justify-center shadow">
+                        <HiPlay className="w-3 h-3 text-blue-600 " />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className={`text-sm mt-1 line-clamp-2 ${isRecalled ? 'italic text-gray-500' : 'text-gray-800'}`}>
+                    {highlightKeyword(contentDisplay, searchTerm)}
+                  </p>
+                )}
+              </div>
             </div>
           );
         })}
@@ -342,6 +470,15 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
             </button>
           </div>
         </div>
+      )}
+      {previewMedia && (
+        <MediaPreviewModal
+          media={previewMedia}
+          chatName={undefined}
+          isGroup={undefined}
+          onClose={() => setPreviewMedia(null)}
+          roomId={roomId}
+        />
       )}
     </div>
   );
