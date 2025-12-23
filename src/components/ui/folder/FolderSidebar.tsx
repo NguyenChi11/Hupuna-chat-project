@@ -240,7 +240,7 @@ export default function FolderSidebar({
                 </button>
               )}
             </div>
-            <div className="space-y-1 sm:h-[15rem] h-[10rem] overflow-y-auto custom-scrollbar">
+            <div className="space-y-1 max-h-[15rem] overflow-y-auto custom-scrollbar">
               {folders.map((n) => (
                 <NodeRow
                   key={n.id}
@@ -286,7 +286,7 @@ export default function FolderSidebar({
               </button>
             )}
           </div>
-          <div className="space-y-1 md:h-[15rem]  h-[10rem] overflow-y-auto custom-scrollbar">
+          <div className="space-y-1 max-h-[15rem] overflow-y-auto custom-scrollbar">
             {foldersGlobal.map((n) => (
               <NodeRow
                 key={n.id}
@@ -331,7 +331,7 @@ export default function FolderSidebar({
               </button>
             )}
           </div>
-          <div className="space-y-1 md:h-[15rem] h-[10rem] overflow-y-auto custom-scrollbar">
+          <div className="space-y-1 max-h-[15rem] overflow-y-auto custom-scrollbar">
             {foldersShared.map((n) => (
               <NodeRow
                 key={n.id}

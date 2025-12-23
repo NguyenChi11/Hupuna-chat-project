@@ -272,7 +272,7 @@ export default function ReminderList({ onClose }: ReminderListProps) {
   return (
     <>
       <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white px-5 py-4 flex items-center justify-between shadow-lg">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
           <h2 className="text-lg font-semibold">Danh sách lịch hẹn</h2>
           <div className="flex items-center gap-2">
             <button

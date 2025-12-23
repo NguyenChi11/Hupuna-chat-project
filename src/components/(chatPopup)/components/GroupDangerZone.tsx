@@ -21,7 +21,7 @@ export default function GroupDangerZone({
 
   return (
     <div className="bg-red-50/70 border-t-2 border-red-200 rounded-2xl overflow-hidden">
-      <div className="px-5 py-4">
+      <div className="p-3">
         <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-4 text-center">Khu vực nguy hiểm</h3>
 
         <div className="flex justify-center gap-10">

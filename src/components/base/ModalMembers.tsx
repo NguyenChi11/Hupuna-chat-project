@@ -357,51 +357,53 @@ export default function GroupMembersModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center  justify-center bg-black/40 backdrop-blur-sm px-2 sm:px-4 py-4 sm:py-6">
-      <div className="bg-white w-full h-full sm:h-auto rounded-t-2xl rounded-b-2xl max-h-[90vh] sm:max-w-2xl rounded-none sm:rounded-2xl shadow-none sm:shadow-xl border border-gray-200 flex flex-col overflow-hidden">
-        {/* HEADER */}
-        <div className="flex-none px-2 py-1  bg-[#f3f6fb] flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-[#0088ff] flex items-center justify-center text-white shadow-sm">
-              <ICPeopleGroup className="w-5 h-5" stroke="#ffffff" />
+    <div className="fixed inset-0 z-50 flex items-center  justify-center bg-black/40 backdrop-blur-sm  sm:px-4  sm:py-6">
+      <div className="bg-white w-full h-full sm:w-full sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        {/* HEADER - giống modal Tạo nhóm Zalo */}
+        <div className="flex-none px-4 py-3 sm:px-2 sm:py-2 bg-[#f8f9fa] sm:bg-[#0573ff] sm:text-white flex items-center justify-between border-b border-gray-200 sm:border-none">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-[#0088ff] flex items-center justify-center text-white">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
             </div>
-            <div>
-              <h2 className="sm:text-sm text-lg font-bold">Thành viên nhóm</h2>
-              {groupName && <p className="sm:text-sm text-xs opacity-90 mt-1">{groupName}</p>}
-            </div>
+            <h2 className="text-base font-semibold text-gray-900 sm:text-white">Thành viên nhóm</h2>
+            {/* {groupName && <p className="text-base font-semibold text-white-600 mt-1">{groupName}</p>} */}
           </div>
           <button
             onClick={onClose}
-            className="p-3 rounded-full cursor-pointer hover:bg-white/20 transition-all duration-200 active:scale-95"
+            className="p-2 rounded-full hover:bg-gray-200 sm:hover:bg-[#0088ff] transition-colors cursor-pointer"
           >
-            <HiX className="sm:w-7 sm:h-7 h-5 w-5" />
+            <HiX className="w-7 h-7 text-gray-600 sm:text-white" />
           </button>
         </div>
 
         {/* BODY */}
-        <div className="flex-1 flex flex-col min-h-0 bg-gray-50/60">
-          {/* NICKNAME MODAL */}
+        <div className="flex-1 flex flex-col min-h-0 bg-white sm:bg-gray-50">
+          {/* NICKNAME MODAL - style giống Zalo */}
           {editingNicknameMember && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-                <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                  <h3 className="font-bold text-gray-800">Đặt biệt danh</h3>
-                  <button
-                    onClick={() => setEditingNicknameMember(null)}
-                    className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                  >
-                    <HiX className="w-5 h-5 text-gray-500" />
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
+                <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-900">Đặt biệt danh</h3>
+                  <button onClick={() => setEditingNicknameMember(null)} className="p-2 hover:bg-gray-100 rounded-full">
+                    <HiX className="w-6 h-6 text-gray-500" />
                   </button>
                 </div>
-                <div className="p-4 space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Đặt biệt danh cho <b>{editingNicknameMember.name}</b> trong cuộc trò chuyện này.
+                <div className="p-6 space-y-5">
+                  <p className="text-base text-gray-600">
+                    Đặt biệt danh cho <b>{editingNicknameMember.name}</b> trong nhóm này.
                   </p>
                   <input
                     type="text"
                     autoFocus
                     defaultValue={editingNicknameMember.currentVal || editingNicknameMember.name}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-2xl text-base focus:outline-none focus:border-[#0088ff] focus:ring-2 focus:ring-[#0088ff]/30"
                     placeholder="Nhập biệt danh..."
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -411,10 +413,10 @@ export default function GroupMembersModal({
                     }}
                     id="nickname-input"
                   />
-                  <div className="flex gap-2 justify-end pt-2">
+                  <div className="flex gap-3 justify-end">
                     <button
                       onClick={() => setEditingNicknameMember(null)}
-                      className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
+                      className="px-6 py-3 text-gray-600 font-medium rounded-2xl hover:bg-gray-100"
                     >
                       Hủy
                     </button>
@@ -424,7 +426,7 @@ export default function GroupMembersModal({
                         setNickname(editingNicknameMember.id, val);
                         setEditingNicknameMember(null);
                       }}
-                      className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                      className="px-6 py-3 bg-[#0088ff] text-white font-medium rounded-2xl hover:bg-[#0070d9] transition-colors"
                     >
                       Lưu
                     </button>
@@ -435,39 +437,35 @@ export default function GroupMembersModal({
           )}
 
           {/* Search & Add Section */}
-          <div className="flex-none p-2 space-y-3 bg-white shadow-sm z-10">
-            {/* {(myRole === 'OWNER' || myRole === 'ADMIN') && ( */}
+          <div className="flex-none p-4 space-y-4 bg-white border-b border-gray-100">
             <button
               onClick={() => setShowCreateGroupModal(true)}
-              className="w-full py-1 cursor-pointer sm:py-2 flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold sm:text-sm rounded-2xl shadow-xl transition-all duration-300 active:scale-98"
+              className="w-full py-3.5 flex items-center justify-center gap-3 bg-[#0088ff] hover:bg-[#0070d9] text-white font-medium rounded-2xl transition-colors cursor-pointer"
             >
-              <HiUserPlus className="sm:w-6 sm:h-6 w-4 h-4" />
-              Thêm thành viên mới
+              <HiUserPlus className="w-6 h-6" />
+              Thêm thành viên
             </button>
-            {/* )} */}
 
             <div className="relative">
-              <HiSearch className="absolute left-5 top-1/2 -translate-y-1/2 sm:w-6 sm:h-6 w-4 h-4  text-gray-400" />
+              <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Tìm kiếm thành viên..."
-                className="w-full pl-14 pr-6 py-1.5 sm:py-2.5 bg-gray-100 text-sm rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-200 focus:bg-white sm:text-lg transition-all duration-200"
+                className="w-full pl-12 pr-5 py-3.5 bg-gray-100 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-[#0088ff]/40 focus:bg-white transition-all"
               />
             </div>
           </div>
 
           {/* Member List */}
-          <div className="flex-1 overflow-y-auto sm:px-6 sm:py-4 p-2">
-            <div className="flex justify-between items-center sm:mb-5 mb-3">
-              <h3 className="sm:text-sm text-xs font-bold text-gray-600 uppercase tracking-wider">
-                Danh sách thành viên
-              </h3>
-              <span className="sm:text-xl text-xs font-bold text-indigo-600">{searchUser.length}</span>
+          <div className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Danh sách thành viên</h3>
+              <span className="text-xl font-bold text-[#0088ff]">{searchUser.length}</span>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-1">
               {searchUser.map((member) => {
                 const memberId = normalizeId(member._id || member.id);
                 const memberRole: GroupRole = member.role;
@@ -477,35 +475,38 @@ export default function GroupMembersModal({
                 return (
                   <div
                     key={memberId}
-                    className={`relative flex items-center gap-3 p-2 sm:p-2 bg-white sm:rounded-xl rounded-xl shadow-md border-2 border-transparent transition-all duration-300 group
-                      ${isLoading ? 'opacity-60' : 'hover:border-indigo-200 hover:shadow-xl'}`}
+                    className={`flex items-center gap-4 py-3 px-3 rounded-2xl hover:bg-gray-50 transition-colors relative group ${isLoading ? 'opacity-60' : ''}`}
                   >
                     {/* Avatar */}
                     <div
-                      className="sm:w-8 sm:h-8 h-8 w-8 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl cursor-pointer transition-transform hover:scale-105"
+                      className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
                       onClick={() => handleOpenProfile(memberId)}
                     >
                       {member.avatar ? (
                         <Image
                           src={getProxyUrl(member.avatar)}
                           alt={member.name}
-                          width={64}
-                          height={64}
+                          width={48}
+                          height={48}
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold sm:text-2xl text-sm flex items-center justify-center">
-                          {member.name?.charAt(0).toUpperCase()}
-                        </div>
+                        <Image
+                          src="/logo/avata.webp"
+                          alt={member.name}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-cover"
+                        />
                       )}
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 sm:flex-wrap">
-                        <p className="sm:text-lg text-[0.675rem] font-bold text-gray-900">{member.name}</p>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <p className="text-base font-medium text-gray-900">{member.name}</p>
                         {isMe && (
-                          <span className="sm:px-3 sm:py-1.5 p-1.5 bg-indigo-100 text-indigo-700 rounded-full text-[0.675rem] font-bold">
+                          <span className="px-2.5 py-1 bg-[#0088ff]/10 text-[#0088ff] rounded-full text-xs font-medium">
                             Bạn
                           </span>
                         )}
@@ -513,9 +514,9 @@ export default function GroupMembersModal({
                       </div>
                     </div>
 
-                    {/* Actions */}
+                    {/* Actions - chỉ hiện khi hover */}
                     {!isLoading && (
-                      <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => {
                             const currentRoomNick = String(member.nickname || '');
@@ -525,10 +526,10 @@ export default function GroupMembersModal({
                               currentVal: currentRoomNick,
                             });
                           }}
-                          className="p-3 cursor-pointer bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all active:scale-95"
+                          className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
                           title="Đặt biệt danh"
                         >
-                          <HiPencil className="w-4 h-4 text-gray-700" />
+                          <HiPencil className="w-5 h-5 text-gray-600" />
                         </button>
 
                         {!isMe && (
@@ -536,23 +537,21 @@ export default function GroupMembersModal({
                             {canPromote(memberRole) && (
                               <button
                                 onClick={() => handleAction('promote', memberId)}
-                                className="p-3 cursor-pointer bg-green-100 hover:bg-green-200 rounded-2xl transition-all active:scale-95"
+                                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
                                 title="Bổ nhiệm làm Phó nhóm"
                               >
-                                <HiCheck className="w-4 h-4 text-green-700" />
+                                <HiCheck className="w-5 h-5 text-green-600" />
                               </button>
                             )}
-
                             {canDemote(memberRole) && (
                               <button
                                 onClick={() => handleAction('demote', memberId)}
-                                className="p-3 cursor-pointer bg-yellow-100 hover:bg-yellow-200 rounded-2xl transition-all active:scale-95"
+                                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
                                 title="Bãi nhiệm"
                               >
-                                <HiUserMinus className="w-4 h-4 text-yellow-700" />
+                                <HiUserMinus className="w-5 h-5 text-yellow-600" />
                               </button>
                             )}
-
                             {canKick(memberRole) && (
                               <button
                                 onClick={() =>
@@ -563,10 +562,10 @@ export default function GroupMembersModal({
                                     onOk: () => handleAction('kick', memberId),
                                   })
                                 }
-                                className="p-3 cursor-pointer bg-red-100 hover:bg-red-200 rounded-2xl transition-all active:scale-95"
+                                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
                                 title="Xóa khỏi nhóm"
                               >
-                                <HiUserMinus className="w-4 h-4 text-red-600" />
+                                <HiUserMinus className="w-5 h-5 text-red-600" />
                               </button>
                             )}
                           </>
@@ -576,8 +575,8 @@ export default function GroupMembersModal({
 
                     {/* Loading overlay */}
                     {isLoading && (
-                      <div className="absolute inset-0 bg-white/80 rounded-3xl flex items-center justify-center">
-                        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="absolute inset-0 bg-white/70 rounded-2xl flex items-center justify-center">
+                        <div className="w-8 h-8 border-4 border-[#0088ff] border-t-transparent rounded-full animate-spin" />
                       </div>
                     )}
                   </div>
@@ -586,8 +585,8 @@ export default function GroupMembersModal({
 
               {searchUser.length === 0 && (
                 <div className="text-center py-20 text-gray-400">
-                  <HiSearch className="w-24 h-24 mx-auto mb-6 opacity-20" />
-                  <p className="text-xl font-medium">Không tìm thấy thành viên</p>
+                  <HiSearch className="w-20 h-20 mx-auto mb-6 opacity-30" />
+                  <p className="text-lg font-medium">Không tìm thấy thành viên</p>
                 </div>
               )}
             </div>
@@ -595,13 +594,15 @@ export default function GroupMembersModal({
         </div>
 
         {/* FOOTER */}
-        <div className="flex-none px-4 py-3 bg-white border-t border-gray-200 flex justify-end gap-3">
+        <div className="flex-none px-5 py-4 bg-white border-t border-gray-200 flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="w-full py-1 cursor-pointer sm:py-1.5 bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 text-gray-800 font-bold text-sm sm:text-lg rounded-3xl shadow-lg transition-all duration-300 active:scale-98"
+            className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-2xl transition-colors cursor-pointer"
           >
-            Đóng
+            Hủy
           </button>
+          {/* Nếu bạn muốn thêm nút "Tạo nhóm" hoặc "Xong" thì thêm ở đây */}
+          {/* <button className="px-8 py-3 bg-[#0088ff] text-white font-medium rounded-2xl hover:bg-[#0070d9]">Xong</button> */}
         </div>
       </div>
 
