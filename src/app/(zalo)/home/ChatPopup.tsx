@@ -1002,16 +1002,59 @@ export default function ChatWindow({
       const focusTop = clamp(baseTop, 8, maxTop);
       const placement: 'above' | 'below' = 'below';
       const yBelow = focusTop + effectiveHeight + 16;
+
+      let patchedMsg = msg;
+      try {
+        const idx = messages.findIndex((m) => String(m._id) === String(msg._id));
+        const kind = String(msg.type || '');
+        const isMedia = kind === 'image' || kind === 'video';
+        const isFileNonVideo = kind === 'file' && !(msg.fileUrl && isVideoFile(String(msg.fileUrl)));
+        if (idx >= 0 && (isMedia || isFileNonVideo)) {
+          const senderId = (() => {
+            const idA = (msg.sender as unknown as { _id?: unknown })?._id;
+            const idB = (msg.sender as unknown as { id?: unknown })?.id;
+            return String(idA ?? idB ?? msg.sender ?? '');
+          })();
+          const group: Message[] = [messages[idx]];
+          for (let k = idx + 1; k < messages.length; k += 1) {
+            const next = messages[k];
+            if (next.isRecalled) break;
+            const nextKind = String(next.type || '');
+            const nextIsMedia = nextKind === 'image' || nextKind === 'video';
+            const nextIsFileNonVideo = nextKind === 'file' && !(next.fileUrl && isVideoFile(String(next.fileUrl)));
+            if (isMedia ? !nextIsMedia : !nextIsFileNonVideo) break;
+            const nextSenderId = (() => {
+              const idA = (next.sender as unknown as { _id?: unknown })?._id;
+              const idB = (next.sender as unknown as { id?: unknown })?.id;
+              return String(idA ?? idB ?? next.sender ?? '');
+            })();
+            const dt = Math.abs(Number(next.timestamp) - Number(group[group.length - 1].timestamp));
+            if (nextSenderId !== senderId || dt > 120000) break;
+            group.push(next);
+          }
+          if (group.length > 1) {
+            const items = group.map((m) => ({
+              id: String(m._id),
+              content: m.content || '',
+              type: m.type === 'video' ? 'video' : m.type === 'image' ? 'image' : 'file',
+              fileUrl: String(m.fileUrl || m.previewUrl || ''),
+              fileName: m.fileName,
+            }));
+            patchedMsg = { ...msg, batchItems: items } as unknown as Message;
+          }
+        }
+      } catch {}
+
       setContextMenu({
         visible: true,
         x: Math.floor(viewportW / 2),
         y: Math.max(8, yBelow),
         placement,
-        message: msg,
+        message: patchedMsg,
         focusTop,
       });
     } catch {}
-  }, []);
+  }, [messages]);
 
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);

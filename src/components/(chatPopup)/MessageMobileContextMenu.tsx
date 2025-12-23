@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Message } from '@/types/Message';
 import { RiReplyLine } from 'react-icons/ri';
-import {
-  HiOutlineClipboardCopy,
-  HiOutlineDownload,
-  HiOutlineShare,
-  HiOutlineTrash,
-  HiOutlineAcademicCap,
-  HiFolder,
-} from 'react-icons/hi';
+import { HiOutlineDownload, HiFolder } from 'react-icons/hi';
 import type { ContextMenuState } from './MessageContextMenu';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
+import ICReply from '../svg/ICReply';
+import ICShareMessage from '../svg/ICShareMessage';
+import ICCopy from '../svg/ICCopy';
+import ICPin from '../svg/ICPin';
+import ICTrashCan from '../svg/ICTrashCan';
+import ICTrash from '../svg/ICTrash';
+import ICFolder from '../svg/ICFolder';
+import ICDownload from '../svg/ICDownload';
 
 interface MessageMobileContextMenuProps {
   contextMenu: ContextMenuState | null;
@@ -22,6 +23,8 @@ interface MessageMobileContextMenuProps {
   onReplyMessage?: (msg: Message) => void;
   onShareMessage: (message: Message) => void;
   onToggleReaction?: (msg: Message, emoji: string) => void;
+  iconSize?: number;
+  reactionSize?: number;
 }
 
 export default function MessageMobileContextMenu({
@@ -33,6 +36,8 @@ export default function MessageMobileContextMenu({
   onReplyMessage,
   onShareMessage,
   onToggleReaction,
+  iconSize = 35,
+  reactionSize = 35,
 }: MessageMobileContextMenuProps) {
   const startYRef = useRef<number | null>(null);
   const movedRef = useRef(false);
@@ -66,7 +71,8 @@ export default function MessageMobileContextMenu({
   const isRecalled = !!msg?.isRecalled;
   const canCopy = isText && !isRecalled;
   const canDownload =
-    !!msg?.fileUrl && (msg?.type === 'image' || msg?.type === 'file' || msg?.type === 'sticker' || msg?.type === 'video');
+    !!msg?.fileUrl &&
+    (msg?.type === 'image' || msg?.type === 'file' || msg?.type === 'sticker' || msg?.type === 'video');
   const canRecall = isMe && !isRecalled;
   const isPinned = !!msg?.isPinned;
 
@@ -155,8 +161,7 @@ export default function MessageMobileContextMenu({
             style={{ maxHeight: '38vh', overflow: 'hidden' }}
           >
             <div className="whitespace-pre-wrap break-words">{msg.content || ''}</div>
-            <div className=" left-0 right-0 bottom-0 h-16 flex items-end justify-center pointer-events-none">
-            </div>
+            <div className=" left-0 right-0 bottom-0 h-16 flex items-end justify-center pointer-events-none"></div>
           </div>
         </div>
       )}
@@ -177,6 +182,49 @@ export default function MessageMobileContextMenu({
                 height={600}
                 className="w-full h-auto object-contain"
               />
+            </div>
+          </div>
+        </div>
+      )}
+      {msg.type === 'video' && msg.fileUrl && typeof focusTop === 'number' && (
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[92vw] max-w-[24rem] px-2"
+          style={{ top: focusTop }}
+        >
+          <div
+            className="mx-auto rounded-2xl shadow-2xl border bg-white border-gray-200 p-2 relative"
+            style={{ maxHeight: '38vh', overflow: 'hidden' }}
+          >
+            <div className="relative w-full">
+              <video
+                src={getProxyUrl(msg.fileUrl)}
+                className="w-full h-auto object-contain bg-black rounded-xl"
+                playsInline
+                preload="metadata"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      {msg.type === 'file' && msg.fileUrl && typeof focusTop === 'number' && (
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[92vw] max-w-[24rem] px-2"
+          style={{ top: focusTop }}
+        >
+          <div
+            className="mx-auto rounded-2xl shadow-2xl border bg-white border-gray-200 p-3 relative"
+            style={{ maxHeight: '38vh', overflow: 'hidden' }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-600 rounded-xl">
+                <HiOutlineDownload className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">
+                  {msg.fileName || 'Tệp đính kèm'}
+                </p>
+                <p className="text-xs text-gray-500 truncate">Giữ để mở thêm hành động</p>
+              </div>
             </div>
           </div>
         </div>
@@ -210,43 +258,31 @@ export default function MessageMobileContextMenu({
                     onToggleReaction?.(msg, em);
                     onClose();
                   }}
-                  className="w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm border border-gray-200 shadow-sm flex items-center justify-center active:scale-95 transition-all"
                   aria-label={`Biểu cảm ${em}`}
                   title={`Biểu cảm ${em}`}
                 >
-                  <span className="text-lg leading-none">{em}</span>
+                  <span className="leading-none" style={{ fontSize: reactionSize }}>
+                    {em}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
         )}
         <div className="w-screen max-w-[24rem] bg-white rounded-2xl shadow-2xl border border-gray-200 p-1 animate-in fade-in zoom-in-95 duration-200">
-         
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-4 gap-1">
             {onReplyMessage && !isRecalled && (
               <button
                 onClick={() => {
                   onReplyMessage(msg);
                   onClose();
                 }}
-                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl bg-gray-50 hover:bg-blue-50 active:scale-95 transition-all"
+                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl  hover:bg-blue-50 active:scale-95 transition-all"
                 aria-label="Trả lời tin nhắn"
                 title="Trả lời tin nhắn"
               >
-                <RiReplyLine className="w-5 h-5 text-blue-600" />
+                <ICReply size={24} color="#2563eb" className="w-10 h-10" />
                 <span className="text-[0.75rem] text-gray-800">Trả lời</span>
-              </button>
-            )}
-
-            {canCopy && (
-              <button
-                onClick={handleCopy}
-                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl bg-gray-50 hover:bg-green-50 active:scale-95 transition-all"
-                aria-label="Sao chép nội dung"
-                title="Sao chép nội dung"
-              >
-                <HiOutlineClipboardCopy className="w-5 h-5 text-green-600" />
-                <span className="text-[0.75rem] text-gray-800">Sao chép</span>
               </button>
             )}
 
@@ -256,41 +292,73 @@ export default function MessageMobileContextMenu({
                   onShareMessage(msg);
                   onClose();
                 }}
-                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl bg-gray-50 hover:bg-indigo-50 active:scale-95 transition-all"
+                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl  hover:bg-indigo-50 active:scale-95 transition-all"
                 aria-label="Chia sẻ tin nhắn"
                 title="Chia sẻ tin nhắn"
               >
-                <HiOutlineShare className="w-5 h-5 text-indigo-600" />
+                <ICShareMessage className="w-9 h-9 text-blue-500" />
                 <span className="text-[0.75rem] text-gray-800">Chia sẻ</span>
               </button>
             )}
-
+            {canCopy && (
+              <button
+                onClick={handleCopy}
+                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl hover:bg-green-50 active:scale-95 transition-all"
+                aria-label="Sao chép nội dung"
+                title="Sao chép nội dung"
+              >
+                <ICCopy className="w-12 h-12 text-blue-500" />
+                {/* <HiOutlineClipboardCopy className="text-green-600" style={{ width: iconSize, height: iconSize }} /> */}
+                <span className="text-[0.75rem] text-gray-800">Sao chép</span>
+              </button>
+            )}
             {!isRecalled && (
               <button
                 onClick={() => {
                   try {
+                    const batchItems =
+                      (
+                        msg as unknown as {
+                          batchItems?: Array<{
+                            id: string;
+                            type?: 'image' | 'video' | 'file' | 'text';
+                            fileUrl?: string;
+                            fileName?: string;
+                            content?: string;
+                          }>;
+                        }
+                      ).batchItems || [];
                     const ev = new CustomEvent('openFolderSaveWizard', {
                       detail: {
                         roomId: String(msg.roomId || ''),
                         messageId: String(msg._id || ''),
-                        content:
-                          msg.type === 'text'
-                            ? String(msg.content || '')
-                            : String(msg.fileName || ''),
+                        content: msg.type === 'text' ? String(msg.content || '') : String(msg.fileName || ''),
                         type: String(msg.type || 'text'),
                         fileUrl: msg.fileUrl ? String(msg.fileUrl) : undefined,
                         fileName: msg.fileName ? String(msg.fileName) : undefined,
+                        batch:
+                          Array.isArray(batchItems) && batchItems.length > 1
+                            ? batchItems.map((it) => ({
+                                roomId: String(msg.roomId || ''),
+                                messageId: String(it.id || ''),
+                                content: String(it.content || ''),
+                                type: String(it.type || 'text'),
+                                fileUrl: it.fileUrl ? String(it.fileUrl) : undefined,
+                                fileName: it.fileName ? String(it.fileName) : undefined,
+                              }))
+                            : undefined,
                       },
                     });
                     window.dispatchEvent(ev);
                   } catch {}
                   onClose();
                 }}
-                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl bg-gray-50 hover:bg-orange-50 active:scale-95 transition-all"
+                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl  hover:bg-orange-50 active:scale-95 transition-all"
                 aria-label="Lưu vào thư mục"
                 title="Lưu vào thư mục"
               >
-                <HiFolder className="w-5 h-5 text-orange-600" />
+                <ICFolder className="w-8 h-8 text-orange-300 hover:text-orange-500 cursor-pointer" />
+
                 <span className="text-[0.75rem] text-gray-800">Thư mục</span>
               </button>
             )}
@@ -301,11 +369,11 @@ export default function MessageMobileContextMenu({
                   onPinMessage(msg);
                   onClose();
                 }}
-                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl bg-gray-50 hover:bg-amber-50 active:scale-95 transition-all"
+                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl  hover:bg-amber-50 active:scale-95 transition-all"
                 aria-label={isPinned ? 'Bỏ ghim' : 'Ghim'}
                 title={isPinned ? 'Bỏ ghim' : 'Ghim'}
               >
-                <HiOutlineAcademicCap className={`w-5 h-5 ${isPinned ? 'text-amber-600' : 'text-amber-600'}`} />
+                <ICPin className={`${isPinned ? 'text-amber-600' : 'text-red-600'}`} size={24} />
                 <span className="text-[0.75rem] text-gray-800">{isPinned ? 'Bỏ ghim' : 'Ghim'}</span>
               </button>
             )}
@@ -315,11 +383,12 @@ export default function MessageMobileContextMenu({
                 href={msg?.fileUrl}
                 download={msg?.fileName || 'file_chat'}
                 onClick={() => setTimeout(onClose, 100)}
-                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl bg-gray-50 hover:bg-teal-50 active:scale-95 transition-all"
+                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl  hover:bg-teal-50 active:scale-95 transition-all"
                 aria-label="Tải xuống"
                 title="Tải xuống"
               >
-                <HiOutlineDownload className="w-5 h-5 text-teal-600" />
+                <ICDownload className="w-10 h-10 text-blue-500 hover:text-blue-500 cursor-pointer" />
+
                 <span className="text-[0.75rem] text-gray-800">Tải xuống</span>
               </a>
             )}
@@ -330,16 +399,17 @@ export default function MessageMobileContextMenu({
                   onRecallMessage(String(msg?._id));
                   onClose();
                 }}
-                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl bg-gray-50 hover:bg-red-50 active:scale-95 transition-all"
+                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl  hover:bg-red-50 active:scale-95 transition-all"
                 aria-label="Thu hồi tin nhắn"
                 title="Thu hồi tin nhắn"
               >
-                <HiOutlineTrash className="w-5 h-5 text-red-600" />
+                <ICTrash className="w-10 h-10 text-red-600" />
                 <span className="text-[0.75rem] text-gray-800">Thu hồi</span>
               </button>
             )}
+
+            
           </div>
-          
         </div>
       </div>
     </div>

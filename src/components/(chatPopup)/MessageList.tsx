@@ -393,12 +393,52 @@ export default function MessageList({
                                 return isVid ? (
                                   <div
                                     key={`${m._id}-${idx}`}
+                                    id={`msg-${m._id}`}
                                     className={`relative bg-black rounded-[0.25rem] overflow-hidden cursor-pointer h-[8rem] w-[8rem]  ${
                                       isSidebarOpen
                                         ? 'sm:w-[6rem] sm:h-[6rem] aspect-square'
                                         : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
-                                    }`}
-                                    onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
+                                    } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''}`}
+                                  onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
+                                  onTouchStart={(e) => {
+                                    try {
+                                      longPressTriggeredRef.current = false;
+                                      if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        const t = e.touches && e.touches[0];
+                                        const x0 = t ? t.clientX : 0;
+                                        const y0 = t ? t.clientY : 0;
+                                        const el = e.currentTarget as HTMLElement;
+                                        longPressTimerRef.current = window.setTimeout(() => {
+                                          longPressTriggeredRef.current = true;
+                                          setActiveMoreId(m._id);
+                                          setReactionDetail(null);
+                                          onMobileLongPress?.(m, el, x0, y0);
+                                        }, 420);
+                                      } catch {}
+                                    }}
+                                    onTouchEnd={(e) => {
+                                      try {
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        if (longPressTriggeredRef.current) {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                        }
+                                      } catch {}
+                                    }}
+                                    onTouchMove={() => {
+                                      try {
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                      } catch {}
+                                    }}
                                   >
                                     <video
                                       src={getProxyUrl(url)}
@@ -426,10 +466,50 @@ export default function MessageList({
                                 ) : (
                                   <div
                                     key={`${m._id}-${idx}`}
+                                    id={`msg-${m._id}`}
                                     className={`relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-sm w-[8rem] h-[8rem] ${
                                       isSidebarOpen ? 'sm:w-[6rem] sm:h-[6rem]' : 'sm:w-[10rem] sm:h-[10rem]'
-                                    }`}
+                                    } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''}`}
                                     onClick={() => !up && onOpenMedia(String(m.fileUrl || m.previewUrl || ''), 'image')}
+                                    onTouchStart={(e) => {
+                                      try {
+                                        longPressTriggeredRef.current = false;
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        const t = e.touches && e.touches[0];
+                                        const x0 = t ? t.clientX : 0;
+                                        const y0 = t ? t.clientY : 0;
+                                        const el = e.currentTarget as HTMLElement;
+                                        longPressTimerRef.current = window.setTimeout(() => {
+                                          longPressTriggeredRef.current = true;
+                                          setActiveMoreId(m._id);
+                                          setReactionDetail(null);
+                                          onMobileLongPress?.(m, el, x0, y0);
+                                        }, 420);
+                                      } catch {}
+                                    }}
+                                    onTouchEnd={(e) => {
+                                      try {
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        if (longPressTriggeredRef.current) {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                        }
+                                      } catch {}
+                                    }}
+                                    onTouchMove={() => {
+                                      try {
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                      } catch {}
+                                    }}
                                   >
                                     {String(url).startsWith('blob:') ? (
                                       <Image
@@ -714,11 +794,16 @@ export default function MessageList({
                               {fileGroup.map((m, idx) => (
                                 <a
                                   key={`${m._id}-${idx}`}
+                                  id={`msg-${m._id}`}
                                   href={getProxyUrl(String(m.fileUrl || ''), true)}
                                   download={m.fileName || 'download'}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="relative flex items-center gap-3 p-2 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer"
+                                  className={`relative flex items-center gap-3 p-2 rounded-xl border cursor-pointer ${
+                                    highlightedMsgId === m._id
+                                      ? 'bg-yellow-50 border-yellow-300'
+                                      : 'border-gray-200 hover:bg-gray-50'
+                                  }`}
                                   onClick={(e) => {
                                     const prog = uploadingFiles[m._id];
                                     if (prog !== undefined) e.preventDefault();
