@@ -2399,6 +2399,8 @@ export default function ChatWindow({
         const safeGroups = Array.isArray(groups) ? groups : [];
         for (const targetRoomId of targetRoomIds) {
           const isGroupChat = safeGroups.some((g) => String(g._id) === String(targetRoomId));
+          const myId = String(currentUser._id);
+          const senderNick = allUsersMap.get(myId) || currentUser.name;
 
           const newMsg: MessageCreate = {
             roomId: targetRoomId,
@@ -2416,6 +2418,46 @@ export default function ChatWindow({
             },
           };
 
+          if (attachedText && attachedText.trim()) {
+            const textMsg: MessageCreate = {
+              roomId: targetRoomId,
+              sender: currentUser._id,
+              senderName: senderNick,
+              content: attachedText.trim(),
+              type: 'text',
+              timestamp: Date.now(),
+            };
+            const resText = await fetch('/api/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create',
+                data: textMsg,
+              }),
+            });
+            const jsonText = await resText.json();
+            if (jsonText.success && typeof jsonText._id === 'string') {
+              const sockBaseText = isGroupChat
+                ? {
+                    roomId: targetRoomId,
+                    sender: currentUser._id,
+                    senderName: senderNick,
+                    isGroup: true,
+                    receiver: null,
+                    members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
+                  }
+                : {
+                    roomId: targetRoomId,
+                    sender: currentUser._id,
+                    senderName: senderNick,
+                    isGroup: false,
+                    receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
+                    members: [],
+                  };
+              socketRef.current?.emit('send_message', { ...sockBaseText, ...textMsg, _id: jsonText._id });
+            }
+          }
+
           // Gọi API tạo tin nhắn
           const res = await fetch('/api/messages', {
             method: 'POST',
@@ -2430,9 +2472,6 @@ export default function ChatWindow({
 
           if (json.success && typeof json._id === 'string') {
             // Emit socket
-            const myId = String(currentUser._id);
-            const senderNick = allUsersMap.get(myId) || currentUser.name;
-
             const sockBase = isGroupChat
               ? {
                   roomId: targetRoomId,

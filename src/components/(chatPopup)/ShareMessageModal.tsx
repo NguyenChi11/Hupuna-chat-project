@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { IoClose, IoSearch, IoSend, IoCheckmark } from 'react-icons/io5';
 import { HiUsers, HiUser, HiOutlineDocumentText } from 'react-icons/hi2';
 import { User } from '@/types/User';
@@ -8,7 +8,7 @@ import { GroupConversation } from '@/types/Group';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 import { Message } from '@/types/Message';
-import { HiPlay, HiXCircle } from 'react-icons/hi';
+import { HiPlay, HiX, HiXCircle } from 'react-icons/hi';
 
 // Mock types
 
@@ -43,7 +43,68 @@ export default function ShareMessageModal({
   const [selectedTargets, setSelectedTargets] = useState<Set<string>>(new Set());
   const [isSharing, setIsSharing] = useState(false);
   const [attachedText, setAttachedText] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const scrollToBottom = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    try {
+      el.scrollTop = el.scrollHeight;
+    } catch {}
+    try {
+      inputRef.current?.scrollIntoView({ block: 'end' });
+    } catch {}
+  };
 
+  useEffect(() => {
+    setIsMobile(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  }, []);
+  useEffect(() => {
+    if (!isOpen || !isMobile) return;
+    const root = document.documentElement;
+    const applyViewport = () => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      root.style.setProperty('--vvh', `${vv.height}px`);
+      root.style.setProperty('--vvw', `${vv.width}px`);
+      root.style.setProperty('--vvTop', `${vv.offsetTop || 0}px`);
+      root.style.setProperty('--vvLeft', `${vv.offsetLeft || 0}px`);
+      if (viewportRef.current) {
+        viewportRef.current.style.height = `${vv.height}px`;
+      }
+      scrollToBottom();
+    };
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener('resize', applyViewport);
+      vv.addEventListener('scroll', applyViewport);
+      applyViewport();
+    }
+    document.body.classList.add('vv-body-lock');
+    return () => {
+      if (vv) {
+        vv.removeEventListener('resize', applyViewport);
+        vv.removeEventListener('scroll', applyViewport);
+      }
+      document.body.classList.remove('vv-body-lock');
+      root.style.removeProperty('--vvh');
+      root.style.removeProperty('--vvw');
+      root.style.removeProperty('--vvTop');
+      root.style.removeProperty('--vvLeft');
+    };
+  }, [isOpen, isMobile]);
+  // Scroll input vào view khi focus
+  const handleInputFocus = () => {
+    setTimeout(() => {
+      scrollToBottom();
+      inputRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }, 300); // Đợi bàn phím xuất hiện
+  };
   const shareTargets: ShareTarget[] = useMemo(() => {
     const userTargets: ShareTarget[] = allUsers
       .filter((u) => u._id !== currentUser._id)
@@ -242,60 +303,32 @@ export default function ShareMessageModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
-      <div className="w-screen h-screen sm:w-full sm:h-auto sm:max-w-lg bg-white rounded-none sm:rounded-2xl shadow-2xl flex flex-col sm:max-h-[90vh] animate-in zoom-in-95 duration-200">
+    <div
+      ref={viewportRef}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200 ${isMobile ? 'vv-fixed' : ''}`}
+    >
+      <div
+        ref={containerRef}
+        className="w-full h-full sm:w-full sm:h-auto sm:max-w-lg bg-white rounded-none shadow-2xl flex flex-col sm:max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200"
+      >
         {/* Header - Modern gradient */}
-        <div className="relative p-2 bg-blue-500 text-white rounded-t-2xl">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 hover:cursor-pointer p-2 hover:bg-white/20 rounded-full transition-all duration-200 hover:rotate-90"
-          >
-            <IoClose className="w-6 h-6" />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-              <IoSend className="w-6 h-6" />
-            </div>
+        <div className="relative p-1 bg-gray-200 text-black ">
+          <div className="flex items-center px-2 gap-3">
+            <button
+              onClick={onClose}
+              className="top-4 right-4 hover:cursor-pointer  hover:bg-white/20 rounded-full transition-all duration-200 hover:rotate-90"
+            >
+              <HiX className="w-6 h-6" />
+            </button>
             <div>
-              <h3 className="text-xl font-bold">Chia sẻ tin nhắn</h3>
-              <p className="text-blue-100 text-sm mt-0.5">
-                {selectedTargets.size > 0 &&
-                  `Đã chọn: ${selectedTargets.size} ${selectedTargets.size > 1 ? 'người' : 'người'}`}
-              </p>
+              <h3 className="text-[1rem] ">Chia sẻ</h3>
+              <p className="text-black text-sm mt-0.5">Đã chọn: {selectedTargets.size}</p>
             </div>
           </div>
         </div>
 
         <div className="py-1.5 px-3 bg-white border-b border-gray-300 pb-3">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="Nhập tin nhắn đính kèm (tùy chọn)"
-              value={attachedText}
-              onChange={(e) => setAttachedText(e.target.value)}
-              className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white"
-            />
-            <button
-              onClick={handleShare}
-              disabled={selectedTargets.size === 0 || isSharing}
-              className="flex-1 px-4 py-4 hover:cursor-pointer bg-blue-400 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
-            >
-              {isSharing ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                </>
-              ) : (
-                <>
-                  <IoSend className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </div>
-
-          <div className="py-2  bg-gradient-to-br from-gray-50 to-blue-50/30 ">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nội dung chia sẻ</p>
-            <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm">{renderMessagePreview()}</div>
-          </div>
+        
           <div className="relative ">
             <IoSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -342,11 +375,14 @@ export default function ShareMessageModal({
                     <button
                       key={target.id}
                       onClick={() => toggleSelect(target.id)}
-                      className={`w-full p-2 mb-2 flex items-center gap-4 transition-all hover:cursor-pointer duration-200 ${
-                        isSelected ? 'bg-blue-50   ' : 'hover:bg-gray-50 border-l-2 border-transparent'
-                      }`}
+                      className={`w-full  p-2 mb-2 flex items-center gap-4 transition-all hover:cursor-pointer duration-200 hover:bg-gray-50  border-transparent`}
                     >
-                      <div className="relative flex-shrink-0">
+                      <div className="relative flex-shrink-0 flex items-center gap-5">
+                        <div
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'}`}
+                        >
+                          {isSelected && <IoCheckmark className="w-5 h-5 text-white" />}
+                        </div>
                         <div className={`w-10 h-10 rounded-full overflow-hidden transition-all duration-200`}>
                           {target.avatar ? (
                             <Image
@@ -366,16 +402,6 @@ export default function ShareMessageModal({
                             />
                           )}
                         </div>
-                        {isSelected && (
-                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-in zoom-in duration-200">
-                            <IoCheckmark className="w-4 h-4 text-white" />
-                          </div>
-                        )}
-                        {target.isGroup && !isSelected && (
-                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                            <HiUsers className="w-3.5 h-3.5 text-white" />
-                          </div>
-                        )}
                       </div>
                       <div className="flex-1 text-left min-w-0">
                         <p className="font-semibold text-gray-800 truncate">{target.name}</p>
@@ -392,11 +418,6 @@ export default function ShareMessageModal({
                             </>
                           )}
                         </div>
-                      </div>
-                      <div
-                        className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'}`}
-                      >
-                        {isSelected && <IoCheckmark className="w-5 h-5 text-white" />}
                       </div>
                     </button>
                   );
@@ -461,7 +482,7 @@ export default function ShareMessageModal({
 
                         {/* Icon nhóm ở góc dưới phải (nếu là group) */}
                         {target.isGroup && (
-                          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center border-3 border-white shadow-md">
+                          <div className="absolute -bottom-[2px] -right-2 w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center border-3 border-white shadow-md">
                             <HiUsers className="w-4.5 h-4.5 text-white" />
                           </div>
                         )}
@@ -476,6 +497,38 @@ export default function ShareMessageModal({
               </div>
             </>
           )}
+        </div>
+
+        <div className="px-2 pb-3 mb-2 bg-white border-t border-gray-200" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="py-2 bg-gradient-to-br from-gray-50 to-blue-50/30">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nội dung chia sẻ</p>
+            <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm  whitespace-pre-wrap break-words">
+              {renderMessagePreview()}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Nhập tin nhắn đính kèm (tùy chọn)"
+              value={attachedText}
+              onChange={(e) => setAttachedText(e.target.value)}
+              onFocus={handleInputFocus}
+              className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white"
+            />
+            <button
+              onClick={handleShare}
+              disabled={selectedTargets.size === 0 || isSharing}
+              className="flex-1 px-4 py-4 hover:cursor-pointer bg-blue-400 text-white font-semibold rounded-full hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            >
+              {isSharing ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <IoSend className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
