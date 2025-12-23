@@ -19,7 +19,7 @@ interface PollListProps {
 export default function PollList({ onClose, onRefresh }: PollListProps) {
   // ✅ BỎ DÒNG NÀY - Không cần nữa
   // const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL as string | undefined;
-  
+
   const { selectedChat, currentUser, isGroup } = useChatContext();
   const roomId = useMemo(() => {
     const me = String(currentUser._id);
@@ -68,13 +68,13 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
 
   useEffect(() => {
     socketRef.current?.disconnect();
-    
+
     // ✅ DÙNG resolveSocketUrl() thống nhất
-    socketRef.current = io(resolveSocketUrl(), { 
-      transports: ['websocket'], 
-      withCredentials: false 
+    socketRef.current = io(resolveSocketUrl(), {
+      transports: ['websocket'],
+      withCredentials: false,
     });
-    
+
     socketRef.current.emit('join_room', roomId);
     socketRef.current.on('receive_message', (data: Message) => {
       if (String(data.roomId) !== String(roomId) || data.type !== 'poll') return;
@@ -121,21 +121,24 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
         });
       },
     );
-    socketRef.current.on('edit_message', (data: { _id: string; roomId: string; newContent: string; editedAt: number }) => {
-      if (String(data.roomId) !== String(roomId)) return;
-      setItems((prev) =>
-        prev.map((m) =>
-          String(m._id) === String(data._id)
-            ? {
-                ...m,
-                content: data.newContent,
-                editedAt: data.editedAt,
-                originalContent: m.originalContent || m.content,
-              }
-            : m,
-        ),
-      );
-    });
+    socketRef.current.on(
+      'edit_message',
+      (data: { _id: string; roomId: string; newContent: string; editedAt: number }) => {
+        if (String(data.roomId) !== String(roomId)) return;
+        setItems((prev) =>
+          prev.map((m) =>
+            String(m._id) === String(data._id)
+              ? {
+                  ...m,
+                  content: data.newContent,
+                  editedAt: data.editedAt,
+                  originalContent: m.originalContent || m.content,
+                }
+              : m,
+          ),
+        );
+      },
+    );
     socketRef.current.on('message_deleted', (data: { _id: string; roomId: string }) => {
       if (String(data.roomId) !== String(roomId)) return;
       setItems((prev) => prev.filter((m) => String(m._id) !== String(data._id)));
@@ -181,7 +184,7 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
           receiver,
           members,
         };
-        const name = currentUser.name
+        const name = currentUser.name;
         if (typeof createRes._id === 'string') {
           socketRef.current?.emit('send_message', {
             ...sockBase,
@@ -230,7 +233,7 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
     const next = !item.isPollLocked;
     try {
       const now = Date.now();
-      const name = currentUser.name
+      const name = currentUser.name;
       const updateData = next
         ? { isPollLocked: true, pollLockedAt: now, editedAt: now, timestamp: now }
         : { isPollLocked: false, editedAt: now, timestamp: now };
@@ -265,7 +268,6 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
           });
         }
       } else {
-        
         const receiver = isGroup ? null : String((selectedChat as User)._id);
         const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
         const notifyText = `${name} đã mở khóa bình chọn: "${String(item.content || item.pollQuestion || '')}"`;
@@ -364,7 +366,7 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
   return (
     <>
       <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white px-5 py-4 flex items-center justify-between shadow-lg">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
           <h2 className="text-lg font-semibold">Danh sách bình chọn</h2>
           <div className="flex items-center gap-2">
             {isGroup && (

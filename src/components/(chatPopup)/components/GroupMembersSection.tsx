@@ -18,13 +18,13 @@ export default function GroupMembersSection({
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-5 py-4">
+      <div className="p-3">
         <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Thành viên nhóm</h3>
       </div>
 
       <button
         onClick={onOpenMembers}
-        className="cursor-pointer w-full px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-all duration-200 group flex items-center justify-between border-t border-gray-200"
+        className="cursor-pointer w-full p-3 bg-gray-50 hover:bg-gray-100 transition-all duration-200 group flex items-center justify-between border-t border-gray-200"
       >
         <div className="flex items-center gap-4">
           {/* Icon + số lượng */}
