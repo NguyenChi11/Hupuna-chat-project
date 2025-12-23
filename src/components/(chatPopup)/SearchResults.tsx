@@ -60,6 +60,7 @@ interface SearchResultsProps {
   onSelectContact: (contact: ChatItemType) => void;
   onNavigateToMessage: (message: Message) => void;
   currentUserId?: string;
+  onOpenRoomResults?: (roomId: string, roomName: string, isGroupChat: boolean, avatar?: string) => void;
 }
 
 // === TABS SIÊU ĐẸP ===
@@ -265,12 +266,13 @@ const MessagesSection = ({
   searchTerm,
   onNavigateToMessage,
   onClearSearch,
-  
+  onOpenRoomResults,
 }: {
   groupedMessages: MessageGroup[];
   searchTerm: string;
   onNavigateToMessage: (message: Message) => void;
   onClearSearch: () => void;
+  onOpenRoomResults?: (roomId: string, roomName: string, isGroupChat: boolean, avatar?: string) => void;
 }) => {
   if (groupedMessages.length === 0) return null;
 
@@ -321,7 +323,11 @@ const MessagesSection = ({
                 </p>
                 <button
                   onClick={() => {
-                    onNavigateToMessage(group.messages[0]);
+                    if (onOpenRoomResults) {
+                      onOpenRoomResults(group.roomId, group.roomName, group.isGroupChat, group.avatar);
+                    } else {
+                      onNavigateToMessage(group.messages[0]);
+                    }
                     onClearSearch();
                   }}
                   className="flex items-center gap-1 text-xs text-blue-600 font-medium hover:text-blue-700 cursor-pointer"
@@ -365,7 +371,11 @@ const MessagesSection = ({
             <div className="p-2 bg-green-50 text-center">
               <button
                 onClick={() => {
-                  onNavigateToMessage(group.messages[0]);
+                  if (onOpenRoomResults) {
+                    onOpenRoomResults(group.roomId, group.roomName, group.isGroupChat, group.avatar);
+                  } else {
+                    onNavigateToMessage(group.messages[0]);
+                  }
                   onClearSearch();
                 }}
                 className="cursor-pointer text-green-700 font-bold hover:text-green-800"
@@ -499,6 +509,7 @@ export default function SearchResults({
   onSelectContact,
   onNavigateToMessage,
   currentUserId,
+  onOpenRoomResults,
 }: SearchResultsProps) {
   const handleClearSearch = () => {
     // Gọi từ Sidebar
@@ -532,6 +543,7 @@ export default function SearchResults({
               searchTerm={searchTerm}
               onNavigateToMessage={onNavigateToMessage}
               onClearSearch={handleClearSearch}
+              onOpenRoomResults={onOpenRoomResults}
             />
           )}
           {(activeTab === 'all' || activeTab === 'files') && (

@@ -29,6 +29,7 @@ import FolderCreateModal from '@/components/modal/folder/FolderCreateModal';
 import RenameModal from '@/components/modal/folder/RenameModal';
 import DeleteModal from '@/components/modal/folder/DeleteModal';
 import ReactDOM from 'react-dom';
+import RoomSearchResultsModal from '@/components/(search)/RoomSearchResultsModal';
 
 interface SidebarProps {
   currentUser: User;
@@ -169,6 +170,30 @@ export default function Sidebar({
   const [showRoomsSharedFolder, setShowRoomsSharedFolder] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const [roomResultsModal, setRoomResultsModal] = useState<{
+    roomId: string;
+    roomName: string;
+    roomAvatar?: string;
+    isGroupChat: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('__return_room_results__') : null;
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data && data.origin === 'sidebar') {
+        setSearchTerm((data.keyword || '').toString());
+        setRoomResultsModal({
+          roomId: data.roomId,
+          roomName: data.roomName,
+          roomAvatar: data.roomAvatar,
+          isGroupChat: !!data.isGroupChat,
+        });
+        localStorage.removeItem('__return_room_results__');
+      }
+    } catch {}
+  }, [selectedChat]);
 
   // === TẤT CẢ LOGIC GIỮ NGUYÊN NHƯ BẠN ĐÃ VIẾT ===
   const handleGlobalSearch = useCallback(
@@ -520,6 +545,9 @@ export default function Sidebar({
               // Giữ nguyên searchTerm và danh sách kết quả để không bị mất
             }}
             currentUserId={String(currentUserId)}
+            onOpenRoomResults={(rid, rname, isGroup, avatar) =>
+              setRoomResultsModal({ roomId: rid, roomName: rname, isGroupChat: isGroup, roomAvatar: avatar })
+            }
           />
         ) : (
           <>
@@ -568,6 +596,23 @@ export default function Sidebar({
         <RoomsSharedFolderModal
           currentUserId={String(currentUser._id)}
           onClose={() => setShowRoomsSharedFolder(false)}
+        />
+      )}
+      {roomResultsModal && (
+        <RoomSearchResultsModal
+          isOpen={!!roomResultsModal}
+          roomId={roomResultsModal.roomId}
+          roomName={roomResultsModal.roomName}
+          roomAvatar={roomResultsModal.roomAvatar}
+          isGroupChat={roomResultsModal.isGroupChat}
+          keyword={searchTerm}
+          allUsers={allUsers}
+          anchorToParent
+          onClose={() => setRoomResultsModal(null)}
+          onNavigateToMessage={(m, kw) => {
+            onNavigateToMessage(m, kw);
+            setRoomResultsModal(null);
+          }}
         />
       )}
     </aside>

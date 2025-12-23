@@ -394,15 +394,18 @@ export default function ChatWindow({
   const mobileSelectingRef = useRef(false);
   const mobileSelectedMsgIdRef = useRef<string | null>(null);
   const mobileCurrentIndexRef = useRef<number>(-1);
+  const closingSearchRef = useRef(false);
   useEffect(() => {
     mobileCurrentIndexRef.current = mobileCurrentResultIndex;
   }, [mobileCurrentResultIndex]);
 
   useEffect(() => {
-    if (!isMobile && roomSearchKeyword && roomSearchKeyword.trim()) {
+    if (isMobile) return;
+    if (closingSearchRef.current) return;
+    if (roomSearchKeyword && roomSearchKeyword.trim() && scrollToMessageId && !showSearchSidebar) {
       setShowSearchSidebar(true);
     }
-  }, [roomSearchKeyword, isMobile]);
+  }, [roomSearchKeyword, scrollToMessageId, isMobile, showSearchSidebar]);
 
   const fetchMobileSearchResults = useCallback(
     async (query: string) => {
@@ -449,7 +452,6 @@ export default function ChatWindow({
           } else if (mobileCurrentIndexRef.current === -1) {
             const lastIdx = results.length - 1;
             setMobileCurrentResultIndex(lastIdx);
-          
           } else {
             const prevIdx = mobileCurrentIndexRef.current;
             const safeIdx = Math.max(0, Math.min(results.length - 1, prevIdx));
@@ -470,7 +472,14 @@ export default function ChatWindow({
   );
 
   useEffect(() => {
-    if (isMobile && roomSearchKeyword && roomSearchKeyword.trim() && !hasAutoSearchedRef.current) {
+    if (closingSearchRef.current) return;
+    if (
+      isMobile &&
+      roomSearchKeyword &&
+      roomSearchKeyword.trim() &&
+      !hasAutoSearchedRef.current &&
+      !showSearchSidebar
+    ) {
       setMobileSearchTerm(roomSearchKeyword);
       hasAutoSearchedRef.current = true;
       setShowSearchSidebar(true);
@@ -479,7 +488,7 @@ export default function ChatWindow({
         mobileSearchInputRef.current?.focus();
       }, 100);
     }
-  }, [roomSearchKeyword, isMobile, fetchMobileSearchResults]);
+  }, [roomSearchKeyword, isMobile, fetchMobileSearchResults, showSearchSidebar]);
 
   // Mobile: Debounced search
   useEffect(() => {
@@ -535,11 +544,15 @@ export default function ChatWindow({
   // Reset mobile search when sidebar closes
   useEffect(() => {
     if (!showSearchSidebar && isMobile) {
+      closingSearchRef.current = true;
       setMobileSearchTerm('');
       setMobileSearchResults([]);
       setMobileCurrentResultIndex(-1);
       hasAutoSearchedRef.current = false;
-      if (setRoomSearchKeyword) setRoomSearchKeyword(null);
+      // if (setRoomSearchKeyword) setRoomSearchKeyword(null);
+      setTimeout(() => {
+        closingSearchRef.current = false;
+      }, 300);
     }
   }, [showSearchSidebar, isMobile, setRoomSearchKeyword]);
 
@@ -1956,7 +1969,6 @@ export default function ChatWindow({
     try {
       await markAsReadApi(roomId, getId(currentUser));
       markedReadRef.current = roomId;
-      if (reLoad) reLoad();
     } catch (error) {
       console.error('Mark as read failed:', error);
     }
@@ -2594,7 +2606,23 @@ export default function ChatWindow({
               }
             }}
             showSearchSidebar={showSearchSidebar}
-            onToggleSearchSidebar={() => setShowSearchSidebar((prev) => !prev)}
+            onToggleSearchSidebar={() =>
+              setShowSearchSidebar((prev) => {
+                const next = !prev;
+                if (!next && isMobile) {
+                  closingSearchRef.current = true;
+                  setMobileSearchTerm('');
+                  setMobileSearchResults([]);
+                  setMobileCurrentResultIndex(-1);
+                  hasAutoSearchedRef.current = false;
+                  if (setRoomSearchKeyword) setRoomSearchKeyword(null);
+                  setTimeout(() => {
+                    closingSearchRef.current = false;
+                  }, 300);
+                }
+                return next;
+              })
+            }
             avatar={chatAvatar}
             onBackFromChat={onBackFromChat}
             presenceText={!isGroup ? presenceInfo.text : undefined}
@@ -2603,9 +2631,21 @@ export default function ChatWindow({
             onVideoCall={handleVideoCall}
             isMobile={isMobile}
             isSearchActive={isMobile && showSearchSidebar}
-            searchTerm={mobileSearchTerm}
+            initialKeyword={roomSearchKeyword || null}
             onSearchTermChange={setMobileSearchTerm}
             searchInputRef={mobileSearchInputRef as React.RefObject<HTMLInputElement | null>}
+            onCloseSearch={() => {
+              closingSearchRef.current = true;
+              setShowSearchSidebar(false);
+              setMobileSearchTerm('');
+              setMobileSearchResults([]);
+              setMobileCurrentResultIndex(-1);
+              hasAutoSearchedRef.current = false;
+              if (setRoomSearchKeyword) setRoomSearchKeyword(null);
+              setTimeout(() => {
+                closingSearchRef.current = false;
+              }, 300);
+            }}
           />
           <PinnedMessagesSection
             allPinnedMessages={allPinnedMessages}

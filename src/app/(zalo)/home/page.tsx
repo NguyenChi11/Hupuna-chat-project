@@ -156,6 +156,22 @@ export default function HomePage() {
     };
   }, [currentUser, selectedChat, incomingCallHome]);
 
+  useEffect(() => {
+    if (!selectedChat) {
+      try {
+        const raw = localStorage.getItem('__return_room_results__');
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data && data.origin === 'global') {
+            if (!showGlobalSearchModal) {
+              handleOpenGlobalSearch();
+            }
+          }
+        }
+      } catch {}
+    }
+  }, [selectedChat, showGlobalSearchModal, handleOpenGlobalSearch]);
+
   if (isLoading || !currentUser) {
     return <div className="flex h-screen items-center justify-center bg-white">Loading...</div>;
   }

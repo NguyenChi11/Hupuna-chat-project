@@ -137,9 +137,15 @@ interface MessageResultsProps {
   searchTerm: string;
   allUsers: User[];
   onNavigateToMessage: (message: Message) => void;
+  onOpenRoomResults?: (roomId: string, roomName: string, isGroupChat: boolean, roomAvatar?: string) => void;
 }
 
-export default function MessageResults({ groupedMessages, searchTerm, onNavigateToMessage }: MessageResultsProps) {
+export default function MessageResults({
+  groupedMessages,
+  searchTerm,
+  onNavigateToMessage,
+  onOpenRoomResults,
+}: MessageResultsProps) {
   if (groupedMessages.length === 0) return null;
 
   return (
@@ -214,7 +220,13 @@ export default function MessageResults({ groupedMessages, searchTerm, onNavigate
             {group.messages.length > 3 && (
               <div className="p-2 bg-gray-50 text-center border-t">
                 <button
-                  onClick={() => onNavigateToMessage(group.messages[0])}
+                  onClick={() => {
+                    if (onOpenRoomResults) {
+                      onOpenRoomResults(group.roomId, group.roomName, group.isGroupChat, group.roomAvatar);
+                    } else {
+                      onNavigateToMessage(group.messages[0]);
+                    }
+                  }}
                   className="text-xs cursor-pointer text-blue-600 hover:text-blue-700 font-medium"
                 >
                   Xem thêm {group.messages.length - 3} tin nhắn

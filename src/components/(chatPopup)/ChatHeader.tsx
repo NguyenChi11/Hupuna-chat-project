@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { getProxyUrl } from '../../utils/utils';
 
@@ -33,10 +33,11 @@ interface ChatHeaderProps {
   // Mobile inline search props
   isMobile?: boolean;
   isSearchActive?: boolean;
-  searchTerm?: string;
+  initialKeyword?: string | null;
   onSearchTermChange?: (term: string) => void;
   onSearchFocus?: () => void;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
+  onCloseSearch?: () => void;
 }
 
 export default function ChatHeader({
@@ -56,58 +57,102 @@ export default function ChatHeader({
   onVideoCall,
   isMobile = false,
   isSearchActive = false,
-  searchTerm = '',
+  initialKeyword = null,
   onSearchTermChange,
   onSearchFocus,
   searchInputRef,
 }: ChatHeaderProps) {
-  const avatarChar = chatName?.trim()?.charAt(0)?.toUpperCase() || (isGroup ? 'N' : 'U');
   const [imgError, setImgError] = useState(false);
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+  const hasAutoSearchedRef = useRef(false);
+  const lastInitialKeywordRef = useRef<string | null>(null);
+  const manualCloseRef = useRef(false);
 
   useEffect(() => {
     setImgError(false);
   }, [avatar]);
 
+  useEffect(() => {
+    const kw = (initialKeyword || '').trim();
+    if (!kw) return;
+    setLocalSearchTerm(kw);
+    if (isMobile && isSearchActive) {
+    if (lastInitialKeywordRef.current === kw && hasAutoSearchedRef.current) return;
+    hasAutoSearchedRef.current = true;
+    lastInitialKeywordRef.current = kw;
+    setTimeout(() => {
+      searchInputRef?.current?.focus?.();
+    }, 100);
+    onSearchTermChange?.(kw);
+    }
+  }, [initialKeyword, isMobile, isSearchActive, onSearchTermChange]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    if (isSearchActive) return;
+    if (manualCloseRef.current) {
+      manualCloseRef.current = false;
+      hasAutoSearchedRef.current = false;
+      lastInitialKeywordRef.current = null;
+      // setLocalSearchTerm('');
+      // onSearchTermChange?.('');
+    }
+  }, [isSearchActive, isMobile, onSearchTermChange]);
+
   // Mobile: Show inline search bar when active
   if (isMobile && isSearchActive) {
     return (
       <div className="flex items-center gap-2 px-2 py-2 bg-white border-b border-gray-200 shadow-sm">
-        {/* Back button */}
-        <button
-          onClick={() => {
-            if (onSearchTermChange) onSearchTermChange('');
-            if (onToggleSearchSidebar) onToggleSearchSidebar();
+      {/* Back button */}
+      <button
+        onClick={() => {
+          if (isSearchActive) {
+            // Nếu đang tìm kiếm: Chỉ thoát chế độ tìm kiếm
+            manualCloseRef.current = true;
+            setLocalSearchTerm('');
+            onSearchTermChange?.('');
+            onToggleSearchSidebar?.();
+          } else {
+            // Nếu KHÔNG tìm kiếm: Gọi hàm quay lại danh sách chat
+            onBackFromChat?.();
+          }
+        }}
+        className="p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
+        title="Quay lại"
+      >
+        <HiArrowLeft className="w-5 h-5 text-gray-700" />
+      </button>
+
+      {/* Search icon */}
+      <HiMagnifyingGlass className="w-5 h-5 text-gray-500 flex-shrink-0" />
+
+      {/* Search input */}
+      <div className="flex-1 relative">
+        <input
+          ref={searchInputRef}
+          type="text"
+          value={localSearchTerm}
+          onChange={(e) => {
+            setLocalSearchTerm(e.target.value);
+            onSearchTermChange?.(e.target.value);
           }}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
-          title="Quay lại"
-        >
-          <HiArrowLeft className="w-5 h-5 text-gray-700" />
-        </button>
-
-        {/* Search icon */}
-        <HiMagnifyingGlass className="w-5 h-5 text-gray-500 flex-shrink-0" />
-
-        {/* Search input */}
-        <div className="flex-1 relative">
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={searchTerm}
-            onChange={(e) => onSearchTermChange?.(e.target.value)}
-            onFocus={onSearchFocus}
-            placeholder="Tìm kiếm..."
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-            autoFocus
-          />
-          {searchTerm && (
-            <button
-              onClick={() => onSearchTermChange?.('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
-            >
-              <HiXMark className="w-4 h-4 text-gray-500" />
-            </button>
-          )}
-        </div>
+          onFocus={onSearchFocus}
+          placeholder="Tìm kiếm..."
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+          autoFocus
+        />
+        {localSearchTerm && (
+          <button
+            onClick={() => {
+              setLocalSearchTerm('');
+              onSearchTermChange?.('');
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
+          >
+            <HiXMark className="w-4 h-4 text-gray-500" />
+          </button>
+        )}
+      </div>
       </div>
     );
   }

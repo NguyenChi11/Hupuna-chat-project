@@ -5,40 +5,13 @@ import ContactResults from '@/components/(search)/ContactResults';
 import MessageResults from '@/components/(search)/MessageResults';
 import FileResults from '@/components/(search)/FileResults';
 import SearchEmptyState from '@/components/(search)/SearchEmptyState';
-
-// Types (keep all existing types)
-interface User {
-  _id: string;
-  name: string;
-  avatar?: string;
-}
-
-interface Message {
-  _id: string;
-  content?: string;
-  type: 'text' | 'image' | 'file' | 'sticker' | 'video' | 'reminder';
-  fileName?: string;
-  timestamp: number;
-  sender: string;
-  senderName: string;
-  roomId: string;
-  roomName: string;
-  isGroupChat: boolean;
-  partnerId?: string;
-  partnerName?: string;
-  fileUrl?: string;
-}
-
-interface PhonebookContact {
-  _id: string;
-  name: string;
-  avatar?: string;
-  isGroup?: boolean;
-}
+import RoomSearchResultsModal from '@/components/(search)/RoomSearchResultsModal';
+import type { User } from '@/types/User';
+import type { GlobalSearchMessage, GlobalSearchContact } from '@/components/(home)/HomeOverlays';
 
 interface SearchResult {
-  contacts: PhonebookContact[];
-  messages: Message[];
+  contacts: GlobalSearchContact[];
+  messages: GlobalSearchMessage[];
 }
 
 interface Props {
@@ -47,8 +20,8 @@ interface Props {
   onClose: () => void;
   onSearch: (term: string) => void;
   allUsers: User[];
-  onNavigateToMessage: (message: Message, searchKeyword: string) => void;
-  onSelectContact: (phonebook: PhonebookContact) => void;
+  onNavigateToMessage: (message: GlobalSearchMessage, searchKeyword: string) => void;
+  onSelectContact: (phonebook: GlobalSearchContact) => void;
 }
 
 export default function GlobalSearchModal({
@@ -63,11 +36,36 @@ export default function GlobalSearchModal({
   const [activeTab, setActiveTab] = useState<'all' | 'contacts' | 'messages' | 'files'>('all');
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const [isSearching, setIsSearching] = useState(false);
+  const [roomResultsModal, setRoomResultsModal] = useState<{
+    roomId: string;
+    roomName: string;
+    roomAvatar?: string;
+    isGroupChat: boolean;
+  } | null>(null);
 
   // 🔥 Sync localSearchTerm khi searchTerm prop thay đổi
   useEffect(() => {
     setLocalSearchTerm(searchTerm);
   }, [searchTerm]);
+
+  // Mở lại RoomSearchResultsModal nếu có trạng thái quay về từ chat
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('__return_room_results__');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data && data.origin === 'global') {
+        setLocalSearchTerm(data.keyword || searchTerm);
+        setRoomResultsModal({
+          roomId: data.roomId,
+          roomName: data.roomName,
+          roomAvatar: data.roomAvatar,
+          isGroupChat: !!data.isGroupChat,
+        });
+        localStorage.removeItem('__return_room_results__');
+      }
+    } catch {}
+  }, []);
 
   // Keep the useMemo for processing messages
   const { regularMessages, fileMessages } = useMemo(() => {
@@ -75,8 +73,8 @@ export default function GlobalSearchModal({
       return { regularMessages: [], fileMessages: [] };
     }
 
-    const regular: Message[] = [];
-    const files: Message[] = [];
+    const regular: GlobalSearchMessage[] = [];
+    const files: GlobalSearchMessage[] = [];
 
     results.messages.forEach((msg) => {
       if (msg.type === 'file' || msg.type === 'image' || msg.type === 'video') {
@@ -100,7 +98,7 @@ export default function GlobalSearchModal({
         roomAvatar?: string;
         isGroupChat: boolean;
         partnerId?: string;
-        messages: Message[];
+        messages: GlobalSearchMessage[];
         latestTimestamp: number;
       }
     >();
@@ -142,7 +140,7 @@ export default function GlobalSearchModal({
         roomName: string;
         roomAvatar?: string;
         isGroupChat: boolean;
-        files: Message[];
+        files: GlobalSearchMessage[];
         latestTimestamp: number;
       }
     >();
@@ -221,6 +219,9 @@ export default function GlobalSearchModal({
                   searchTerm={localSearchTerm}
                   allUsers={allUsers}
                   onNavigateToMessage={(msg) => onNavigateToMessage(msg, localSearchTerm)}
+                  onOpenRoomResults={(rid, rname, isGroup, avatar) =>
+                    setRoomResultsModal({ roomId: rid, roomName: rname, isGroupChat: isGroup, roomAvatar: avatar })
+                  }
                 />
               )}
 
@@ -246,6 +247,23 @@ export default function GlobalSearchModal({
           <span className="text-gray-400">Tìm kiếm nhanh trong Zalo</span>
         </div>
       </div>
+      {roomResultsModal && (
+        <RoomSearchResultsModal
+          isOpen={!!roomResultsModal}
+          roomId={roomResultsModal.roomId}
+          roomName={roomResultsModal.roomName}
+          roomAvatar={roomResultsModal.roomAvatar}
+          isGroupChat={roomResultsModal.isGroupChat}
+          keyword={localSearchTerm}
+          allUsers={allUsers}
+          onClose={() => setRoomResultsModal(null)}
+          onNavigateToMessage={(m, kw) => {
+            onNavigateToMessage(m, kw);
+            setRoomResultsModal(null);
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 }
