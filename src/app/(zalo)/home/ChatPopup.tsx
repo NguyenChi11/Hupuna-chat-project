@@ -792,6 +792,18 @@ export default function ChatWindow({
     currentUserId: currentUser._id,
   });
 
+  const dismissKeyboardAndScroll = useCallback(() => {
+    try {
+      (document.activeElement as HTMLElement | null)?.blur?.();
+    } catch {}
+    try {
+      editableRef.current?.blur?.();
+    } catch {}
+    scrollToBottom();
+    setTimeout(scrollToBottom, 0);
+    setTimeout(scrollToBottom, 150);
+  }, [editableRef, scrollToBottom]);
+
   // Thêm option @all khi là nhóm
   const ALL_MENTION_ID = '__ALL__';
   const mentionSuggestionsWithAll = useMemo(() => {
@@ -2785,6 +2797,7 @@ export default function ChatWindow({
                       setAttachments((prev) => [...prev, { file: f, type: t, previewUrl: url, fileName: f.name }]);
                     }
                   });
+                  dismissKeyboardAndScroll();
                   return;
                 }
                 e.preventDefault();
@@ -2798,12 +2811,14 @@ export default function ChatWindow({
                 const msgType = isVideo ? 'video' : 'image';
                 const url = URL.createObjectURL(file);
                 setAttachments((prev) => [...prev, { file, type: msgType, previewUrl: url, fileName: file.name }]);
+                dismissKeyboardAndScroll();
               }}
               onSelectFile={(file) => {
                 const isVideo = file.type.startsWith('video/') || isVideoFile(file.name);
                 const msgType = isVideo ? 'video' : 'file';
                 const url = URL.createObjectURL(file);
                 setAttachments((prev) => [...prev, { file, type: msgType, previewUrl: url, fileName: file.name }]);
+                dismissKeyboardAndScroll();
               }}
               onAttachFromFolder={async (att) => {
                 const remoteUrl = getProxyUrl(att.url);
@@ -2812,6 +2827,7 @@ export default function ChatWindow({
                 const placeholder = new File([new Blob([])], name, { type: 'application/octet-stream' });
                 const placeholderItem = { file: placeholder, type: att.type, previewUrl: remoteUrl, fileName: name };
                 setAttachments((prev) => [...prev, placeholderItem]);
+                dismissKeyboardAndScroll();
                 try {
                   const res = await fetch(remoteUrl);
                   const blob = await res.blob();
