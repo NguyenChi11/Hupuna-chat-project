@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { HiX } from 'react-icons/hi';
 import { HiCheck, HiOutlinePencil } from 'react-icons/hi2';
 import type { Message } from '@/types/Message';
@@ -18,7 +19,6 @@ interface PollDetailModalProps {
   onRefresh?: () => void;
 }
 
-
 export default function PollDetailModal({ isOpen, message, onClose, onRefresh }: PollDetailModalProps) {
   const { selectedChat, currentUser, isGroup } = useChatContext();
   const roomId = (() => {
@@ -31,6 +31,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const myId = String(currentUser._id);
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
   const votesMap = useMemo(() => (message?.pollVotes || {}) as Record<string, string[]>, [message]);
   const mySelected = useMemo(() => {
     const arr: string[] = [];
@@ -275,10 +276,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
     try {
       const now = Date.now();
       await updateMessageApi(String(message._id), { pollOptions: nextOptions, editedAt: now, timestamp: now });
-      const socket = io(resolveSocketUrl(), 
-            { transports: ['websocket'], 
-              withCredentials: false
-             });  
+      const socket = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
       socket.once('connect', async () => {
         socket.emit('join_room', roomId);
         socket.emit('edit_message', {
@@ -338,12 +336,9 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
         ? { isPollLocked: true, pollLockedAt: now, editedAt: now, timestamp: now }
         : { isPollLocked: false, editedAt: now, timestamp: now };
       await updateMessageApi(String(message._id), updateData);
-      const socket = io(resolveSocketUrl(), 
-            { transports: ['websocket'], 
-              withCredentials: false
-             });  
+      const socket = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
       socket.emit('edit_message', { _id: message._id, roomId, ...updateData });
-      const name = currentUser.name
+      const name = currentUser.name;
       if (next) {
         const receiver = isGroup ? null : String((selectedChat as User)._id);
         const members2 = isGroup ? (selectedChat as GroupConversation).members || [] : [];
@@ -410,37 +405,41 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
     }
   };
 
- 
-
   if (!isOpen || !message) return null;
 
-  return (
-    <div className="fixed inset-0 z-[9999]  flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="relative px-3 pt-3 pb-2 bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex-shrink-0">
-          <button
-            onClick={onClose}
-            disabled={saving}
-            className="absolute cursor-pointer top-3 right-3 p-2 rounded-full bg-white/20 hover:bg-white/30"
-          >
-            <HiX className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-3">
-            <h3 className="text-xl font-bold">Chi tiết bình chọn</h3>
+  const modalNode = (
+    <div
+      className={`${isDesktop ? 'absolute inset-0' : 'fixed inset-0'} z-[1000] flex items-stretch justify-center ${
+        isDesktop ? 'bg-black/20' : 'bg-black/50'
+      } backdrop-blur-sm`}
+    >
+      <div className="bg-white w-full h-full rounded-none overflow-hidden flex flex-col">
+        <div className=" px-3 pt-3 pb-2 bg-gray-50 text-black border border-gray-200">
+          <div className="flex items-center">
+            <button
+              onClick={onClose}
+              disabled={saving}
+              className=" cursor-pointer p-2 "
+            >
+              <HiX className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-3">
+              <h3 className="text-xl ">Chi tiết bình chọn</h3>
+            </div>
           </div>
         </div>
         <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {!editing ? (
             <>
-              <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{question}</p>
+              <p className=" text-[1rem] text-gray-800 whitespace-pre-wrap break-words">{question}</p>
               {message.isPollLocked && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className=" text-[1rem] text-gray-500 mt-1">
                   Kết thúc lúc{' '}
                   {new Date(message.pollLockedAt || message.editedAt || message.timestamp).toLocaleString('vi-VN')}
                 </p>
               )}
-              <p className="text-xs text-gray-500 mt-2">Chọn nhiều phương án</p>
-              <button onClick={() => setShowVoters((v) => !v)} className="text-xs text-blue-600 hover:underline mt-2">
+              <p className=" text-[1rem] text-gray-500 mt-2">Chọn nhiều phương án</p>
+              <button onClick={() => setShowVoters((v) => !v)} className=" cursor-pointer text-[1rem] text-blue-600 hover:underline mt-2">
                 {(() => {
                   const userIds = new Set<string>();
                   let totalVotes = 0;
@@ -471,8 +470,8 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                       } ${message.isPollLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="truncate">{opt}</span>
-                        <span className="text-sm">{votedCount}</span>
+                        <span className="block max-w-full break-words whitespace-pre-wrap text-[1rem] mr-1">{opt}</span>
+                        <span className="text-[0.6875rem]">{votedCount}</span>
                       </div>
 
                       {showVoters && (
@@ -655,4 +654,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
       </div>
     </div>
   );
+  const target =
+    isDesktop && typeof document !== 'undefined' ? document.getElementById('right-sidebar-container') : null;
+  return isDesktop && target ? createPortal(modalNode, target) : modalNode;
 }

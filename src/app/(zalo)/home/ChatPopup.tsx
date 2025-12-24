@@ -1017,8 +1017,10 @@ export default function ChatWindow({
         const menuHeight = 260;
         const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
         const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
-        const collapsedHeight = Math.floor(viewportH * 0.34);
-        const effectiveHeight = Math.min(rect.height, collapsedHeight);
+        const kind = String(msg.type || '');
+        const isVisual = kind === 'image';
+        const collapsedHeight = Math.floor(viewportH * (isVisual ? 0.5 : 0.34));
+        const effectiveHeight = isVisual ? collapsedHeight : Math.min(rect.height, collapsedHeight);
         try {
           el.scrollIntoView({ behavior: 'auto', block: 'center' });
         } catch {}
@@ -2812,7 +2814,7 @@ export default function ChatWindow({
           <button
             onClick={() => scrollToBottom(true)}
             aria-label="Cuộn xuống cuối"
-            className={`absolute cursor-pointer hover:bg-gray-100 md:bottom-35 bottom-30   right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
+            className={`absolute cursor-pointer hover:bg-gray-100 md:bottom-35 bottom-45   right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
               showScrollDown ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
           >
@@ -3006,7 +3008,10 @@ export default function ChatWindow({
         </div>
 
         {showPopup && (
-          <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full z-20 ">
+          <div
+            id="right-sidebar-container"
+            className="fixed inset-0 sm:relative sm:inset-auto sm:w-[21.875rem] h-full z-20 "
+          >
             <ChatInfoPopup
               onClose={() => setShowPopup(false)}
               onShowCreateGroup={onShowCreateGroup}

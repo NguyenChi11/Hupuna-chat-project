@@ -271,7 +271,7 @@ export default function ReminderList({ onClose }: ReminderListProps) {
 
   return (
     <>
-      <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
+      <div className="relative flex flex-col h-full bg-gray-50 overflow-hidden">
         <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
           <h2 className="text-lg font-semibold">Danh sách lịch hẹn</h2>
           <div className="flex items-center gap-2">
@@ -426,21 +426,19 @@ export default function ReminderList({ onClose }: ReminderListProps) {
             )}
           </div>
         </div>
+        <CreateReminderModal
+          isOpen={showCreate}
+          onClose={() => setShowCreate(false)}
+          onCreate={handleCreate}
+          createLoading={create}
+        />
+        <ReminderDetailModal
+          isOpen={!!detailMsg}
+          message={detailMsg}
+          onClose={() => setDetailMsg(null)}
+          onRefresh={load}
+        />
       </div>
-
-      <CreateReminderModal
-        isOpen={showCreate}
-        onClose={() => setShowCreate(false)}
-        onCreate={handleCreate}
-        createLoading={create}
-      />
-
-      <ReminderDetailModal
-        isOpen={!!detailMsg}
-        message={detailMsg}
-        onClose={() => setDetailMsg(null)}
-        onRefresh={load}
-      />
     </>
   );
 }
