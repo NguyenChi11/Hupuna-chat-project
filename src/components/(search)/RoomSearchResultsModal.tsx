@@ -59,7 +59,7 @@ export default function RoomSearchResultsModal({
   useEffect(() => {
     if (!isOpen) return;
     try {
-      const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+      const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
       if (!isMobile) return;
       localStorage.setItem(
         '__return_room_results__',

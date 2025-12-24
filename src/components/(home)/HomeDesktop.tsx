@@ -66,7 +66,7 @@ export default function HomeDesktop({
   onlyPersonal = false,
 }: HomeDesktopProps) {
   return (
-    <div className="hidden md:flex h-screen w-full">
+    <div className="hidden lg:flex h-screen w-full">
       <Sidebar
         currentUser={currentUser}
         groups={groups}

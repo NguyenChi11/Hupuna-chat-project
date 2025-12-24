@@ -59,7 +59,7 @@ export default function ShareMessageModal({
   };
 
   useEffect(() => {
-    setIsMobile(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+    setIsMobile(typeof window !== 'undefined' ? window.innerWidth < 1024 : false);
   }, []);
   useEffect(() => {
     if (!isOpen || !isMobile) return;

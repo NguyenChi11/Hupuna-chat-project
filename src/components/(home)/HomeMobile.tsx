@@ -84,7 +84,7 @@ export default function HomeMobile({
     };
   }, [selectedChat]);
   return (
-    <div className="block md:hidden relative w-full h-full">
+    <div className="block lg:hidden relative w-full h-full">
       {selectedChat ? (
         <div className="fixed inset-0 w-full h-full bg-white flex flex-col z-50 overscroll-none touch-none">
           <ChatWindow

@@ -389,7 +389,7 @@ export default function ChatWindow({
   const [mobileCurrentResultIndex, setMobileCurrentResultIndex] = useState<number>(-1);
   const mobileSearchInputRef = useRef<HTMLInputElement | null>(null);
   const hasAutoSearchedRef = useRef(false);
-  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
   const scrollLockUntilRef = useRef<number>(0);
   const mobileSelectingRef = useRef(false);
   const mobileSelectedMsgIdRef = useRef<string | null>(null);

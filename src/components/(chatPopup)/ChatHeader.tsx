@@ -166,7 +166,7 @@ export default function ChatHeader({
         {onBackFromChat && (
           <button
             onClick={onBackFromChat}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors md:hidden cursor-pointer"
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors lg:hidden cursor-pointer"
             title="Quay lại"
           >
             <HiArrowLeft className="w-5 h-5 text-gray-700" />
