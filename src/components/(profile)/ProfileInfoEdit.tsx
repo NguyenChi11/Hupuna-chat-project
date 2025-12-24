@@ -27,11 +27,46 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenDepartment, setIsOpenDepartment] = useState(false);
   const departmentOptions = [
-    { value: '101', label: 'Kinh doanh' },
-    { value: '102', label: 'Marketing' },
-    { value: '103', label: 'Kỹ thuật' },
-    { value: '104', label: 'Nhân sự' },
-    { value: '105', label: 'Tài chính' },
+    {
+      id: 1,
+      name: 'Ban lãnh đạo',
+    },
+    {
+      id: 2,
+      name: 'Quản lý',
+    },
+    {
+      id: 3,
+      name: 'Kinh doanh',
+    },
+    {
+      id: 4,
+      name: 'Thiết kế',
+    },
+    {
+      id: 5,
+      name: 'Sản xuất',
+    },
+    {
+      id: 6,
+      name: 'Sàn TMĐT',
+    },
+    {
+      id: 7,
+      name: 'Kế toán',
+    },
+    {
+      id: 8,
+      name: 'Kho TM',
+    },
+    {
+      id: 9,
+      name: 'HCNS',
+    },
+    {
+      id: 10,
+      name: 'Maketing',
+    },
   ];
 
   return (
@@ -173,7 +208,7 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
       `}
             >
               <span className="truncate max-w-[180px]">
-                {departmentOptions.find((opt) => opt.value === form.department)?.label || 'Chưa cập nhật'}
+                {departmentOptions.find((opt) => String(opt.id) === form.department)?.name || 'Chưa cập nhật'}
               </span>
               <HiChevronDown
                 className={`w-5 h-5 text-gray-500 transition-transform duration-300 flex-shrink-0 ${isOpenDepartment ? 'rotate-180' : ''}`}
@@ -187,7 +222,7 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
                 <div className="fixed inset-0 z-40" onClick={() => setIsOpenDepartment(false)} />
 
                 {/* Danh sách lựa chọn */}
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-50">
+                <div className="absolute h-[24rem] overflow-y-auto right-0 custom-scrollbar bottom-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-50">
                   {/* Option "Chưa cập nhật" */}
                   <button
                     type="button"
@@ -208,20 +243,20 @@ export default function ProfileInfoEdit({ form, setForm, isSaving, onSave }: Pro
                   {/* Các phòng ban */}
                   {departmentOptions.map((opt) => (
                     <button
-                      key={opt.value}
+                      key={opt.id}
                       type="button"
                       onClick={() => {
-                        setForm({ ...form, department: opt.value });
+                        setForm({ ...form, department: String(opt.id) });
                         setIsOpenDepartment(false);
                       }}
                       className={`
                 w-full px-5 py-4 text-left font-medium transition-all duration-150 cursor-pointer border-t border-gray-100
-                ${form.department === opt.value ? 'bg-[#0068ff]/5 text-[#0068ff]' : 'text-gray-800 hover:bg-gray-100'}
+                ${form.department === String(opt.id) ? 'bg-[#0068ff]/5 text-[#0068ff]' : 'text-gray-800 hover:bg-gray-100'}
                 active:bg-gray-200 flex items-center justify-between
               `}
                     >
-                      <span>{opt.label}</span>
-                      {form.department === opt.value && <HiCheck className="w-5 h-5 text-[#0068ff]" />}
+                      <span>{opt.name}</span>
+                      {form.department === String(opt.id) && <HiCheck className="w-5 h-5 text-[#0068ff]" />}
                     </button>
                   ))}
                 </div>

@@ -105,14 +105,18 @@ export function ProfileInfo({
   }
 
   const departmentOptions = [
-    { value: '101', label: 'Kinh doanh' },
-    { value: '102', label: 'Marketing' },
-    { value: '103', label: 'Kỹ thuật' },
-    { value: '104', label: 'Nhân sự' },
-    { value: '105', label: 'Tài chính' },
+    { id: 2, name: 'Quản lý' },
+    { id: 3, name: 'Kinh doanh' },
+    { id: 4, name: 'Thiết kế' },
+    { id: 5, name: 'Sản xuất' },
+    { id: 6, name: 'Sàn TMĐT' },
+    { id: 7, name: 'Kế toán' },
+    { id: 8, name: 'Kho TM' },
+    { id: 9, name: 'HCNS' },
+    { id: 10, name: 'Maketing' },
   ];
   const deptLabel =
-    departmentOptions.find((o) => o.value === String(form.department))?.label || form.department || 'Chưa cập nhật';
+    departmentOptions.find((o) => o.id === Number(form.department))?.name || form.department || 'Chưa cập nhật';
 
   return (
     <div className="bg-white rounded-lg p-4">

@@ -164,14 +164,18 @@ export default function ProfileByIdPage() {
 
   const departmentLabel = useMemo(() => {
     const opts = [
-      { value: '101', label: 'Kinh doanh' },
-      { value: '102', label: 'Marketing' },
-      { value: '103', label: 'Kỹ thuật' },
-      { value: '104', label: 'Nhân sự' },
-      { value: '105', label: 'Tài chính' },
+      { id: 2, name: 'Quản lý' },
+      { id: 3, name: 'Kinh doanh' },
+      { id: 4, name: 'Thiết kế' },
+      { id: 5, name: 'Sản xuất' },
+      { id: 6, name: 'Sàn TMĐT' },
+      { id: 7, name: 'Kế toán' },
+      { id: 8, name: 'Kho TM' },
+      { id: 9, name: 'HCNS' },
+      { id: 10, name: 'Maketing' },
     ];
     const val = String(displayDept || overviewData.department || '');
-    return opts.find((o) => o.value === val)?.label || val || 'Chưa xác định';
+    return opts.find((o) => o.id === Number(val))?.name || val || 'Chưa xác định';
   }, [displayDept, overviewData.department]);
 
   const handleProfileUpdate = (data: Record<string, unknown>) => {
@@ -189,10 +193,10 @@ export default function ProfileByIdPage() {
         {/* Top Header Section */}
         <div className="relative bg-white pb-4 mb-2">
           {/* Header Actions */}
-          <div className="absolute top-0 left-0 right-0 z-30 flex md:justify-end justify-between items-center p-4 text-white">
+          <div className="absolute top-0 left-0 right-0 z-30 flex md:justify-end justify-end items-center p-4 text-white">
             <button
               onClick={() => router.back()}
-              className="cursor-pointer md:hidden block p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
+              className="cursor-pointer hidden p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
             >
               <HiChevronLeft className="w-6 h-6" />
             </button>

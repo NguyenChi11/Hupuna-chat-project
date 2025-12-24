@@ -41,11 +41,46 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
   });
 
   const departmentOptions = [
-    { value: '101', label: 'Kinh doanh' },
-    { value: '102', label: 'Marketing' },
-    { value: '103', label: 'Kỹ thuật' },
-    { value: '104', label: 'Nhân sự' },
-    { value: '105', label: 'Tài chính' },
+    {
+      id: 1,
+      name: 'Ban lãnh đạo',
+    },
+    {
+      id: 2,
+      name: 'Quản lý',
+    },
+    {
+      id: 3,
+      name: 'Kinh doanh',
+    },
+    {
+      id: 4,
+      name: 'Thiết kế',
+    },
+    {
+      id: 5,
+      name: 'Sản xuất',
+    },
+    {
+      id: 6,
+      name: 'Sàn TMĐT',
+    },
+    {
+      id: 7,
+      name: 'Kế toán',
+    },
+    {
+      id: 8,
+      name: 'Kho TM',
+    },
+    {
+      id: 9,
+      name: 'HCNS',
+    },
+    {
+      id: 10,
+      name: 'Maketing',
+    },
   ];
 
   const statusOptions = [
@@ -175,8 +210,14 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
               user={user}
               displayName={displayName}
               displayId={displayId}
-              departmentOptions={departmentOptions}
-              statusOptions={statusOptions}
+              departmentOptions={departmentOptions.map((item) => ({
+                value: String(item.id),
+                label: item.name,
+              }))}
+              statusOptions={statusOptions.map((item) => ({
+                value: String(item.value),
+                label: item.label,
+              }))}
               profileUrl={profileUrl}
               onEdit={() => setViewMode('editInfo')}
               onChangePassword={() => setViewMode('changePassword')}
@@ -218,8 +259,14 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
                 }
               }}
               loading={loading}
-              departmentOptions={departmentOptions}
-              statusOptions={statusOptions}
+              departmentOptions={departmentOptions.map((item) => ({
+                value: String(item.id),
+                label: item.name,
+              }))}
+              statusOptions={statusOptions.map((item) => ({
+                value: String(item.value),
+                label: item.label,
+              }))}
               onSubmit={() => updateUser(form)}
               onCancel={() => setViewMode('profile')}
             />
