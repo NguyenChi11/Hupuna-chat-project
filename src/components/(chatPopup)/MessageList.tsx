@@ -282,9 +282,94 @@ export default function MessageList({
                         <div className={`flex flex-col min-w-0 ${isMeGroup ? 'items-end' : 'items-start'}`}>
                           <div
                             className={`px-0 py-0 rounded-lg shadow-none max-w-[70vw] sm:max-w-[22rem] mt-1 bg-transparent relative ${hasReactions ? 'mb-4' : ''}`}
+                            style={
+                              isMobile && swipeState.id === msg._id
+                                ? { transform: `translateX(${Math.max(-100, Math.min(100, swipeState.dx))}px)` }
+                                : undefined
+                            }
                             onClick={() => {
                               setActiveMoreId(msg._id);
                               setReactionDetail(null);
+                            }}
+                            onTouchStart={(e) => {
+                              try {
+                                if (isRecalled) return;
+                                longPressTriggeredRef.current = false;
+                                if (longPressTimerRef.current != null) {
+                                  clearTimeout(longPressTimerRef.current);
+                                  longPressTimerRef.current = null;
+                                }
+                                const t = e.touches && e.touches[0];
+                                const x0 = t ? t.clientX : 0;
+                                const y0 = t ? t.clientY : 0;
+                                const el = e.currentTarget as HTMLElement;
+                                swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe: isMeGroup };
+                                setSwipeState({ id: null, dx: 0 });
+                                setLongPressActiveId(msg._id);
+                                longPressTimerRef.current = window.setTimeout(() => {
+                                  longPressTriggeredRef.current = true;
+                                  setActiveMoreId(msg._id);
+                                  setReactionDetail(null);
+                                  onMobileLongPress?.(msg, el, x0, y0);
+                                }, 420);
+                              } catch {}
+                            }}
+                            onTouchEnd={(e) => {
+                              try {
+                                if (longPressTimerRef.current != null) {
+                                  clearTimeout(longPressTimerRef.current);
+                                  longPressTimerRef.current = null;
+                                }
+                                setLongPressActiveId(null);
+                                if (longPressTriggeredRef.current) {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }
+                                if (isMobile && swipeStartRef.current.id === msg._id) {
+                                  const okDir = swipeStartRef.current.isMe ? swipeState.dx < -64 : swipeState.dx > 64;
+                                  if (okDir) {
+                                    onReplyMessage?.(msg);
+                                  }
+                                  setSwipeState({ id: null, dx: 0 });
+                                  swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
+                                }
+                              } catch {}
+                            }}
+                            onTouchMove={(e) => {
+                              try {
+                                if (longPressTimerRef.current != null) {
+                                  clearTimeout(longPressTimerRef.current);
+                                  longPressTimerRef.current = null;
+                                }
+                                setLongPressActiveId(null);
+                                if (!isMobile) return;
+                                const t = e.touches && e.touches[0];
+                                const x = t ? t.clientX : 0;
+                                const y = t ? t.clientY : 0;
+                                const dx = x - swipeStartRef.current.x;
+                                const dy = y - swipeStartRef.current.y;
+                                if (swipeStartRef.current.id === msg._id) {
+                                  const horizontal = Math.abs(dx) > 8 && Math.abs(dy) < 24;
+                                  if (horizontal) {
+                                    const dirOk = swipeStartRef.current.isMe ? dx < 0 : dx > 0;
+                                    setSwipeState({ id: msg._id, dx: dirOk ? dx : 0 });
+                                    e.preventDefault();
+                                  }
+                                }
+                              } catch {}
+                            }}
+                            onTouchCancel={() => {
+                              try {
+                                if (longPressTimerRef.current != null) {
+                                  clearTimeout(longPressTimerRef.current);
+                                  longPressTimerRef.current = null;
+                                }
+                                setLongPressActiveId(null);
+                                if (isMobile && swipeStartRef.current.id === msg._id) {
+                                  setSwipeState({ id: null, dx: 0 });
+                                  swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
+                                }
+                              } catch {}
                             }}
                           >
                             {!isRecalled && (
@@ -312,6 +397,20 @@ export default function MessageList({
                                 >
                                   <ICShareMessage className="w-4 h-4 text-indigo-600" />
                                 </button>
+                                {isMobile && swipeState.id === msg._id && (
+                                  <div
+                                    className={`absolute top-1/2 -translate-y-1/2 ${isMeGroup ? 'left-full ml-2' : 'right-full mr-2'}`}
+                                    style={{ opacity: Math.min(Math.abs(swipeState.dx) / 64, 1) }}
+                                  >
+                                    <div className="p-2 bg-white rounded-full shadow border border-gray-200">
+                                      {isMeGroup ? (
+                                        <HiArrowUturnLeft className="w-5 h-5 text-blue-600" />
+                                      ) : (
+                                        <HiArrowUturnRight className="w-5 h-5 text-blue-600" />
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                                 {!isMobile && (
                                   <>
                                     <button

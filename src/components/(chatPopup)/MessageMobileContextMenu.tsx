@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Message } from '@/types/Message';
 import { RiReplyLine } from 'react-icons/ri';
 import { HiOutlineDownload, HiFolder } from 'react-icons/hi';
@@ -14,6 +14,7 @@ import ICTrash from '../svg/ICTrash';
 import ICFolder from '../svg/ICFolder';
 import ICDownload from '../svg/ICDownload';
 import ICFolder2 from '../svg/ICFolder2';
+import { HiPlay } from 'react-icons/hi2';
 
 interface MessageMobileContextMenuProps {
   contextMenu: ContextMenuState | null;
@@ -77,6 +78,7 @@ export default function MessageMobileContextMenu({
     (msg?.type === 'image' || msg?.type === 'file' || msg?.type === 'sticker' || msg?.type === 'video');
   const canRecall = isMe && !isRecalled;
   const isPinned = !!msg?.isPinned;
+  const [imageDims, setImageDims] = useState<{ w: number; h: number } | null>(null);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -91,6 +93,34 @@ export default function MessageMobileContextMenu({
       document.removeEventListener('touchmove', prevent as EventListener);
     };
   }, [isVisible]);
+
+  useEffect(() => {
+    setImageDims(null);
+  }, [msg?.fileUrl, msg?.type]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    if (msg?.type !== 'image' || !msg?.fileUrl) return;
+    try {
+      const img = document.createElement('img');
+      img.src = getProxyUrl(msg.fileUrl);
+      img.decoding = 'async';
+      img.onload = () => {
+        const natW = img.naturalWidth || 0;
+        const natH = img.naturalHeight || 0;
+        if (natW > 0 && natH > 0) {
+          const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
+          const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
+          const targetH = typeof focusHeight === 'number' ? focusHeight : Math.floor(viewportH * 0.78);
+          const idealW = Math.floor((natW * targetH) / natH);
+          const maxW = Math.floor(viewportW * 0.88);
+          const minW = 120;
+          const w = Math.max(minW, Math.min(idealW, maxW));
+          setImageDims({ w, h: targetH });
+        }
+      };
+    } catch {}
+  }, [isVisible, msg?.type, msg?.fileUrl, focusHeight]);
 
   const handleCopy = async () => {
     const text = msg?.content || '';
@@ -167,28 +197,30 @@ export default function MessageMobileContextMenu({
           </div>
         </div>
       )}
-      {msg.type === 'image' && msg.fileUrl && typeof focusTop === 'number' && (
-        <div
-          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[88vw] max-w-[22rem] px-2 animate-in fade-in zoom-in-95 duration-200"
-          style={{ top: focusTop }}
-        >
-          <div
-            className="mx-auto rounded-2xl shadow-2xl border bg-white border-gray-200 p-2 relative"
-            style={{ maxHeight: focusHeight ? `${focusHeight}px` : '34vh', overflow: 'hidden' }}
-          >
-            <div className=" ">
-              <Image
-                src={getProxyUrl(msg.fileUrl)}
-                alt={msg.fileName || 'Ảnh'}
-                width={300}
-                height={400}
-                className="w-full h-auto object-contain"
-                style={{ maxHeight: '100%' }}
-              />
+      {msg.type === 'image' &&
+        msg.fileUrl &&
+        typeof focusTop === 'number' &&
+        (() => {
+          const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
+          const fallbackW = Math.floor(viewportW * 0.88);
+          const panelW = imageDims?.w ?? fallbackW;
+          const panelStyleWidth: React.CSSProperties = { width: panelW };
+          return (
+            <div
+              className="fixed left-1/2 -translate-x-1/2 z-[10000] px-2 animate-in fade-in zoom-in-95 duration-200"
+              style={{ top: focusTop, ...panelStyleWidth }}
+            >
+              <div
+                className="mx-auto rounded-2xl shadow-2xl border bg-white border-gray-200 p-2 relative"
+                style={{ height: focusHeight ? `${focusHeight}px` : '78vh' }}
+              >
+                <div className="relative w-full h-full">
+                  <Image src={getProxyUrl(msg.fileUrl)} alt={msg.fileName || 'Ảnh'} fill className="object-contain" />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          );
+        })()}
       {msg.type === 'video' && msg.fileUrl && typeof focusTop === 'number' && (
         <div
           className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[88vw] max-w-[22rem] px-2 animate-in fade-in zoom-in-95 duration-200"
@@ -206,6 +238,11 @@ export default function MessageMobileContextMenu({
                 playsInline
                 preload="metadata"
               />
+              <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                <div className="w-12 h-12 bg-white/80 rounded-full flex items-center justify-center shadow">
+                  <HiPlay className="w-7 h-7 text-blue-600 ml-1" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -224,9 +261,7 @@ export default function MessageMobileContextMenu({
                 <HiOutlineDownload className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-800 truncate">
-                  {msg.fileName || 'Tệp đính kèm'}
-                </p>
+                <p className="text-sm font-semibold text-gray-800 truncate">{msg.fileName || 'Tệp đính kèm'}</p>
                 <p className="text-xs text-gray-500 truncate">Giữ để mở thêm hành động</p>
               </div>
             </div>
@@ -411,8 +446,6 @@ export default function MessageMobileContextMenu({
                 <span className="text-[0.75rem] text-gray-800">Thu hồi</span>
               </button>
             )}
-
-            
           </div>
         </div>
       </div>
