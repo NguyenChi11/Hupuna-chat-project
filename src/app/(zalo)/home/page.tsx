@@ -157,6 +157,12 @@ export default function HomePage() {
   }, [currentUser, selectedChat, incomingCallHome]);
 
   useEffect(() => {
+    const close = () => setIncomingCallHome(null);
+    window.addEventListener('closeIncomingOverlay', close as EventListener);
+    return () => window.removeEventListener('closeIncomingOverlay', close as EventListener);
+  }, []);
+
+  useEffect(() => {
     if (!selectedChat) {
       try {
         const raw = localStorage.getItem('__return_room_results__');
@@ -178,6 +184,10 @@ export default function HomePage() {
   
   return (
     <div className="flex h-screen w-full font-sans">
+      {/* Theo dõi việc ChatPopup đã xử lý pendingIncomingCall để đóng overlay trên mobile list */}
+      {incomingCallHome && (
+        <Watcher />
+      )}
       <HomeDesktop
         onNavigateToMessage={handleNavigateToMessage}
         currentUser={currentUser}
@@ -269,7 +279,6 @@ export default function HomePage() {
                         setSelectedChat(c as unknown as GroupConversation);
                       }
                     }
-                    setIncomingCallHome(null);
                     stopGlobalRingTone();
                   }}
                   onReject={() => {
@@ -288,4 +297,30 @@ export default function HomePage() {
       )}
     </div>
   );
+}
+
+function Watcher() {
+  const seenRef = useRef(false);
+  useEffect(() => {
+    const check = () => {
+      try {
+        const raw = localStorage.getItem('pendingIncomingCall');
+        if (raw) {
+          seenRef.current = true;
+          return;
+        }
+        if (seenRef.current) {
+          const evt = new CustomEvent('closeIncomingOverlay');
+          window.dispatchEvent(evt);
+        }
+      } catch {}
+    };
+    const id = setInterval(check, 300);
+    window.addEventListener('storage', check);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('storage', check);
+    };
+  }, []);
+  return null;
 }

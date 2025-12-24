@@ -62,6 +62,7 @@ export function useCallSession({
   const callConnectingRef = useRef<boolean>(false);
   const endingRef = useRef(false);
   const endedRef = useRef(false);
+  const candidateHandlerAttachedRef = useRef<boolean>(false);
   const callTypeRef = useRef<CallType | null>(null);
   const activeRoomIdRef = useRef<string>(roomId);
   const callStartAtRef = useRef<number | null>(null);
@@ -415,11 +416,91 @@ export function useCallSession({
     [currentUserId, socketRef, onCallNotify, counterpartId],
   );
 
-  const toggleMic = useCallback(() => {
+  const toggleMic = useCallback(async () => {
     const next = !micEnabled;
     setMicEnabled(next);
-    const a = localStreamRef.current?.getAudioTracks()[0];
-    if (a) a.enabled = next;
+    let a = localStreamRef.current?.getAudioTracks()[0] || null;
+    if (!a && next) {
+      try {
+        const md = typeof navigator !== 'undefined' ? (navigator as Navigator).mediaDevices : undefined;
+        if (md && typeof md.getUserMedia === 'function') {
+          const temp = await md.getUserMedia({ audio: true, video: false });
+          const newTrack = temp.getAudioTracks()[0] || null;
+          if (newTrack) {
+            if (!localStreamRef.current) localStreamRef.current = new MediaStream();
+            localStreamRef.current.addTrack(newTrack);
+            a = newTrack;
+          }
+        }
+      } catch {}
+    }
+    if (!next) {
+      if (a) {
+        try {
+          a.stop();
+        } catch {}
+        try {
+          localStreamRef.current?.removeTrack(a);
+        } catch {}
+      }
+      peerConnectionsRef.current.forEach((pc) => {
+        try {
+          pc.getTransceivers().forEach((tc) => {
+            const kind = tc.sender?.track?.kind;
+            if (!kind || kind === 'audio') {
+              try {
+                tc.direction = 'recvonly';
+              } catch {}
+            }
+          });
+        } catch {}
+        pc.getSenders().forEach((sender) => {
+          const kind = sender.track?.kind;
+          if (!kind || kind === 'audio') {
+            try {
+              sender.replaceTrack(null);
+            } catch {}
+          }
+        });
+      });
+      return;
+    }
+    if (a) {
+      a.enabled = true;
+    }
+    peerConnectionsRef.current.forEach((pc) => {
+      const audioSenders = pc.getSenders().filter((s) => !s.track || s.track.kind === 'audio');
+      if (audioSenders.length === 0) {
+        if (a && localStreamRef.current) {
+          try {
+            pc.addTrack(a, localStreamRef.current);
+          } catch {}
+        }
+      } else {
+        audioSenders.forEach((sender) => {
+          const cur = sender.track;
+          if (cur !== a) {
+            try {
+              sender.replaceTrack(a || null);
+            } catch {}
+          } else if (a) {
+            try {
+              a.enabled = true;
+            } catch {}
+          }
+        });
+      }
+      try {
+        pc.getTransceivers().forEach((tc) => {
+          const kind = tc.sender?.track?.kind;
+          if (!kind || kind === 'audio') {
+            try {
+              tc.direction = 'sendrecv';
+            } catch {}
+          }
+        });
+      } catch {}
+    });
   }, [micEnabled]);
 
   const toggleCamera = useCallback(() => {
@@ -442,9 +523,25 @@ export function useCallSession({
         setCallActive(true);
       }
       try {
-        if (socketRef.current && socketRef.current.connected) {
-          activeRoomIdRef.current = String(payload.roomId || roomId);
-          socketRef.current.emit('join_room', activeRoomIdRef.current);
+        if (!socketRef.current || !socketRef.current.connected) {
+          socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+          await new Promise<void>((resolve) => {
+            socketRef.current!.on('connect', () => resolve());
+          });
+          socketRef.current!.emit('join_user', { userId: String(currentUserId) });
+        }
+        activeRoomIdRef.current = String(payload.roomId || roomId);
+        socketRef.current?.emit('join_room', activeRoomIdRef.current);
+        if (socketRef.current && !candidateHandlerAttachedRef.current) {
+          candidateHandlerAttachedRef.current = true;
+          socketRef.current.on('call_candidate', async (data: { roomId: string; target: string; from: string; candidate: RTCIceCandidateInit }) => {
+            if (String(data.target) !== String(currentUserId)) return;
+            const pc = peerConnectionsRef.current.get(String(data.from));
+            if (!pc) return;
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } catch {}
+          });
         }
         setActiveRoomId(activeRoomIdRef.current);
         const parts = String(activeRoomIdRef.current).split('_').filter(Boolean);

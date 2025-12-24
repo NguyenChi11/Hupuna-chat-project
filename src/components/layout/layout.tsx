@@ -31,6 +31,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const groupMembersRef = useRef<Map<string, Array<{ _id: string } | string>>>(new Map());
+  const callNotifySeenRef = useRef<Set<string>>(new Set());
 
   const router = useRouter();
   const pathname = usePathname();
@@ -230,11 +231,26 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         durationSec?: number;
       }) => {
         if (String(data.sender) !== String(currentUser._id)) return;
+        const d0 = Math.max(0, Math.floor(Number(data.durationSec || 0)));
+        const dedupKey = [
+          String(data.roomId),
+          String(data.sender),
+          String(data.callerId),
+          String(data.calleeId),
+          data.type === 'video' ? 'video' : 'voice',
+          data.status,
+          String(d0),
+        ].join('|');
+        if (callNotifySeenRef.current.has(dedupKey)) return;
+        callNotifySeenRef.current.add(dedupKey);
+        setTimeout(() => {
+          callNotifySeenRef.current.delete(dedupKey);
+        }, 10000);
         const kind = data.type === 'video' ? 'video' : 'thoại';
         const incoming = String(data.sender) === String(data.calleeId);
         const dir = incoming ? 'đến' : 'đi';
         const s2 = data.status;
-        const d = Math.max(0, Math.floor(Number(data.durationSec || 0)));
+        const d = d0;
         const m2 = Math.floor(d / 60);
         const ss = d % 60;
         const durStr = `${m2} phút ${ss} giây`;

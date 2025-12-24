@@ -1499,7 +1499,7 @@ export default function MessageList({
                           return (
                             <div
                               onClick={() => onJumpToMessage(repliedToMsg._id)}
-                              className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 text-xs bg-gray-100 border-l-2 border-blue-500 rounded-xl cursor-pointer"
+                              className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 mt-2 text-xs bg-gray-100 border-l-2 border-blue-500 rounded-xl cursor-pointer"
                             >
                               <p className="font-semibold text-blue-600">{msg.replyToMessageName || senderName}</p>
                               <div className="flex items-center gap-2">
