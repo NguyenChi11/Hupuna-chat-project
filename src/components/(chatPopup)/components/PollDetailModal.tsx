@@ -431,15 +431,15 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
         <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {!editing ? (
             <>
-              <p className="md:text-xl text-[1rem] text-gray-800 whitespace-pre-wrap break-words">{question}</p>
+              <p className=" text-[1rem] text-gray-800 whitespace-pre-wrap break-words">{question}</p>
               {message.isPollLocked && (
-                <p className="md:text-xl text-[1rem] text-gray-500 mt-1">
+                <p className=" text-[1rem] text-gray-500 mt-1">
                   Kết thúc lúc{' '}
                   {new Date(message.pollLockedAt || message.editedAt || message.timestamp).toLocaleString('vi-VN')}
                 </p>
               )}
-              <p className="md:text-xl text-[1rem] text-gray-500 mt-2">Chọn nhiều phương án</p>
-              <button onClick={() => setShowVoters((v) => !v)} className="md:text-xl cursor-pointer text-[1rem] text-blue-600 hover:underline mt-2">
+              <p className=" text-[1rem] text-gray-500 mt-2">Chọn nhiều phương án</p>
+              <button onClick={() => setShowVoters((v) => !v)} className=" cursor-pointer text-[1rem] text-blue-600 hover:underline mt-2">
                 {(() => {
                   const userIds = new Set<string>();
                   let totalVotes = 0;
@@ -470,8 +470,8 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                       } ${message.isPollLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="block max-w-full break-words whitespace-pre-wrap md:text-xl text-[1rem] mr-1">{opt}</span>
-                        <span className="text-sm">{votedCount}</span>
+                        <span className="block max-w-full break-words whitespace-pre-wrap text-[1rem] mr-1">{opt}</span>
+                        <span className="text-[0.6875rem]">{votedCount}</span>
                       </div>
 
                       {showVoters && (
