@@ -43,6 +43,7 @@ export default function MessageMobileContextMenu({
   const startYRef = useRef<number | null>(null);
   const movedRef = useRef(false);
   const focusTop = contextMenu?.focusTop ?? undefined;
+  const focusHeight = contextMenu?.focusHeight ?? undefined;
 
   const isVisible = !!contextMenu?.visible;
   const msg = contextMenu?.message as Message | undefined;
@@ -152,36 +153,37 @@ export default function MessageMobileContextMenu({
       {/* Preview bubble fixed at center top */}
       {msg.type === 'text' && typeof focusTop === 'number' && (
         <div
-          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[92vw] max-w-[24rem] px-2"
+          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[88vw] max-w-[22rem] px-2 animate-in fade-in zoom-in-95 duration-200"
           style={{ top: focusTop }}
         >
           <div
             className={`mx-auto rounded-2xl shadow-2xl border ${
               isMe ? 'bg-[#E5F1FF] border-blue-200' : 'bg-white border-gray-200'
             } px-4 py-3 text-[1rem] text-black relative`}
-            style={{ maxHeight: '38vh', overflow: 'hidden' }}
+            style={{ maxHeight: focusHeight ? `${focusHeight}px` : '32vh', overflow: 'hidden' }}
           >
             <div className="whitespace-pre-wrap break-words">{msg.content || ''}</div>
-            <div className=" left-0 right-0 bottom-0 h-16 flex items-end justify-center pointer-events-none"></div>
+            <div className="absolute left-0 right-0 bottom-0 h-8 pointer-events-none bg-gradient-to-t from-white/90 to-transparent" />
           </div>
         </div>
       )}
       {msg.type === 'image' && msg.fileUrl && typeof focusTop === 'number' && (
         <div
-          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[92vw] max-w-[24rem] px-2"
+          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[88vw] max-w-[22rem] px-2 animate-in fade-in zoom-in-95 duration-200"
           style={{ top: focusTop }}
         >
           <div
             className="mx-auto rounded-2xl shadow-2xl border bg-white border-gray-200 p-2 relative"
-            style={{ maxHeight: '38vh', overflow: 'hidden' }}
+            style={{ maxHeight: focusHeight ? `${focusHeight}px` : '34vh', overflow: 'hidden' }}
           >
-            <div className="relative w-full">
+            <div className=" ">
               <Image
                 src={getProxyUrl(msg.fileUrl)}
                 alt={msg.fileName || 'Ảnh'}
-                width={800}
-                height={600}
+                width={300}
+                height={400}
                 className="w-full h-auto object-contain"
+                style={{ maxHeight: '100%' }}
               />
             </div>
           </div>
@@ -189,17 +191,18 @@ export default function MessageMobileContextMenu({
       )}
       {msg.type === 'video' && msg.fileUrl && typeof focusTop === 'number' && (
         <div
-          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[92vw] max-w-[24rem] px-2"
+          className="fixed left-1/2 -translate-x-1/2 z-[10000] w-[88vw] max-w-[22rem] px-2 animate-in fade-in zoom-in-95 duration-200"
           style={{ top: focusTop }}
         >
           <div
             className="mx-auto rounded-2xl shadow-2xl border bg-white border-gray-200 p-2 relative"
-            style={{ maxHeight: '38vh', overflow: 'hidden' }}
+            style={{ maxHeight: focusHeight ? `${focusHeight}px` : '34vh', overflow: 'hidden' }}
           >
             <div className="relative w-full">
               <video
                 src={getProxyUrl(msg.fileUrl)}
                 className="w-full h-auto object-contain bg-black rounded-xl"
+                style={{ maxHeight: '100%' }}
                 playsInline
                 preload="metadata"
               />

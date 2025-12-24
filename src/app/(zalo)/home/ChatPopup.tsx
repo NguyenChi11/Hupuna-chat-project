@@ -974,7 +974,7 @@ export default function ChatWindow({
     const target = e.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
     const menuWidth = 176;
-    const menuHeight = 200;
+    const menuHeight = 260;
     let x = rect.left + (rect.width - menuWidth) / 2;
     x = Math.min(Math.max(x, 8), window.innerWidth - menuWidth - 8);
     let yBelow = rect.bottom + 8;
@@ -999,14 +999,14 @@ export default function ChatWindow({
       const menuHeight = 260;
       const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
       const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
-      const collapsedHeight = Math.floor(viewportH * 0.42);
+      const collapsedHeight = Math.floor(viewportH * 0.34);
       const effectiveHeight = Math.min(rect.height, collapsedHeight);
       try {
         el.scrollIntoView({ behavior: 'auto', block: 'center' });
       } catch {}
-      const heavy = effectiveHeight > viewportH * 0.36;
-      const medium = effectiveHeight > viewportH * 0.28;
-      const baseTopRatio = heavy ? 0.14 : medium ? 0.18 : 0.22;
+      const heavy = effectiveHeight > viewportH * 0.30;
+      const medium = effectiveHeight > viewportH * 0.22;
+      const baseTopRatio = heavy ? 0.12 : medium ? 0.16 : 0.20;
       const baseTop = Math.floor(viewportH * baseTopRatio);
       const safeBottomGap = 20;
       const clamp = (v: number, minV: number, maxV: number) => Math.max(minV, Math.min(v, maxV));
@@ -1064,6 +1064,7 @@ export default function ChatWindow({
         placement,
         message: patchedMsg,
         focusTop,
+        focusHeight: effectiveHeight,
       });
     } catch {}
   }, [messages]);

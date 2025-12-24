@@ -104,6 +104,7 @@ export default function MessageList({
   const longPressTriggeredRef = useRef(false);
   const [mobileCollapsedId, setMobileCollapsedId] = useState<string | null>(null);
   const [swipeState, setSwipeState] = useState<{ id: string | null; dx: number }>({ id: null, dx: 0 });
+  const [longPressActiveId, setLongPressActiveId] = useState<string | null>(null);
   const swipeStartRef = useRef<{ x: number; y: number; id: string | null; isMe: boolean }>({
     x: 0,
     y: 0,
@@ -401,47 +402,51 @@ export default function MessageList({
                                       isSidebarOpen
                                         ? 'sm:w-[6rem] sm:h-[6rem] aspect-square'
                                         : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
-                                    } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''}`}
+                                    } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
                                   onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
                                   onTouchStart={(e) => {
                                     try {
+                                      if (m.isRecalled) return;
                                       longPressTriggeredRef.current = false;
                                       if (longPressTimerRef.current != null) {
-                                          clearTimeout(longPressTimerRef.current);
-                                          longPressTimerRef.current = null;
-                                        }
-                                        const t = e.touches && e.touches[0];
-                                        const x0 = t ? t.clientX : 0;
-                                        const y0 = t ? t.clientY : 0;
-                                        const el = e.currentTarget as HTMLElement;
-                                        longPressTimerRef.current = window.setTimeout(() => {
-                                          longPressTriggeredRef.current = true;
-                                          setActiveMoreId(m._id);
-                                          setReactionDetail(null);
-                                          onMobileLongPress?.(m, el, x0, y0);
-                                        }, 420);
-                                      } catch {}
-                                    }}
-                                    onTouchEnd={(e) => {
-                                      try {
-                                        if (longPressTimerRef.current != null) {
-                                          clearTimeout(longPressTimerRef.current);
-                                          longPressTimerRef.current = null;
-                                        }
-                                        if (longPressTriggeredRef.current) {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                        }
-                                      } catch {}
-                                    }}
-                                    onTouchMove={() => {
-                                      try {
-                                        if (longPressTimerRef.current != null) {
-                                          clearTimeout(longPressTimerRef.current);
-                                          longPressTimerRef.current = null;
-                                        }
-                                      } catch {}
-                                    }}
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      const t = e.touches && e.touches[0];
+                                      const x0 = t ? t.clientX : 0;
+                                      const y0 = t ? t.clientY : 0;
+                                      const el = e.currentTarget as HTMLElement;
+                                      setLongPressActiveId(m._id);
+                                      longPressTimerRef.current = window.setTimeout(() => {
+                                        longPressTriggeredRef.current = true;
+                                        setActiveMoreId(m._id);
+                                        setReactionDetail(null);
+                                        onMobileLongPress?.(m, el, x0, y0);
+                                      }, 420);
+                                    } catch {}
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    try {
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      setLongPressActiveId(null);
+                                      if (longPressTriggeredRef.current) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                      }
+                                    } catch {}
+                                  }}
+                                  onTouchMove={() => {
+                                    try {
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      setLongPressActiveId(null);
+                                    } catch {}
+                                  }}
                                   >
                                     <video
                                       src={getProxyUrl(url)}
@@ -472,47 +477,51 @@ export default function MessageList({
                                     id={`msg-${m._id}`}
                                     className={`relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-sm w-[8rem] h-[8rem] ${
                                       isSidebarOpen ? 'sm:w-[6rem] sm:h-[6rem]' : 'sm:w-[10rem] sm:h-[10rem]'
-                                    } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''}`}
+                                    } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
                                     onClick={() => !up && onOpenMedia(String(m.fileUrl || m.previewUrl || ''), 'image')}
-                                    onTouchStart={(e) => {
-                                      try {
-                                        longPressTriggeredRef.current = false;
-                                        if (longPressTimerRef.current != null) {
-                                          clearTimeout(longPressTimerRef.current);
-                                          longPressTimerRef.current = null;
-                                        }
-                                        const t = e.touches && e.touches[0];
-                                        const x0 = t ? t.clientX : 0;
-                                        const y0 = t ? t.clientY : 0;
-                                        const el = e.currentTarget as HTMLElement;
-                                        longPressTimerRef.current = window.setTimeout(() => {
-                                          longPressTriggeredRef.current = true;
-                                          setActiveMoreId(m._id);
-                                          setReactionDetail(null);
-                                          onMobileLongPress?.(m, el, x0, y0);
-                                        }, 420);
-                                      } catch {}
-                                    }}
-                                    onTouchEnd={(e) => {
-                                      try {
-                                        if (longPressTimerRef.current != null) {
-                                          clearTimeout(longPressTimerRef.current);
-                                          longPressTimerRef.current = null;
-                                        }
-                                        if (longPressTriggeredRef.current) {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                        }
-                                      } catch {}
-                                    }}
-                                    onTouchMove={() => {
-                                      try {
-                                        if (longPressTimerRef.current != null) {
-                                          clearTimeout(longPressTimerRef.current);
-                                          longPressTimerRef.current = null;
-                                        }
-                                      } catch {}
-                                    }}
+                                  onTouchStart={(e) => {
+                                    try {
+                                      if (m.isRecalled) return;
+                                      longPressTriggeredRef.current = false;
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      const t = e.touches && e.touches[0];
+                                      const x0 = t ? t.clientX : 0;
+                                      const y0 = t ? t.clientY : 0;
+                                      const el = e.currentTarget as HTMLElement;
+                                      setLongPressActiveId(m._id);
+                                      longPressTimerRef.current = window.setTimeout(() => {
+                                        longPressTriggeredRef.current = true;
+                                        setActiveMoreId(m._id);
+                                        setReactionDetail(null);
+                                        onMobileLongPress?.(m, el, x0, y0);
+                                      }, 420);
+                                    } catch {}
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    try {
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      setLongPressActiveId(null);
+                                      if (longPressTriggeredRef.current) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                      }
+                                    } catch {}
+                                  }}
+                                  onTouchMove={() => {
+                                    try {
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      setLongPressActiveId(null);
+                                    } catch {}
+                                  }}
                                   >
                                     {String(url).startsWith('blob:') ? (
                                       <Image
@@ -806,10 +815,53 @@ export default function MessageList({
                                     highlightedMsgId === m._id
                                       ? 'bg-yellow-50 border-yellow-300'
                                       : 'border-gray-200 hover:bg-gray-50'
-                                  }`}
+                                  } ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
                                   onClick={(e) => {
                                     const prog = uploadingFiles[m._id];
                                     if (prog !== undefined) e.preventDefault();
+                                  }}
+                                  onTouchStart={(e) => {
+                                    try {
+                                      if (m.isRecalled) return;
+                                      longPressTriggeredRef.current = false;
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      const t = e.touches && e.touches[0];
+                                      const x0 = t ? t.clientX : 0;
+                                      const y0 = t ? t.clientY : 0;
+                                      const el = e.currentTarget as HTMLElement;
+                                      setLongPressActiveId(m._id);
+                                      longPressTimerRef.current = window.setTimeout(() => {
+                                        longPressTriggeredRef.current = true;
+                                        setActiveMoreId(m._id);
+                                        setReactionDetail(null);
+                                        onMobileLongPress?.(m, el, x0, y0);
+                                      }, 420);
+                                    } catch {}
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    try {
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      setLongPressActiveId(null);
+                                      if (longPressTriggeredRef.current) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                      }
+                                    } catch {}
+                                  }}
+                                  onTouchMove={() => {
+                                    try {
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      setLongPressActiveId(null);
+                                    } catch {}
                                   }}
                                   aria-disabled={uploadingFiles[m._id] !== undefined ? true : undefined}
                                 >
@@ -1502,6 +1554,7 @@ export default function MessageList({
                     ${!isRecalled && msg.type === 'file' ? '!px-2 !py-2' : ''}
                   relative ${hasReactions ? 'mb-4' : ''}
                   ${contextMenu?.visible && String(contextMenu.message._id) === String(msg._id) ? 'z-[9998]' : ''}
+                  ${longPressActiveId === msg._id ? 'ring-2 ring-blue-300 scale-[0.98]' : ''}
                   `}
                         style={
                           isMobile && swipeState.id === msg._id
@@ -1515,6 +1568,7 @@ export default function MessageList({
                         }}
                         onTouchStart={(e) => {
                           try {
+                            if (isRecalled) return;
                             longPressTriggeredRef.current = false;
                             if (longPressTimerRef.current != null) {
                               clearTimeout(longPressTimerRef.current);
@@ -1526,6 +1580,7 @@ export default function MessageList({
                             const el = e.currentTarget as HTMLElement;
                             swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe };
                             setSwipeState({ id: null, dx: 0 });
+                            setLongPressActiveId(msg._id);
                             longPressTimerRef.current = window.setTimeout(() => {
                               longPressTriggeredRef.current = true;
                               setActiveMoreId(msg._id);
@@ -1543,6 +1598,7 @@ export default function MessageList({
                               clearTimeout(longPressTimerRef.current);
                               longPressTimerRef.current = null;
                             }
+                            setLongPressActiveId(null);
                             if (longPressTriggeredRef.current) {
                               e.preventDefault();
                               e.stopPropagation();
@@ -1563,6 +1619,7 @@ export default function MessageList({
                               clearTimeout(longPressTimerRef.current);
                               longPressTimerRef.current = null;
                             }
+                            setLongPressActiveId(null);
                             if (!isMobile) return;
                             const t = e.touches && e.touches[0];
                             const x = t ? t.clientX : 0;
@@ -1585,6 +1642,7 @@ export default function MessageList({
                               clearTimeout(longPressTimerRef.current);
                               longPressTimerRef.current = null;
                             }
+                            setLongPressActiveId(null);
                             if (isMobile && swipeStartRef.current.id === msg._id) {
                               setSwipeState({ id: null, dx: 0 });
                               swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
@@ -1702,7 +1760,7 @@ export default function MessageList({
                                   flex items-center gap-1
                                 `}
                                 >
-                                  <div className="flex items-center bg-white rounded-full shadow-lg border border-gray-200">
+                                  <div className="flex items-center">
                                     {items.slice(0, 3).map((it, idx) => (
                                       <div
                                         key={`${msg._id}-react-${idx}`}
