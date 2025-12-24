@@ -505,7 +505,7 @@ export default function ChatInput({
             } catch {}
             setTimeout(() => onToggleEmojiPicker(), 100);
           }}
-          className="md:hidden group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
+          className="lg:hidden group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
           aria-label="Chọn emoji"
         >
           <HiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
@@ -646,7 +646,7 @@ export default function ChatInput({
                     } catch {}
                   }
                 }}
-                className={`md:hidden p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
+                className={`lg:hidden p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
                 aria-label="Gửi tin nhắn"
               >
                 <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
@@ -675,7 +675,7 @@ export default function ChatInput({
                     } catch {}
                   }
                 }}
-                className={`hidden md:block p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
+                className={`hidden lg:block p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
                 aria-label="Gửi tin nhắn"
               >
                 <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
@@ -712,7 +712,7 @@ export default function ChatInput({
                   <AiTwotoneLike className="w-7 h-7" />
                 </button>
               </div>
-              <div className="md:hidden flex items-center gap-2">
+              <div className="lg:hidden flex items-center gap-2">
                 <button
                   ref={toggleMobileActionsBtnRef}
                   onClick={handleToggleMobileActions}
@@ -756,7 +756,7 @@ export default function ChatInput({
       {showMobileActions && (
         <div
           ref={mobileActionsRef}
-          className="md:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+          className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
         >
           <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Gửi ảnh hoặc video">
             {/* Background tròn bao quanh icon */}

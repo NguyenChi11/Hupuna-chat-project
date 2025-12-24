@@ -177,14 +177,14 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
     }
   }, [sortedResults.length]);
 
-  if (!isOpen || (typeof window !== 'undefined' && window.innerWidth < 768)) return null;
+  if (!isOpen || (typeof window !== 'undefined' && window.innerWidth < 1024)) return null;
 
   const handleJump = (messageId: string, index?: number) => {
     if (index !== undefined) {
       setCurrentResultIndex(index);
     }
     onJumpToMessage(messageId);
-    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
     if (isMobile) {
       setTimeout(() => {
         onClose();
@@ -442,7 +442,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
       </div>
 
       {/* Navigation bar - chỉ hiển thị khi có kết quả (mobile only) */}
-      {searchResults.length > 0 && typeof window !== 'undefined' && window.innerWidth < 768 && (
+      {searchResults.length > 0 && typeof window !== 'undefined' && window.innerWidth < 1024 && (
         <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-t border-gray-200">
           <div className="flex items-center gap-2">
             <button
