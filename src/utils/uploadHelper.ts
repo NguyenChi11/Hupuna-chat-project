@@ -10,6 +10,8 @@ export interface UploadSuccessResponse {
   success: true;
   link: string;
   data: MessageCreate;
+  _id?: string;
+  saved?: boolean;
 }
 
 export interface UploadErrorResponse {
