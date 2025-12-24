@@ -61,7 +61,7 @@ export default function CreateReminderModal({ isOpen, onClose, onCreate, createL
     <div className="fixed inset-0 sm:absolute sm:inset-0 z-[50] w-full h-full flex items-stretch justify-center bg-black/50 sm:bg-black/20 backdrop-blur-sm">
       <div className="bg-white w-full h-full rounded-none overflow-hidden animate-in fade-in duration-200 flex flex-col">
         <div className="p-3 pb-3 bg-gray-100 text-black w-full">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between w-full">
             <div className="flex items-center ">
               <button onClick={onClose} className=" cursor-pointer top-3 left-3 p-2 ">
                 <HiX className="w-5 h-5" />

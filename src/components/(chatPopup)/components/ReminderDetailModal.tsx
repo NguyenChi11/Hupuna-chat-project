@@ -33,15 +33,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
   const [menuOpen, setMenuOpen] = useState(false);
   const [showRepeatSheet, setShowRepeatSheet] = useState(false);
   const [showDateSheet, setShowDateSheet] = useState(false);
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
-  useEffect(() => {
-    if (!isDesktop) {
-      setPortalTarget(null);
-      return;
-    }
-    setPortalTarget(document.getElementById('right-sidebar-container'));
-  }, [isDesktop]);
 
   useEffect(() => {
     if (!message) return;
@@ -455,5 +447,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
       </div>
     </div>
   );
-  return isDesktop && portalTarget ? createPortal(modalNode, portalTarget) : modalNode;
+  const target =
+    isDesktop && typeof document !== 'undefined' ? document.getElementById('right-sidebar-container') : null;
+  return isDesktop && target ? createPortal(modalNode, target) : modalNode;
 }
