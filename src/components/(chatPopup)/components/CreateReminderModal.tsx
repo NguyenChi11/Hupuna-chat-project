@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { HiX } from 'react-icons/hi';
-import { HiCalendarDays, HiCheck, HiBellAlert, HiClock, HiUserGroup, HiUser } from 'react-icons/hi2';
+import { HiCalendarDays,  HiBellAlert, HiClock } from 'react-icons/hi2';
 
 interface CreateReminderModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ export default function CreateReminderModal({ isOpen, onClose, onCreate, createL
   const [repeat, setRepeat] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
   const [showRepeatSheet, setShowRepeatSheet] = useState(false);
   const [showDateSheet, setShowDateSheet] = useState(false);
-
+const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
   const defaultDateTime = useMemo(() => {
     const now = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -57,8 +58,12 @@ export default function CreateReminderModal({ isOpen, onClose, onCreate, createL
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 xl:absolute xl:inset-0 z-[50] w-full h-full flex items-stretch justify-center bg-black/50 xl:bg-black/20 backdrop-blur-sm">
+  const modalNode = (
+    <div
+      className={`${isDesktop ? 'absolute inset-0' : 'fixed inset-0'} z-[50] flex items-stretch justify-center ${
+        isDesktop ? 'bg-black/20' : 'bg-black/50'
+      } backdrop-blur-sm`}
+    >
       <div className="bg-white w-full h-full rounded-none overflow-hidden animate-in fade-in duration-200 flex flex-col">
         <div className="p-3 pb-3 bg-gray-100 text-black w-full">
           <div className="flex items-center justify-between w-full">
@@ -201,5 +206,9 @@ export default function CreateReminderModal({ isOpen, onClose, onCreate, createL
         )}
       </div>
     </div>
-  );
+  )
+
+const target =
+    isDesktop && typeof document !== 'undefined' ? document.getElementById('right-sidebar-container') : null;
+  return isDesktop && target ? createPortal(modalNode, target) : modalNode;
 }

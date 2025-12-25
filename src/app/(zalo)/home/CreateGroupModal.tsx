@@ -73,7 +73,7 @@ export default function CreateGroupModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm sm:px-0">
-      <div className="bg-white w-full h-full sm:w-full sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="bg-white w-full h-full sm:w-full sm:max-w-2xl  sm:max-h-[90vh] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-white  border-b border-gray-100 sm:border-none">
           <div className="flex items-center gap-3 w-full">
@@ -163,7 +163,7 @@ export default function CreateGroupModal({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm tên hoặc số điện thoại"
+                placeholder="Tìm tên..."
                 className="w-full pl-12 pr-4 py-2.5 bg-gray-100 rounded-xl focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#0068ff] text-base placeholder:text-gray-500 transition-all duration-200"
               />
             </div>

@@ -133,6 +133,7 @@ export default function ChatWindow({
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [chatInfoInitialSection, setChatInfoInitialSection] = useState<'reminder' | 'poll' | 'members' | null>(null);
   const [openMember, setOpenMember] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
@@ -991,7 +992,7 @@ export default function ChatWindow({
     const target = e.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
     const menuWidth = 176;
-    const menuHeight = 260;
+    const menuHeight = 150;
     let x = rect.left + (rect.width - menuWidth) / 2;
     x = Math.min(Math.max(x, 8), window.innerWidth - menuWidth - 8);
     let yBelow = rect.bottom + 8;
@@ -2692,7 +2693,8 @@ export default function ChatWindow({
             onTogglePopup={() => setShowPopup((prev) => !prev)}
             onOpenMembers={() => {
               if (isGroup) {
-                setOpenMember(true);
+                setChatInfoInitialSection('members');
+                setShowPopup(true);
               } else {
                 const partnerId = getId(selectedChat);
                 if (partnerId) router.push(`/profile/${partnerId}`);
@@ -2807,6 +2809,12 @@ export default function ChatWindow({
               onToggleReaction={handleToggleReaction}
               contextMenu={contextMenu}
               isSidebarOpen={!isMobile && (showPopup || showSearchSidebar)}
+              onOpenChatInfoSection={(section) => {
+                if (!isMobile) {
+                  setChatInfoInitialSection(section);
+                  setShowPopup(true);
+                }
+              }}
             />
             <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>
@@ -3013,7 +3021,10 @@ export default function ChatWindow({
             className="fixed inset-0 sm:relative sm:inset-auto sm:w-[21.875rem] h-full z-20 "
           >
             <ChatInfoPopup
-              onClose={() => setShowPopup(false)}
+              onClose={() => {
+                setShowPopup(false);
+                setChatInfoInitialSection(null);
+              }}
               onShowCreateGroup={onShowCreateGroup}
               onMembersAdded={handleMembersAdded}
               members={activeMembers}
@@ -3026,6 +3037,7 @@ export default function ChatWindow({
               onRefresh={fetchMessages}
               sendNotifyMessage={(text) => sendNotifyMessage(text)}
               lastUpdated={nicknamesStamp}
+              initialSection={chatInfoInitialSection}
             />
           </div>
         )}

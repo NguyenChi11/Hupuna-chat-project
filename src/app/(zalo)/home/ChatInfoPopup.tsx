@@ -43,6 +43,7 @@ interface ChatInfoPopupProps {
   onRefresh?: () => void;
   sendNotifyMessage?: (text: string, membersOverride?: string[]) => Promise<void> | void;
   lastUpdated?: number;
+  initialSection?: 'reminder' | 'poll' | 'members' | null;
 }
 
 export default function ChatInfoPopup({
@@ -59,6 +60,7 @@ export default function ChatInfoPopup({
   onRefresh,
   sendNotifyMessage,
   lastUpdated,
+  initialSection,
 }: ChatInfoPopupProps) {
   const { messages, currentUser, allUsers, chatName, isGroup, selectedChat } = useChatContext();
   const [openMember, setOpenMember] = useState(false);
@@ -98,6 +100,23 @@ export default function ChatInfoPopup({
   useEffect(() => {
     setGroupName(chatName || '');
   }, [chatName]);
+
+  useEffect(() => {
+    if (initialSection === 'reminder') {
+      setIsReminderOpen(true);
+      setIsPollOpen(false);
+      setOpenMember(false);
+    } else if (initialSection === 'poll') {
+      setIsPollOpen(true);
+      setIsReminderOpen(false);
+      setOpenMember(false);
+    } else if (initialSection === 'members') {
+      setIsReminderOpen(false);
+      setIsPollOpen(false);
+      if (isGroup) setOpenMember(true);
+      else setOpenMember(false);
+    }
+  }, [initialSection]);
 
   const {
     localIsPinned,

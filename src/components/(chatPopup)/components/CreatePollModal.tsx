@@ -14,7 +14,7 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
   const [options, setOptions] = useState<string[]>(['', '']);
   const [saving, setSaving] = useState(false);
   const maxOptions = 10;
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches;
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
 
   if (!isOpen) return null;
 

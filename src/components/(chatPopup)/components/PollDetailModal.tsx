@@ -32,7 +32,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const myId = String(currentUser._id);
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches;
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
   const votesMap = useMemo(() => (message?.pollVotes || {}) as Record<string, string[]>, [message]);
   const mySelected = useMemo(() => {
     const arr: string[] = [];
@@ -579,24 +579,24 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                           handleAddOptionConfirm();
                         }
                       }}
-                      className="flex-1 px-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-2xl"
+                      className="flex-1 px-3 py-2 bg-gray-50 outline-none border-2 border-gray-200 rounded-2xl"
                       placeholder="Nhập lựa chọn"
                     />
                     <button
                       onClick={handleAddOptionConfirm}
                       disabled={message.isPollLocked}
-                      className="px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-2 py-2 cursor-pointer bg-blue-600 text-white rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Thêm
+                      +
                     </button>
                     <button
                       onClick={() => {
                         setAdding(false);
                         setNewOption('');
                       }}
-                      className="px-4 py-2 cursor-pointer bg-gray-100 text-gray-700 rounded-2xl"
+                      className="px-2 py-2 text-red-600 cursor-pointer bg-red-50 text-gray-700 rounded-2xl"
                     >
-                      Hủy
+                      <ICTrash className='text-red-600'/>
                     </button>
                   </div>
                 )}

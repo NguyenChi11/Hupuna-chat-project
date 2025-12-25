@@ -371,7 +371,7 @@ export default function GroupMembersModal({
         {/* HEADER */}
         <div className="flex-none bg-gradient-to-b from-sky-500 to-blue-500 text-white">
           <div className="flex items-center justify-between px-4 py-3">
-            <div className='flex items-center gap-2'>
+            <div className="flex items-center gap-2">
               <button onClick={onClose} className="p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -425,7 +425,6 @@ export default function GroupMembersModal({
             >
               Tất cả
             </button>
-            
           </div>
           {/* NICKNAME MODAL - style giống Zalo */}
           {editingNicknameMember && (
@@ -522,21 +521,25 @@ export default function GroupMembersModal({
                     </div>
 
                     {/* Info */}
-                    <div className=" min-w-0">
-                      <div className=" gap-3 flex-wrap">
+                    <div className=" min-w-0 space-y-1">
+                      <div className='flex items-center gap-2'>
                         <p className="text-base font-medium text-gray-900">{member.name}</p>
+
                         {isMe && (
-                          <span className="px-2.5 py-1 bg-[#0088ff]/10 text-[#0088ff] rounded-full text-xs font-medium">
+                          <span className="px-2.5  py-1 bg-[#0088ff]/10 text-[#0088ff] rounded-full text-xs font-medium">
                             Bạn
                           </span>
                         )}
+                      </div>
+
+                      <div className=" gap-3 flex-wrap ">
                         <RoleBadge role={member.role} />
                       </div>
                     </div>
 
                     {/* Actions - chỉ hiện khi hover */}
                     {!isLoading && (
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-2  transition-opacity">
                         <button
                           onClick={() => {
                             const currentRoomNick = String(member.nickname || '');
@@ -632,6 +635,6 @@ export default function GroupMembersModal({
     </div>
   );
   const target =
-    isDesktop && typeof document !== 'undefined' ? document.getElementById('left-sidebar-container') : null;
+    isDesktop && typeof document !== 'undefined' ? document.getElementById('right-sidebar-container') : null;
   return isDesktop && target ? createPortal(modalNode, target) : modalNode;
 }

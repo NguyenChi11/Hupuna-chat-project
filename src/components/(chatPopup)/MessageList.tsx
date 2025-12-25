@@ -64,6 +64,7 @@ interface MessageListProps {
   onMobileLongPress?: (msg: Message, el: HTMLElement, startX: number, startY: number) => void;
   isMobile?: boolean;
   onShareMessage: (msg: Message) => void;
+  onOpenChatInfoSection?: (section: 'reminder' | 'poll') => void;
 }
 
 export default function MessageList({
@@ -94,6 +95,7 @@ export default function MessageList({
   isSidebarOpen = false,
   isMobile = false,
   onShareMessage,
+  onOpenChatInfoSection,
 }: MessageListProps) {
   const [, setTimeVisibleId] = useState<string | null>(null);
   const [expandedOriginalId, setExpandedOriginalId] = useState<string | null>(null);
@@ -1402,7 +1404,10 @@ export default function MessageList({
                         {pillNode}
                         <div className="flex justify-center -mt-2">
                           <button
-                            onClick={() => setDetailMsg(related)}
+                            onClick={() => {
+                              if (!isMobile) onOpenChatInfoSection?.('poll');
+                              setDetailMsg(related);
+                            }}
                             className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
                           >
                             Xem
@@ -1444,7 +1449,10 @@ export default function MessageList({
                           ) : null}
                           <div className="pt-1">
                             <button
-                              onClick={() => setDetailMsg(msg)}
+                              onClick={() => {
+                                if (!isMobile) onOpenChatInfoSection?.('reminder');
+                                setDetailMsg(msg);
+                              }}
                               className="w-full cursor-pointer px-4 py-2 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
                             >
                               Xem chi tiết
@@ -1524,6 +1532,7 @@ export default function MessageList({
                                 key={`${String(msg._id)}-${idx}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  if (!isMobile) onOpenChatInfoSection?.('poll');
                                   setDetailMsg(msg);
                                 }}
                                 className={`w-full cursor-pointer px-4 py-3 rounded-xl border text-left transition-colors ${
@@ -1542,7 +1551,10 @@ export default function MessageList({
                         </div>
                         <div className="pt-2">
                           <button
-                            onClick={() => setDetailMsg(msg)}
+                            onClick={() => {
+                              if (!isMobile) onOpenChatInfoSection?.('poll');
+                              setDetailMsg(msg);
+                            }}
                             className="w-full cursor-pointer px-4 py-2 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
                           >
                             {locked ? 'Xem lựa chọn' : 'Đổi lựa chọn'}
@@ -1833,7 +1845,7 @@ export default function MessageList({
                                   }}
                                   className={`absolute top-1/2 -translate-y-1/2  ${isMe ? 'right-full mr-18' : 'left-full ml-18'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'} transition-opacity duration-200`}
                                 />
-                                <FolderButton
+                                {/* <FolderButton
                                   roomId={String(msg.roomId)}
                                   messageId={String(msg._id)}
                                   isMine={isMe}
@@ -1863,7 +1875,7 @@ export default function MessageList({
                                   onSaved={() => {
                                     setActiveMoreId(null);
                                   }}
-                                />
+                                /> */}
                               </>
                             )}
                           </>

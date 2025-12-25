@@ -33,7 +33,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
   const [menuOpen, setMenuOpen] = useState(false);
   const [showRepeatSheet, setShowRepeatSheet] = useState(false);
   const [showDateSheet, setShowDateSheet] = useState(false);
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches;
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
 
   const originalContent = useMemo(() => String(message?.content || ''), [message]);
   const originalDateTimeISO = useMemo(() => {
