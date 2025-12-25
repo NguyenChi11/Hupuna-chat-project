@@ -11,6 +11,7 @@ import { io } from 'socket.io-client';
 import { resolveSocketUrl } from '@/utils/utils';
 import { getProxyUrl } from '@/utils/utils';
 import Image from 'next/image';
+import ICTrash from '@/components/svg/ICTrash';
 
 interface PollDetailModalProps {
   isOpen: boolean;
@@ -460,35 +461,29 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
               </button>
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl z-[100]">
-                  <button
-                    onClick={() => setMenuOpen(false)}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer"
-                  >
-                    Ghim lên đầu trò chuyện
-                  </button>
-                  <button
-                    onClick={() => setMenuOpen(false)}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer"
-                  >
-                    Gửi vào trò chuyện
-                  </button>
                   {canLock && (
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false);
-                        handleToggleLock();
-                      }}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer"
-                    >
-                      {message.isPollLocked ? 'Mở khóa bình chọn' : 'Khóa bình chọn'}
-                    </button>
+                    <div className=''>
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setEditing(true);
+                        }}
+                        disabled={message.isPollLocked}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Chỉnh sửa bình chọn
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          handleToggleLock();
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer"
+                      >
+                        {message.isPollLocked ? 'Mở khóa bình chọn' : 'Khóa bình chọn'}
+                      </button>
+                    </div>
                   )}
-                  <button
-                    onClick={() => setMenuOpen(false)}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer"
-                  >
-                    Bảng tin nhóm
-                  </button>
                 </div>
               )}
             </div>
@@ -629,35 +624,63 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                     <button
                       onClick={() => handleRemoveOptionEditing(idx)}
                       disabled={message.isPollLocked}
-                      className="px-3 py-2 cursor-pointer bg-red-50 text-red-600 border border-red-200 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-2 cursor-pointer  text-red-600  disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Xóa
+                      <ICTrash />
                     </button>
                   </div>
                 ))}
               </div>
+              
               <button
                 onClick={handleAddOptionEditing}
                 disabled={message.isPollLocked}
-                className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="cursor-pointer px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-xl font-semibold text-sm"
               >
-                Thêm option
+                + Thêm lựa chọn
               </button>
             </>
           )}
         </div>
         <div className="px-6 pb-6 pt-2 border-t border-gray-200 flex-shrink-0">
-          <button
-            onClick={handleConfirmVote}
-            disabled={saving || message.isPollLocked}
-            className={`w-full cursor-pointer py-3.5 rounded-2xl font-semibold ${
-              selected.length > 0 && !message.isPollLocked
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Bình chọn
-          </button>
+          {!editing ? (
+            <button
+              onClick={handleConfirmVote}
+              disabled={saving || message.isPollLocked}
+              className={`w-full cursor-pointer py-3.5 rounded-2xl font-semibold ${
+                selected.length > 0 && !message.isPollLocked
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Bình chọn
+            </button>
+          ) : (
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setEditing(false);
+                  if (message) {
+                    const q = String(message.content || message.pollQuestion || '');
+                    const opts = Array.isArray(message.pollOptions) ? (message.pollOptions as string[]) : [];
+                    setQuestion(q);
+                    setOptions(opts);
+                  }
+                }}
+                disabled={saving}
+                className="flex-1 cursor-pointer py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 cursor-pointer py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl"
+              >
+                Lưu
+              </button>
+            </div>
+          )}
         </div>
         {showVotersPanel && (
           <>
@@ -669,7 +692,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
               }}
             />
             <div className="absolute bottom-0 left-0 right-0 bg-white h-[50vh] rounded-t-2xl shadow-2xl border-t border-gray-200 z-[100] ">
-              <div className="px-4 pt-3 pb-2 flex gap-2 overflow-x-auto whitespace-nowrap">
+              <div className="px-4 pt-3 pb-2 flex gap-2 overflow-x-auto whitespace-nowrap custom-scrollbar">
                 {(message.pollOptions || []).map((opt) => {
                   const cnt = Array.isArray(previewVotesMap[opt]) ? (previewVotesMap[opt] as string[]).length : 0;
                   const active = activeTab === opt || (!activeTab && opt === (message.pollOptions || [])[0]);
