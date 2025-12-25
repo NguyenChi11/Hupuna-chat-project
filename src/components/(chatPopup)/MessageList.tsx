@@ -502,50 +502,50 @@ export default function MessageList({
                                         ? 'sm:w-[6rem] sm:h-[6rem] aspect-square'
                                         : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
                                     } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
-                                  onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
-                                  onTouchStart={(e) => {
-                                    try {
-                                      if (m.isRecalled) return;
-                                      longPressTriggeredRef.current = false;
-                                      if (longPressTimerRef.current != null) {
-                                        clearTimeout(longPressTimerRef.current);
-                                        longPressTimerRef.current = null;
-                                      }
-                                      const t = e.touches && e.touches[0];
-                                      const x0 = t ? t.clientX : 0;
-                                      const y0 = t ? t.clientY : 0;
-                                      const el = e.currentTarget as HTMLElement;
-                                      setLongPressActiveId(m._id);
-                                      longPressTimerRef.current = window.setTimeout(() => {
-                                        longPressTriggeredRef.current = true;
-                                        setActiveMoreId(m._id);
-                                        setReactionDetail(null);
-                                        onMobileLongPress?.(m, el, x0, y0);
-                                      }, 420);
-                                    } catch {}
-                                  }}
-                                  onTouchEnd={(e) => {
-                                    try {
-                                      if (longPressTimerRef.current != null) {
-                                        clearTimeout(longPressTimerRef.current);
-                                        longPressTimerRef.current = null;
-                                      }
-                                      setLongPressActiveId(null);
-                                      if (longPressTriggeredRef.current) {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                      }
-                                    } catch {}
-                                  }}
-                                  onTouchMove={() => {
-                                    try {
-                                      if (longPressTimerRef.current != null) {
-                                        clearTimeout(longPressTimerRef.current);
-                                        longPressTimerRef.current = null;
-                                      }
-                                      setLongPressActiveId(null);
-                                    } catch {}
-                                  }}
+                                    onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
+                                    onTouchStart={(e) => {
+                                      try {
+                                        if (m.isRecalled) return;
+                                        longPressTriggeredRef.current = false;
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        const t = e.touches && e.touches[0];
+                                        const x0 = t ? t.clientX : 0;
+                                        const y0 = t ? t.clientY : 0;
+                                        const el = e.currentTarget as HTMLElement;
+                                        setLongPressActiveId(m._id);
+                                        longPressTimerRef.current = window.setTimeout(() => {
+                                          longPressTriggeredRef.current = true;
+                                          setActiveMoreId(m._id);
+                                          setReactionDetail(null);
+                                          onMobileLongPress?.(m, el, x0, y0);
+                                        }, 420);
+                                      } catch {}
+                                    }}
+                                    onTouchEnd={(e) => {
+                                      try {
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        setLongPressActiveId(null);
+                                        if (longPressTriggeredRef.current) {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                        }
+                                      } catch {}
+                                    }}
+                                    onTouchMove={() => {
+                                      try {
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        setLongPressActiveId(null);
+                                      } catch {}
+                                    }}
                                   >
                                     <video
                                       src={getProxyUrl(url)}
@@ -578,49 +578,49 @@ export default function MessageList({
                                       isSidebarOpen ? 'sm:w-[6rem] sm:h-[6rem]' : 'sm:w-[10rem] sm:h-[10rem]'
                                     } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
                                     onClick={() => !up && onOpenMedia(String(m.fileUrl || m.previewUrl || ''), 'image')}
-                                  onTouchStart={(e) => {
-                                    try {
-                                      if (m.isRecalled) return;
-                                      longPressTriggeredRef.current = false;
-                                      if (longPressTimerRef.current != null) {
-                                        clearTimeout(longPressTimerRef.current);
-                                        longPressTimerRef.current = null;
-                                      }
-                                      const t = e.touches && e.touches[0];
-                                      const x0 = t ? t.clientX : 0;
-                                      const y0 = t ? t.clientY : 0;
-                                      const el = e.currentTarget as HTMLElement;
-                                      setLongPressActiveId(m._id);
-                                      longPressTimerRef.current = window.setTimeout(() => {
-                                        longPressTriggeredRef.current = true;
-                                        setActiveMoreId(m._id);
-                                        setReactionDetail(null);
-                                        onMobileLongPress?.(m, el, x0, y0);
-                                      }, 420);
-                                    } catch {}
-                                  }}
-                                  onTouchEnd={(e) => {
-                                    try {
-                                      if (longPressTimerRef.current != null) {
-                                        clearTimeout(longPressTimerRef.current);
-                                        longPressTimerRef.current = null;
-                                      }
-                                      setLongPressActiveId(null);
-                                      if (longPressTriggeredRef.current) {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                      }
-                                    } catch {}
-                                  }}
-                                  onTouchMove={() => {
-                                    try {
-                                      if (longPressTimerRef.current != null) {
-                                        clearTimeout(longPressTimerRef.current);
-                                        longPressTimerRef.current = null;
-                                      }
-                                      setLongPressActiveId(null);
-                                    } catch {}
-                                  }}
+                                    onTouchStart={(e) => {
+                                      try {
+                                        if (m.isRecalled) return;
+                                        longPressTriggeredRef.current = false;
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        const t = e.touches && e.touches[0];
+                                        const x0 = t ? t.clientX : 0;
+                                        const y0 = t ? t.clientY : 0;
+                                        const el = e.currentTarget as HTMLElement;
+                                        setLongPressActiveId(m._id);
+                                        longPressTimerRef.current = window.setTimeout(() => {
+                                          longPressTriggeredRef.current = true;
+                                          setActiveMoreId(m._id);
+                                          setReactionDetail(null);
+                                          onMobileLongPress?.(m, el, x0, y0);
+                                        }, 420);
+                                      } catch {}
+                                    }}
+                                    onTouchEnd={(e) => {
+                                      try {
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        setLongPressActiveId(null);
+                                        if (longPressTriggeredRef.current) {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                        }
+                                      } catch {}
+                                    }}
+                                    onTouchMove={() => {
+                                      try {
+                                        if (longPressTimerRef.current != null) {
+                                          clearTimeout(longPressTimerRef.current);
+                                          longPressTimerRef.current = null;
+                                        }
+                                        setLongPressActiveId(null);
+                                      } catch {}
+                                    }}
                                   >
                                     {String(url).startsWith('blob:') ? (
                                       <Image
@@ -641,8 +641,41 @@ export default function MessageList({
                                     )}
 
                                     {up && (
-                                      <div className="absolute inset-0 bg-black/70 text-white flex items-center justify-center text-sm font-semibold">
-                                        {Math.round(prog as number)}%
+                                      <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                        {(() => {
+                                          const size = 40;
+                                          const stroke = 4;
+                                          const r = (size - stroke) / 2;
+                                          const c = 2 * Math.PI * r;
+                                          const p = Math.max(0, Math.min(100, Number(prog || 0)));
+                                          return (
+                                            <div className="flex flex-col items-center">
+                                              <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                                                <circle
+                                                  cx={size / 2}
+                                                  cy={size / 2}
+                                                  r={r}
+                                                  stroke="rgba(255,255,255,0.3)"
+                                                  strokeWidth={stroke}
+                                                  fill="none"
+                                                />
+                                                <circle
+                                                  cx={size / 2}
+                                                  cy={size / 2}
+                                                  r={r}
+                                                  stroke="white"
+                                                  strokeWidth={stroke}
+                                                  fill="none"
+                                                  strokeDasharray={c}
+                                                  strokeDashoffset={c - (p / 100) * c}
+                                                  strokeLinecap="round"
+                                                  transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                                                />
+                                              </svg>
+                                              {/* <span className="text-xs text-white font-semibold">{Math.round(p)}%</span> */}
+                                            </div>
+                                          );
+                                        })()}
                                       </div>
                                     )}
                                   </div>
@@ -2099,8 +2132,41 @@ export default function MessageList({
                             )}
 
                             {isUploading && (
-                              <div className="absolute inset-0 bg-black/70 text-white flex items-center justify-center text-sm font-semibold">
-                                {Math.round(uploadProgress)}%
+                              <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                {(() => {
+                                  const size = 40;
+                                  const stroke = 4;
+                                  const r = (size - stroke) / 2;
+                                  const c = 2 * Math.PI * r;
+                                  const p = Math.max(0, Math.min(100, Number(uploadProgress || 0)));
+                                  return (
+                                    <div className="flex flex-col items-center">
+                                      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                                        <circle
+                                          cx={size / 2}
+                                          cy={size / 2}
+                                          r={r}
+                                          stroke="rgba(255,255,255,0.3)"
+                                          strokeWidth={stroke}
+                                          fill="none"
+                                        />
+                                        <circle
+                                          cx={size / 2}
+                                          cy={size / 2}
+                                          r={r}
+                                          stroke="white"
+                                          strokeWidth={stroke}
+                                          fill="none"
+                                          strokeDasharray={c}
+                                          strokeDashoffset={c - (p / 100) * c}
+                                          strokeLinecap="round"
+                                          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                                        />
+                                      </svg>
+                                      {/* <span className="text-xs text-white font-semibold">{Math.round(p)}%</span> */}
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             )}
                           </div>

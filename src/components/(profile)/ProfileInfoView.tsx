@@ -3,11 +3,16 @@
 import InfoRow from '@/components/(profile)/InforRow';
 
 const departments: Record<string, { label: string; color: string }> = {
-  '101': { label: 'Kinh doanh', color: 'bg-pink-100 text-pink-700' },
-  '102': { label: 'Marketing', color: 'bg-purple-100 text-purple-700' },
-  '103': { label: 'Kỹ thuật', color: 'bg-blue-100 text-blue-700' },
-  '104': { label: 'Nhân sự', color: 'bg-green-100 text-green-700' },
-  '105': { label: 'Tài chính', color: 'bg-yellow-100 text-yellow-700' },
+  '1': { label: 'Ban lãnh đạo', color: 'bg-pink-100 text-pink-700' },
+  '2': { label: 'Quản lý', color: 'bg-purple-100 text-purple-700' },
+  '3': { label: 'Kinh doanh', color: 'bg-blue-100 text-blue-700' },
+  '4': { label: 'Thiết kế', color: 'bg-green-100 text-green-700' },
+  '5': { label: 'Sản xuất', color: 'bg-yellow-100 text-yellow-700' },
+  '6': { label: 'Sàn TMĐT', color: 'bg-orange-100 text-orange-700' },
+  '7': { label: 'Kế toán', color: 'bg-red-100 text-red-700' },
+  '8': { label: 'Kho TM', color: 'bg-gray-100 text-gray-700' },
+  '9': { label: 'HCNS', color: 'bg-teal-100 text-teal-700' },
+  '10': { label: 'Maketing', color: 'bg-pink-100 text-pink-700' },
 };
 
 export default function ProfileInfoView({

@@ -14,18 +14,54 @@ export default function ProfileOverview({
   };
 }) {
   const departmentOptions = [
-    { value: '101', label: 'Kinh doanh' },
-    { value: '102', label: 'Marketing' },
-    { value: '103', label: 'Kỹ thuật' },
-    { value: '104', label: 'Nhân sự' },
-    { value: '105', label: 'Tài chính' },
+    {
+      id: 1,
+      name: 'Ban lãnh đạo',
+    },
+    {
+      id: 2,
+      name: 'Quản lý',
+    },
+    {
+      id: 3,
+      name: 'Kinh doanh',
+    },
+    {
+      id: 4,
+      name: 'Thiết kế',
+    },
+    {
+      id: 5,
+      name: 'Sản xuất',
+    },
+    {
+      id: 6,
+      name: 'Sàn TMĐT',
+    },
+    {
+      id: 7,
+      name: 'Kế toán',
+    },
+    {
+      id: 8,
+      name: 'Kho TM',
+    },
+    {
+      id: 9,
+      name: 'HCNS',
+    },
+    {
+      id: 10,
+      name: 'Maketing',
+    },
   ];
-  const deptLabel = departmentOptions.find((o) => o.value === String(data.department))?.label || data.department || 'Chưa cập nhật';
+  const deptLabel =
+    departmentOptions.find((o) => o.id === Number(data.department))?.name || data.department || 'Chưa cập nhật';
 
   return (
     <div className="bg-white rounded-lg p-4">
       <h3 className="text-lg font-bold text-gray-900 mb-4">Thông tin cá nhân</h3>
-      
+
       <div className="space-y-4">
         <div className="flex justify-between items-center py-2 border-b border-gray-100">
           <span className="text-gray-500 w-32">Giới tính</span>

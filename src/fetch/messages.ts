@@ -29,22 +29,30 @@ export async function readMessagesApi(
   roomId: string,
   options?: { skip?: number; limit?: number; before?: number; sortOrder?: 'asc' | 'desc'; extraFilters?: Record<string, unknown> },
 ): Promise<MessagesApiResponse<Message[]>> {
-  const filters: Record<string, unknown> = { roomId, ...(options?.extraFilters || {}) };
-  if (typeof options?.before === 'number') {
-    filters.timestamp = { $lt: options.before };
+  try {
+    const filters: Record<string, unknown> = { roomId, ...(options?.extraFilters || {}) };
+    if (typeof options?.before === 'number') {
+      filters.timestamp = { $lt: options.before };
+    }
+    const res = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'read',
+        filters,
+        skip: options?.skip ?? 0,
+        limit: options?.limit ?? 20,
+        sort: { field: 'timestamp', order: options?.sortOrder ?? 'desc' },
+      }),
+    });
+    if (!res.ok) {
+      return { success: false, message: res.statusText };
+    }
+    return res.json();
+  } catch (error) {
+    console.error('readMessagesApi error:', error);
+    return { success: false, message: String(error) };
   }
-  const res = await fetch('/api/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'read',
-      filters,
-      skip: options?.skip ?? 0,
-      limit: options?.limit ?? 20,
-      sort: { field: 'timestamp', order: options?.sortOrder ?? 'desc' },
-    }),
-  });
-  return res.json();
 }
 
 export async function readPinnedMessagesApi(

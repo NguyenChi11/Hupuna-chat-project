@@ -1,10 +1,12 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Message, MessageCreate, MessageType } from '@/types/Message';
 import { ChatItem, GroupConversation } from '@/types/Group';
 import { User } from '@/types/User';
 import { uploadFileWithProgress, type UploadResponse } from '@/utils/uploadHelper';
+import { readMessagesApi } from '@/fetch/messages';
+import { setProgress, getProgress, clearProgress } from '@/lib/uploadStore';
 
 let swReadyPromise: Promise<ServiceWorkerRegistration> | null = null;
 let swListenerAttached = false;
@@ -65,6 +67,47 @@ export function useChatUpload({
   onScrollBottom,
 }: UseChatUploadParams) {
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
+  const activeSourcesRef = useRef<Record<string, EventSource>>({});
+
+  type PendingItem = {
+    tempId: string;
+    uploadId: string;
+    type: MessageType;
+    fileName: string;
+    caption?: string;
+    fileUrl: string;
+    percent?: number;
+  };
+  const pendingKey = `pendingUploads:${roomId}`;
+  const readPending = (): PendingItem[] => {
+    try {
+      const raw = localStorage.getItem(pendingKey);
+      return raw ? (JSON.parse(raw) as PendingItem[]) : [];
+    } catch {
+      return [];
+    }
+  };
+  const writePending = (arr: PendingItem[]) => {
+    try {
+      localStorage.setItem(pendingKey, JSON.stringify(arr));
+    } catch {}
+  };
+  const addPending = (item: PendingItem) => {
+    const arr = readPending();
+    const exists = arr.some((x) => x.tempId === item.tempId);
+    const next = exists ? arr.map((x) => (x.tempId === item.tempId ? item : x)) : [...arr, item];
+    writePending(next);
+  };
+  const setPendingPercent = (tempId: string, percent: number) => {
+    const arr = readPending();
+    const next = arr.map((x) => (x.tempId === tempId ? { ...x, percent } : x));
+    writePending(next);
+  };
+  const removePending = (tempId: string) => {
+    const arr = readPending();
+    const next = arr.filter((x) => x.tempId !== tempId);
+    writePending(next);
+  };
 
   const handleUploadAndSend = useCallback(
     async (
@@ -96,6 +139,9 @@ export function useChatUpload({
       }
       formData.append('type', type);
       formData.append('fileName', file.name);
+      if (batchId) {
+        formData.append('batchId', batchId);
+      }
 
       let folderNameStr = '';
       if (isGroup) {
@@ -125,6 +171,16 @@ export function useChatUpload({
 
       setMessages((prev) => [...prev, tempMsg]);
       setUploadingFiles((prev) => ({ ...prev, [tempId]: 0 }));
+      setProgress(tempId, 0);
+      addPending({
+        tempId,
+        uploadId,
+        type,
+        fileName: file.name,
+        caption,
+        fileUrl: tempMsg.fileUrl || '',
+        percent: 0,
+      });
       try {
         onScrollBottom?.();
       } catch {}
@@ -140,8 +196,11 @@ export function useChatUpload({
         const updatePercent = (p: number) => {
           const displayed = Math.min(p, 95);
           setUploadingFiles((prev) => ({ ...prev, [tempId]: displayed }));
+          setProgress(tempId, displayed);
+          setPendingPercent(tempId, displayed);
         };
         if (es) {
+          activeSourcesRef.current[uploadId] = es;
           es.onmessage = (ev) => {
             try {
               const payload = JSON.parse((ev as MessageEvent).data) as { percent?: number; done?: boolean };
@@ -150,12 +209,14 @@ export function useChatUpload({
               const done = !!payload.done;
               if (done) {
                 es.close();
+                delete activeSourcesRef.current[uploadId];
               }
             } catch {}
           };
           es.onerror = () => {
             try {
               es.close();
+              delete activeSourcesRef.current[uploadId];
             } catch {}
           };
         }
@@ -172,6 +233,7 @@ export function useChatUpload({
                 type,
                 fileName: file.name,
                 folderName: folderNameStr,
+                batchId,
               };
               controller?.postMessage({ type: 'UPLOAD', uploadId, fields });
             });
@@ -181,7 +243,7 @@ export function useChatUpload({
               setMessages((prev) => prev.filter((m) => m._id !== tempId));
               const socketData: MessageCreate = {
                 ...finalMsg,
-                _id: res.data._id || Date.now().toString(),
+                _id: res._id || res.data._id || Date.now().toString(),
                 roomId,
                 sender: currentUser._id,
                 senderName: senderName || currentUser.name,
@@ -205,6 +267,7 @@ export function useChatUpload({
         }
         try {
           es?.close();
+          if (es) delete activeSourcesRef.current[uploadId];
         } catch {}
       } else {
         for (let attempt = 0; attempt < 2 && !success; attempt++) {
@@ -215,6 +278,8 @@ export function useChatUpload({
               (clientRawPercent) => {
                 const displayed = Math.min(clientRawPercent, 95);
                 setUploadingFiles((prev) => ({ ...prev, [tempId]: displayed }));
+                setProgress(tempId, displayed);
+                setPendingPercent(tempId, displayed);
               },
             )) as UploadResponse;
             if (res.success) {
@@ -223,7 +288,7 @@ export function useChatUpload({
               setMessages((prev) => prev.filter((m) => m._id !== tempId));
               const socketData: MessageCreate = {
                 ...finalMsg,
-                _id: res.data._id || Date.now().toString(),
+                _id: res._id || res.data._id || Date.now().toString(),
                 roomId,
                 sender: currentUser._id,
                 senderName: senderName || currentUser.name,
@@ -259,9 +324,211 @@ export function useChatUpload({
         delete newState[tempId];
         return newState;
       });
+      clearProgress(tempId);
+      removePending(tempId);
     },
     [roomId, currentUser, isGroup, selectedChat, sendMessageProcess, setMessages, onScrollBottom],
   );
+
+  useEffect(() => {
+    const pending = readPending();
+    if (pending.length === 0) return;
+    pending.forEach((item) => {
+      setMessages((prev) => {
+        const exists = prev.some((m) => m._id === item.tempId);
+        if (exists) return prev;
+        const msg: Message & { isSending?: boolean } = {
+          _id: item.tempId,
+          roomId,
+          sender: currentUser._id,
+          senderModel: currentUser,
+          type: item.type,
+          fileUrl: item.fileUrl,
+          fileName: item.fileName,
+          timestamp: Date.now(),
+          content: item.caption,
+          isSending: true,
+        };
+        return [...prev, msg];
+      });
+      const p = getProgress(item.tempId);
+      const percent = p >= 0 ? p : item.percent || 0;
+      setUploadingFiles((prev) => ({ ...prev, [item.tempId]: Math.min(percent, 95) }));
+      if (!activeSourcesRef.current[item.uploadId]) {
+        try {
+          const es = new EventSource(`/api/upload/progress?id=${encodeURIComponent(item.uploadId)}`);
+          activeSourcesRef.current[item.uploadId] = es;
+          es.onmessage = (ev) => {
+            try {
+              const payload = JSON.parse((ev as MessageEvent).data) as { percent?: number; done?: boolean };
+              const percentN = typeof payload.percent === 'number' ? payload.percent : 0;
+              const displayed = Math.min(percentN, 95);
+              setUploadingFiles((prev) => ({ ...prev, [item.tempId]: displayed }));
+              setProgress(item.tempId, displayed);
+              setPendingPercent(item.tempId, displayed);
+              const done = !!payload.done;
+              if (done) {
+                es.close();
+                delete activeSourcesRef.current[item.uploadId];
+                setUploadingFiles((prev) => {
+                  const next = { ...prev };
+                  delete next[item.tempId];
+                  return next;
+                });
+                setMessages((prev) => prev.filter((m) => m._id !== item.tempId));
+                clearProgress(item.tempId);
+                removePending(item.tempId);
+                (async () => {
+                  try {
+                    const resp = await readMessagesApi(roomId, {
+                      limit: 1,
+                      sortOrder: 'desc',
+                      extraFilters: { uploadId: item.uploadId },
+                    });
+                    const list = (resp?.data as Message[]) || [];
+                    const match = list[0];
+                    if (match) {
+                      setMessages((prev) => {
+                        const exists = prev.some((mm) => String(mm._id) === String(match._id));
+                        return exists ? prev : [...prev, match];
+                      });
+                    }
+                  } catch {}
+                })();
+              }
+            } catch {}
+          };
+          es.onerror = () => {
+            try {
+              es.close();
+              delete activeSourcesRef.current[item.uploadId];
+            } catch {}
+          };
+        } catch {}
+      }
+    });
+    setTimeout(() => {
+      const again = readPending();
+      again.forEach((item) => {
+        setMessages((prev) => {
+          const exists = prev.some((m) => m._id === item.tempId);
+          if (exists) return prev;
+          const msg: Message & { isSending?: boolean } = {
+            _id: item.tempId,
+            roomId,
+            sender: currentUser._id,
+            senderModel: currentUser,
+            type: item.type,
+            fileUrl: item.fileUrl,
+            fileName: item.fileName,
+            timestamp: Date.now(),
+            content: item.caption,
+            isSending: true,
+          };
+          return [...prev, msg];
+        });
+      });
+    }, 600);
+    setTimeout(() => {
+      const again = readPending();
+      again.forEach((item) => {
+        setMessages((prev) => {
+          const exists = prev.some((m) => m._id === item.tempId);
+          if (exists) return prev;
+          const msg: Message & { isSending?: boolean } = {
+            _id: item.tempId,
+            roomId,
+            sender: currentUser._id,
+            senderModel: currentUser,
+            type: item.type,
+            fileUrl: item.fileUrl,
+            fileName: item.fileName,
+            timestamp: Date.now(),
+            content: item.caption,
+            isSending: true,
+          };
+          return [...prev, msg];
+        });
+      });
+    }, 1500);
+    return () => {
+      Object.values(activeSourcesRef.current).forEach((es) => {
+        try {
+          es.close();
+        } catch {}
+      });
+      activeSourcesRef.current = {};
+    };
+  }, [roomId, currentUser, setMessages]);
+
+  useEffect(() => {
+    const onSwMessage = async (e: MessageEvent) => {
+      const data = e.data as { type?: string; uploadId?: string; response?: UploadResponse; message?: string };
+      if (!data || !data.type) return;
+      const id = String(data.uploadId || '');
+      if (!id) return;
+      const arr = readPending();
+      const item = arr.find((x) => x.uploadId === id);
+      if (!item) return;
+      if (data.type === 'UPLOAD_COMPLETE' && data.response) {
+        const res = data.response as UploadResponse;
+        if (res.success) {
+          setUploadingFiles((prev) => {
+            const next = { ...prev };
+            delete next[item.tempId];
+            return next;
+          });
+          setMessages((prev) => prev.filter((m) => m._id !== item.tempId));
+          clearProgress(item.tempId);
+          removePending(item.tempId);
+          const finalMsg = res.data;
+          const socketData: MessageCreate = {
+            ...finalMsg,
+            _id: finalMsg._id || Date.now().toString(),
+            roomId,
+            sender: currentUser._id,
+            senderName: currentUser.name,
+            isGroup,
+            receiver: isGroup ? null : '_id' in selectedChat ? (selectedChat as User)._id : '',
+            members: isGroup ? (selectedChat as GroupConversation).members : [],
+            type: item.type,
+            timestamp: Date.now(),
+            content: item.caption,
+            batchId: (finalMsg as unknown as { batchId?: string }).batchId,
+          } as unknown as MessageCreate;
+          try {
+            await sendMessageProcess(socketData);
+          } catch {}
+        } else {
+          setUploadingFiles((prev) => {
+            const next = { ...prev };
+            delete next[item.tempId];
+            return next;
+          });
+          setMessages((prev) => prev.filter((m) => m._id !== item.tempId));
+          clearProgress(item.tempId);
+          removePending(item.tempId);
+        }
+      } else if (data.type === 'UPLOAD_FAILED') {
+        setUploadingFiles((prev) => {
+          const next = { ...prev };
+          delete next[item.tempId];
+          return next;
+        });
+        setMessages((prev) => prev.filter((m) => m._id !== item.tempId));
+        clearProgress(item.tempId);
+        removePending(item.tempId);
+      }
+    };
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', onSwMessage);
+    }
+    return () => {
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', onSwMessage);
+      }
+    };
+  }, [roomId, currentUser, selectedChat, isGroup, sendMessageProcess, setMessages]);
 
   return {
     uploadingFiles,

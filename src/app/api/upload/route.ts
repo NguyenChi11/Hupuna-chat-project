@@ -5,6 +5,8 @@ export const runtime = 'nodejs';
 import { uploadToMega } from '@/lib/megaUploadService';
 import { MessageCreate, MessageType } from '@/types/Message';
 import { setProgress, clearProgress, getProgress } from '@/lib/uploadStore';
+import { addRow } from '@/lib/mongoDBCRUD';
+import { MESSAGES_COLLECTION_NAME } from '@/types/Message';
 
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('uploadId');
@@ -29,6 +31,7 @@ export async function POST(req: NextRequest) {
     const receiver = (form.get('receiver') as string) || '';
     const type = form.get('type') as MessageType;
     const customFolderName = form.get('folderName') as string;
+    const batchId = (form.get('batchId') as string) || undefined;
 
     const finalFolderName = customFolderName || `Chat_${roomId}`;
 
@@ -73,7 +76,7 @@ export async function POST(req: NextRequest) {
     setProgress(uploadId, 100);
     setTimeout(() => clearProgress(uploadId), 2000);
 
-    // 4. Trả kết quả
+    // 4. Lưu message vào DB để đảm bảo hiển thị khi người dùng quay lại phòng
     const messageData: MessageCreate = {
       roomId,
       sender,
@@ -82,9 +85,25 @@ export async function POST(req: NextRequest) {
       fileName: file.name,
       fileUrl: result.link,
       timestamp: Date.now(),
+      batchId,
+      uploadId,
     };
 
-    return NextResponse.json({ success: true, link: result.link, data: messageData });
+    let insertedId: string | undefined = undefined;
+    try {
+      insertedId = await addRow(MESSAGES_COLLECTION_NAME, messageData as MessageCreate & Record<string, unknown>);
+    } catch (e) {
+      // Nếu lỗi DB, vẫn trả kết quả upload thành công để client có thể tự lưu fallback
+      insertedId = undefined;
+    }
+
+    return NextResponse.json({
+      success: true,
+      link: result.link,
+      data: messageData,
+      _id: insertedId,
+      saved: !!insertedId,
+    });
   } catch (err: unknown) {
     console.error('❌ Lỗi:', err);
     setProgress(uploadId, -1); // Báo lỗi

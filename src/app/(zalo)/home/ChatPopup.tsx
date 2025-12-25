@@ -8,7 +8,7 @@ import ChatInfoPopup from './ChatInfoPopup';
 
 import ModalMembers from '../../../components/base/ModalMembers';
 import { User } from '../../../types/User';
-import { Message, MessageCreate } from '../../../types/Message';
+import { Message, MessageCreate, MessageType } from '../../../types/Message';
 import { ChatItem, GroupConversation, MemberInfo } from '../../../types/Group';
 
 import { EmojiClickData } from 'emoji-picker-react';
@@ -602,10 +602,8 @@ export default function ChatWindow({
   const sendMessageProcess = useCallback(
     async (msgData: MessageCreate) => {
       try {
-        const json = await createMessageApi({ ...msgData, roomId });
-
-        if (json.success && typeof json._id === 'string') {
-          const newId = json._id;
+        if (msgData._id) {
+          const newId = String(msgData._id);
           setMessages((prev) => [...prev, { ...msgData, _id: newId } as Message]);
           ensureBottom();
           const socketData = {
@@ -620,6 +618,25 @@ export default function ChatWindow({
           };
           socketRef.current?.emit('send_message', socketData);
           setReplyingTo(null);
+        } else {
+          const json = await createMessageApi({ ...msgData, roomId });
+          if (json.success && typeof json._id === 'string') {
+            const newId = json._id;
+            setMessages((prev) => [...prev, { ...msgData, _id: newId } as Message]);
+            ensureBottom();
+            const socketData = {
+              ...msgData,
+              _id: newId,
+              roomId,
+              sender: currentUser._id,
+              senderName: currentUser.name,
+              isGroup: isGroup,
+              receiver: isGroup ? null : getId(selectedChat),
+              members: isGroup ? (selectedChat as GroupConversation).members : [],
+            };
+            socketRef.current?.emit('send_message', socketData);
+            setReplyingTo(null);
+          }
         }
       } catch (error) {
         console.error('Save message error:', error);
@@ -993,83 +1010,86 @@ export default function ChatWindow({
     });
   }, []);
 
-  const handleMobileLongPress = useCallback((msg: Message, el: HTMLElement, startX: number, startY: number) => {
-    try {
-      const rect = el.getBoundingClientRect();
-      const menuHeight = 260;
-      const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
-      const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
-      const kind = String(msg.type || '');
-      const isVisual = kind === 'image';
-      const collapsedHeight = Math.floor(viewportH * (isVisual ? 0.50 : 0.34));
-      const effectiveHeight = isVisual ? collapsedHeight : Math.min(rect.height, collapsedHeight);
+  const handleMobileLongPress = useCallback(
+    (msg: Message, el: HTMLElement, startX: number, startY: number) => {
       try {
-        el.scrollIntoView({ behavior: 'auto', block: 'center' });
-      } catch {}
-      const heavy = effectiveHeight > viewportH * 0.30;
-      const medium = effectiveHeight > viewportH * 0.22;
-      const baseTopRatio = heavy ? 0.12 : medium ? 0.16 : 0.20;
-      const baseTop = Math.floor(viewportH * baseTopRatio);
-      const safeBottomGap = 20;
-      const clamp = (v: number, minV: number, maxV: number) => Math.max(minV, Math.min(v, maxV));
-      const maxTop = viewportH - effectiveHeight - menuHeight - safeBottomGap;
-      const focusTop = clamp(baseTop, 8, maxTop);
-      const placement: 'above' | 'below' = 'below';
-      const yBelow = focusTop + effectiveHeight + 16;
-
-      let patchedMsg = msg;
-      try {
-        const idx = messages.findIndex((m) => String(m._id) === String(msg._id));
+        const rect = el.getBoundingClientRect();
+        const menuHeight = 260;
+        const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
+        const viewportW = typeof window !== 'undefined' ? window.innerWidth : 600;
         const kind = String(msg.type || '');
-        const isMedia = kind === 'image' || kind === 'video';
-        const isFileNonVideo = kind === 'file' && !(msg.fileUrl && isVideoFile(String(msg.fileUrl)));
-        if (idx >= 0 && (isMedia || isFileNonVideo)) {
-          const senderId = (() => {
-            const idA = (msg.sender as unknown as { _id?: unknown })?._id;
-            const idB = (msg.sender as unknown as { id?: unknown })?.id;
-            return String(idA ?? idB ?? msg.sender ?? '');
-          })();
-          const group: Message[] = [messages[idx]];
-          for (let k = idx + 1; k < messages.length; k += 1) {
-            const next = messages[k];
-            if (next.isRecalled) break;
-            const nextKind = String(next.type || '');
-            const nextIsMedia = nextKind === 'image' || nextKind === 'video';
-            const nextIsFileNonVideo = nextKind === 'file' && !(next.fileUrl && isVideoFile(String(next.fileUrl)));
-            if (isMedia ? !nextIsMedia : !nextIsFileNonVideo) break;
-            const nextSenderId = (() => {
-              const idA = (next.sender as unknown as { _id?: unknown })?._id;
-              const idB = (next.sender as unknown as { id?: unknown })?.id;
-              return String(idA ?? idB ?? next.sender ?? '');
-            })();
-            const dt = Math.abs(Number(next.timestamp) - Number(group[group.length - 1].timestamp));
-            if (nextSenderId !== senderId || dt > 120000) break;
-            group.push(next);
-          }
-          if (group.length > 1) {
-            const items = group.map((m) => ({
-              id: String(m._id),
-              content: m.content || '',
-              type: m.type === 'video' ? 'video' : m.type === 'image' ? 'image' : 'file',
-              fileUrl: String(m.fileUrl || m.previewUrl || ''),
-              fileName: m.fileName,
-            }));
-            patchedMsg = { ...msg, batchItems: items } as unknown as Message;
-          }
-        }
-      } catch {}
+        const isVisual = kind === 'image';
+        const collapsedHeight = Math.floor(viewportH * (isVisual ? 0.5 : 0.34));
+        const effectiveHeight = isVisual ? collapsedHeight : Math.min(rect.height, collapsedHeight);
+        try {
+          el.scrollIntoView({ behavior: 'auto', block: 'center' });
+        } catch {}
+        const heavy = effectiveHeight > viewportH * 0.3;
+        const medium = effectiveHeight > viewportH * 0.22;
+        const baseTopRatio = heavy ? 0.12 : medium ? 0.16 : 0.2;
+        const baseTop = Math.floor(viewportH * baseTopRatio);
+        const safeBottomGap = 20;
+        const clamp = (v: number, minV: number, maxV: number) => Math.max(minV, Math.min(v, maxV));
+        const maxTop = viewportH - effectiveHeight - menuHeight - safeBottomGap;
+        const focusTop = clamp(baseTop, 8, maxTop);
+        const placement: 'above' | 'below' = 'below';
+        const yBelow = focusTop + effectiveHeight + 16;
 
-      setContextMenu({
-        visible: true,
-        x: Math.floor(viewportW / 2),
-        y: Math.max(8, yBelow),
-        placement,
-        message: patchedMsg,
-        focusTop,
-        focusHeight: effectiveHeight,
-      });
-    } catch {}
-  }, [messages]);
+        let patchedMsg = msg;
+        try {
+          const idx = messages.findIndex((m) => String(m._id) === String(msg._id));
+          const kind = String(msg.type || '');
+          const isMedia = kind === 'image' || kind === 'video';
+          const isFileNonVideo = kind === 'file' && !(msg.fileUrl && isVideoFile(String(msg.fileUrl)));
+          if (idx >= 0 && (isMedia || isFileNonVideo)) {
+            const senderId = (() => {
+              const idA = (msg.sender as unknown as { _id?: unknown })?._id;
+              const idB = (msg.sender as unknown as { id?: unknown })?.id;
+              return String(idA ?? idB ?? msg.sender ?? '');
+            })();
+            const group: Message[] = [messages[idx]];
+            for (let k = idx + 1; k < messages.length; k += 1) {
+              const next = messages[k];
+              if (next.isRecalled) break;
+              const nextKind = String(next.type || '');
+              const nextIsMedia = nextKind === 'image' || nextKind === 'video';
+              const nextIsFileNonVideo = nextKind === 'file' && !(next.fileUrl && isVideoFile(String(next.fileUrl)));
+              if (isMedia ? !nextIsMedia : !nextIsFileNonVideo) break;
+              const nextSenderId = (() => {
+                const idA = (next.sender as unknown as { _id?: unknown })?._id;
+                const idB = (next.sender as unknown as { id?: unknown })?.id;
+                return String(idA ?? idB ?? next.sender ?? '');
+              })();
+              const dt = Math.abs(Number(next.timestamp) - Number(group[group.length - 1].timestamp));
+              if (nextSenderId !== senderId || dt > 120000) break;
+              group.push(next);
+            }
+            if (group.length > 1) {
+              const items = group.map((m) => ({
+                id: String(m._id),
+                content: m.content || '',
+                type: m.type === 'video' ? 'video' : m.type === 'image' ? 'image' : 'file',
+                fileUrl: String(m.fileUrl || m.previewUrl || ''),
+                fileName: m.fileName,
+              }));
+              patchedMsg = { ...msg, batchItems: items } as unknown as Message;
+            }
+          }
+        } catch {}
+
+        setContextMenu({
+          visible: true,
+          x: Math.floor(viewportW / 2),
+          y: Math.max(8, yBelow),
+          placement,
+          message: patchedMsg,
+          focusTop,
+          focusHeight: effectiveHeight,
+        });
+      } catch {}
+    },
+    [messages],
+  );
 
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
@@ -1393,6 +1413,44 @@ export default function ChatWindow({
       );
       const asc = desc.slice().reverse();
       setMessages(asc);
+      try {
+        const rawPending = localStorage.getItem(`pendingUploads:${roomId}`);
+        const arr = rawPending
+          ? (JSON.parse(rawPending) as Array<{
+              tempId: string;
+              type: MessageType;
+              fileName: string;
+              caption?: string;
+              fileUrl: string;
+            }>)
+          : [];
+        if (Array.isArray(arr) && arr.length > 0) {
+          setMessages((prev) => {
+            const existing = new Set(prev.map((m) => String(m._id)));
+            const toAdd = arr
+              .filter((x) => !existing.has(String(x.tempId)))
+              .map((x) => ({
+                _id: x.tempId,
+                roomId,
+                sender: currentUser._id,
+                senderModel: currentUser,
+                type: x.type,
+                fileUrl: x.fileUrl,
+                fileName: x.fileName,
+                timestamp: Date.now(),
+                content: x.caption,
+                isSending: true,
+              })) as Message[];
+            const combined = [...prev, ...toAdd];
+            combined.sort((a, b) => {
+              const ta = Number(a.timestamp) || 0;
+              const tb = Number(b.timestamp) || 0;
+              return ta - tb;
+            });
+            return combined;
+          });
+        }
+      } catch {}
       const first = asc[0]?.timestamp ?? null;
       setOldestTs(first ?? null);
       const total =
@@ -1445,6 +1503,12 @@ export default function ChatWindow({
     void fetchPinnedMessages();
     initialScrolledRef.current = false;
   }, [roomId, fetchMessages, fetchPinnedMessages]);
+
+  // Đồng bộ tin nhắn khi mở lại cùng phòng (selectedChat thay đổi nhưng roomId giữ nguyên)
+  useEffect(() => {
+    if (!roomId) return;
+    void fetchMessages();
+  }, [selectedChat, roomId, fetchMessages]);
 
   const [nicknamesStamp, setNicknamesStamp] = useState(0);
   const allUsersMap = useMemo(() => {
@@ -1574,8 +1638,6 @@ export default function ChatWindow({
       } catch {}
       setNicknamesStamp((s) => s + 1);
     });
-
-    
 
     socketRef.current.on(
       'reaction_updated',
@@ -2121,10 +2183,8 @@ export default function ChatWindow({
     }
 
     if (hasAtt) {
-      // Lấy nickname hiện tại của người gửi cho file
       const myId = String(currentUser._id);
       const senderNick = allUsersMap.get(myId) || currentUser.name;
-
       const batchId = `batch_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       currentAttachments.forEach((att) => {
         handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined, senderNick, batchId).then(() => {
