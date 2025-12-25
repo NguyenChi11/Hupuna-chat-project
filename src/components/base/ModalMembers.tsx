@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { HiX, HiSearch, HiShieldCheck, HiCheck, HiChevronDown, HiPencil } from 'react-icons/hi';
 
@@ -14,6 +15,7 @@ import { confirmAlert } from './alert';
 import { HiUserMinus, HiUserPlus } from 'react-icons/hi2';
 import ICPeopleGroup from '@/components/svg/ICPeopleGroup';
 import io from 'socket.io-client';
+import { KeyIcon } from 'lucide-react';
 
 type LocalMemberInfo = MemberInfo & { originalName?: string };
 
@@ -75,6 +77,7 @@ export default function GroupMembersModal({
   sendNotifyMessage,
   lastUpdated,
 }: Props) {
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [localMembers, setLocalMembers] = useState<LocalMemberInfo[]>([]);
@@ -84,6 +87,8 @@ export default function GroupMembersModal({
     name: string;
     currentVal: string;
   } | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'invited'>('all');
+  const [showSearch, setShowSearch] = useState(false);
   const toast = useToast();
   const router = useRouter();
 
@@ -341,8 +346,8 @@ export default function GroupMembersModal({
   const RoleBadge = ({ role }: { role: GroupRole }) => {
     if (role === 'OWNER')
       return (
-        <span className="ml-2 px-3 py-1.5 rounded-full text-[0.5rem] font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md flex items-center gap-1.5">
-          <HiChevronDown className="w-3 h-3" />
+        <span className=" px-3 py-1.5 rounded-full text-[0.5rem] font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md flex items-center gap-1.5">
+          <KeyIcon className="w-3 h-3" />
           Trưởng nhóm
         </span>
       );
@@ -356,35 +361,72 @@ export default function GroupMembersModal({
     return null;
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center  justify-center bg-black/40 backdrop-blur-sm  sm:px-4  sm:py-6">
-      <div className="bg-white w-full h-full sm:w-full sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-        {/* HEADER - giống modal Tạo nhóm Zalo */}
-        <div className="flex-none px-4 py-3 sm:px-2 sm:py-2 bg-[#f8f9fa] sm:bg-[#0573ff] sm:text-white flex items-center justify-between border-b border-gray-200 sm:border-none">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-[#0088ff] flex items-center justify-center text-white">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
+  const modalNode = (
+    <div
+      className={`${isDesktop ? 'absolute inset-0' : 'fixed inset-0'} z-50 flex items-stretch justify-center ${
+        isDesktop ? 'bg-black/20' : 'bg-black/40'
+      } backdrop-blur-sm sm:px-0`}
+    >
+      <div className="bg-white w-full h-full rounded-none overflow-hidden flex flex-col">
+        {/* HEADER */}
+        <div className="flex-none bg-gradient-to-b from-sky-500 to-blue-500 text-white">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className='flex items-center gap-2'>
+              <button onClick={onClose} className="p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h2 className="text-lg font-bold">Thành viên</h2>
             </div>
-            <h2 className="text-base font-semibold text-gray-900 sm:text-white">Thành viên nhóm</h2>
-            {/* {groupName && <p className="text-base font-semibold text-white-600 mt-1">{groupName}</p>} */}
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowCreateGroupModal(true)}
+                className="p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95"
+                title="Thêm thành viên"
+              >
+                <HiUserPlus className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => setShowSearch((v) => !v)}
+                className="p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95"
+                title="Tìm kiếm"
+              >
+                <HiSearch className="w-6 h-6" />
+              </button>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-200 sm:hover:bg-[#0088ff] transition-colors cursor-pointer"
-          >
-            <HiX className="w-7 h-7 text-gray-600 sm:text-white" />
-          </button>
+          {showSearch && (
+            <div className="px-4 pb-3">
+              <div className="relative">
+                <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/90 text-gray-900" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Tìm kiếm thành viên"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/15 text-white  focus:outline-none focus:bg-white focus:text-gray-900 transition-all"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* BODY */}
         <div className="flex-1 flex flex-col min-h-0 bg-white sm:bg-gray-50">
+          {/* Tabs */}
+          <div className="flex items-center gap-4 px-4 py-2 border-b border-gray-300">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                activeTab === 'all' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Tất cả
+            </button>
+            
+          </div>
           {/* NICKNAME MODAL - style giống Zalo */}
           {editingNicknameMember && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -436,28 +478,6 @@ export default function GroupMembersModal({
             </div>
           )}
 
-          {/* Search & Add Section */}
-          <div className="flex-none p-4 space-y-4 bg-white border-b border-gray-100">
-            <button
-              onClick={() => setShowCreateGroupModal(true)}
-              className="w-full py-3.5 flex items-center justify-center gap-3 bg-[#0088ff] hover:bg-[#0070d9] text-white font-medium rounded-2xl transition-colors cursor-pointer"
-            >
-              <HiUserPlus className="w-6 h-6" />
-              Thêm thành viên
-            </button>
-
-            <div className="relative">
-              <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm kiếm thành viên..."
-                className="w-full pl-12 pr-5 py-3.5 bg-gray-100 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-[#0088ff]/40 focus:bg-white transition-all"
-              />
-            </div>
-          </div>
-
           {/* Member List */}
           <div className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
             <div className="flex justify-between items-center mb-4">
@@ -466,7 +486,7 @@ export default function GroupMembersModal({
             </div>
 
             <div className="space-y-1">
-              {searchUser.map((member) => {
+              {(activeTab === 'all' ? searchUser : []).map((member) => {
                 const memberId = normalizeId(member._id || member.id);
                 const memberRole: GroupRole = member.role;
                 const isMe = compareIds(memberId, myId);
@@ -502,8 +522,8 @@ export default function GroupMembersModal({
                     </div>
 
                     {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 flex-wrap">
+                    <div className=" min-w-0">
+                      <div className=" gap-3 flex-wrap">
                         <p className="text-base font-medium text-gray-900">{member.name}</p>
                         {isMe && (
                           <span className="px-2.5 py-1 bg-[#0088ff]/10 text-[#0088ff] rounded-full text-xs font-medium">
@@ -593,17 +613,7 @@ export default function GroupMembersModal({
           </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="flex-none px-5 py-4 bg-white border-t border-gray-200 flex justify-end gap-4">
-          <button
-            onClick={onClose}
-            className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-2xl transition-colors cursor-pointer"
-          >
-            Hủy
-          </button>
-          {/* Nếu bạn muốn thêm nút "Tạo nhóm" hoặc "Xong" thì thêm ở đây */}
-          {/* <button className="px-8 py-3 bg-[#0088ff] text-white font-medium rounded-2xl hover:bg-[#0070d9]">Xong</button> */}
-        </div>
+        {/* Footer hidden for clean full-screen */}
       </div>
 
       {showCreateGroupModal && (
@@ -621,4 +631,7 @@ export default function GroupMembersModal({
       )}
     </div>
   );
+  const target =
+    isDesktop && typeof document !== 'undefined' ? document.getElementById('left-sidebar-container') : null;
+  return isDesktop && target ? createPortal(modalNode, target) : modalNode;
 }

@@ -75,7 +75,7 @@ export default function CreateGroupModal({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm sm:px-0">
       <div className="bg-white w-full h-full sm:w-full sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 sm:px-2 sm:py-2 bg-white sm:bg-[#0573ff] sm:text-white border-b border-gray-100 sm:border-none">
+        <div className="flex items-center justify-between px-4 py-3 bg-white  border-b border-gray-100 sm:border-none">
           <div className="flex items-center gap-3 w-full">
             {/* Mobile Back Button */}
             <button
@@ -86,10 +86,10 @@ export default function CreateGroupModal({
             </button>
 
             {/* Desktop Icon (hidden on mobile) */}
-            <HiOutlineUserPlus className="w-5 h-5 hidden sm:block" />
+            {/* <HiOutlineUserPlus className="w-5 h-5 hidden sm:block" /> */}
 
             <div className="flex flex-col items-start justify-center flex-1 sm:flex-none">
-              <h2 className="text-lg sm:text-sm font-bold leading-tight">
+              <h2 className="text-lg font-bold leading-tight">
                 {mode === 'create' ? 'Nhóm mới' : 'Thêm thành viên'}
               </h2>
               <p className="text-sm text-gray-500 font-medium sm:hidden">Đã chọn: {selectedMembers.length}</p>

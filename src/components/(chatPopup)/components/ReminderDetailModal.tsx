@@ -35,6 +35,26 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
   const [showDateSheet, setShowDateSheet] = useState(false);
   const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches;
 
+  const originalContent = useMemo(() => String(message?.content || ''), [message]);
+  const originalDateTimeISO = useMemo(() => {
+    if (!message) return '';
+    const at = (message as Message & { reminderAt?: number }).reminderAt || message.timestamp;
+    return new Date(at - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  }, [message]);
+  const originalRepeat = useMemo(() => {
+    if (!message) return 'none';
+    return (message as Message & { reminderRepeat?: 'none' | 'daily' | 'weekly' | 'monthly' }).reminderRepeat || 'none';
+  }, [message]);
+  const isValid = useMemo(() => {
+    const dt = Date.parse(dateTime);
+    return Boolean(content.trim()) && !Number.isNaN(dt);
+  }, [content, dateTime]);
+  const isDirty = useMemo(() => {
+    return (
+      content.trim() !== originalContent.trim() || dateTime !== originalDateTimeISO || repeat !== originalRepeat
+    );
+  }, [content, dateTime, repeat, originalContent, originalDateTimeISO, originalRepeat]);
+
   useEffect(() => {
     if (!message) return;
     setContent(String(message.content || ''));
@@ -290,8 +310,10 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
             ) : (
               <button
                 onClick={handleSave}
-                disabled={saving}
-                className={`px-4 py-1.5 font-bold cursor-pointer ${saving ? 'text-gray-400' : 'text-blue-600'}`}
+                disabled={saving || !isDirty || !isValid}
+                className={`px-4 py-1.5 font-bold cursor-pointer ${
+                  saving || !isDirty || !isValid ? 'text-gray-400' : 'text-blue-600'
+                }`}
               >
                 Xong
               </button>
