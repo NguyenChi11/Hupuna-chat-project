@@ -507,6 +507,7 @@ export default function MessageList({
                                     onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
                                     onTouchStart={(e) => {
                                       try {
+                                        e.stopPropagation();
                                         if (m.isRecalled) return;
                                         longPressTriggeredRef.current = false;
                                         if (longPressTimerRef.current != null) {
@@ -517,6 +518,8 @@ export default function MessageList({
                                         const x0 = t ? t.clientX : 0;
                                         const y0 = t ? t.clientY : 0;
                                         const el = e.currentTarget as HTMLElement;
+                                        swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe: isMeGroup };
+                                        setSwipeState({ id: null, dx: 0 });
                                         setLongPressActiveId(m._id);
                                         longPressTimerRef.current = window.setTimeout(() => {
                                           longPressTriggeredRef.current = true;
@@ -579,9 +582,13 @@ export default function MessageList({
                                     className={`relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-sm w-[8rem] h-[8rem] ${
                                       isSidebarOpen ? 'sm:w-[6rem] sm:h-[6rem]' : 'sm:w-[10rem] sm:h-[10rem]'
                                     } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
-                                    onClick={() => !up && onOpenMedia(String(m.fileUrl || m.previewUrl || ''), 'image')}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (!up) onOpenMedia(String(m.fileUrl || m.previewUrl || ''), 'image');
+                                    }}
                                     onTouchStart={(e) => {
                                       try {
+                                        e.stopPropagation();
                                         if (m.isRecalled) return;
                                         longPressTriggeredRef.current = false;
                                         if (longPressTimerRef.current != null) {
@@ -592,6 +599,8 @@ export default function MessageList({
                                         const x0 = t ? t.clientX : 0;
                                         const y0 = t ? t.clientY : 0;
                                         const el = e.currentTarget as HTMLElement;
+                                        swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe: isMeGroup };
+                                        setSwipeState({ id: null, dx: 0 });
                                         setLongPressActiveId(m._id);
                                         longPressTimerRef.current = window.setTimeout(() => {
                                           longPressTriggeredRef.current = true;
