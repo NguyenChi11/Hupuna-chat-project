@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
                 }
               }
             } else {
-              lastMessagePreview = 'Các bạn đã kết nối với nhau trên Zalo';
+              lastMessagePreview = 'Các bạn đã kết nối với nhau trên Hupuna Chat';
             }
 
             const isPinned = u.isPinnedBy?.[userIdStr] === true;

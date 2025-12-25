@@ -22,7 +22,7 @@ export default function HomeWelcomeBanner({ currentUser }: HomeWelcomeBannerProp
       <div className="w-full px-4 py-8">
         <div className="text-center mb-6">
           <h1 className="text-[1.4375rem] text-black">
-            Chào mừng <span className="font-bold text-blue-600">{currentUser.name}</span> đến với Zalo PC!
+            Chào mừng <span className="font-bold text-blue-600">{currentUser.name}</span> đến với Hupuna Chat!
           </h1>
         </div>
         <Swiper
