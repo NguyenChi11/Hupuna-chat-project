@@ -232,7 +232,7 @@ export default function DesktopLayout(props: DesktopLayoutProps) {
   return (
     <div className="w-full">
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-4 pr-2 h-[40rem] overflow-y-scroll custom-scrollbar">
+        <div className="col-span-4 pr-2 h-full overflow-y-scroll custom-scrollbar">
           <FolderSidebar
             folders={folders}
             foldersGlobal={foldersGlobal}

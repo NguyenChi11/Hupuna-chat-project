@@ -331,7 +331,7 @@ export default function FolderSidebar({
               </button>
             )}
           </div>
-          <div className="space-y-1 max-h-[15rem] overflow-y-auto custom-scrollbar">
+          <div className="space-y-1 max-h-[20rem] overflow-y-auto custom-scrollbar">
             {foldersShared.map((n) => (
               <NodeRow
                 key={n.id}

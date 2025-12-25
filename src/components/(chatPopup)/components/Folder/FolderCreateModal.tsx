@@ -52,7 +52,7 @@ export default function FolderCreateModal({ isOpen, onClose, folders, onCreate, 
         <div className="absolute inset-0" onClick={onClose} />
 
         {/* Modal */}
-        <div className="relative w-full max-w-md transform rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
+        <div className="relative w-full h-full rounded-none bg-white shadow-none ring-0 lg:max-w-md lg:h-auto lg:rounded-2xl lg:shadow-2xl lg:ring-1 lg:ring-black/5 animate-in zoom-in-95 duration-200">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 px-7 py-5">
             <div>

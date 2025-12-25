@@ -487,13 +487,13 @@ export default function ChatInput({
             }}
           />
         </label>
-        <button
+        {/* <button
           onClick={() => setShowFolderDashboard(true)}
           className=" rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Mở Folder"
         >
           <ICFolder className="w-9 h-9" />
-        </button>
+        </button> */}
       </div>
 
       {/* Input Area + Send Button */}
@@ -806,7 +806,7 @@ export default function ChatInput({
               }}
             />
           </label>
-          <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
+          {/* <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <HiFolder className="w-6 h-6 text-orange-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
               <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
@@ -823,7 +823,7 @@ export default function ChatInput({
                 } catch {}
               }}
             />
-          </label>
+          </label> */}
           <button
             onClick={() => {
               onVoiceInput();
@@ -989,8 +989,8 @@ export default function ChatInput({
 
       {showFolderDashboard &&
         createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-            <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden md:h-[46rem] h-[45rem] ">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-0 lg:px-4">
+            <div className="bg-white w-full h-full lg:max-w-5xl lg:h-[46rem] rounded-none lg:rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center">
@@ -1005,7 +1005,7 @@ export default function ChatInput({
                   <HiX className="w-5 h-5" />
                 </button>
               </div>
-              <div className="p-4">
+              <div className="p-2 lg:p-4 h-full overflow-y-auto overflow-x-hidden">
                 <FolderDashboard
                   roomId={roomId}
                   onClose={() => setShowFolderDashboard(false)}

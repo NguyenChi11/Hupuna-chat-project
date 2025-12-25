@@ -32,7 +32,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const myId = String(currentUser._id);
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches;
   const votesMap = useMemo(() => (message?.pollVotes || {}) as Record<string, string[]>, [message]);
   const mySelected = useMemo(() => {
     const arr: string[] = [];

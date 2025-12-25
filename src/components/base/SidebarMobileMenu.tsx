@@ -96,7 +96,7 @@ export default function SidebarMobileMenu({
           </button>
         )}
 
-        <button
+        {/* <button
           onClick={() => {
             onOpenGlobalFolder();
             onClose();
@@ -107,7 +107,7 @@ export default function SidebarMobileMenu({
             <HiFolder className="w-4 h-4" />
           </div>
           <span>Folder dùng chung</span>
-        </button>
+        </button> */}
 
         <div className="my-2 border-t border-gray-200/60" />
 

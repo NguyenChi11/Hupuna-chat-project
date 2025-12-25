@@ -270,7 +270,7 @@ export default function MobileLayout(props: MobileLayoutProps) {
         </div>
 
         {activeTab === 'sidebar' ? (
-          <div className="w-full h-[36rem] overflow-y-auto custom-scrollbar">
+          <div className="w-full max-h-full overflow-y-auto custom-scrollbar">
             <FolderSidebar
               folders={folders}
               foldersGlobal={foldersGlobal}

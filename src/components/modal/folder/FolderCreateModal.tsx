@@ -46,16 +46,16 @@ export default function FolderCreateModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md  rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-0 lg:p-4">
+      <div className="w-full h-full rounded-none bg-white shadow-none ring-0 lg:max-w-md lg:h-auto lg:rounded-2xl lg:shadow-2xl lg:ring-1 lg:ring-black/5">
         {/* Header gradient */}
-        <div className="bg-gradient-to-r rounded-t-2xl from-sky-500 via-blue-500 to-blue-500 px-6 py-5">
+        <div className="bg-gradient-to-r rounded-none lg:rounded-t-2xl from-sky-500 via-blue-500 to-blue-500 px-6 py-5">
           <h3 className="text-xl font-bold text-white">Tạo thư mục mới</h3>
           <p className="mt-1 text-sm text-sky-100">Chọn tên và vị trí lưu trữ cho thư mục</p>
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 h-[calc(100%-7.5rem)] overflow-y-auto lg:h-auto lg:overflow-visible">
           {/* Tên thư mục */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Tên thư mục</label>
@@ -125,7 +125,7 @@ export default function FolderCreateModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center rounded-b-2xl justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4">
           <button
             onClick={onClose}
             className="rounded-xl px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"

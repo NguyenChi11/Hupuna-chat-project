@@ -16,8 +16,8 @@ export default function DeleteModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-0 lg:p-4">
+      <div className="w-full h-full rounded-none bg-white p-6 shadow-none lg:max-w-md lg:h-auto lg:rounded-2xl lg:shadow-xl">
         <h3 className="text-base font-semibold text-gray-900">Xóa thư mục</h3>
         <p className="mt-2 text-sm text-gray-600">
           Bạn chắc chắn muốn xóa <span className="font-semibold text-gray-900">{name}</span>?
