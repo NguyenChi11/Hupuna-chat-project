@@ -73,6 +73,9 @@ export default function CreateReminderModal({ isOpen, onClose, onCreate, createL
               onClick={() => {
                 const finalDt = dateTime || defaultDateTime;
                 onCreate({ content, dateTime: finalDt, repeat });
+                setContent('');
+                setDateTime('');
+                setRepeat('none');
               }}
               disabled={createLoading}
               className={`px-4 py-2 font-bold transition-all duration-200 

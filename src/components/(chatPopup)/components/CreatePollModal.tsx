@@ -39,10 +39,9 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
       setSaving(false);
     }
   };
-
   const modalNode = (
     <div
-      className={`${isDesktop ? 'absolute inset-0' : 'fixed inset-0'} z-[1000] flex items-stretch justify-center ${
+      className={`${isDesktop ? 'absolute inset-0' : 'fixed inset-0'} z-[50] flex items-stretch justify-center ${
         isDesktop ? 'bg-black/20' : 'bg-black/50'
       } backdrop-blur-sm`}
     >
@@ -70,7 +69,7 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
                     .map((o) => o.toLowerCase()),
                 ).size < 2
               }
-              className=" cursor-pointer hover:bg-green-700 text-blue-500 font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className=" cursor-pointer hover:text-blue-700 text-blue-500 font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className=" justify-end gap-2">{saving ? 'Đang tạo...' : 'Tạo'}</span>
             </button>

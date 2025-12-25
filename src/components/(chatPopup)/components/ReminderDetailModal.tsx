@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {  HiOutlinePencil, HiOutlineClock, HiBellAlert, HiEllipsisVertical } from 'react-icons/hi2';
+import { HiOutlinePencil, HiOutlineClock, HiBellAlert, HiEllipsisVertical } from 'react-icons/hi2';
 import type { Message } from '@/types/Message';
 import { useChatContext } from '@/context/ChatContext';
 import { updateMessageApi, deleteMessageApi, createMessageApi } from '@/fetch/messages';
@@ -70,12 +70,33 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
     if (!message) return { name: '', avatar: null as string | null };
     const raw = message.sender as User | string;
     const sid =
-      typeof raw === 'object' && raw ? String((raw as unknown as { _id?: string; id?: string })._id || (raw as unknown as { _id?: string; id?: string }).id || '') : String(raw || '');
-    const members = isGroup ? ((selectedChat as GroupConversation).members || []) : [];
-    const member = members.find((m) => String((m as unknown as { _id?: string; id?: string })._id || (m as unknown as { _id?: string; id?: string }).id || '') === sid);
-    const userAll = (allUsers || []).find((u) => String((u as unknown as { _id?: string; id?: string })._id || (u as unknown as { _id?: string; id?: string }).id || '') === sid);
+      typeof raw === 'object' && raw
+        ? String(
+            (raw as unknown as { _id?: string; id?: string })._id ||
+              (raw as unknown as { _id?: string; id?: string }).id ||
+              '',
+          )
+        : String(raw || '');
+    const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
+    const member = members.find(
+      (m) =>
+        String(
+          (m as unknown as { _id?: string; id?: string })._id ||
+            (m as unknown as { _id?: string; id?: string }).id ||
+            '',
+        ) === sid,
+    );
+    const userAll = (allUsers || []).find(
+      (u) =>
+        String(
+          (u as unknown as { _id?: string; id?: string })._id ||
+            (u as unknown as { _id?: string; id?: string }).id ||
+            '',
+        ) === sid,
+    );
     const senderObj = typeof raw === 'object' && raw ? (raw as User) : undefined;
-    const finalAvatar = (member as unknown as { avatar?: string })?.avatar || userAll?.avatar || senderObj?.avatar || null;
+    const finalAvatar =
+      (member as unknown as { avatar?: string })?.avatar || userAll?.avatar || senderObj?.avatar || null;
     const finalNameRaw = senderObj?.name || (member as unknown as { name?: string })?.name || userAll?.name || '';
     const finalName = sid && String(currentUser._id) === sid ? 'Bạn' : finalNameRaw || 'Người dùng';
     return { name: finalName, avatar: finalAvatar };
@@ -95,10 +116,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
         reminderRepeat: repeat,
       });
 
-    const socket = io(resolveSocketUrl(), 
-      { transports: ['websocket'], 
-        withCredentials: false
-       });  
+      const socket = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
       const receiver = isGroup ? null : String((selectedChat as User)._id);
       const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
       socket.emit('edit_message', {
@@ -117,7 +135,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
         reminderFired: false,
         reminderRepeat: repeat,
       });
-      const name = currentUser.name
+      const name = currentUser.name;
       const timeStr = new Date(dt).toLocaleString('vi-VN');
       const notifyRes = await createMessageApi({
         roomId,
@@ -162,9 +180,9 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
     setSaving(true);
     try {
       await deleteMessageApi(String(message._id));
-      const socket = io(resolveSocketUrl(), { 
-            transports: ['websocket'], 
-            withCredentials: false 
+      const socket = io(resolveSocketUrl(), {
+        transports: ['websocket'],
+        withCredentials: false,
       });
       const receiver = isGroup ? null : String((selectedChat as User)._id);
       const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
@@ -179,7 +197,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
         type: 'delete',
         timestamp: Date.now(),
       });
-      const name = currentUser.name
+      const name = currentUser.name;
       const notifyRes = await createMessageApi({
         roomId,
         sender: String(currentUser._id),
@@ -215,7 +233,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
 
   const modalNode = (
     <div
-      className={`${isDesktop ? 'absolute inset-0' : 'fixed inset-0'} z-[1000] flex items-stretch justify-center ${
+      className={`${isDesktop ? 'absolute inset-0' : 'fixed inset-0'} z-[50] flex items-stretch justify-center ${
         isDesktop ? 'bg-black/20' : 'bg-black/50'
       } backdrop-blur-sm`}
     >
@@ -273,7 +291,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={`px-4 py-1.5 font-bold ${saving ? 'text-gray-400' : 'text-blue-600'}`}
+                className={`px-4 py-1.5 font-bold cursor-pointer ${saving ? 'text-gray-400' : 'text-blue-600'}`}
               >
                 Xong
               </button>
@@ -281,72 +299,71 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
           </div>
         </div>
 
-         {!editing ? (
-           <div className="flex-1 overflow-y-auto">
+        {!editing ? (
+          <div className="flex-1 overflow-y-auto">
             <div className="flex items-center gap-3 px-4 py-4">
-                  <div className="w-12 h-12 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
-                    {creatorInfo.avatar ? (
-                      <Image
-                        width={32}
-                        height={32}
-                        src={getProxyUrl(creatorInfo.avatar)}
-                        alt={creatorInfo.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xl flex items-center justify-center">
-                        {(creatorInfo.name || 'N').charAt(0).toUpperCase()}
-                      </div>
-                    )}
+              <div className="w-12 h-12 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
+                {creatorInfo.avatar ? (
+                  <Image
+                    width={32}
+                    height={32}
+                    src={getProxyUrl(creatorInfo.avatar)}
+                    alt={creatorInfo.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xl flex items-center justify-center">
+                    {(creatorInfo.name || 'N').charAt(0).toUpperCase()}
                   </div>
-                  <div className="flex-1">
-                    <div className="text-gray-800 text-xl">{creatorInfo.name}</div>
-                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="text-gray-800 text-xl">{creatorInfo.name}</div>
+              </div>
+            </div>
+            <div className="divide-y divide-gray-200">
+              <div className="flex items-start gap-3 px-4 py-4">
+                <HiBellAlert className="w-6 h-6 text-rose-600 shrink-0" />
+
+                <p className="flex-1 min-w-0 text-2xl text-gray-800 whitespace-pre-wrap break-words">{content}</p>
+              </div>
+              <div className="flex items-center gap-3 px-4 py-4">
+                <HiOutlineClock className="w-6 h-6 text-gray-700" />
+                <div className="flex-1">
+                  <div className="text-gray-800 text-2xl">{dtLabel}</div>
+                  <div className="text-gray-500 text-xl">Lặp: {repeatLabel}</div>
                 </div>
-             <div className="divide-y divide-gray-200">
-               <div className="flex items-center gap-3 px-4 py-4">
-                 <HiBellAlert className="w-6 h-6 text-rose-600" />
-                 <div className="text-2xl">{content}</div>
-               </div>
-               <div className="flex items-center gap-3 px-4 py-4">
-                 <HiOutlineClock className="w-6 h-6 text-gray-700" />
-                 <div className="flex-1">
-                   <div className="text-gray-800 text-2xl">{dtLabel}</div>
-                   <div className="text-gray-500 text-xl">Lặp: {repeatLabel}</div>
-                 </div>
-               </div>
-                
-               
-             </div>
-           </div>
-         ) : (
-           <div className="flex-1 overflow-y-auto">
-             <div className="divide-y divide-gray-200">
-                <div className="flex items-center gap-3 px-4 py-4">
-                  <div className="w-12 h-12 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
-                    {creatorInfo.avatar ? (
-                      <Image
-                        width={32}
-                        height={32}
-                        src={getProxyUrl(creatorInfo.avatar)}
-                        alt={creatorInfo.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xs flex items-center justify-center">
-                        {(creatorInfo.name || 'N').charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-gray-800 text-xl">{creatorInfo.name}</div>
-                  </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto">
+            <div className="divide-y divide-gray-200">
+              <div className="flex items-center gap-3 px-4 py-4">
+                <div className="w-12 h-12 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
+                  {creatorInfo.avatar ? (
+                    <Image
+                      width={32}
+                      height={32}
+                      src={getProxyUrl(creatorInfo.avatar)}
+                      alt={creatorInfo.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xs flex items-center justify-center">
+                      {(creatorInfo.name || 'N').charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-3 px-4 py-4">
-                  <HiBellAlert className="w-6 h-6 text-rose-600" />
-                  <input
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                <div className="flex-1">
+                  <div className="text-gray-800 text-xl">{creatorInfo.name}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 px-4 py-4">
+                <HiBellAlert className="w-6 h-6 text-rose-600" />
+                <input
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
                   className="flex-1 bg-transparent outline-none text-[15px]"
                   placeholder="Nhập tiêu đề nhắc hẹn..."
                   type="text"
