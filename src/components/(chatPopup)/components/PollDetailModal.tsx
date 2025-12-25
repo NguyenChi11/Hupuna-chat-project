@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HiX } from 'react-icons/hi';
-import { HiCheck, HiOutlinePencil } from 'react-icons/hi2';
+import { HiCheck, HiOutlinePencil, HiEllipsisVertical } from 'react-icons/hi2';
 import type { Message } from '@/types/Message';
 import type { GroupConversation } from '@/types/Group';
 import type { User } from '@/types/User';
@@ -44,7 +44,9 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
   const [selected, setSelected] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
   const [newOption, setNewOption] = useState('');
-  const [showVoters, setShowVoters] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showVotersPanel, setShowVotersPanel] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('');
   const canLock = useMemo(() => {
     if (!message) return false;
     const sender = message.sender as User | string;
@@ -188,6 +190,31 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
     });
     return out;
   }, [message, votesMap, selected, myId]);
+  const votersSet = useMemo(() => {
+    const s = new Set<string>();
+    (message?.pollOptions || []).forEach((opt) => {
+      const arr = Array.isArray(previewVotesMap[opt]) ? (previewVotesMap[opt] as string[]) : [];
+      arr.forEach((id) => s.add(String(id)));
+    });
+    return s;
+  }, [message, previewVotesMap]);
+  const totalVotes = useMemo(() => {
+    let total = 0;
+    (message?.pollOptions || []).forEach((opt) => {
+      const arr = Array.isArray(previewVotesMap[opt]) ? (previewVotesMap[opt] as string[]) : [];
+      total += arr.length;
+    });
+    return total;
+  }, [message, previewVotesMap]);
+  const notVotedIds = useMemo(() => {
+    const s = new Set<string>();
+    (members as Array<{ _id?: string; id?: string }>).forEach((m) => {
+      const id = String(m._id || m.id || '');
+      if (id) s.add(id);
+    });
+    votersSet.forEach((id) => s.delete(id));
+    return Array.from(s);
+  }, [members, votersSet]);
 
   const handleConfirmVote = async () => {
     if (!message) return;
@@ -413,43 +440,77 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
         isDesktop ? 'bg-black/20' : 'bg-black/50'
       } backdrop-blur-sm`}
     >
-      <div className="bg-white w-full h-full rounded-none overflow-hidden flex flex-col">
-        <div className=" px-3 pt-3 pb-2 bg-gray-50 text-black border border-gray-200">
-          <div className="flex items-center">
-            <button
-              onClick={onClose}
-              disabled={saving}
-              className=" cursor-pointer p-2 "
-            >
-              <HiX className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3">
-              <h3 className="text-xl ">Chi tiết bình chọn</h3>
+      <div className="bg-white w-full h-full rounded-none overflow-hidden flex flex-col relative">
+        <div className="px-3 pt-3 pb-2 bg-white text-black border-b border-gray-200 relative">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <button onClick={onClose} disabled={saving} className="cursor-pointer p-2">
+                <HiX className="w-5 h-5" />
+              </button>
+              <div className="flex items-center gap-3">
+                <h3 className="text-xl">Bình chọn</h3>
+              </div>
+            </div>
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                className="p-2 rounded-xl hover:bg-gray-100 cursor-pointer"
+              >
+                <HiEllipsisVertical className="w-5 h-5" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl z-[100]">
+                  <button
+                    onClick={() => setMenuOpen(false)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer"
+                  >
+                    Ghim lên đầu trò chuyện
+                  </button>
+                  <button
+                    onClick={() => setMenuOpen(false)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer"
+                  >
+                    Gửi vào trò chuyện
+                  </button>
+                  {canLock && (
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        handleToggleLock();
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer"
+                    >
+                      {message.isPollLocked ? 'Mở khóa bình chọn' : 'Khóa bình chọn'}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setMenuOpen(false)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-800 cursor-pointer"
+                  >
+                    Bảng tin nhóm
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
         <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {!editing ? (
             <>
-              <p className=" text-[1rem] text-gray-800 whitespace-pre-wrap break-words">{question}</p>
+              <p className="text-[1rem] text-gray-800 whitespace-pre-wrap break-words">{question}</p>
               {message.isPollLocked && (
-                <p className=" text-[1rem] text-gray-500 mt-1">
+                <p className="text-[1rem] text-gray-500 mt-1">
                   Kết thúc lúc{' '}
                   {new Date(message.pollLockedAt || message.editedAt || message.timestamp).toLocaleString('vi-VN')}
                 </p>
               )}
-              <p className=" text-[1rem] text-gray-500 mt-2">Chọn nhiều phương án</p>
-              <button onClick={() => setShowVoters((v) => !v)} className=" cursor-pointer text-[1rem] text-blue-600 hover:underline mt-2">
-                {(() => {
-                  const userIds = new Set<string>();
-                  let totalVotes = 0;
-                  (message.pollOptions || []).forEach((opt) => {
-                    const arr = Array.isArray(previewVotesMap[opt]) ? (previewVotesMap[opt] as string[]) : [];
-                    totalVotes += arr.length;
-                    arr.forEach((id) => userIds.add(String(id)));
-                  });
-                  return `${userIds.size} người bình chọn, ${totalVotes} lượt bình chọn`;
-                })()}
+              <p className="text-sm text-gray-500 mt-2">Chọn được nhiều phương án</p>
+              <div className="border-t border-gray-200" />
+              <button
+                onClick={() => setShowVotersPanel(true)}
+                className="cursor-pointer text-sm text-blue-600 hover:underline mt-2"
+              >
+                {`${votersSet.size} người đã bình chọn`}
               </button>
               <div className="space-y-2 mt-2">
                 {options.map((opt, idx) => {
@@ -458,51 +519,47 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                     : 0;
                   const active = selected.includes(opt);
                   const arr = Array.isArray(previewVotesMap[opt]) ? (previewVotesMap[opt] as string[]) : [];
+                  const lastUid = arr.length ? String(arr[arr.length - 1]) : '';
+                  const lastInfo = lastUid ? memberMap.get(lastUid) : undefined;
                   return (
                     <button
                       key={idx}
                       onClick={() => toggleSelect(opt)}
                       disabled={message.isPollLocked}
-                      className={`w-full cursor-pointer px-4 py-3 rounded-xl border text-left transition-colors ${
+                      className={`w-full cursor-pointer px-4 py-3 rounded-xl border text-left transition-colors flex items-center gap-3 ${
                         active
                           ? 'border-blue-600 bg-blue-50 text-blue-700'
                           : 'border-gray-200 hover:bg-gray-50 text-gray-800'
                       } ${message.isPollLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="block max-w-full break-words whitespace-pre-wrap text-[1rem] mr-1">{opt}</span>
-                        <span className="text-[0.6875rem]">{votedCount}</span>
-                      </div>
-
-                      {showVoters && (
-                        <div className="flex gap-1">
-                          {arr.length === 0 ? (
-                            <p>Chưa có ai bình chọn</p>
+                      <span
+                        className={`inline-flex items-center justify-center w-5 h-5 rounded-full border ${
+                          active ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-400'
+                        }`}
+                      >
+                        {active && <HiCheck className="w-3 h-3" />}
+                      </span>
+                      <span className="flex-1 block max-w-full break-words whitespace-pre-wrap text-[1rem] mr-1">
+                        {opt}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">{votedCount}</span>
+                        {lastUid ? (
+                          lastInfo?.avatar ? (
+                            <Image
+                              width={20}
+                              height={20}
+                              src={getProxyUrl(lastInfo.avatar)}
+                              alt={lastInfo?.name || lastUid}
+                              className="rounded-full"
+                            />
                           ) : (
-                            arr.map((uid) => {
-                              const info = memberMap.get(String(uid));
-                              return (
-                                <div key={uid} className="flex bg-gray-200 rounded-xl p-1 gap-1 w-fit">
-                                  {info?.avatar ? (
-                                    <Image
-                                      width={10}
-                                      height={10}
-                                      src={getProxyUrl(info.avatar)}
-                                      alt={info?.name || String(uid)}
-                                      className="rounded-full"
-                                    />
-                                  ) : (
-                                    <div className="avatar-placeholder">
-                                      {info?.name?.charAt(0).toUpperCase() || 'U'}
-                                    </div>
-                                  )}
-                                  <span className="text-[0.6875rem] text-blue-600">{info?.name || String(uid)}</span>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      )}
+                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
+                              {lastInfo?.name?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                          )
+                        ) : null}
+                      </div>
                     </button>
                   );
                 })}
@@ -511,10 +568,10 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                 {!adding ? (
                   <button
                     onClick={handleAddOption}
-                    className="cursor-pointer px-4 py-2 text-indigo-600 border border-indigo-300 rounded-xl hover:bg-indigo-50 font-semibold text-sm"
+                    className="cursor-pointer px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-xl font-semibold text-sm"
                     disabled={message.isPollLocked}
                   >
-                    Thêm lựa chọn
+                    + Thêm phương án
                   </button>
                 ) : (
                   <div className="flex gap-2">
@@ -589,68 +646,93 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
             </>
           )}
         </div>
-        <div className="flex gap-3 px-6 pb-6 flex-shrink-0">
-          {!editing ? (
-            <>
-              <button
-                onClick={() => setEditing(true)}
-                disabled={saving || message.isPollLocked}
-                className="flex-1 cursor-pointer py-3.5 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <HiOutlinePencil /> Chỉnh sửa
-                </span>
-              </button>
-              <button
-                onClick={handleConfirmVote}
-                disabled={saving || message.isPollLocked}
-                className="flex-1 cursor-pointer py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span className="inline-flex items-center justify-center gap-2">
-                  <HiCheck className="w-5 h-5" /> {saving ? 'Đang lưu...' : 'Xác nhận'}
-                </span>
-              </button>
-              {canLock && (
-                <button
-                  onClick={handleToggleLock}
-                  disabled={saving}
-                  className="flex-1 cursor-pointer py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-2xl"
-                >
-                  <span className="inline-flex items-center justify-center gap-2">
-                    {message.isPollLocked ? 'Mở khóa' : 'Khóa'}
-                  </span>
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => {
-                  setEditing(false);
-                  if (message) {
-                    const q = String(message.content || message.pollQuestion || '');
-                    const opts = Array.isArray(message.pollOptions) ? (message.pollOptions as string[]) : [];
-                    setQuestion(q);
-                    setOptions(opts);
-                  }
-                }}
-                disabled={saving}
-                className="flex-1 cursor-pointer py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1 cursor-pointer py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl"
-              >
-                <span className="inline-flex items-center justify-center gap-2">
-                  <HiCheck className="w-5 h-5" /> {saving ? 'Đang lưu...' : 'Lưu'}
-                </span>
-              </button>
-            </>
-          )}
+        <div className="px-6 pb-6 pt-2 border-t border-gray-200 flex-shrink-0">
+          <button
+            onClick={handleConfirmVote}
+            disabled={saving || message.isPollLocked}
+            className={`w-full cursor-pointer py-3.5 rounded-2xl font-semibold ${
+              selected.length > 0 && !message.isPollLocked
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            Bình chọn
+          </button>
         </div>
+        {showVotersPanel && (
+          <>
+            <div
+              className="absolute inset-0 bg-black/10"
+              onClick={() => {
+                setShowVotersPanel(false);
+                setActiveTab('');
+              }}
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-white h-[50vh] rounded-t-2xl shadow-2xl border-t border-gray-200 z-[100] ">
+              <div className="px-4 pt-3 pb-2 flex gap-2 overflow-x-auto whitespace-nowrap">
+                {(message.pollOptions || []).map((opt) => {
+                  const cnt = Array.isArray(previewVotesMap[opt]) ? (previewVotesMap[opt] as string[]).length : 0;
+                  const active = activeTab === opt || (!activeTab && opt === (message.pollOptions || [])[0]);
+
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => setActiveTab(opt)}
+                      className={`flex items-center shrink-0 text-sm cursor-pointer px-2 ${
+                        active ? 'border-b border-black text-black' : 'text-black'
+                      }`}
+                    >
+                      <span className="truncate">{opt}</span>
+                      <span className="ml-1">({cnt})</span>
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setActiveTab('__none__')}
+                  className={`shrink-0 px-3 py-2 text-sm cursor-pointer whitespace-nowrap ${
+                    activeTab === '__none__' ? 'border-b border-black text-black' : 'text-black'
+                  }`}
+                >
+                  Chưa bình chọn
+                </button>
+              </div>
+
+              <div className="p-4 max-h-[40vh] overflow-y-auto">
+                {(() => {
+                  const ids =
+                    activeTab === '__none__'
+                      ? notVotedIds
+                      : (Array.isArray(previewVotesMap[activeTab]) ? (previewVotesMap[activeTab] as string[]) : []).map(
+                          (x) => String(x),
+                        );
+                  if (ids.length === 0) return <p className="px-1 text-sm text-gray-500">Chưa có ai</p>;
+                  return ids.map((uid) => {
+                    const info = memberMap.get(String(uid));
+                    return (
+                      <div key={uid} className="flex items-center gap-3 px-2 py-2">
+                        {info?.avatar ? (
+                          <Image
+                            width={25}
+                            height={25}
+                            src={getProxyUrl(info.avatar)}
+                            alt={info?.name || String(uid)}
+                            className="rounded-full"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm text-gray-600">
+                            {info?.name?.charAt(0).toUpperCase() || 'U'}
+                          </div>
+                        )}
+                        <span className="text-sm">{info?.name || String(uid)}</span>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
