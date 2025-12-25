@@ -992,16 +992,45 @@ export default function ChatWindow({
     const target = e.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
     const menuWidth = 176;
-    const menuHeight = 150;
+    const senderId = (() => {
+      const idA = (msg.sender as unknown as { _id?: unknown })?._id;
+      const idB = (msg.sender as unknown as { id?: unknown })?.id;
+      return String(idA ?? idB ?? msg.sender ?? '');
+    })();
+    const isMe = senderId === String(currentUser._id);
+    const isText = msg.type === 'text';
+    const isRecalled = !!msg.isRecalled;
+    const canShare = !isRecalled;
+    const canPin = !isRecalled;
+    const canReply = !isRecalled;
+    const canEdit = isMe && isText && !isRecalled;
+    const canCopy = isText && !isRecalled;
+    const canDownload =
+      !!msg.fileUrl && (msg.type === 'image' || msg.type === 'file' || msg.type === 'sticker');
+    const canRecall = isMe && !isRecalled;
+    const itemCount = [
+      canShare,
+      canPin,
+      canReply,
+      canEdit,
+      canCopy,
+      canDownload,
+      canRecall,
+    ].filter(Boolean).length;
+    const ITEM_H = 36;
+    const PADDING = 8;
+    const menuHeight = Math.max(ITEM_H, itemCount * ITEM_H + PADDING);
     let x = rect.left + (rect.width - menuWidth) / 2;
     x = Math.min(Math.max(x, 8), window.innerWidth - menuWidth - 8);
-    let yBelow = rect.bottom + 8;
+    const GAP = 8;
+    let y = rect.bottom + GAP;
     let placement: 'above' | 'below' = 'below';
-    if (yBelow + menuHeight > window.innerHeight - 8) {
+    const viewportH = window.innerHeight;
+    if (y + menuHeight > viewportH - GAP) {
       placement = 'above';
-      yBelow = rect.top - menuHeight - 8;
+      y = rect.top - menuHeight - GAP;
     }
-    const y = yBelow;
+    y = Math.min(Math.max(y, GAP), viewportH - menuHeight - GAP);
     setContextMenu({
       visible: true,
       x,
@@ -1009,7 +1038,7 @@ export default function ChatWindow({
       placement,
       message: msg,
     });
-  }, []);
+  }, [currentUser._id]);
 
   const handleMobileLongPress = useCallback(
     (msg: Message, el: HTMLElement, startX: number, startY: number) => {
