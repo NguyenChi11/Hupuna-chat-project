@@ -34,6 +34,20 @@ export default function CreateGroupModal({
   reLoad,
   onMembersAdded,
 }: Props) {
+  const inheritedExistingIds = React.useMemo(() => {
+    if (existingMemberIds && existingMemberIds.length > 0) {
+      return existingMemberIds.map(String);
+    }
+    try {
+      const w = window as Window & { __createGroupInitialMemberIds?: string[] };
+      const arr = w.__createGroupInitialMemberIds;
+      if (Array.isArray(arr) && arr.length > 0) {
+        return arr.map(String);
+      }
+    } catch {}
+    return [];
+  }, [existingMemberIds]);
+
   const {
     groupName,
     setGroupName,
@@ -53,7 +67,7 @@ export default function CreateGroupModal({
     allUsers,
     mode,
     conversationId,
-    existingMemberIds,
+    existingMemberIds: inheritedExistingIds,
     reLoad,
     onMembersAdded,
     onGroupCreated,
@@ -65,6 +79,14 @@ export default function CreateGroupModal({
   React.useEffect(() => {
     setImgError(false);
   }, [avatarPreview]);
+  React.useEffect(() => {
+    return () => {
+      try {
+        const w = window as Window & { __createGroupInitialMemberIds?: string[] | null };
+        w.__createGroupInitialMemberIds = null;
+      } catch {}
+    };
+  }, []);
 
   const selectedUsers = React.useMemo(
     () => allUsers.filter((u) => selectedMembers.includes(String(u._id))),

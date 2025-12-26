@@ -1,74 +1,117 @@
 import React from 'react';
 import { HiEye, HiUserGroup } from 'react-icons/hi';
-import { HiEyeSlash, HiMapPin } from 'react-icons/hi2';
+import { HiEyeSlash, HiMapPin, HiBell, HiBellSlash, HiMagnifyingGlass, HiUserPlus, HiPhoto } from 'react-icons/hi2';
 
 interface ChatQuickActionsProps {
+  isGroup?: boolean;
   localIsPinned: boolean;
   localIsHidden: boolean;
   onPinToggle: () => void;
   onHideToggle: () => void;
   onCreateGroup: () => void;
+  onOpenMembers?: () => void;
+  onSearchMessages?: () => void;
+  onChangeWallpaper?: () => void;
+  isMuted?: boolean;
+  onToggleMute?: () => void;
+  onOpenProfile?: () => void;
 }
 
 export default function ChatQuickActions({
+  isGroup,
   localIsPinned,
   localIsHidden,
   onPinToggle,
   onHideToggle,
   onCreateGroup,
+  onOpenMembers,
+  onSearchMessages,
+  onChangeWallpaper,
+  isMuted,
+  onToggleMute,
+  onOpenProfile,
 }: ChatQuickActionsProps) {
+  if (isGroup) {
+    return (
+      <div className="flex justify-around items-center ">
+        <button
+          onClick={onSearchMessages}
+          className="cursor-pointer group flex flex-col items-center gap-3 p-2 rounded-2xl "
+          title="Tìm tin nhắn"
+        >
+          <div className="p-3 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all  group-hover:shadow-lg">
+            <HiMagnifyingGlass className="w-5 h-5" />
+          </div>
+          <span className="text-xs font-medium text-gray-700">Tìm tin nhắn</span>
+        </button>
+        <button
+          onClick={onOpenMembers}
+          className="cursor-pointer group flex flex-col items-center gap-3 p-2 rounded-2xl transition-all duration-300 hover:bg-gray-50 active:scale-95"
+          title="Thêm thành viên"
+        >
+          <div className="p-3 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all  group-hover:shadow-lg">
+            <HiUserPlus className="w-5 h-5" />
+          </div>
+          <span className="text-xs font-medium text-gray-700">Thêm thành viên</span>
+        </button>
+        
+        <button
+          onClick={onToggleMute}
+          className="cursor-pointer group flex flex-col items-center gap-3 p-2 rounded-full transition-all duration-300 hover:bg-gray-50 active:scale-95"
+          title={isMuted ? 'Bật thông báo' : 'Tắt thông báo'}
+        >
+          <div
+            className={`p-3 rounded-2xl transition-all duration-300 rounded-full group-hover:shadow-lg ${
+              isMuted ? 'bg-red-100 text-red-600 ring-2 ring-red-200' : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200'
+            }`}
+          >
+            {isMuted ? <HiBellSlash className="w-5 h-5" /> : <HiBell className="w-5 h-5" />}
+          </div>
+          <span className={`text-xs font-medium ${isMuted ? 'text-red-700' : 'text-gray-700'}`}>
+            {isMuted ? 'Đã tắt' : 'Tắt thông báo'}
+          </span>
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="flex justify-around items-center ">
-      {/* Ghim / Bỏ ghim */}
       <button
-        onClick={onPinToggle}
+        onClick={onSearchMessages}
         className="cursor-pointer group flex flex-col items-center gap-3 p-2 rounded-2xl transition-all duration-300 hover:bg-gray-50 active:scale-95"
-        title={localIsPinned ? 'Bỏ ghim hội thoại' : 'Ghim lên đầu'}
+        title="Tìm tin nhắn"
       >
-        <div
-          className={`p-4 rounded-2xl transition-all duration-300 shadow-md group-hover:shadow-lg ${
-            localIsPinned
-              ? 'bg-yellow-100 text-yellow-600 ring-2 ring-yellow-200'
-              : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
-          }`}
-        >
-          <HiMapPin className={`w-6 h-6 ${localIsPinned ? 'rotate-45' : ''} transition-transform`} />
+        <div className="p-4 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all group-hover:shadow-lg">
+          <HiMagnifyingGlass className="w-6 h-6" />
         </div>
-        <span className={`text-xs font-medium ${localIsPinned ? 'text-yellow-700' : 'text-gray-600'}`}>
-          {localIsPinned ? 'Đã ghim' : 'Ghim'}
-        </span>
+        <span className="text-xs font-medium text-gray-700">Tìm tin nhắn</span>
       </button>
-
-      {/* Ẩn / Hiện trò chuyện */}
       <button
-        onClick={onHideToggle}
+        onClick={onOpenProfile}
         className="cursor-pointer group flex flex-col items-center gap-3 p-2 rounded-2xl transition-all duration-300 hover:bg-gray-50 active:scale-95"
-        title={localIsHidden ? 'Hiện lại trò chuyện' : 'Ẩn trò chuyện'}
+        title="Trang cá nhân"
       >
-        <div
-          className={`p-4 rounded-2xl transition-all duration-300 shadow-md group-hover:shadow-lg ${
-            localIsHidden
-              ? 'bg-red-100 text-red-600 ring-2 ring-red-200'
-              : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
-          }`}
-        >
-          {localIsHidden ? <HiEyeSlash className="w-6 h-6" /> : <HiEye className="w-6 h-6" />}
-        </div>
-        <span className={`text-xs font-medium ${localIsHidden ? 'text-red-600' : 'text-gray-600'}`}>
-          {localIsHidden ? 'Đã ẩn' : 'Ẩn'}
-        </span>
-      </button>
-
-      {/* Tạo nhóm trò chuyện */}
-      <button
-        onClick={onCreateGroup}
-        className="cursor-pointer group flex flex-col items-center gap-3 p-2 rounded-2xl transition-all duration-300 hover:bg-blue-50 active:scale-95"
-        title="Tạo nhóm chat mới"
-      >
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg group-hover:shadow-xl ring-2 ring-blue-200 transition-all duration-300">
+        <div className="p-4 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all group-hover:shadow-lg">
           <HiUserGroup className="w-6 h-6" />
         </div>
-        <span className="text-xs font-medium text-blue-600 group-hover:text-blue-700">Tạo nhóm</span>
+        <span className="text-xs font-medium text-gray-700">Trang cá nhân</span>
+      </button>
+     
+      <button
+        onClick={onToggleMute}
+        className="cursor-pointer group flex flex-col items-center gap-3 p-2 rounded-full transition-all duration-300 hover:bg-gray-50 active:scale-95"
+        title={isMuted ? 'Bật thông báo' : 'Tắt thông báo'}
+      >
+        <div
+          className={`p-4 rounded-2xl transition-all duration-300 rounded-full group-hover:shadow-lg ${
+            isMuted ? 'bg-red-100 text-red-600 ring-2 ring-red-200' : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200'
+          }`}
+        >
+          {isMuted ? <HiBellSlash className="w-6 h-6" /> : <HiBell className="w-6 h-6" />}
+        </div>
+        <span className={`text-xs font-medium ${isMuted ? 'text-red-700' : 'text-gray-700'}`}>
+          {isMuted ? 'Đã tắt' : 'Tắt thông báo'}
+        </span>
       </button>
     </div>
   );

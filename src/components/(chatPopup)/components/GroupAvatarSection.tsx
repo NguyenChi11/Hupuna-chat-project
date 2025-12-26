@@ -27,7 +27,7 @@ export default function GroupAvatarSection({
   if (!isGroup) return null;
 
   return (
-    <div className="flex flex-col items-center ">
+    <div className="flex flex-col items-center mb-2 ">
       {/* Avatar lớn + hiệu ứng đổi ảnh */}
       <div className="relative group">
         <button
@@ -37,7 +37,7 @@ export default function GroupAvatarSection({
           disabled={isGroupAvatarUploading}
           title="Nhấn để thay đổi ảnh nhóm"
         >
-          <div className="w-20 h-20 rounded-full overflow-hidden ring-1 ring-white shadow-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-1">
+          <div className="w-20 h-20 rounded-full overflow-hidden shadow-2xl p-1">
             <div className="w-full h-full rounded-full overflow-hidden bg-gray-200">
               {groupAvatar ? (
                 <Image
@@ -106,6 +106,19 @@ export default function GroupAvatarSection({
           </div>
         </button>
 
+        {/* Nút camera nhỏ giống ảnh minh họa */}
+        <button
+          type="button"
+          onClick={() => avatarInputRef.current?.click()}
+          className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-white shadow-lg  hover:bg-gray-50 transition"
+          title="Đổi ảnh nhóm"
+        >
+          <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+
         <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={onChangeGroupAvatar} />
       </div>
 
@@ -121,7 +134,6 @@ export default function GroupAvatarSection({
         </button>
       </div>
 
-      <p className="mt-2 text-sm text-gray-500 font-medium">Ảnh đại diện nhóm • Nhấn để thay đổi</p>
     </div>
   );
 }

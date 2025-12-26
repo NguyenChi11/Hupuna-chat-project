@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { resolveSocketUrl } from '@/utils/utils';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
@@ -18,6 +18,7 @@ import {
   waitForOneSignalReady,
 } from '@/lib/onesignal';
 import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
+import { useSearchParams } from 'next/navigation';
 
 export default function GroupPage() {
   const {
@@ -46,6 +47,23 @@ export default function GroupPage() {
     handleSelectChat,
     setSelectedChat,
   } = useHomePage({ onlyGroups: true });
+  const searchParams = useSearchParams();
+  const withUserId = searchParams?.get('with') || null;
+  const openGroupId = searchParams?.get('open') || null;
+  const filteredGroups = useMemo(() => {
+    if (!withUserId) return groups;
+    const id = String(withUserId);
+    const getId = (m: unknown): string => {
+      if (typeof m === 'string' || typeof m === 'number') return String(m);
+      if (typeof m === 'object' && m !== null) {
+        const mm = m as { _id?: unknown; id?: unknown };
+        if (mm._id != null) return String(mm._id);
+        if (mm.id != null) return String(mm.id);
+      }
+      return '';
+    };
+    return groups.filter((g) => Array.isArray(g.members) && g.members.map(getId).includes(id));
+  }, [groups, withUserId]);
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
   const [incomingCallHome, setIncomingCallHome] = useState<{
@@ -156,6 +174,14 @@ export default function GroupPage() {
     };
   }, [currentUser, selectedChat, incomingCallHome]);
 
+  useEffect(() => {
+    if (!openGroupId) return;
+    const target = groups.find((g) => String(g._id) === String(openGroupId));
+    if (target) {
+      setSelectedChat(target);
+    }
+  }, [openGroupId, groups, setSelectedChat]);
+
   if (isLoading || !currentUser) {
     return <div className="flex h-screen items-center justify-center bg-white">Loading...</div>;
   }
@@ -165,7 +191,7 @@ export default function GroupPage() {
       <HomeDesktop
         onNavigateToMessage={handleNavigateToMessage}
         currentUser={currentUser}
-        groups={groups}
+        groups={filteredGroups}
         allUsers={allUsers}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -185,7 +211,7 @@ export default function GroupPage() {
 
       <HomeMobile
         currentUser={currentUser}
-        groups={groups}
+        groups={filteredGroups}
         allUsers={allUsers}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}

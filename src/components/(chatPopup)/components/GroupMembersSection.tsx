@@ -17,37 +17,20 @@ export default function GroupMembersSection({
   if (!isGroup) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-3">
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Thành viên nhóm</h3>
-      </div>
-
+    <div className="bg-white overflow-hidden">
       <button
         onClick={onOpenMembers}
-        className="cursor-pointer w-full p-3 bg-gray-50 hover:bg-gray-100 transition-all duration-200 group flex items-center justify-between border-t border-gray-200"
+        className="cursor-pointer w-full px-4 py-3 flex items-center justify-between "
       >
-        <div className="flex items-center gap-4">
-          {/* Icon + số lượng */}
-          <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
-            <HiUserGroup className="w-6 h-6" />
+        <div className="flex items-center gap-3">
+          <div className="py-2.5 rounded-xl  text-gray-500">
+            <HiUserGroup className="w-7 h-7" />
           </div>
-
-          {/* Thông tin nhóm */}
-          <div className="text-left">
-            <h2 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
-              {groupName}
-            </h2>
-            <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
-              <HiUserGroup className="w-4 h-4 text-indigo-500" />
-              <span className="font-medium">{membersCount} thành viên</span>
-            </p>
-          </div>
+          <span className="text-[18px]  text-gray-900">
+            Xem thành viên <span className="text-gray-500">({membersCount})</span>
+          </span>
         </div>
-
-        {/* Mũi tên chỉ thị */}
-        <div className="text-gray-400 group-hover:text-indigo-600 transition-colors">
-          <HiOutlineArrowRight className="w-5 h-5" />
-        </div>
+        <HiOutlineArrowRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
       </button>
     </div>
   );

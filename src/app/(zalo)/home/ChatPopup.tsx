@@ -695,6 +695,28 @@ export default function ChatWindow({
   }, [startCall]);
 
   useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const d = (e as CustomEvent).detail || {};
+        if (d && d.roomId) {
+          // optional: verify roomId matches current room if needed
+        }
+      } catch {}
+      setShowPopup(false);
+      setShowSearchSidebar(true);
+      if (isMobile) {
+        setTimeout(() => {
+          try {
+            mobileSearchInputRef.current?.focus();
+          } catch {}
+        }, 100);
+      }
+    };
+    window.addEventListener('openRoomSearch', handler as EventListener);
+    return () => window.removeEventListener('openRoomSearch', handler as EventListener);
+  }, [isMobile, setShowPopup, setShowSearchSidebar]);
+
+  useEffect(() => {
     if (!callActive) return;
     const id = window.setInterval(() => setCallTicker((x) => x + 1), 1000);
     return () => window.clearInterval(id);
@@ -3217,7 +3239,7 @@ export default function ChatWindow({
         {showPopup && (
           <div
             id="right-sidebar-container"
-            className="fixed inset-0 sm:relative sm:inset-auto sm:w-[21.875rem] h-full z-20 "
+            className="fixed inset-0 sm:relative sm:inset-auto sm:w-[21.875rem] h-full z-10 "
           >
             <ChatInfoPopup
               onClose={() => {
@@ -3242,7 +3264,7 @@ export default function ChatWindow({
         )}
         {/* Desktop: Search Sidebar */}
         {showSearchSidebar && !isMobile && (
-          <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full z-20 ">
+          <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full z-10 ">
             <SearchSidebar
               isOpen={showSearchSidebar}
               onClose={() => {

@@ -121,7 +121,7 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
             </h3>
             {onUpdateNickname && (
               <button
-                className="opacity-0 group-hover/edit:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-blue-500"
+                className="cursor-pointer transition-opacity p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-blue-500"
                 title="Đặt biệt danh"
               >
                 <HiPencil className="w-4 h-4" />

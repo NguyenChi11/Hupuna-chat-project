@@ -181,11 +181,11 @@ export default function GroupInviteLinkSection({
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white  border border-gray-200 overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <HiLink className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-gray-800">Link mời vào nhóm</span>
+            <HiLink className="w-7 h-7 text-gray-600" />
+            <span className="text-[18px] text-gray-800">Link nhóm</span>
           </div>
         </div>
 
