@@ -139,7 +139,7 @@ export default function PinnedMessageListModal({
                             alt="Ảnh"
                             width={320}
                             height={240}
-                            className="w-full h-auto object-cover"
+                            className="w-full h-full object-cover"
                           />
                         </div>
                         {msg.content && (
@@ -151,7 +151,7 @@ export default function PinnedMessageListModal({
                         <div className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm w-full max-w-[6rem] bg-black">
                           <video
                             src={getProxyUrl(msg.fileUrl)}
-                            className="w-full h-auto object-cover"
+                            className="w-full h-full object-cover"
                             muted
                             playsInline
                             preload="metadata"

@@ -154,10 +154,10 @@ export default function ChatItem({
         onTouchCancel={clearLongPressTimer}
         onTouchMove={handleTouchMove}
         className={`
-          group relative mx-3 my-2 rounded-xl transition-all duration-300 cursor-pointer
+          group relative m-2 rounded-[0.25rem] transition-all duration-300 cursor-pointer
           ${
             isSelected
-              ? 'bg-gradient-to-r from-indigo-100 to-purple-100 shadow-xl ring-2 ring-indigo-300'
+              ? 'bg-blue-100 shadow-xl'
               : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 hover:shadow-lg'
           }
           ${isHidden ? 'opacity-60' : ''}
@@ -222,7 +222,7 @@ export default function ChatItem({
           </div>
 
           {/* Nội dung */}
-          <div className="flex-1 min-w-0 ml-2  transition-colors duration-150 border-b pb-1 border-gray-200">
+          <div className="flex-1 min-w-0 ml-2  transition-colors duration-150 border-b pb-2 border-gray-200">
             <div className="flex items-center justify-between mb-1">
               <h4
                 className={`
