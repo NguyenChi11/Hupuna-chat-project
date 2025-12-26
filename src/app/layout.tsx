@@ -39,6 +39,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Tên App" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="robots" content="noindex, nofollow"/>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning={true}>
         <ToastProvider>{children}</ToastProvider>
