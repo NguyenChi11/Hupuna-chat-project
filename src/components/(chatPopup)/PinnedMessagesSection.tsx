@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 import PinnedMessageListModal from '../base/PinnedMessageListModal';
 
 import type { Message } from '@/types/Message';
 import type { User } from '@/types/User';
-import { HiMapPin, HiOutlineDocumentText } from 'react-icons/hi2';
+import { HiChatBubbleLeftRight, HiOutlineDocumentText, HiChevronDown, HiChevronUp } from 'react-icons/hi2';
 import { getProxyUrl } from '@/utils/utils';
 
 interface PinnedMessagesSectionProps {
@@ -35,7 +35,7 @@ export default function PinnedMessagesSection({
   pinnedHasMore,
   pinnedLoading,
 }: PinnedMessagesSectionProps) {
-  if (allPinnedMessages.length === 0 && !showPinnedList) return null;
+  const isEmpty = allPinnedMessages.length === 0 && !showPinnedList;
   const isVideoFile = (name?: string) => /\.(mp4|webm|mov|mkv|avi)$/i.test(String(name || ''));
   const isImageFile = (name?: string) => /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(String(name || ''));
   const renderPreview = (msg: Message) => {
@@ -71,33 +71,164 @@ export default function PinnedMessagesSection({
               : msg.content || 'Tin nhắn';
     return <div className="w-24 max-w-[12rem] px-2 py-2 text-xs text-gray-700 line-clamp-2">{label}</div>;
   };
+  const renderMiniPreview = (msg: Message) => {
+    const url = String(msg.fileUrl || msg.previewUrl || '');
+    const isVid = msg.type === 'video' || isVideoFile(msg.fileName) || isVideoFile(url);
+    const isImg = msg.type === 'image' || isImageFile(msg.fileName) || isImageFile(url);
+    if (isImg) {
+      return (
+        <Image src={getProxyUrl(url)} alt="Ảnh" width={40} height={40} className="w-10 h-10 rounded-lg object-cover" />
+      );
+    }
+    if (isVid) {
+      return (
+        <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-black">
+          <video src={getProxyUrl(url)} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-gray-800">
+                <path d="M8 5v14l11-7z" fill="currentColor" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+  const firstMsg = allPinnedMessages[0];
+  const typeLabel =
+    firstMsg?.type === 'image'
+      ? '[Hình ảnh]'
+      : firstMsg?.type === 'video'
+        ? '[Video]'
+        : firstMsg?.type === 'file'
+          ? '[Tệp]'
+          : firstMsg?.type === 'sticker'
+            ? '[Sticker]'
+            : firstMsg?.type === 'poll'
+              ? '[Bình chọn]'
+              : firstMsg?.type === 'reminder'
+                ? '[Lịch hẹn]'
+                : '[Tin nhắn]';
+  const senderName = firstMsg ? getSenderName(firstMsg.sender) : '';
+  const extraCount = allPinnedMessages.length > 1 ? allPinnedMessages.length - 1 : 0;
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!openDropdown) return;
+      const target = e.target as Node;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+        setOpenDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [openDropdown]);
+
+  if (isEmpty) return null;
 
   return (
     <>
       {allPinnedMessages.length > 0 && (
-        <button
-          onClick={onOpenPinnedList}
-          className={`
-    group flex items-center gap-2.5 px-4 py-2.5 bg-gradient-to-r from-yellow-50 to-amber-50
-    border border-yellow-300 rounded-xl shadow-md hover:shadow-xl
-    hover:border-yellow-400 transition-all duration-300 active:scale-95
-    text-sm font-medium text-yellow-900 select-none cursor-pointer
-    m-2 sm:m-3
-  `}
-          title={`Xem ${allPinnedMessages.length} tin nhắn đã ghim`}
-        >
-          {/* Icon ghim – chuẩn Zalo, đẹp, sắc nét */}
-          <HiMapPin
-            className="w-5 h-5 text-yellow-600 rotate-45 drop-shadow-sm 
-               group-hover:scale-110 transition-transform duration-200"
-          />
-
-          <span className="flex items-center gap-1.5">
-            Tin nhắn đã ghim
-            {/* Badge số lượng */}
-           
-          </span>
-        </button>
+        <div className="relative group flex items-center justify-between gap-3 px-4 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-300 select-none m-2 sm:m-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-600 border border-blue-200">
+              <HiChatBubbleLeftRight className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col min-w-0 items-start">
+              <div className="text-sm font-semibold text-gray-900 truncate">{typeLabel}</div>
+              <div className="text-sm text-gray-600 truncate">
+                {senderName ? `Tin nhắn của ${senderName}` : 'Tin nhắn đã ghim'}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {firstMsg && renderMiniPreview(firstMsg)}
+            <div className="h-10 w-px bg-gray-200" />
+            <div
+              className="px-3 py-1.5 rounded-full border border-gray-300 bg-gray-50 text-gray-800 flex items-center gap-1.5 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (extraCount > 0) setOpenDropdown((v) => !v);
+              }}
+            >
+              <span className="text-sm font-semibold">{extraCount > 0 ? `+${extraCount}` : '+0'}</span>
+              <HiChevronDown className="w-4 h-4" />
+            </div>
+            {openDropdown && (
+              <div
+                className="fixed inset-0 z-40 bg-black/30"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenDropdown(false);
+                }}
+              />
+            )}
+            {openDropdown && (
+              <div
+                ref={dropdownRef}
+                className="absolute right-3 top-full mt-2 w-[92vw] max-w-[28rem] bg-white border border-gray-200 rounded-2xl shadow-xl z-50"
+              >
+                <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                  <div className="text-sm font-semibold text-gray-900">Danh sách ghim ({allPinnedMessages.length})</div>
+                  <button
+                    className="text-sm font-medium text-blue-700 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenDropdown(false);
+                    }}
+                  >
+                    Thu gọn
+                    <HiChevronUp className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="max-h-[20rem] custom-scrollbar overflow-auto divide-y divide-gray-100">
+                  {allPinnedMessages.map((msg) => {
+                    const label =
+                      msg.type === 'image'
+                        ? '[Hình ảnh]'
+                        : msg.type === 'video'
+                          ? '[Video]'
+                          : msg.type === 'file'
+                            ? '[Link]'
+                            : msg.type === 'sticker'
+                              ? '[Sticker]'
+                              : msg.type === 'poll'
+                                ? '[Bình chọn]'
+                                : msg.type === 'reminder'
+                                  ? '[Lịch hẹn]'
+                                  : '[Tin nhắn]';
+                    const name = getSenderName(msg.sender);
+                    return (
+                      <div
+                        key={String(msg._id)}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenDropdown(false);
+                          onJumpToMessage(String(msg._id));
+                        }}
+                      >
+                        <div className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-600 border border-blue-200 shrink-0">
+                          <HiChatBubbleLeftRight className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-gray-900 truncate">{label}</div>
+                          <div className="text-sm text-gray-600 truncate">
+                            {name ? `Tin nhắn của ${name}` : 'Tin nhắn'}
+                          </div>
+                        </div>
+                        {renderMiniPreview(msg)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {showPinnedList && (

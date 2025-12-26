@@ -57,7 +57,7 @@ export default function ProfileView({
       <div className="w-full max-w-lg mx-auto space-y-5">
         {/* Card thông tin - Nhỏ gọn, thanh lịch */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-2 text-white">
+          <div className="bg-blue-500 p-2 text-white">
             <h3 className="text-sm font-bold flex items-center gap-3">
               <HiUser className="w-7 h-7" />
               Thông tin cá nhân
@@ -146,7 +146,7 @@ export default function ProfileView({
 
           <button
             onClick={onEdit}
-            className="cursor-pointer w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl flex items-center justify-center gap-3 transition-all active:scale-98 shadow-lg"
+            className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-3 transition-all active:scale-98 shadow-lg"
           >
             <HiPencil className="w-5 h-5" />
             Cập nhật thông tin
@@ -154,7 +154,7 @@ export default function ProfileView({
 
           <button
             onClick={onChangePassword}
-            className="cursor-pointer w-full py-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold rounded-xl flex items-center justify-center gap-3 transition-all active:scale-98 shadow-lg"
+            className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-3 transition-all active:scale-98 shadow-lg"
           >
             <HiLockClosed className="w-5 h-5" />
             Đổi mật khẩu

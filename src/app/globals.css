@@ -1,10 +1,8 @@
 @import 'tailwindcss';
 
-
 * {
   box-sizing: border-box;
 }
-
 
 html,
 body {
@@ -15,13 +13,11 @@ body {
   overflow-anchor: none;
 }
 
-
-img,
+/* img,
 video {
   max-width: 100%;
   height: auto;
-}
-
+} */
 
 @keyframes showModal {
   0% {
@@ -34,7 +30,6 @@ video {
   }
 }
 
-
 .animate-showModal {
   animation: showModal 0.3s ease-out forwards;
 }
@@ -42,13 +37,11 @@ html {
   font-size: 1vw;
 }
 
-
 @media (max-width: 480px) {
   html {
     font-size: 3.625vw;
   }
 }
-
 
 @media (min-width: 480px) and (max-width: 624px) {
   html {
@@ -56,13 +49,11 @@ html {
   }
 }
 
-
 @media (min-width: 624px) and (max-width: 768px) {
   html {
     font-size: 2vw;
   }
 }
-
 
 @media (min-width: 768px) and (max-width: 991.99px) {
   html {
@@ -70,13 +61,11 @@ html {
   }
 }
 
-
 @media (min-width: 992px) and (max-width: 1024px) {
   html {
     font-size: 1.25vw;
   }
 }
-
 
 @supports (padding: env(safe-area-inset-left)) {
   body {
@@ -84,7 +73,6 @@ html {
     padding-right: env(safe-area-inset-right);
   }
 }
-
 
 /* Fix scroll do thanh header/footer động của trình duyệt trên mobile */
 .h-screen {
@@ -99,7 +87,6 @@ html {
 .min-h-\[100vh\] {
   min-height: 100svh !important;
 }
-
 
 @supports (height: 100dvh) {
   .h-screen {
@@ -116,7 +103,6 @@ html {
   }
 }
 
-
 @supports (padding: env(safe-area-inset-top)) {
   body {
     padding-top: env(safe-area-inset-top);
@@ -124,14 +110,12 @@ html {
   }
 }
 
-
 :root {
   --vvh: 100vh;
   --vvw: 100vw;
   --vvTop: 0px;
   --vvLeft: 0px;
 }
-
 
 .vv-fixed {
   position: fixed;
@@ -144,7 +128,6 @@ html {
   overscroll-behavior: contain;
 }
 
-
 .vv-body-lock {
   position: fixed;
   width: 100%;
@@ -152,13 +135,11 @@ html {
   overflow: hidden;
 }
 
-
 @media (max-width: 768px) {
   body {
     padding-bottom: 0 !important;
   }
 }
-
 
 /* Ẩn scrollbar (giữ cuộn bằng cảm ứng/chuột) cho khu vực chat giống Zalo */
 .no-scrollbar {
@@ -166,23 +147,19 @@ html {
   scrollbar-width: none; /* Firefox */
 }
 
-
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari */
 }
-
 
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #9ca3af #f3f4f6;
 }
 
-
 .custom-scrollbar::-webkit-scrollbar {
   width: 0.125rem;
   height: 0.125rem;
 }
-
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #9ca3af;
@@ -190,11 +167,9 @@ html {
   border: 0.125rem solid #f3f4f6;
 }
 
-
 .custom-scrollbar::-webkit-scrollbar-track {
   background: #f3f4f6;
 }
-
 
 @keyframes slideUp {
   from {
@@ -207,7 +182,6 @@ html {
 .animate-slideUp {
   animation: slideUp 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-
 
 @keyframes shimmer {
   from {
@@ -233,6 +207,3 @@ a,
 [role='button'] {
   touch-action: manipulation;
 }
-
-
-

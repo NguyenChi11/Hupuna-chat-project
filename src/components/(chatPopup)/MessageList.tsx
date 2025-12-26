@@ -656,7 +656,7 @@ export default function MessageList({
                                         height={600}
                                         src={url}
                                         alt="Ảnh"
-                                        className="w-full h-auto object-cover"
+                                        className="w-full h-full object-cover"
                                       />
                                     ) : (
                                       <Image
@@ -664,7 +664,7 @@ export default function MessageList({
                                         height={600}
                                         src={getProxyUrl(url)}
                                         alt="Ảnh"
-                                        className="w-full h-auto object-cover"
+                                        className="w-full h-full object-cover"
                                       />
                                     )}
 
@@ -818,7 +818,7 @@ export default function MessageList({
                               </>
                             )}
                             <div
-                              className={`text-xs mt-1 ${isMeGroup ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
+                              className={`text-xs mt-1 ${isMeGroup ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2 px-1 py-1`}
                             >
                               <span>
                                 {formatTimestamp(
@@ -2114,7 +2114,7 @@ export default function MessageList({
                         )}
                         {/* Group sender name - Show for everyone including me if set */}
                         {isGroup && !isGrouped && !isRecalled && (
-                          <p className={`text-xs font-bold mb-1 ${isMe ? 'text-gray-500' : 'text-blue-600'}`}>
+                          <p className={`text-xs font-bold mb-1 p-1 ${isMe ? 'text-gray-500' : 'text-blue-600'}`}>
                             {senderName}
                           </p>
                         )}
@@ -2233,7 +2233,7 @@ export default function MessageList({
                                 height={600}
                                 src={String(msg.fileUrl)}
                                 alt="Ảnh"
-                                className="w-full h-auto object-cover"
+                                className="w-full h-full object-cover"
                               />
                             ) : (
                               <Image
@@ -2241,7 +2241,7 @@ export default function MessageList({
                                 alt="Ảnh"
                                 width={600}
                                 height={600}
-                                className="w-full h-auto object-cover"
+                                className="w-full h-full object-cover"
                               />
                             )}
 
@@ -2294,12 +2294,12 @@ export default function MessageList({
                         {/* VIDEO – FIX SIZE MOBILE */}
                         {isVideo && msg.fileUrl && !isRecalled && (
                           <div
-                            className="relative rounded-2xl overflow-hidden cursor-pointer shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black"
+                            className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black"
                             onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl!), 'video')}
                           >
                             <video
                               src={getProxyUrl(msg.fileUrl)}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover m-[0.125rem]"
                               playsInline
                               preload="metadata"
                             />
@@ -2415,7 +2415,7 @@ export default function MessageList({
                           </div>
                         )}
                         <div
-                          className={`text-xs mt-1 ${isMe ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
+                          className={`text-xs mt-1 ${isMe ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2 p-1`}
                         >
                           <span>
                             {formatTimestamp(
