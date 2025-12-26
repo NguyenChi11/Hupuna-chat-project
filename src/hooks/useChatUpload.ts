@@ -66,6 +66,23 @@ export function useChatUpload({
   setMessages,
   onScrollBottom,
 }: UseChatUploadParams) {
+  const sortMessagesAsc = (list: Message[]) => {
+    const safeNum = (t: unknown) => {
+      const n = Number(t);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const cmp = (a: Message, b: Message) => {
+      const ta = safeNum(a.timestamp);
+      const tb = safeNum(b.timestamp);
+      if (ta !== tb) return ta - tb;
+      const ia = String(a._id || '');
+      const ib = String(b._id || '');
+      if (ia.startsWith('temp_') && !ib.startsWith('temp_')) return 1;
+      if (!ia.startsWith('temp_') && ib.startsWith('temp_')) return -1;
+      return ia.localeCompare(ib);
+    };
+    return list.slice().sort(cmp);
+  };
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
   const activeSourcesRef = useRef<Record<string, EventSource>>({});
 
@@ -169,7 +186,7 @@ export function useChatUpload({
         isSending: true,
       };
 
-      setMessages((prev) => [...prev, tempMsg]);
+      setMessages((prev) => sortMessagesAsc([...prev, tempMsg]));
       setUploadingFiles((prev) => ({ ...prev, [tempId]: 0 }));
       setProgress(tempId, 0);
       addPending({
@@ -349,7 +366,7 @@ export function useChatUpload({
           content: item.caption,
           isSending: true,
         };
-        return [...prev, msg];
+        return sortMessagesAsc([...prev, msg]);
       });
       const p = getProgress(item.tempId);
       const percent = p >= 0 ? p : item.percent || 0;
@@ -425,7 +442,7 @@ export function useChatUpload({
             content: item.caption,
             isSending: true,
           };
-          return [...prev, msg];
+          return sortMessagesAsc([...prev, msg]);
         });
       });
     }, 600);
@@ -447,7 +464,7 @@ export function useChatUpload({
             content: item.caption,
             isSending: true,
           };
-          return [...prev, msg];
+          return sortMessagesAsc([...prev, msg]);
         });
       });
     }, 1500);

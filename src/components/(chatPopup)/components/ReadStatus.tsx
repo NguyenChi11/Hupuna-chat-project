@@ -21,6 +21,7 @@ interface ReadStatusProps {
   allUsersMap: Map<string, string>;
   getSenderInfo: (sender: User | string) => SenderInfo;
   isMobile?: boolean;
+  isUploading?: boolean;
 }
 
 export default function ReadStatus({
@@ -33,18 +34,20 @@ export default function ReadStatus({
   allUsersMap,
   getSenderInfo,
   isMobile,
+  isUploading,
 }: ReadStatusProps) {
   const [open, setOpen] = useState(false);
   //   const shouldOpen = !!isMobile || (typeof window !== 'undefined' && window.innerWidth <= 1024);
 
   if (!isMine || !isLast || isRecalled) return null;
+  if (isUploading) return null;
 
   const readBy = (message.readBy || []) as string[];
 
   if (!isGroup) {
     const seen = readBy.some((id) => String(id) !== String(myId));
     return (
-      <span className="flex items-center bg-gray-400 text-[12px] md:text-[14px] mt-2 text-white px-2 py-0.5 rounded-full">
+      <span className="flex items-center bg-gray-400 text-[0.75rem] mt-2 text-white px-2 py-0.5 rounded-full">
         <ICTickDouble className=" w-4 h-4" />
         {seen ? 'Đã xem' : 'Đã gửi'}
       </span>
@@ -66,7 +69,7 @@ export default function ReadStatus({
       >
         <div className="flex items-center justify-center gap-1">
           {readers.length === 0 ? (
-            <span className="flex items-center gap-1 bg-gray-400 text-[12px] md:text-[14px] text-white px-2 py-0.5 rounded-full">
+            <span className="flex items-center gap-1 bg-gray-400 text-[0.75rem] text-white px-2 py-0.5 rounded-full">
               <ICTickDouble className="w-4 h-4 flex-shrink-0" />
               Đã gửi
             </span>

@@ -605,7 +605,10 @@ export default function ChatWindow({
       try {
         if (msgData._id) {
           const newId = String(msgData._id);
-          setMessages((prev) => [...prev, { ...msgData, _id: newId } as Message]);
+          setMessages((prev) => {
+            const next = [...prev, { ...msgData, _id: newId } as Message];
+            return sortMessagesAsc(next);
+          });
           ensureBottom();
           const socketData = {
             ...msgData,
@@ -623,7 +626,10 @@ export default function ChatWindow({
           const json = await createMessageApi({ ...msgData, roomId });
           if (json.success && typeof json._id === 'string') {
             const newId = json._id;
-            setMessages((prev) => [...prev, { ...msgData, _id: newId } as Message]);
+            setMessages((prev) => {
+              const next = [...prev, { ...msgData, _id: newId } as Message];
+              return sortMessagesAsc(next);
+            });
             ensureBottom();
             const socketData = {
               ...msgData,
@@ -735,6 +741,24 @@ export default function ChatWindow({
   }, [callActive, callConnecting, incomingCall]);
 
   // Ring tone handled inside useCallSession
+
+  const sortMessagesAsc = useCallback((list: Message[]) => {
+    const safeNum = (t: unknown) => {
+      const n = Number(t);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const cmp = (a: Message, b: Message) => {
+      const ta = safeNum((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp);
+      const tb = safeNum((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp);
+      if (ta !== tb) return ta - tb;
+      const ia = String(a._id || '');
+      const ib = String(b._id || '');
+      if (ia.startsWith('temp_') && !ib.startsWith('temp_')) return 1;
+      if (!ia.startsWith('temp_') && ib.startsWith('temp_')) return -1;
+      return ia.localeCompare(ib);
+    };
+    return list.slice().sort(cmp);
+  }, []);
 
   const sendNotifyMessage = useCallback(
     async (text: string, replyToMessageId?: string) => {
@@ -1439,7 +1463,14 @@ export default function ChatWindow({
         if (!map.has(id)) map.set(id, m);
       });
       const desc = Array.from(map.values()).sort(
-        (a: Message, b: Message) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        (a: Message, b: Message) => {
+          const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
+          const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
+          if (tb !== ta) return tb - ta;
+          const ia = String(a._id || '');
+          const ib = String(b._id || '');
+          return ib.localeCompare(ia);
+        },
       );
       const asc = desc.slice().reverse();
       setMessages(asc);
@@ -1611,13 +1642,21 @@ export default function ChatWindow({
         const id = String(data._id);
         const exists = prev.some((m) => String(m._id) === id);
         if (exists) {
-          return prev.map((m) => (String(m._id) === id ? { ...m, ...data } : m));
+          const next = prev.map((m) => (String(m._id) === id ? { ...m, ...data } : m));
+          return sortMessagesAsc(next);
         }
         const map = new Map<string, Message>();
         [...prev, data].forEach((m) => map.set(String(m._id), m));
-        const unique = Array.from(map.values()).sort(
-          (a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-        );
+        const unique = Array.from(map.values()).sort((a: Message, b: Message) => {
+          const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
+          const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
+          if (ta !== tb) return ta - tb;
+          const ia = String(a._id || '');
+          const ib = String(b._id || '');
+          if (ia.startsWith('temp_') && !ib.startsWith('temp_')) return 1;
+          if (!ia.startsWith('temp_') && ib.startsWith('temp_')) return -1;
+          return ia.localeCompare(ib);
+        });
         return unique;
       });
 
@@ -1766,9 +1805,16 @@ export default function ChatWindow({
                   }
                 : msg,
             );
-            const sorted = [...updated].sort(
-              (a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-            );
+            const sorted = [...updated].sort((a: Message, b: Message) => {
+              const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
+              const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
+              if (ta !== tb) return ta - tb;
+              const ia = String(a._id || '');
+              const ib = String(b._id || '');
+              if (ia.startsWith('temp_') && !ib.startsWith('temp_')) return 1;
+              if (!ia.startsWith('temp_') && ib.startsWith('temp_')) return -1;
+              return ia.localeCompare(ib);
+            });
             return sorted;
           });
           if (typeof data.isPinned === 'boolean') {
@@ -3270,6 +3316,9 @@ export default function ChatWindow({
                 onReplyMessage={handleReplyTo}
                 onShareMessage={handleShareMessage}
                 onToggleReaction={handleToggleReaction}
+                setEditingMessageId={setEditingMessageId}
+                setEditContent={setEditContent}
+                closeContextMenu={closeContextMenu}
               />
             )}
           </>

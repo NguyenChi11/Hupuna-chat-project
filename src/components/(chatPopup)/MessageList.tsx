@@ -210,11 +210,14 @@ export default function MessageList({
                 const repliedToMsg = msg.replyToMessageId ? messages.find((m) => m._id === msg.replyToMessageId) : null;
 
                 const uploadProgress = uploadingFiles[msg._id];
-                const isUploading = uploadProgress !== undefined;
+                const sendingFlag = !!(msg as unknown as { isSending?: boolean }).isSending;
+                const blobFlag = typeof msg.fileUrl === 'string' && msg.fileUrl.startsWith('blob:');
                 const isEditing = msg._id === editingMessageId;
                 const isEdited = msg.editedAt && !isEditing;
                 const isRecalled = msg.isRecalled;
                 const isVideo = msg.type === 'video' || (msg.fileUrl && isVideoFile(msg.fileUrl));
+                const isMediaOrFile = msg.type === 'image' || msg.type === 'video' || (msg.type === 'file' && !isVideo);
+                const isUploading = isMediaOrFile && (uploadProgress !== undefined || sendingFlag || blobFlag);
                 const reactions = (msg.reactions || {}) as Record<string, string[]>;
                 const myId = String(currentUser._id);
                 const hasReactions = Object.values(reactions).some((arr) => (arr || []).length > 0);
@@ -224,9 +227,12 @@ export default function MessageList({
                 let isGrouped = false;
                 if (prevMsg && prevMsg.type !== 'notify') {
                   const prevSender = getSenderInfo(prevMsg.sender);
-                  const now = new Date(msg.timestamp).getTime();
-                  const prev = new Date(prevMsg.timestamp).getTime();
-                  if (prevSender._id === senderInfo._id && (now - prev) / 60000 < 5) {
+                  const now =
+                    Number((msg as unknown as { serverTimestamp?: number }).serverTimestamp ?? msg.timestamp) || 0;
+                  const prev =
+                    Number((prevMsg as unknown as { serverTimestamp?: number }).serverTimestamp ?? prevMsg.timestamp) ||
+                    0;
+                  if (prevSender._id === senderInfo._id && now - prev < 5 * 60 * 1000) {
                     isGrouped = true;
                   }
                 }
@@ -251,6 +257,12 @@ export default function MessageList({
                     const lastInGroup = mediaGroup[mediaGroup.length - 1];
                     const isMeGroup = String(senderInfo._id) === String(currentUser._id);
                     const groupIsLast = lastInGroup._id === messages[messages.length - 1]?._id;
+                    const groupUploading = mediaGroup.some((mm) => {
+                      const up = uploadingFiles[mm._id] !== undefined;
+                      const sending = !!(mm as unknown as { isSending?: boolean }).isSending;
+                      const blob = typeof mm.fileUrl === 'string' && mm.fileUrl.startsWith('blob:');
+                      return up || sending || blob;
+                    });
                     return (
                       <div
                         key={`group-${msg._id}`}
@@ -495,7 +507,9 @@ export default function MessageList({
                                 const isVid = m.type === 'video' || (m.fileUrl && isVideoFile(m.fileUrl));
                                 const url = String(m.fileUrl || m.previewUrl || '');
                                 const prog = uploadingFiles[m._id];
-                                const up = prog !== undefined;
+                                const sendingFallback = !!(m as unknown as { isSending?: boolean }).isSending;
+                                const blobFallback = String(url).startsWith('blob:');
+                                const up = prog !== undefined || sendingFallback || blobFallback;
                                 return isVid ? (
                                   <div
                                     key={`${m._id}-${idx}`}
@@ -571,7 +585,9 @@ export default function MessageList({
                                       <div className="absolute inset-0 bg-black/60 text-white flex items-center justify-center">
                                         <div className="flex items-center gap-2">
                                           <div className="w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-                                          <span className="text-sm font-semibold">{Math.round(prog as number)}%</span>
+                                          {prog !== undefined && (
+                                            <span className="text-sm font-semibold">{Math.round(prog as number)}%</span>
+                                          )}
                                         </div>
                                       </div>
                                     )}
@@ -804,7 +820,14 @@ export default function MessageList({
                             <div
                               className={`text-xs mt-1 ${isMeGroup ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
                             >
-                              <span>{formatTimestamp(lastInGroup.timestamp)}</span>
+                              <span>
+                                {formatTimestamp(
+                                  Number(
+                                    (lastInGroup as unknown as { serverTimestamp?: number }).serverTimestamp ??
+                                      lastInGroup.timestamp,
+                                  ) || 0,
+                                )}
+                              </span>
                             </div>
                           </div>
                           <ReadStatus
@@ -817,6 +840,7 @@ export default function MessageList({
                             allUsersMap={allUsersMap}
                             getSenderInfo={getSenderInfo}
                             isMobile={isMobile}
+                            isUploading={groupUploading}
                           />
                         </div>
                       </div>
@@ -842,6 +866,12 @@ export default function MessageList({
                     const lastInGroup = fileGroup[fileGroup.length - 1];
                     const isMeGroup = String(senderInfo._id) === String(currentUser._id);
                     const groupIsLast = lastInGroup._id === messages[messages.length - 1]?._id;
+                    const groupUploading = fileGroup.some((mm) => {
+                      const up = uploadingFiles[mm._id] !== undefined;
+                      const sending = !!(mm as unknown as { isSending?: boolean }).isSending;
+                      const blob = typeof mm.fileUrl === 'string' && mm.fileUrl.startsWith('blob:');
+                      return up || sending || blob;
+                    });
                     return (
                       <div
                         key={`group-file-${msg._id}`}
@@ -1182,7 +1212,14 @@ export default function MessageList({
                             <div
                               className={`text-xs mt-2 block ${isMeGroup ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
                             >
-                              <span>{formatTimestamp(lastInGroup.timestamp)}</span>
+                              <span>
+                                {formatTimestamp(
+                                  Number(
+                                    (lastInGroup as unknown as { serverTimestamp?: number }).serverTimestamp ??
+                                      lastInGroup.timestamp,
+                                  ) || 0,
+                                )}
+                              </span>
                             </div>
                           </div>
                           <ReadStatus
@@ -1195,6 +1232,7 @@ export default function MessageList({
                             allUsersMap={allUsersMap}
                             getSenderInfo={getSenderInfo}
                             isMobile={isMobile}
+                            isUploading={groupUploading}
                           />
                         </div>
                       </div>
@@ -1676,7 +1714,7 @@ export default function MessageList({
                     <div className={`flex flex-col min-w-0 ${isMe ? 'items-end' : 'items-start'}`}>
                       {isEdited && !isRecalled && (
                         <span
-                          className="text-[0.625rem] px-1 text-blue-500 hover:underline hover:cursor-pointer"
+                          className="text-[10px] px-1 text-blue-500 hover:underline hover:cursor-pointer"
                           onClick={() => setExpandedOriginalId((prev) => (prev === msg._id ? null : msg._id))}
                         >
                           {expandedOriginalId === msg._id ? <p>Ẩn chỉnh sửa</p> : <p>Đã chỉnh sửa</p>}
@@ -1753,7 +1791,7 @@ export default function MessageList({
                       ? 'sm:max-w-[26rem] lg:max-w-[32rem]'
                       : 'sm:max-w-[34rem] lg:max-w-[44rem]'
                   } break-words mt-1 
-                  ${isMe ? 'text-white' : 'text-gray-800 '}
+                  ${isMe ? 'bg-blue-100 text-white' : 'text-gray-800 '}
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
                       ${!isGrouped && !isMe ? 'rounded-tl-md' : ''}
                       ${isRecalled ? '!bg-gray-200 !text-gray-500 italic !px-4 !py-2 !max-w-[92vw] sm:!max-w-[34rem] lg:!max-w-[44rem]' : ''}
@@ -2275,7 +2313,11 @@ export default function MessageList({
 
                             {isUploading && (
                               <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white">
-                                {Math.round(uploadProgress)}%
+                                {uploadProgress !== undefined ? (
+                                  <>{Math.round(uploadProgress)}%</>
+                                ) : (
+                                  <div className="w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                                )}
                               </div>
                             )}
                           </div>
@@ -2375,7 +2417,13 @@ export default function MessageList({
                         <div
                           className={`text-xs mt-1 ${isMe ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
                         >
-                          <span>{formatTimestamp(msg.timestamp)}</span>
+                          <span>
+                            {formatTimestamp(
+                              Number(
+                                (msg as unknown as { serverTimestamp?: number }).serverTimestamp ?? msg.timestamp,
+                              ) || 0,
+                            )}
+                          </span>
                         </div>
                       </div>
                       <ReadStatus
@@ -2388,6 +2436,14 @@ export default function MessageList({
                         allUsersMap={allUsersMap}
                         getSenderInfo={getSenderInfo}
                         isMobile={isMobile}
+                        isUploading={(() => {
+                          const up = uploadingFiles[msg._id] !== undefined;
+                          const sending = !!(msg as unknown as { isSending?: boolean }).isSending;
+                          const blob = typeof msg.fileUrl === 'string' && msg.fileUrl.startsWith('blob:');
+                          const isMediaOrFile =
+                            msg.type === 'image' || msg.type === 'video' || (msg.type === 'file' && !isVideo);
+                          return isMediaOrFile && (up || sending || blob);
+                        })()}
                       />
                     </div>
                   </div>

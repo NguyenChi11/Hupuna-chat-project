@@ -63,11 +63,13 @@ io.on('connection', (socket) => {
 
   socket.on('send_message', (data) => {
     const roomId = String(data.roomId);
-    io.in(roomId).emit('receive_message', data);
+    const now = Date.now();
+    const payload = { ...data, timestamp: now, serverTimestamp: now };
+    io.in(roomId).emit('receive_message', payload);
 
-    const isTextLike = data.type === 'text' || data.type === 'notify';
-    const lastMessage = `${data.senderName}: ${isTextLike ? (data.content ?? '') : `[${data.type ?? 'Unknown'}]`}`;
-    const sidebarData = { ...data, lastMessage };
+    const isTextLike = payload.type === 'text' || payload.type === 'notify';
+    const lastMessage = `${payload.senderName}: ${isTextLike ? (payload.content ?? '') : `[${payload.type ?? 'Unknown'}]`}`;
+    const sidebarData = { ...payload, lastMessage, timestamp: now, serverTimestamp: now };
 
     if (data.isGroup && data.members) {
       data.members.forEach((memberId) => {

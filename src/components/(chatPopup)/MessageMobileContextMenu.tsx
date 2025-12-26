@@ -15,6 +15,7 @@ import ICFolder from '../svg/ICFolder';
 import ICDownload from '../svg/ICDownload';
 import ICFolder2 from '../svg/ICFolder2';
 import { HiPlay } from 'react-icons/hi2';
+import { HiPencil } from 'react-icons/hi';
 
 interface MessageMobileContextMenuProps {
   contextMenu: ContextMenuState | null;
@@ -25,6 +26,9 @@ interface MessageMobileContextMenuProps {
   onReplyMessage?: (msg: Message) => void;
   onShareMessage: (message: Message) => void;
   onToggleReaction?: (msg: Message, emoji: string) => void;
+  setEditingMessageId?: (id: string | null) => void;
+  setEditContent?: (content: string) => void;
+  closeContextMenu?: () => void;
   iconSize?: number;
   reactionSize?: number;
 }
@@ -38,6 +42,9 @@ export default function MessageMobileContextMenu({
   onReplyMessage,
   onShareMessage,
   onToggleReaction,
+  setEditingMessageId,
+  setEditContent,
+  closeContextMenu,
   iconSize = 35,
   reactionSize = 35,
 }: MessageMobileContextMenuProps) {
@@ -78,6 +85,7 @@ export default function MessageMobileContextMenu({
     (msg?.type === 'image' || msg?.type === 'file' || msg?.type === 'sticker' || msg?.type === 'video');
   const canRecall = isMe && !isRecalled;
   const isPinned = !!msg?.isPinned;
+  const canEdit = isMe && isText && !isRecalled;
   const [imageDims, setImageDims] = useState<{ w: number; h: number } | null>(null);
 
   useEffect(() => {
@@ -324,7 +332,7 @@ export default function MessageMobileContextMenu({
                 <span className="text-[0.75rem] text-gray-800">Trả lời</span>
               </button>
             )}
-
+            
             {!isRecalled && (
               <button
                 onClick={() => {
@@ -339,6 +347,24 @@ export default function MessageMobileContextMenu({
                 <span className="text-[0.75rem] text-gray-800">Chia sẻ</span>
               </button>
             )}
+            {canEdit && (
+              <button
+                onClick={() => {
+                  if (setEditingMessageId && setEditContent) {
+                    setEditingMessageId(String(msg._id));
+                    setEditContent(String(msg.content || ''));
+                  }
+                  (closeContextMenu || onClose)();
+                }}
+                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl hover:bg-purple-50 active:scale-95 transition-all"
+                aria-label="Chỉnh sửa tin nhắn"
+                title="Chỉnh sửa tin nhắn"
+              >
+                <HiPencil className="w-9 h-9  " />
+                <span className="text-[0.75rem] text-gray-800">Chỉnh sửa</span>
+              </button>
+            )}
+
             {canCopy && (
               <button
                 onClick={handleCopy}
@@ -383,6 +409,7 @@ export default function MessageMobileContextMenu({
               </a>
             )}
 
+            
             {canRecall && (
               <button
                 onClick={() => {
