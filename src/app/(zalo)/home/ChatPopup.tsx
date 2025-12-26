@@ -1625,6 +1625,9 @@ export default function ChatWindow({
         playMessageSound();
         showMessageNotification(data);
         void markAsReadApi(roomId, String(currentUser._id));
+        try {
+          socketRef.current?.emit('messages_read', { roomId, userId: String(currentUser._id) });
+        } catch {}
       }
       const locked = !!scrollLockUntilRef.current && Date.now() < scrollLockUntilRef.current;
       const shouldScroll = !locked && (data.sender === currentUser._id || isAtBottomRef.current);
@@ -1686,6 +1689,27 @@ export default function ChatWindow({
         }
       },
     );
+    socketRef.current.on('messages_read', (payload: { roomId: string; userId: string }) => {
+      if (String(payload.roomId) !== String(roomId)) return;
+      const viewerId = String(payload.userId || '');
+      const myId = String(currentUser._id || '');
+      if (!viewerId || compareIds(viewerId, myId)) return;
+      const lastMine = [...messagesRef.current]
+        .slice()
+        .reverse()
+        .find((m) => compareIds((m as Message).sender, myId) && !(m as Message).isRecalled);
+      if (!lastMine) return;
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (String(m._id) !== String(lastMine._id)) return m;
+          const existing = new Set(((m.readBy || []) as string[]).map((x) => String(x)));
+          if (!existing.has(viewerId)) {
+            return { ...m, readBy: [...existing, viewerId] as unknown as string[] };
+          }
+          return m;
+        }),
+      );
+    });
 
     // 🔥 Listener cho room_nickname_updated
     socketRef.current.on(
@@ -2058,6 +2082,9 @@ export default function ChatWindow({
     try {
       await markAsReadApi(roomId, getId(currentUser));
       markedReadRef.current = roomId;
+      try {
+        socketRef.current?.emit('messages_read', { roomId, userId: getId(currentUser) });
+      } catch {}
     } catch (error) {
       console.error('Mark as read failed:', error);
     }
@@ -2069,6 +2096,60 @@ export default function ChatWindow({
     if (markedReadRef.current === roomId) return;
     void markAsRead();
   }, [roomId, currentUser, markAsRead]);
+
+  useEffect(() => {
+    if (!roomId || !currentUser) return;
+    const myId = String(currentUser._id || '');
+    const lastMine = [...messagesRef.current]
+      .slice()
+      .reverse()
+      .find((m) => compareIds((m as Message).sender, myId) && !(m as Message).isRecalled);
+    if (!lastMine) return;
+    const alreadySeen =
+      Array.isArray((lastMine as Message).readBy) &&
+      ((lastMine as Message).readBy || []).some((id) => !compareIds(id, myId));
+    let attempts = 0;
+    let stopped = false;
+    if (alreadySeen && !isGroup) return;
+    const timerId = window.setInterval(async () => {
+      attempts++;
+      if (stopped || attempts > 30) {
+        clearInterval(timerId);
+        return;
+      }
+      try {
+        const res = await readMessagesApi(roomId, {
+          limit: 1,
+          sortOrder: 'desc',
+          extraFilters: { _id: String((lastMine as Message)._id) },
+        });
+        const arr = Array.isArray(res.data) ? (res.data as Message[]) : [];
+        const updated = arr[0];
+        if (updated && Array.isArray(updated.readBy)) {
+          const current = messagesRef.current.find((m) => String(m._id) === String(updated._id));
+          const oldSet = new Set((current?.readBy || []).map((x) => String(x)));
+          const newSet = new Set((updated.readBy || []).map((x) => String(x)));
+          const changed = oldSet.size !== newSet.size || [...newSet].some((x) => !oldSet.has(x));
+          if (changed) {
+            setMessages((prev) =>
+              prev.map((m) => (String(m._id) === String(updated._id) ? { ...m, readBy: updated.readBy } : m)),
+            );
+            if (!isGroup) {
+              const seenByOther = (updated.readBy || []).some((id) => !compareIds(id, myId));
+              if (seenByOther) {
+                stopped = true;
+                clearInterval(timerId);
+              }
+            }
+          }
+        }
+      } catch {}
+    }, 2500);
+    return () => {
+      stopped = true;
+      clearInterval(timerId);
+    };
+  }, [roomId, currentUser, messages, isGroup]);
 
   // Đóng mention menu khi click bên ngoài
   useEffect(() => {
@@ -2542,43 +2623,84 @@ export default function ChatWindow({
             }
           }
 
-          // Gọi API tạo tin nhắn
-          const res = await fetch('/api/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'create',
-              data: newMsg,
-            }),
-          });
-
-          const json = await res.json();
-
-          if (json.success && typeof json._id === 'string') {
-            // Emit socket
-            const sockBase = isGroupChat
-              ? {
-                  roomId: targetRoomId,
-                  sender: currentUser._id,
-                  senderName: senderNick, // Dùng nickname
-                  isGroup: true,
-                  receiver: null,
-                  members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
-                }
-              : {
-                  roomId: targetRoomId,
-                  sender: currentUser._id,
-                  senderName: senderNick, // Dùng nickname
-                  isGroup: false,
-                  receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
-                  members: [],
-                };
-
-            socketRef.current?.emit('send_message', {
-              ...sockBase,
-              ...newMsg,
-              _id: json._id,
+          if (batchItems.length > 0) {
+            const batchId = `${String(message._id)}-${Date.now()}`;
+            for (const item of batchItems) {
+              const itemMsg: MessageCreate = {
+                roomId: targetRoomId,
+                sender: currentUser._id,
+                type: item.type,
+                content: item.type === 'text' ? item.content : undefined,
+                fileUrl: item.fileUrl,
+                fileName: item.fileName,
+                timestamp: Date.now(),
+                batchId,
+                sharedFrom: {
+                  messageId: String(item.id || message._id),
+                  originalSender: originalSenderName,
+                  originalRoomId: String(message.roomId),
+                },
+              };
+              const resItem = await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create',
+                  data: itemMsg,
+                }),
+              });
+              const jsonItem = await resItem.json();
+              if (jsonItem.success && typeof jsonItem._id === 'string') {
+                const sockBase = isGroupChat
+                  ? {
+                      roomId: targetRoomId,
+                      sender: currentUser._id,
+                      senderName: senderNick,
+                      isGroup: true,
+                      receiver: null,
+                      members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
+                    }
+                  : {
+                      roomId: targetRoomId,
+                      sender: currentUser._id,
+                      senderName: senderNick,
+                      isGroup: false,
+                      receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
+                      members: [],
+                    };
+                socketRef.current?.emit('send_message', { ...sockBase, ...itemMsg, _id: jsonItem._id });
+              }
+            }
+          } else {
+            const res = await fetch('/api/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create',
+                data: newMsg,
+              }),
             });
+            const json = await res.json();
+            if (json.success && typeof json._id === 'string') {
+              const sockBase = isGroupChat
+                ? {
+                    roomId: targetRoomId,
+                    sender: currentUser._id,
+                    senderName: senderNick,
+                    isGroup: true,
+                    receiver: null,
+                    members: safeGroups.find((g) => String(g._id) === String(targetRoomId))?.members || [],
+                  }
+                : {
+                    roomId: targetRoomId,
+                    sender: currentUser._id,
+                    senderName: senderNick,
+                    isGroup: false,
+                    receiver: targetRoomId.split('_').find((id) => id !== String(currentUser._id)),
+                    members: [],
+                  };
+              socketRef.current?.emit('send_message', { ...sockBase, ...newMsg, _id: json._id });
+            }
           }
         }
       } catch (error) {

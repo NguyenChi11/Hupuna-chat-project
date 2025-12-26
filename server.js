@@ -81,6 +81,14 @@ io.on('connection', (socket) => {
       io.to(String(data.sender)).emit('update_sidebar', sidebarData);
     }
   });
+  socket.on('messages_read', (data) => {
+    try {
+      const roomId = String(data.roomId);
+      const userId = String(data.userId || connectedUserId || '');
+      if (!roomId || !userId) return;
+      io.in(roomId).emit('messages_read', { roomId, userId });
+    } catch {}
+  });
 
   socket.on('group_members_updated', (data) => {
     const roomId = String(data.roomId);

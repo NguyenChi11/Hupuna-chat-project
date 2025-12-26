@@ -29,6 +29,7 @@ import ReactionButton from './components/ReactionButton';
 import FolderButton from './components/Folder/FolderButton';
 import { ContextMenuState } from './MessageContextMenu';
 import ICShareMessage from '../svg/ICShareMessage';
+import ReadStatus from './components/ReadStatus';
 
 interface SenderInfo {
   _id: string;
@@ -800,10 +801,23 @@ export default function MessageList({
                                 </div>
                               </>
                             )}
-                            <span className={`text-xs mt-1 ${isMeGroup ? 'text-gray-700' : 'text-gray-500'}`}>
-                              {formatTimestamp(lastInGroup.timestamp)}
-                            </span>
+                            <div
+                              className={`text-xs mt-1 ${isMeGroup ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
+                            >
+                              <span>{formatTimestamp(lastInGroup.timestamp)}</span>
+                            </div>
                           </div>
+                          <ReadStatus
+                            message={lastInGroup}
+                            isGroup={isGroup}
+                            isRecalled={!!lastInGroup.isRecalled}
+                            isMine={isMeGroup}
+                            isLast={groupIsLast}
+                            myId={myId}
+                            allUsersMap={allUsersMap}
+                            getSenderInfo={getSenderInfo}
+                            isMobile={isMobile}
+                          />
                         </div>
                       </div>
                     );
@@ -861,7 +875,7 @@ export default function MessageList({
                         )}
                         <div className={`flex flex-col min-w-0 ${isMeGroup ? 'items-end' : 'items-start'}`}>
                           <div
-                            className={`px-2 py-2 rounded-lg max-w-[70vw] sm:max-w-[18rem] mt-1 bg-white border border-gray-200 relative ${hasReactions ? 'mb-4' : ''}`}
+                            className={`py-2 rounded-lg max-w-[70vw] sm:max-w-[18rem] mt-1  relative ${hasReactions ? 'mb-4' : ''}`}
                             onClick={() => {
                               setActiveMoreId(msg._id);
                               setReactionDetail(null);
@@ -954,7 +968,7 @@ export default function MessageList({
                                   download={m.fileName || 'download'}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className={`relative flex items-center gap-3 p-2 rounded-xl border cursor-pointer ${
+                                  className={`relative flex items-center bg-white gap-3 p-2 rounded-xl border cursor-pointer ${
                                     highlightedMsgId === m._id
                                       ? 'bg-yellow-50 border-yellow-300'
                                       : 'border-gray-200 hover:bg-gray-50'
@@ -1018,13 +1032,41 @@ export default function MessageList({
                                     <p className="text-xs text-gray-500 truncate">Nhấn để tải xuống</p>
                                   </div>
                                   {uploadingFiles[m._id] !== undefined && (
-                                    <div className="absolute inset-0 bg-black/40 text-white flex items-center justify-center">
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-                                        <span className="text-sm font-semibold">
-                                          {Math.round(uploadingFiles[m._id] as number)}%
-                                        </span>
-                                      </div>
+                                    <div className="absolute inset-0 bg-black/60 text-white flex items-center justify-center">
+                                      {(() => {
+                                        const size = 32;
+                                        const stroke = 3;
+                                        const r = (size - stroke) / 2;
+                                        const c = 2 * Math.PI * r;
+                                        const p = Math.max(0, Math.min(100, Number(uploadingFiles[m._id] || 0)));
+                                        return (
+                                          <div className="flex flex-col items-center">
+                                            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                                              <circle
+                                                cx={size / 2}
+                                                cy={size / 2}
+                                                r={r}
+                                                stroke="rgba(255,255,255,0.35)"
+                                                strokeWidth={stroke}
+                                                fill="none"
+                                              />
+                                              <circle
+                                                cx={size / 2}
+                                                cy={size / 2}
+                                                r={r}
+                                                stroke="white"
+                                                strokeWidth={stroke}
+                                                fill="none"
+                                                strokeDasharray={c}
+                                                strokeDashoffset={c - (p / 100) * c}
+                                                strokeLinecap="round"
+                                                transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                                              />
+                                            </svg>
+                                            <span className="text-xs font-semibold mt-1">{Math.round(p)}%</span>
+                                          </div>
+                                        );
+                                      })()}
                                     </div>
                                   )}
                                 </a>
@@ -1137,10 +1179,23 @@ export default function MessageList({
                                 </div>
                               </>
                             )}
-                            <span className={`text-xs mt-2 block ${isMeGroup ? 'text-gray-700' : 'text-gray-500'}`}>
-                              {formatTimestamp(lastInGroup.timestamp)}
-                            </span>
+                            <div
+                              className={`text-xs mt-2 block ${isMeGroup ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
+                            >
+                              <span>{formatTimestamp(lastInGroup.timestamp)}</span>
+                            </div>
                           </div>
+                          <ReadStatus
+                            message={lastInGroup}
+                            isGroup={isGroup}
+                            isRecalled={!!lastInGroup.isRecalled}
+                            isMine={isMeGroup}
+                            isLast={groupIsLast}
+                            myId={myId}
+                            allUsersMap={allUsersMap}
+                            getSenderInfo={getSenderInfo}
+                            isMobile={isMobile}
+                          />
                         </div>
                       </div>
                     );
@@ -1698,13 +1753,13 @@ export default function MessageList({
                       ? 'sm:max-w-[26rem] lg:max-w-[32rem]'
                       : 'sm:max-w-[34rem] lg:max-w-[44rem]'
                   } break-words mt-1 
-                  ${isMe ? 'bg-[#E5F1FF] text-white' : 'bg-white text-gray-800 border border-gray-200'}
+                  ${isMe ? 'text-white' : 'text-gray-800 '}
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
                       ${!isGrouped && !isMe ? 'rounded-tl-md' : ''}
                       ${isRecalled ? '!bg-gray-200 !text-gray-500 italic !px-4 !py-2 !max-w-[92vw] sm:!max-w-[34rem] lg:!max-w-[44rem]' : ''}
                       ${!isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image') ? '!p-0 !shadow-none ' : ''}
                     ${!isRecalled && msg.type === 'image' ? '!p-0' : ''}
-                    ${!isRecalled && msg.type === 'file' ? '!px-2 !py-2' : ''}
+                    ${!isRecalled && msg.type === 'file' ? '!p-0' : ''}
                   relative ${hasReactions ? 'mb-4' : ''}
                   ${contextMenu?.visible && String(contextMenu.message._id) === String(msg._id) ? 'z-[9998]' : ''}
                   ${longPressActiveId === msg._id ? 'ring-2 ring-blue-300 scale-[0.98]' : ''}
@@ -2239,7 +2294,11 @@ export default function MessageList({
                             download={msg.fileName || 'download'}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl max-w-[70vw] sm:max-w-[18rem] shadow-sm hover:bg-gray-50"
+                            className="relative flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl max-w-[70vw] sm:max-w-[18rem] shadow-sm hover:bg-gray-50"
+                            onClick={(e) => {
+                              if (isUploading) e.preventDefault();
+                            }}
+                            aria-disabled={isUploading ? true : undefined}
                           >
                             <div className="p-2 bg-blue-600 rounded-xl">
                               <HiOutlineDocumentText className="w-6 h-6 text-white" />
@@ -2251,6 +2310,44 @@ export default function MessageList({
                               </p>
                               <p className="text-xs text-gray-500 truncate">Nhấn để tải xuống</p>
                             </div>
+                            {isUploading && (
+                              <div className="absolute inset-0 bg-black/60 text-white flex items-center justify-center rounded-2xl">
+                                {(() => {
+                                  const size = 32;
+                                  const stroke = 3;
+                                  const r = (size - stroke) / 2;
+                                  const c = 2 * Math.PI * r;
+                                  const p = Math.max(0, Math.min(100, Number(uploadProgress || 0)));
+                                  return (
+                                    <div className="flex flex-col items-center">
+                                      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                                        <circle
+                                          cx={size / 2}
+                                          cy={size / 2}
+                                          r={r}
+                                          stroke="rgba(255,255,255,0.35)"
+                                          strokeWidth={stroke}
+                                          fill="none"
+                                        />
+                                        <circle
+                                          cx={size / 2}
+                                          cy={size / 2}
+                                          r={r}
+                                          stroke="white"
+                                          strokeWidth={stroke}
+                                          fill="none"
+                                          strokeDasharray={c}
+                                          strokeDashoffset={c - (p / 100) * c}
+                                          strokeLinecap="round"
+                                          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                                        />
+                                      </svg>
+                                      <span className="text-xs font-semibold mt-1">{Math.round(p)}%</span>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            )}
                           </a>
                         )}
                         {msg.type === 'file' && !isRecalled && msg.content && (
@@ -2275,10 +2372,23 @@ export default function MessageList({
                             )}
                           </div>
                         )}
-                        <span className={`text-xs mt-1 ${isMe ? 'text-gray-700' : 'text-gray-500'}  `}>
-                          {formatTimestamp(msg.timestamp)}
-                        </span>
+                        <div
+                          className={`text-xs mt-1 ${isMe ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
+                        >
+                          <span>{formatTimestamp(msg.timestamp)}</span>
+                        </div>
                       </div>
+                      <ReadStatus
+                        message={msg}
+                        isGroup={isGroup}
+                        isRecalled={isRecalled}
+                        isMine={isMe}
+                        isLast={isLastMsg}
+                        myId={myId}
+                        allUsersMap={allUsersMap}
+                        getSenderInfo={getSenderInfo}
+                        isMobile={isMobile}
+                      />
                     </div>
                   </div>
                 );
