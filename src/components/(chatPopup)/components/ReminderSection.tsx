@@ -1,3 +1,4 @@
+import { ICCalendar } from '@/components/svg/ICCalendar';
 import React from 'react';
 import { HiClock } from 'react-icons/hi';
 interface ReminderSectionProps {
@@ -5,23 +6,22 @@ interface ReminderSectionProps {
 }
 export default function ReminderSection({ onOpen }: ReminderSectionProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white   border border-gray-100 overflow-hidden">
       <button
-        className="cursor-pointer w-full p-3 flex items-center gap-4 hover:bg-gray-50 transition-all duration-200 group"
+        className="cursor-pointer w-full p-3 flex items-center gap-5 hover:bg-gray-50 transition-all duration-200 group"
         onClick={onOpen}
         title="Xem danh sách nhắc hẹn"
       >
         {/* Icon với gradient + hiệu ứng */}
-        <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
-          <HiClock className="w-6 h-6" />
+        <div className="py-3 rounded-xl   ">
+          <ICCalendar className="w-7 h-7 text-gray-500" />
         </div>
 
         {/* Nội dung */}
         <div className="text-left">
-          <p className="text-base font-semibold text-gray-900 group-hover:text-amber-600 transition-colors">
-            Danh sách nhắc hẹn
+          <p className="text-base text-[18px]  text-gray-900 group-hover:text-amber-600 transition-colors">
+            Lịch hẹn
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">Nhấn để xem các nhắc hẹn trong cuộc trò chuyện</p>
         </div>
 
         {/* Mũi tên chỉ thị */}

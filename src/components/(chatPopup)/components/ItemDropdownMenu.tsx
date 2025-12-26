@@ -38,7 +38,7 @@ export default function ItemDropdownMenu({
       {/* Dropdown Menu */}
       <div className="absolute top-10 right-0 z-50 w-40 bg-white rounded-md shadow-xl border border-gray-200 py-1 animate-in fade-in zoom-in duration-100 origin-top-right">
         {/* Option 1: Nhảy tới tin nhắn */}
-        <button
+        {/* <button
           onClick={(e) => {
             e.stopPropagation();
             onJumpToMessage(itemId);
@@ -59,7 +59,7 @@ export default function ItemDropdownMenu({
             />
           </svg>
           Xem tin nhắn
-        </button>
+        </button> */}
 
         {/* Option: Chia sẻ tin nhắn */}
         {typeof onShareById === 'function' && (
