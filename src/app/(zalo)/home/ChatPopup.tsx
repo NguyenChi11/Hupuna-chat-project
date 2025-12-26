@@ -1669,14 +1669,16 @@ export default function ChatWindow({
         } catch {}
       }
       const locked = !!scrollLockUntilRef.current && Date.now() < scrollLockUntilRef.current;
-      const shouldScroll = !locked && (data.sender === currentUser._id || isAtBottomRef.current);
+      const elMeasure = messagesContainerRef.current;
+      const gap = elMeasure ? elMeasure.scrollHeight - elMeasure.scrollTop - elMeasure.clientHeight : 0;
+      const atBottomNow = gap <= SCROLL_BUMP_PX;
+      const iconShowingNow = !atBottomNow && gap > BUTTON_SHOW_THRESHOLD_PX;
+      const shouldScroll = !locked && (data.sender === currentUser._id || !iconShowingNow);
       if (shouldScroll) {
-        setTimeout(() => {
-          const el = messagesContainerRef.current;
-          if (el) {
-            el.scrollTop = el.scrollHeight;
-          }
-        }, 0);
+        scrollToBottom();
+        setTimeout(scrollToBottom, 0);
+        setTimeout(scrollToBottom, 150);
+        setTimeout(scrollToBottom, 300);
         setPendingNewCount(0);
         pendingNewCountRef.current = 0;
         hasScrolledUpRef.current = false;

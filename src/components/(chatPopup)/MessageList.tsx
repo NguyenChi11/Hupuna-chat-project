@@ -1791,7 +1791,7 @@ export default function MessageList({
                       ? 'sm:max-w-[26rem] lg:max-w-[32rem]'
                       : 'sm:max-w-[34rem] lg:max-w-[44rem]'
                   } break-words mt-1 
-                  ${isMe ? 'bg-blue-100 text-white' : 'text-gray-800 '}
+                  ${isMe ? 'bg-blue-100 text-white' : 'bg-white text-gray-800 '}
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
                       ${!isGrouped && !isMe ? 'rounded-tl-md' : ''}
                       ${isRecalled ? '!bg-gray-200 !text-gray-500 italic !px-4 !py-2 !max-w-[92vw] sm:!max-w-[34rem] lg:!max-w-[44rem]' : ''}
