@@ -176,7 +176,7 @@ export default function EditInfoView({
         <button
           onClick={onSubmit}
           disabled={loading}
-          className="cursor-pointer flex-1 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xl shadow-xl hover:shadow-2xl transition-all active:scale-98 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+          className="cursor-pointer flex-1 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl shadow-xl hover:shadow-2xl transition-all active:scale-98 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
         >
           {loading ? (
             'Đang lưu...'
