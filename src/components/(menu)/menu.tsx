@@ -160,14 +160,14 @@ export default function SidebarMenu() {
             <div className="absolute left-4 top-12 w-80 bg-white text-gray-800 rounded-3xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
               {/* Header - Thông tin người dùng */}
               <div
-                className="px-5 py-4 bg-[#0068ff] text-white cursor-pointer hover:bg-[#005edc] transition-all duration-200"
+                className="p-2 bg-[#0068ff] text-white cursor-pointer hover:bg-[#005edc] transition-all duration-200"
                 onClick={() => {
                   setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
                   router.push(`/profile/${userInfo.username}`);
                 }}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full overflow-hidden ring-4 ring-white/30 shadow-xl">
+                  <div className="w-10 h-10 rounded-full overflow-hidden ring-1 ring-white/30 shadow-xl">
                     {userInfo.avatar ? (
                       <Image
                         src={getProxyUrl(userInfo.avatar)}
@@ -193,7 +193,7 @@ export default function SidebarMenu() {
               <div className="py-2">
                 {/* Thông tin tài khoản */}
                 <div
-                  className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-all duration-150"
+                  className="flex items-center gap-4 p-2 hover:bg-gray-50 cursor-pointer transition-all duration-150"
                   onClick={() => {
                     setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
                     setShowAccountModal(true);
@@ -204,7 +204,7 @@ export default function SidebarMenu() {
                 </div>
 
                 {/* Ngôn ngữ */}
-                <div className="relative">
+                {/* <div className="relative">
                   <div
                     className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-all duration-150"
                     onClick={() =>
@@ -223,7 +223,7 @@ export default function SidebarMenu() {
                   </div>
 
                   {/* Submenu Ngôn ngữ */}
-                  {openMenu.submenu === 'lang' && (
+                {/* {openMenu.submenu === 'lang' && (
                     <div
                       className="absolute left-full top-0 ml-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50"
                       onClick={(e) => e.stopPropagation()}
@@ -238,11 +238,11 @@ export default function SidebarMenu() {
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
+                  )} */}
+                {/* </div>  */}
 
                 {/* Hỗ trợ */}
-                <div className="relative">
+                {/* <div className="relative">
                   <div
                     className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-all duration-150"
                     onClick={() =>
@@ -261,7 +261,7 @@ export default function SidebarMenu() {
                   </div>
 
                   {/* Submenu Hỗ trợ */}
-                  {openMenu.submenu === 'support' && (
+                {/* {openMenu.submenu === 'support' && (
                     <div
                       className="absolute left-full top-0 ml-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50"
                       onClick={(e) => e.stopPropagation()}
@@ -290,12 +290,12 @@ export default function SidebarMenu() {
                       ))}
                     </div>
                   )}
-                </div>
+                </div> */}
 
                 {/* Đăng xuất - phân cách bằng divider */}
                 <div className="border-t border-gray-100 mt-2 pt-2">
                   <div
-                    className="flex items-center gap-4 px-5 py-4 hover:bg-red-50 cursor-pointer transition-all duration-150 text-red-600 font-medium"
+                    className="flex items-center gap-4 p-2 hover:bg-red-50 cursor-pointer transition-all duration-150 text-red-600 font-medium"
                     onClick={() => {
                       setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
                       handleLogout();

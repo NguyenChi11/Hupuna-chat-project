@@ -7,7 +7,14 @@ import PinnedMessageListModal from '../base/PinnedMessageListModal';
 
 import type { Message } from '@/types/Message';
 import type { User } from '@/types/User';
-import { HiChatBubbleLeftRight, HiOutlineDocumentText, HiChevronDown, HiChevronUp } from 'react-icons/hi2';
+import {
+  HiChatBubbleLeftRight,
+  HiOutlineDocumentText,
+  HiChevronDown,
+  HiChevronUp,
+  HiEllipsisVertical,
+  HiTrash,
+} from 'react-icons/hi2';
 import { getProxyUrl } from '@/utils/utils';
 
 interface PinnedMessagesSectionProps {
@@ -114,18 +121,23 @@ export default function PinnedMessagesSection({
   const senderName = firstMsg ? getSenderName(firstMsg.sender) : '';
   const extraCount = allPinnedMessages.length > 1 ? allPinnedMessages.length - 1 : 0;
   const [openDropdown, setOpenDropdown] = useState(false);
+  const [openOptions, setOpenOptions] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const optionsRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (!openDropdown) return;
       const target = e.target as Node;
-      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+      if (openDropdown && dropdownRef.current && !dropdownRef.current.contains(target)) {
         setOpenDropdown(false);
+      }
+      if (openOptions && optionsRef.current && !optionsRef.current.contains(target)) {
+        setOpenOptions(null);
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [openDropdown]);
+  }, [openDropdown, openOptions]);
 
   if (isEmpty) return null;
 
@@ -133,7 +145,10 @@ export default function PinnedMessagesSection({
     <>
       {allPinnedMessages.length > 0 && (
         <div className="relative group flex items-center justify-between gap-3 px-4 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-300 select-none m-2 sm:m-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div
+            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-gray-50 rounded-lg p-1 transition-colors"
+            onClick={() => firstMsg && onJumpToMessage(firstMsg._id)}
+          >
             <div className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-600 border border-blue-200">
               <HiChatBubbleLeftRight className="w-4 h-4" />
             </div>
@@ -221,6 +236,37 @@ export default function PinnedMessagesSection({
                           </div>
                         </div>
                         {renderMiniPreview(msg)}
+
+                        <div className="relative">
+                          <button
+                            className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenOptions(openOptions === String(msg._id) ? null : String(msg._id));
+                            }}
+                          >
+                            <HiEllipsisVertical className="w-5 h-5" />
+                          </button>
+
+                          {openOptions === String(msg._id) && (
+                            <div
+                              ref={optionsRef}
+                              className="absolute right-0 top-8 z-50 w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1"
+                            >
+                              <button
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onUnpinMessage(msg);
+                                  setOpenOptions(null);
+                                }}
+                              >
+                                <HiTrash className="w-4 h-4" />
+                                Bỏ ghim
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
