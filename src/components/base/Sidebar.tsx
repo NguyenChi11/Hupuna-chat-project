@@ -20,6 +20,9 @@ import {
   HiChatBubbleLeftRight,
   HiFolder,
   HiEllipsisVertical,
+  HiCalendarDays,
+  HiClock,
+  HiUserGroup,
 } from 'react-icons/hi2';
 import { useRouter, usePathname } from 'next/navigation';
 import { useFolderController } from '@/components/controller/useFolderController';
@@ -30,6 +33,7 @@ import RenameModal from '@/components/modal/folder/RenameModal';
 import DeleteModal from '@/components/modal/folder/DeleteModal';
 import ReactDOM from 'react-dom';
 import RoomSearchResultsModal from '@/components/(search)/RoomSearchResultsModal';
+import ComingSoonModal from '@/components/modal/ComingSoonModal';
 
 interface SidebarProps {
   currentUser: User;
@@ -153,6 +157,7 @@ export default function Sidebar({
   onlyGroups = false,
   onlyPersonal = false,
 }: SidebarProps) {
+  const [activeExtraTab, setActiveExtraTab] = useState<'calendar' | 'reminder' | 'offline'>('calendar');
   const currentUserId = currentUser._id;
   const [activeTab, setActiveTab] = useState<'all' | 'contacts' | 'messages' | 'files'>('all');
   const [globalSearchResults, setGlobalSearchResults] = useState<GlobalSearchResult>({
@@ -170,6 +175,11 @@ export default function Sidebar({
   const [showRoomsSharedFolder, setShowRoomsSharedFolder] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const [showComingSoon, setShowComingSoon] = useState<{ isOpen: boolean; title: string; desc: string }>({
+    isOpen: false,
+    title: '',
+    desc: '',
+  });
   const [roomResultsModal, setRoomResultsModal] = useState<{
     roomId: string;
     roomName: string;
@@ -528,6 +538,62 @@ export default function Sidebar({
           </div> */}
         </>
       )}
+      {/* Mobile/Tablet Extra Tabs */}
+      {onlyGroups && (
+        <div className="flex items-center justify-around px-2 py-3 bg-white border-b border-gray-200 md:hidden">
+          <button
+            onClick={() =>
+              setShowComingSoon({
+                isOpen: true,
+                title: 'Lịch nhóm',
+                desc: 'Tính năng Lịch nhóm đang được phát triển để giúp bạn quản lý thời gian hiệu quả hơn.',
+              })
+            }
+            className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all duration-200 flex-1 mx-1 ${
+              activeExtraTab === 'calendar'
+                ? 'bg-blue-50 text-blue-600 shadow-sm'
+                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+            }`}
+          >
+            <HiCalendarDays className="w-6 h-6" />
+            <span className="text-[10px] font-medium leading-none">Lịch</span>
+          </button>
+          <button
+            onClick={() =>
+              setShowComingSoon({
+                isOpen: true,
+                title: 'Nhắc hẹn',
+                desc: 'Tính năng Nhắc hẹn sẽ sớm ra mắt để bạn không bỏ lỡ bất kỳ sự kiện quan trọng nào.',
+              })
+            }
+            className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all duration-200 flex-1 mx-1 ${
+              activeExtraTab === 'reminder'
+                ? 'bg-blue-50 text-blue-600 shadow-sm'
+                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+            }`}
+          >
+            <HiClock className="w-6 h-6" />
+            <span className="text-[10px] font-medium leading-none">Nhắc hẹn</span>
+          </button>
+          <button
+            onClick={() =>
+              setShowComingSoon({
+                isOpen: true,
+                title: 'Nhóm Offline',
+                desc: 'Tính năng Nhóm Offline đang được xây dựng để kết nối mọi người dễ dàng hơn.',
+              })
+            }
+            className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all duration-200 flex-1 mx-1 ${
+              activeExtraTab === 'offline'
+                ? 'bg-blue-50 text-blue-600 shadow-sm'
+                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+            }`}
+          >
+            <HiUserGroup className="w-6 h-6" />
+            <span className="text-[10px] font-medium leading-none">Nhóm Offline</span>
+          </button>
+        </div>
+      )}
 
       {/* Chat List */}
       <div className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-to-b from-white/80 to-gray-50/80 custom-scrollbar">
@@ -616,6 +682,14 @@ export default function Sidebar({
             onNavigateToMessage(m, kw);
             setRoomResultsModal(null);
           }}
+        />
+      )}
+      {showComingSoon.isOpen && (
+        <ComingSoonModal
+          isOpen={showComingSoon.isOpen}
+          onClose={() => setShowComingSoon({ ...showComingSoon, isOpen: false })}
+          title={showComingSoon.title}
+          description={showComingSoon.desc}
         />
       )}
     </aside>
