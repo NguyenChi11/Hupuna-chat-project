@@ -446,7 +446,7 @@ export default function ChatInput({
           </div>
         </div>
       ) : null}
-      <div className="hidden lg:flex items-center gap-2 mb-1  rounded-xl bg-white ">
+      <div className="hidden md:flex items-center gap-2 mb-1  rounded-xl bg-white ">
         <button
           onClick={onVoiceInput}
           className={`rounded-lg cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
@@ -712,7 +712,7 @@ export default function ChatInput({
                   <AiTwotoneLike className="w-7 h-7" />
                 </button>
               </div>
-              <div className="lg:hidden flex items-center gap-2">
+              <div className="md:hidden flex items-center gap-2">
                 <button
                   ref={toggleMobileActionsBtnRef}
                   onClick={handleToggleMobileActions}
