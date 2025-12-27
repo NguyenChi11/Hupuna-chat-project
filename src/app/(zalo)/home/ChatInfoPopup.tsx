@@ -592,7 +592,7 @@ export default function ChatInfoPopup({
       {isReminderOpen ? (
         <ReminderList onClose={() => setIsReminderOpen(false)} />
       ) : isPinnedMessagesOpen ? (
-        <PinnedMessagesList onClose={() => setIsPinnedMessagesOpen(false)} />
+        <PinnedMessagesList onClose={() => setIsPinnedMessagesOpen(false)} onJumpToMessage={onJumpToMessage} />
       ) : isPollOpen ? (
         <PollList onClose={() => setIsPollOpen(false)} onRefresh={onRefresh} />
       ) : (

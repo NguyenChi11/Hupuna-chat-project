@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HiChevronLeft, HiPlus, HiDotsHorizontal } from 'react-icons/hi';
 import { useChatContext } from '@/context/ChatContext';
-import { readMessagesApi, createMessageApi } from '@/fetch/messages';
+import { readMessagesApi, createMessageApi, togglePinMessageApi } from '@/fetch/messages';
 import type { Message } from '@/types/Message';
 import type { User } from '@/types/User';
 import type { GroupConversation } from '@/types/Group';
@@ -16,11 +16,12 @@ import { io } from 'socket.io-client';
 
 interface PinnedMessagesListProps {
   onClose: () => void;
+  onJumpToMessage?: (messageId: string) => void;
 }
 
 type TabType = 'pinned' | 'poll' | 'note';
 
-export default function PinnedMessagesList({ onClose }: PinnedMessagesListProps) {
+export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedMessagesListProps) {
   const { selectedChat, currentUser, isGroup, allUsers } = useChatContext();
   const roomId = useMemo(() => {
     const me = String(currentUser._id);
@@ -35,6 +36,7 @@ export default function PinnedMessagesList({ onClose }: PinnedMessagesListProps)
   const [showCreatePoll, setShowCreatePoll] = useState(false);
   const [showCreateNote, setShowCreateNote] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
 
@@ -239,6 +241,24 @@ export default function PinnedMessagesList({ onClose }: PinnedMessagesListProps)
     }
   };
 
+  const handleUnpin = async (messageId: string) => {
+    try {
+      await togglePinMessageApi(messageId, false);
+      setItems((prev) => prev.filter((item) => item._id !== messageId));
+      setActiveMenuId(null);
+    } catch (error) {
+      console.error('Failed to unpin message:', error);
+    }
+  };
+
+  const handleJump = (messageId: string) => {
+    if (onJumpToMessage) {
+      onJumpToMessage(messageId);
+      onClose();
+    }
+    setActiveMenuId(null);
+  };
+
   return (
     <div className="flex flex-col h-full bg-gray-50 relative">
       {/* Header */}
@@ -252,7 +272,7 @@ export default function PinnedMessagesList({ onClose }: PinnedMessagesListProps)
         <div className="relative">
           <button
             onClick={() => setShowCreateMenu(!showCreateMenu)}
-            className="p-1 hover:bg-white/20 rounded-full transition-colors"
+            className="p-1 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
           >
             <HiPlus className="w-6 h-6" />
           </button>
@@ -282,7 +302,7 @@ export default function PinnedMessagesList({ onClose }: PinnedMessagesListProps)
       </div>
 
       {/* Tabs */}
-      <div className="bg-white flex items-center border-b border-gray-200 sticky top-[52px] z-10">
+      <div className="bg-white flex items-center border-b border-gray-200 sticky top-[0] z-10">
         <div
           onClick={() => setActiveTab('pinned')}
           className={`flex-1 text-center py-3 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
@@ -356,9 +376,42 @@ export default function PinnedMessagesList({ onClose }: PinnedMessagesListProps)
                           </p>
                         </div>
                       </div>
-                      <button className="text-gray-400 hover:text-gray-600 p-1">
-                        <HiDotsHorizontal className="w-5 h-5" />
-                      </button>
+                      <div className="relative">
+                        <button
+                          className="cursor-pointer text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId(activeMenuId === msg._id ? null : msg._id);
+                          }}
+                        >
+                          <HiDotsHorizontal className="w-5 h-5" />
+                        </button>
+                        {activeMenuId === msg._id && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setActiveMenuId(null)} />
+                            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-20 overflow-hidden py-1">
+                              <button
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleJump(msg._id);
+                                }}
+                              >
+                                <span>Di chuyển đến tin nhắn</span>
+                              </button>
+                              <button
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUnpin(msg._id);
+                                }}
+                              >
+                                <span>Xóa ghim</span>
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     {/* Content Card */}
@@ -370,27 +423,44 @@ export default function PinnedMessagesList({ onClose }: PinnedMessagesListProps)
                       {/* Render Content based on type */}
                       {msg.type === 'image' ? (
                         <div className="mt-1">
-                          {msg.content && (
-                            <div className="w-full max-w-[200px] rounded-md overflow-hidden relative bg-gray-100">
-                              <Image
-                                src={getProxyUrl(msg.content)}
-                                alt="Image"
-                                width={200}
-                                height={200}
-                                className="object-cover w-auto h-auto"
-                              />
-                            </div>
-                          )}
+                          <div className=" w-20 h-20 rounded-md overflow-hidden relative bg-gray-100">
+                            <Image
+                              src={getProxyUrl(String(msg.fileUrl || msg.content)) || '/imgs/img1.JPEG'}
+                              alt="Image"
+                              width={200}
+                              height={200}
+                              className="object-cover w-auto h-auto"
+                            />
+                          </div>
                         </div>
                       ) : msg.type === 'video' ? (
                         <div className="mt-1">
-                          {msg.content && (
-                            <video
-                              src={getProxyUrl(msg.content)}
-                              controls
-                              className="w-full max-w-[200px] rounded-md bg-black"
-                            />
-                          )}
+                          <video
+                            src={
+                              getProxyUrl(String(msg.fileUrl || msg.content)) ||
+                              'https://www.w3schools.com/html/mov_bbb.mp4'
+                            }
+                            controls
+                            className="w-full max-w-[200px] rounded-md bg-black"
+                          />
+                        </div>
+                      ) : msg.type === 'file' ? (
+                        <div className="mt-1 flex items-center gap-2 p-2 bg-gray-50 rounded-md border border-gray-200">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-700 truncate">
+                              {msg.fileName || 'File đính kèm'}
+                            </p>
+                          </div>
                         </div>
                       ) : (
                         <p className="text-sm text-gray-800 line-clamp-3 whitespace-pre-wrap">
