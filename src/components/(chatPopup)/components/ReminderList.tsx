@@ -15,9 +15,10 @@ import { resolveSocketUrl } from '@/utils/utils';
 
 interface ReminderListProps {
   onClose: () => void;
+  embedded?: boolean;
 }
 
-export default function ReminderList({ onClose }: ReminderListProps) {
+export default function ReminderList({ onClose, embedded = false }: ReminderListProps) {
   const { selectedChat, currentUser, isGroup } = useChatContext();
   const roomId = useMemo(() => {
     const me = String(currentUser._id);
@@ -272,23 +273,25 @@ export default function ReminderList({ onClose }: ReminderListProps) {
   return (
     <>
       <div className="relative flex flex-col h-full bg-gray-50 overflow-hidden">
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
-          <h2 className="text-lg font-semibold">Danh sách lịch hẹn</h2>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowCreate(true)}
-              className="px-3 py-2 cursor-pointer rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-200 flex items-center gap-2"
-            >
-              <FaRegClock />
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 cursor-pointer rounded-full hover:bg-white/20 transition-all duration-200"
-            >
-              <HiX className="w-5 h-5" />
-            </button>
+        {!embedded && (
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
+            <h2 className="text-lg font-semibold">Danh sách lịch hẹn</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowCreate(true)}
+                className="px-3 py-2 cursor-pointer rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-200 flex items-center gap-2"
+              >
+                <FaRegClock />
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 cursor-pointer rounded-full hover:bg-white/20 transition-all duration-200"
+              >
+                <HiX className="w-5 h-5" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
           <div className="space-y-5 p-5 pb-24">

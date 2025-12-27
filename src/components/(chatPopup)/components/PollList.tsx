@@ -14,9 +14,10 @@ import PollDetailModal from './PollDetailModal';
 interface PollListProps {
   onClose: () => void;
   onRefresh?: () => void;
+  embedded?: boolean;
 }
 
-export default function PollList({ onClose, onRefresh }: PollListProps) {
+export default function PollList({ onClose, onRefresh, embedded = false }: PollListProps) {
   // ✅ BỎ DÒNG NÀY - Không cần nữa
   // const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL as string | undefined;
 
@@ -366,25 +367,27 @@ export default function PollList({ onClose, onRefresh }: PollListProps) {
   return (
     <>
       <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
-          <h2 className="text-lg font-semibold">Danh sách bình chọn</h2>
-          <div className="flex items-center gap-2">
-            {isGroup && (
+        {!embedded && (
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
+            <h2 className="text-lg font-semibold">Danh sách bình chọn</h2>
+            <div className="flex items-center gap-2">
+              {isGroup && (
+                <button
+                  onClick={() => setShowCreate(true)}
+                  className="px-3 py-2 cursor-pointer rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-200"
+                >
+                  Tạo
+                </button>
+              )}
               <button
-                onClick={() => setShowCreate(true)}
-                className="px-3 py-2 cursor-pointer rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-200"
+                onClick={onClose}
+                className="p-2 cursor-pointer rounded-full hover:bg-white/20 transition-all duration-200"
               >
-                Tạo
+                <HiX className="w-5 h-5" />
               </button>
-            )}
-            <button
-              onClick={onClose}
-              className="p-2 cursor-pointer rounded-full hover:bg-white/20 transition-all duration-200"
-            >
-              <HiX className="w-5 h-5" />
-            </button>
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
           <div className="space-y-5 p-5 pb-24">
             {loading ? (

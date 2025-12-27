@@ -292,6 +292,57 @@ export async function POST(req: NextRequest) {
           },
         } as unknown as UpdateFilter<GroupConversation>);
 
+        // ========== TẠO THÔNG BÁO HỆ THỐNG ==========
+        try {
+          // 1. Lấy tên người thêm (currentUserId)
+          let actorName = 'Ai đó';
+          if (currentUserId) {
+            const actorRes = await getAllRows<User>(USERS_COLLECTION_NAME, {
+              filters: createMemberIdFilter(String(currentUserId)).length > 0 
+                ? { $or: createMemberIdFilter(String(currentUserId)) }
+                : {},
+              limit: 1,
+            });
+            const actor = actorRes.data?.[0];
+            if (actor) {
+              actorName = actor.name || actor.username || 'Người dùng';
+            }
+          }
+
+          // 2. Lấy tên những người được thêm
+          const newMemberNames: string[] = [];
+          for (const mid of newMembers) {
+            const mRes = await getAllRows<User>(USERS_COLLECTION_NAME, {
+              filters: createMemberIdFilter(String(mid)).length > 0
+                ? { $or: createMemberIdFilter(String(mid)) }
+                : {},
+              limit: 1,
+            });
+            const mUser = mRes.data?.[0];
+            if (mUser) {
+              newMemberNames.push(mUser.name || mUser.username || 'Người dùng');
+            } else {
+              newMemberNames.push('Người dùng');
+            }
+          }
+
+          if (newMemberNames.length > 0) {
+            const namesStr = newMemberNames.join(', ');
+            const notifyContent = `${actorName} đã thêm ${namesStr} vào nhóm.`;
+            
+            await addRow<Partial<Message>>(MESSAGES_COLLECTION_NAME, {
+              roomId: String(conversationId),
+              sender: String(currentUserId || 'system'),
+              type: 'notify',
+              content: notifyContent,
+              timestamp: Date.now(),
+            });
+          }
+        } catch (e) {
+          console.error('Failed to create notify message:', e);
+        }
+        // ============================================
+
         return NextResponse.json({ success: true, result });
       }
 

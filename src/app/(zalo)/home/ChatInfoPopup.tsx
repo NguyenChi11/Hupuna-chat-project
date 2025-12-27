@@ -19,10 +19,12 @@ import RenameGroupModal from '@/components/(chatPopup)/components/RenameGroupMod
 import ConfirmGroupActionModal from '@/components/(chatPopup)/components/ConfirmGroupActionModal';
 import { useChatContext } from '@/context/ChatContext';
 import ReminderList from '@/components/(chatPopup)/components/ReminderList';
+import PinnedMessagesList from '@/components/(chatPopup)/components/PinnedMessagesList';
 import PollList from '@/components/(chatPopup)/components/PollList';
 import io from 'socket.io-client';
 import { getProxyUrl, resolveSocketUrl } from '@/utils/utils';
 import GroupInviteLinkSection from '@/components/(chatPopup)/components/GroupInviteLinkSection';
+import PinnedMessagesSection from '@/components/(chatPopup)/components/PinnedMessagesSection';
 import { HiPencil } from 'react-icons/hi';
 import Image from 'next/image';
 import ImageIconZalo from '@/components/svg/ICIconImageZalo';
@@ -43,6 +45,7 @@ import {
 import ICPin from '@/components/svg/ICPin';
 import PopupProfile from '@/components/base/PopupProfile';
 import { useRouter } from 'next/navigation';
+import SuccessModal from '@/components/modal/SuccessModal';
 
 interface ChatInfoPopupProps {
   onClose: () => void;
@@ -89,6 +92,7 @@ export default function ChatInfoPopup({
   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [confirmAction, setConfirmAction] = useState<'leave' | 'disband' | null>(null);
   const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const [isPinnedMessagesOpen, setIsPinnedMessagesOpen] = useState(false);
   const [isPollOpen, setIsPollOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -104,6 +108,7 @@ export default function ChatInfoPopup({
   const [myGroupsQuick, setMyGroupsQuick] = useState<GroupConversation[]>([]);
   const [addToGroupLoading, setAddToGroupLoading] = useState(false);
   const [addToGroupError, setAddToGroupError] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const myId = String(currentUser._id || (currentUser as { id?: string })?.id || '');
   const myRole = useMemo(() => {
@@ -201,12 +206,18 @@ export default function ChatInfoPopup({
         const res = await fetch('/api/groups', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'addMembers', conversationId: groupId, newMembers: [targetId] }),
+          body: JSON.stringify({
+            action: 'addMembers',
+            conversationId: groupId,
+            newMembers: [targetId],
+            _id: currentUser._id,
+          }),
         });
         const json = await res.json();
         if (!json.success) {
           setAddToGroupError(json.error || 'Thêm thất bại');
         } else {
+          setShowSuccessModal(true);
           reLoad?.();
           setShowAddToGroupModal(false);
         }
@@ -580,6 +591,8 @@ export default function ChatInfoPopup({
     <>
       {isReminderOpen ? (
         <ReminderList onClose={() => setIsReminderOpen(false)} />
+      ) : isPinnedMessagesOpen ? (
+        <PinnedMessagesList onClose={() => setIsPinnedMessagesOpen(false)} />
       ) : isPollOpen ? (
         <PollList onClose={() => setIsPollOpen(false)} onRefresh={onRefresh} />
       ) : (
@@ -818,6 +831,7 @@ export default function ChatInfoPopup({
 
                 <div className="pt-2">
                   <ReminderSection onOpen={() => setIsReminderOpen(true)} />
+                  <PinnedMessagesSection onOpen={() => setIsPinnedMessagesOpen(true)} />
                   {isGroup && <PollSection onOpen={() => setIsPollOpen(true)} />}
                 </div>
               </div>
@@ -910,7 +924,7 @@ export default function ChatInfoPopup({
                   </div>
                   <div className="px-5 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <HiEyeSlash className="w-6 h-6 text-gray-500" />
+                      <HiEyeSlash className="w-5 h-5 text-gray-500" />
                       <span className="text-[1.125rem] text-gray-800">Ẩn trò chuyện</span>
                     </div>
 
@@ -1144,7 +1158,7 @@ export default function ChatInfoPopup({
       )}
       {showAddToGroupModal && !isGroup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden h-[40rem]">
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <h3 className="font-bold text-gray-800">Thêm vào nhóm</h3>
               <button
@@ -1154,43 +1168,56 @@ export default function ChatInfoPopup({
                 <HiX className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-3 overflow-y-auto h-[36rem] custom-scrollbar">
               {myGroupsQuick.length === 0 ? (
                 <div className="text-sm text-gray-600">Chưa có nhóm nào</div>
               ) : (
                 <div className="space-y-2">
-                  {myGroupsQuick.map((g) => (
-                    <button
-                      key={g._id}
-                      onClick={() => handleAddCurrentToGroup(String(g._id))}
-                      disabled={addToGroupLoading}
-                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100">
-                          {g.avatar ? (
-                            <Image
-                              src={getProxyUrl(g.avatar)}
-                              alt=""
-                              width={36}
-                              height={36}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-700 font-bold">
-                              {String(g.name || 'N')
-                                .charAt(0)
-                                .toUpperCase()}
-                            </div>
-                          )}
+                  {myGroupsQuick.map((g) => {
+                    const isAlreadyMember =
+                      Array.isArray(g.members) &&
+                      g.members.some((m: { _id?: string; id?: string } | string) => {
+                        const mId = typeof m === 'string' ? m : m._id || m.id;
+                        return String(mId) === String((selectedChat as User)._id);
+                      });
+
+                    return (
+                      <button
+                        key={g._id}
+                        onClick={() => !isAlreadyMember && handleAddCurrentToGroup(String(g._id))}
+                        disabled={addToGroupLoading || isAlreadyMember}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors cursor-pointer ${
+                          isAlreadyMember ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100">
+                            {g.avatar ? (
+                              <Image
+                                src={getProxyUrl(g.avatar)}
+                                alt=""
+                                width={36}
+                                height={36}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-700 font-bold">
+                                {String(g.name || 'N')
+                                  .charAt(0)
+                                  .toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-sm font-medium text-gray-800">{g.name || 'Nhóm'}</div>
                         </div>
-                        <div className="text-sm font-medium text-gray-800">{g.name || 'Nhóm'}</div>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {Array.isArray(g.members) ? (g.members as unknown[]).length : 0} tv
-                      </div>
-                    </button>
-                  ))}
+                        <div className="text-xs text-gray-500">
+                          {isAlreadyMember
+                            ? 'Đã tham gia'
+                            : `${Array.isArray(g.members) ? (g.members as unknown[]).length : 0} tv`}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
               {addToGroupError && <div className="text-xs text-red-600">{addToGroupError}</div>}
@@ -1198,6 +1225,12 @@ export default function ChatInfoPopup({
           </div>
         </div>
       )}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Thành công"
+        description="Đã thêm thành viên vào nhóm thành công."
+      />
       {editingSelfNickname && !isGroup && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
