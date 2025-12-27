@@ -673,7 +673,7 @@ export default function ChatInfoPopup({
               {isGroup && (
                 <div className="bg-white  border border-gray-200">
                   <button
-                    className="cursor-pointer w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-all"
+                    className="cursor-pointer w-full p-2 flex items-center justify-between hover:bg-gray-50 transition-all"
                     title="Thêm mô tả nhóm"
                   >
                     <span className="font-semibold text-gray-800">Thêm mô tả nhóm</span>
@@ -701,7 +701,7 @@ export default function ChatInfoPopup({
                     >
                       <div className="flex items-center gap-4">
                         <HiPencil className="w-5 h-5 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">Đổi tên gọi nhớ</span>
+                        <span className="text-[1.125rem] text-gray-800">Đổi tên gọi nhớ</span>
                       </div>
                       <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
@@ -709,7 +709,7 @@ export default function ChatInfoPopup({
                     <div className="px-5 py-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <HiStar className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">Đánh dấu bạn thân</span>
+                        <span className="text-[1.125rem] text-gray-800">Đánh dấu bạn thân</span>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -731,7 +731,7 @@ export default function ChatInfoPopup({
                     >
                       <div className="flex items-center gap-4">
                         <HiBookOpen className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">Nhật ký chung</span>
+                        <span className="text-[1.125rem] text-gray-800">Nhật ký chung</span>
                       </div>
                       <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
@@ -747,11 +747,11 @@ export default function ChatInfoPopup({
                     void fetchAssets('file', true);
                     void fetchAssets('link', true);
                   }}
-                  className="cursor-pointer w-full pr-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200 group"
+                  className="cursor-pointer w-full p-2 flex items-center justify-between hover:bg-gray-50 transition-all duration-200 group"
                 >
                   <div className="flex items-center gap-2">
-                    <ImageIconZalo className="w-12 h-12" />
-                    <span className="text-[18px] text-gray-900">Ảnh, file, link</span>
+                    <ImageIconZalo className="w-10 h-10" />
+                    <span className="text-[1.125rem] text-gray-900">Ảnh, file, link</span>
                   </div>
 
                   <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -777,9 +777,11 @@ export default function ChatInfoPopup({
                             alt="Ảnh"
                             className="w-full h-full object-cover"
                           />
-                          <button
+                          {/* <button
                             className={`cursor-pointer absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg transition-all duration-200 z-10 ${
-                              activeMenuId === img.id ? 'opacity-100 ring-2 ring-blue-500' : 'opacity-0 group-hover:opacity-100'
+                              activeMenuId === img.id
+                                ? 'opacity-100 ring-2 ring-blue-500'
+                                : 'opacity-0 group-hover:opacity-100'
                             } hover:bg-white hover:scale-110`}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -791,7 +793,7 @@ export default function ChatInfoPopup({
                               <circle cx="12" cy="12" r="2" />
                               <circle cx="19" cy="12" r="2" />
                             </svg>
-                          </button>
+                          </button> */}
                           <ItemDropdownMenu
                             itemUrl={img.url}
                             itemId={img.id}
@@ -835,7 +837,7 @@ export default function ChatInfoPopup({
                     >
                       <div className="flex items-center gap-4">
                         <HiPlus className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">
+                        <span className="text-[1.125rem] text-gray-800">
                           Tạo nhóm với {(selectedChat as User).name || (selectedChat as User).username || 'Người dùng'}
                         </span>
                       </div>
@@ -849,7 +851,7 @@ export default function ChatInfoPopup({
                     >
                       <div className="flex items-center gap-4">
                         <HiUsers className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">
+                        <span className="text-[1.125rem] text-gray-800">
                           Thêm {(selectedChat as User).name || (selectedChat as User).username || 'Người dùng'} vào nhóm
                         </span>
                       </div>
@@ -861,7 +863,7 @@ export default function ChatInfoPopup({
                     >
                       <div className="flex items-center gap-4">
                         <HiUser className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">Xem nhóm chung</span>
+                        <span className="text-[1.125rem] text-gray-800">Xem nhóm chung</span>
                       </div>
                       <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
@@ -892,7 +894,7 @@ export default function ChatInfoPopup({
                   <div className="px-5 py-4 flex items-center justify-between">
                     <div className="flex gap-4 items-center">
                       <ICPin className="w-5 h-5 text-gray-600" />
-                      <span className="text-[18px] text-gray-800">Ghim trò chuyện</span>
+                      <span className="text-[1.125rem] text-gray-800">Ghim trò chuyện</span>
                     </div>
 
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -909,7 +911,7 @@ export default function ChatInfoPopup({
                   <div className="px-5 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <HiEyeSlash className="w-6 h-6 text-gray-500" />
-                      <span className="text-[18px] text-gray-800">Ẩn trò chuyện</span>
+                      <span className="text-[1.125rem] text-gray-800">Ẩn trò chuyện</span>
                     </div>
 
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -927,7 +929,7 @@ export default function ChatInfoPopup({
                     <div className="px-5 py-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <HiBell className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">Báo cuộc gọi đến</span>
+                        <span className="text-[1.125rem] text-gray-800">Báo cuộc gọi đến</span>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -950,7 +952,7 @@ export default function ChatInfoPopup({
                     >
                       <div className="flex items-center gap-4">
                         <HiCog className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">Cài đặt cá nhân</span>
+                        <span className="text-[1.125rem] text-gray-800">Cài đặt cá nhân</span>
                       </div>
                       <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
@@ -962,7 +964,7 @@ export default function ChatInfoPopup({
                     >
                       <div className="flex items-center gap-4">
                         <HiClock className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">Tin nhắn tự xóa</span>
+                        <span className="text-[1.125rem] text-gray-800">Tin nhắn tự xóa</span>
                       </div>
                       <span className="text-sm font-semibold text-gray-600">
                         {autoDeletePolicy === 'off' ? 'Không tự xóa' : autoDeletePolicy === '24h' ? '24 giờ' : '7 ngày'}
@@ -978,7 +980,7 @@ export default function ChatInfoPopup({
                     >
                       <div className="flex items-center gap-4">
                         <HiShieldCheck className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">Báo xấu</span>
+                        <span className="text-[1.125rem] text-gray-800">Báo xấu</span>
                       </div>
                       <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
@@ -990,7 +992,7 @@ export default function ChatInfoPopup({
                     >
                       <div className="flex items-center gap-4">
                         <HiBan className="w-6 h-6 text-gray-600" />
-                        <span className="text-[18px] text-gray-800">Quản lý chặn</span>
+                        <span className="text-[1.125rem] text-gray-800">Quản lý chặn</span>
                       </div>
                       <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
@@ -1357,7 +1359,7 @@ export default function ChatInfoPopup({
                           }}
                         >
                           {item.type === 'video' ? (
-                            <div className='relative'>
+                            <div className="relative">
                               <video
                                 src={getProxyUrl(item.url)}
                                 className="w-full h-full object-cover pointer-events-none"

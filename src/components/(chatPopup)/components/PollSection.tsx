@@ -14,10 +14,10 @@ export default function PollSection({ onOpen }: PollSectionProps) {
         title="Xem danh sách bình chọn"
       >
         <div className="py-3 rounded-xl  text-gray-500  ">
-          <HiChartBar className="w-7 h-7" />
+          <HiChartBar className="w-5 h-5" />
         </div>
         <div className="text-left">
-          <p className="text-base text-[18px] text-gray-900 group-hover:text-indigo-600 transition-colors">
+          <p className="text-base text-[1.125rem] text-gray-900 group-hover:text-indigo-600 transition-colors">
             Bình chọn
           </p>
         </div>

@@ -18,15 +18,12 @@ export default function GroupMembersSection({
 
   return (
     <div className="bg-white overflow-hidden">
-      <button
-        onClick={onOpenMembers}
-        className="cursor-pointer w-full px-4 py-3 flex items-center justify-between "
-      >
+      <button onClick={onOpenMembers} className="cursor-pointer w-full p-2 flex items-center justify-between ">
         <div className="flex items-center gap-3">
           <div className="py-2.5 rounded-xl  text-gray-500">
-            <HiUserGroup className="w-7 h-7" />
+            <HiUserGroup className="w-5 h-5" />
           </div>
-          <span className="text-[18px]  text-gray-900">
+          <span className="text-[1.125rem] text-gray-900">
             Xem thành viên <span className="text-gray-500">({membersCount})</span>
           </span>
         </div>

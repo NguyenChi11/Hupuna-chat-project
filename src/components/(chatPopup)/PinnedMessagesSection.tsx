@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 
 import PinnedMessageListModal from '../base/PinnedMessageListModal';
@@ -122,13 +123,31 @@ export default function PinnedMessagesSection({
   const extraCount = allPinnedMessages.length > 1 ? allPinnedMessages.length - 1 : 0;
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openOptions, setOpenOptions] = useState<string | null>(null);
+  const [optionsPosition, setOptionsPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const optionsRef = useRef<HTMLDivElement | null>(null);
+
+  const handleOpenOptions = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const buttonRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    // Tính toán vị trí hiển thị menu (ưu tiên hiển thị bên trái nút bấm để không bị tràn màn hình)
+    setOptionsPosition({
+      top: buttonRect.bottom + window.scrollY + 5,
+      left: buttonRect.right + window.scrollX - 128, // 128px là width của menu (w-32)
+    });
+    setOpenOptions(openOptions === id ? null : id);
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as Node;
       if (openDropdown && dropdownRef.current && !dropdownRef.current.contains(target)) {
+        // Kiểm tra xem click có phải vào nút option hay menu option không
+        // Nếu click vào menu option đang mở thì không đóng dropdown danh sách ghim
+        if (openOptions && optionsRef.current && optionsRef.current.contains(target)) {
+          return;
+        }
+        // Nếu click ra ngoài dropdown danh sách ghim và không phải click vào menu option
         setOpenDropdown(false);
       }
       if (openOptions && optionsRef.current && !optionsRef.current.contains(target)) {
@@ -161,6 +180,39 @@ export default function PinnedMessagesSection({
           </div>
           <div className="flex items-center gap-3">
             {firstMsg && renderMiniPreview(firstMsg)}
+
+            <div className="relative">
+              <button
+                className="cursor-pointer p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                onClick={(e) => handleOpenOptions(e, 'main-pinned')}
+              >
+                <HiEllipsisVertical className="w-5 h-5" />
+              </button>
+
+              {openOptions === 'main-pinned' &&
+                typeof document !== 'undefined' &&
+                createPortal(
+                  <div
+                    ref={optionsRef}
+                    style={{ top: optionsPosition.top, left: optionsPosition.left }}
+                    className="fixed z-[9999] w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1"
+                  >
+                    <button
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (firstMsg) onUnpinMessage(firstMsg);
+                        setOpenOptions(null);
+                      }}
+                    >
+                      <HiTrash className="w-4 h-4" />
+                      Bỏ ghim
+                    </button>
+                  </div>,
+                  document.body,
+                )}
+            </div>
+
             <div className="h-10 w-px bg-gray-200" />
             <div
               className="px-3 py-1.5 rounded-full border border-gray-300 bg-gray-50 text-gray-800 flex items-center gap-1.5 cursor-pointer"
@@ -219,7 +271,7 @@ export default function PinnedMessagesSection({
                     return (
                       <div
                         key={String(msg._id)}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer rounded-2xl"
                         onClick={(e) => {
                           e.stopPropagation();
                           setOpenDropdown(false);
@@ -239,33 +291,34 @@ export default function PinnedMessagesSection({
 
                         <div className="relative">
                           <button
-                            className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenOptions(openOptions === String(msg._id) ? null : String(msg._id));
-                            }}
+                            className="cursor-pointer p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                            onClick={(e) => handleOpenOptions(e, String(msg._id))}
                           >
                             <HiEllipsisVertical className="w-5 h-5" />
                           </button>
 
-                          {openOptions === String(msg._id) && (
-                            <div
-                              ref={optionsRef}
-                              className="absolute right-0 top-8 z-50 w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1"
-                            >
-                              <button
-                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onUnpinMessage(msg);
-                                  setOpenOptions(null);
-                                }}
+                          {openOptions === String(msg._id) &&
+                            typeof document !== 'undefined' &&
+                            createPortal(
+                              <div
+                                ref={optionsRef}
+                                style={{ top: optionsPosition.top, left: optionsPosition.left }}
+                                className="fixed z-[9999] w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1"
                               >
-                                <HiTrash className="w-4 h-4" />
-                                Bỏ ghim
-                              </button>
-                            </div>
-                          )}
+                                <button
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onUnpinMessage(msg);
+                                    setOpenOptions(null);
+                                  }}
+                                >
+                                  <HiTrash className="w-4 h-4" />
+                                  Bỏ ghim
+                                </button>
+                              </div>,
+                              document.body,
+                            )}
                         </div>
                       </div>
                     );

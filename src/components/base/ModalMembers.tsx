@@ -494,46 +494,48 @@ export default function GroupMembersModal({
                 return (
                   <div
                     key={memberId}
-                    className={`flex items-center gap-4 py-3 px-3 rounded-2xl hover:bg-gray-50 transition-colors relative group ${isLoading ? 'opacity-60' : ''}`}
+                    className={`flex items-center justify-between gap-4 py-3 px-3 rounded-2xl hover:bg-gray-50 transition-colors relative group ${isLoading ? 'opacity-60' : ''}`}
                   >
-                    {/* Avatar */}
-                    <div
-                      className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
-                      onClick={() => handleOpenProfile(memberId)}
-                    >
-                      {member.avatar ? (
-                        <Image
-                          src={getProxyUrl(member.avatar)}
-                          alt={member.name}
-                          width={48}
-                          height={48}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Image
-                          src="/logo/avata.webp"
-                          alt={member.name}
-                          width={48}
-                          height={48}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className=" min-w-0 space-y-1">
-                      <div className='flex items-center gap-2'>
-                        <p className="text-base font-medium text-gray-900">{member.name}</p>
-
-                        {isMe && (
-                          <span className="px-2.5  py-1 bg-[#0088ff]/10 text-[#0088ff] rounded-full text-xs font-medium">
-                            Bạn
-                          </span>
+                    <div className="flex items-center gap-4">
+                      {/* Avatar */}
+                      <div
+                        className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+                        onClick={() => handleOpenProfile(memberId)}
+                      >
+                        {member.avatar ? (
+                          <Image
+                            src={getProxyUrl(member.avatar)}
+                            alt={member.name}
+                            width={48}
+                            height={48}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Image
+                            src="/logo/avata.webp"
+                            alt={member.name}
+                            width={48}
+                            height={48}
+                            className="w-full h-full object-cover"
+                          />
                         )}
                       </div>
 
-                      <div className=" gap-3 flex-wrap ">
-                        <RoleBadge role={member.role} />
+                      {/* Info */}
+                      <div className=" min-w-0 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-base font-medium text-gray-900">{member.name}</p>
+
+                          {isMe && (
+                            <span className="px-2.5  py-1 bg-[#0088ff]/10 text-[#0088ff] rounded-full text-xs font-medium">
+                              Bạn
+                            </span>
+                          )}
+                        </div>
+
+                        <div className=" gap-3 flex-wrap ">
+                          <RoleBadge role={member.role} />
+                        </div>
                       </div>
                     </div>
 

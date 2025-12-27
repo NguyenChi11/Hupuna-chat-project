@@ -8,18 +8,18 @@ export default function ReminderSection({ onOpen }: ReminderSectionProps) {
   return (
     <div className="bg-white   border border-gray-100 overflow-hidden">
       <button
-        className="cursor-pointer w-full p-3 flex items-center gap-5 hover:bg-gray-50 transition-all duration-200 group"
+        className="cursor-pointer w-full p-2 flex items-center gap-5 hover:bg-gray-50 transition-all duration-200 group"
         onClick={onOpen}
         title="Xem danh sách nhắc hẹn"
       >
         {/* Icon với gradient + hiệu ứng */}
         <div className="py-3 rounded-xl   ">
-          <ICCalendar className="w-7 h-7 text-gray-500" />
+          <ICCalendar className="w-5 h-5 text-gray-500" />
         </div>
 
         {/* Nội dung */}
         <div className="text-left">
-          <p className="text-base text-[18px]  text-gray-900 group-hover:text-amber-600 transition-colors">
+          <p className="text-base text-[1.125rem]  text-gray-900 group-hover:text-amber-600 transition-colors">
             Lịch hẹn
           </p>
         </div>

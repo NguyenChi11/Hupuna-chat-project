@@ -68,7 +68,7 @@ export default function MobileProfileSheet({
       >
         {/* Header */}
         <div
-          className={`flex-none px-4 py-3 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10 ${
+          className={`flex-none p-2 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10 ${
             headerClassName || 'bg-white/80 backdrop-blur-md'
           }`}
         >
