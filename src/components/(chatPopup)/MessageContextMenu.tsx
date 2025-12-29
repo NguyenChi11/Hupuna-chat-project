@@ -9,6 +9,10 @@ import {
   HiPencil,
 } from 'react-icons/hi';
 import { RiReplyLine } from 'react-icons/ri';
+import ICReply from '../svg/ICReply';
+import ICShareMessage from '../svg/ICShareMessage';
+import ICCopy from '../svg/ICCopy';
+import ICPin from '../svg/ICPin';
 
 const getId = (u: Message['sender'] | string | undefined | null): string => {
   if (!u) return '';
@@ -74,7 +78,7 @@ interface MessageContextMenuProps {
   setEditContent?: (content: string) => void;
   closeContextMenu?: () => void;
   onReplyMessage?: (msg: Message) => void;
-  onShareMessage: (message: Message) => void; 
+  onShareMessage: (message: Message) => void;
 }
 
 const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
@@ -152,48 +156,10 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   return (
     <div
       data-context-menu="true"
-      className={`fixed z-[9999] bg-white rounded-lg shadow-2xl border border-gray-200 py-1 w-44 text-sm ${animClass}`}
+      className={`fixed z-[9999] bg-white space-y-3 rounded-lg shadow-2xl border border-gray-200 py-1 w-[250px] text-sm ${animClass}`}
       style={style}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {!isRecalled && (
-        <MenuItem
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            onShareMessage(msg);
-            onClose();
-          }}
-        >
-          <span className="flex gap-2">
-            <HiOutlineShare className="w-5 h-5" />
-            Chia sẻ tin nhắn
-          </span>
-        </MenuItem>
-      )}
-      {!isRecalled && (
-        <MenuItem
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            onPinMessage(msg);
-            onClose();
-          }}
-        >
-          {isCurrentlyPinned ? (
-            <p className="text-red-500 flex gap-2">
-              <HiOutlineAcademicCap className="w-5 h-5" />
-              Bỏ ghim tin nhắn
-            </p>
-          ) : (
-            <p className="flex gap-2">
-              <HiOutlineAcademicCap className="w-5 h-5" />
-              Ghim tin nhắn
-            </p>
-          )}
-        </MenuItem>
-      )}
-
       {!isRecalled && onReplyMessage && (
         <MenuItem
           onClick={(e) => {
@@ -203,27 +169,25 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
             onClose();
           }}
         >
-          <span className="flex gap-2">
-            <RiReplyLine className="w-5 h-5" />
-            Phản hồi tin nhắn
+          <span className="flex items-center gap-4">
+            <ICReply size={24} className="w-7 h-7" />
+            <p className="text-[1rem]">Trả lời</p>
           </span>
         </MenuItem>
       )}
-
-      {canEdit && (
+      {!isRecalled && (
         <MenuItem
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
-            if (setEditingMessageId && setEditContent && closeContextMenu) {
-              setEditingMessageId(msg._id);
-              setEditContent(msg.content || '');
-              closeContextMenu();
-            }
+            onShareMessage(msg);
+            onClose();
           }}
         >
-          <HiPencil className="w-5 h-5" />
-          Chỉnh sửa
+          <span className="flex gap-4 items-center">
+            <ICShareMessage className="w-7 h-7" />
+            <p className="text-[1rem]">Chia sẻ</p>
+          </span>
         </MenuItem>
       )}
 
@@ -239,8 +203,51 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
             onClose();
           }}
         >
-          <HiOutlineClipboardCopy className="w-5 h-5" />
-          Copy
+          <span className='flex gap-2 items-center'>
+            <ICCopy className="w-9 h-9 font-bold" />
+            <span className="text-[1rem] ">Sao chép</span>
+          </span>
+        </MenuItem>
+      )}
+      {!isRecalled && (
+        <MenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onPinMessage(msg);
+            onClose();
+          }}
+        >
+          {isCurrentlyPinned ? (
+            <p className="text-red-500 flex gap-4 items-center">
+              <ICPin className={`text-red-600 w-6 h-6 `} size={24} />
+              <span className="text-[1rem]">Bỏ ghim tin nhắn</span> 
+            </p>
+          ) : (
+            <p className="flex gap-4 items-center ">  
+              <ICPin className="w-6 h-6" />
+              <span className="text-[1rem]">Ghim tin nhắn</span> 
+            </p>
+          )}
+        </MenuItem>
+      )}
+
+      {canEdit && (
+        <MenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (setEditingMessageId && setEditContent && closeContextMenu) {
+              setEditingMessageId(msg._id);
+              setEditContent(msg.content || '');
+              closeContextMenu();
+            }
+          }}
+        >
+          <span className="flex gap-4 items-center">
+            <HiPencil className="w-7 h-7" />
+            <span className="text-[1rem]">Chỉnh sửa</span>  
+          </span>
         </MenuItem>
       )}
 
@@ -254,8 +261,10 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
             setTimeout(() => onClose(), 100);
           }}
         >
-          <HiOutlineDownload className="w-5 h-5" />
-          Tải xuống
+          <span className="flex gap-4 items-center">
+            <HiOutlineDownload className="w-7 h-7" />
+            <span className="text-[1rem]">Tải xuống</span>  
+          </span>
         </MenuItem>
       )}
 
@@ -269,8 +278,10 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
             onClose();
           }}
         >
-          <HiOutlineTrash className="w-5 h-5" />
-          Thu hồi
+          <span className="flex gap-4 items-center">
+            <HiOutlineTrash className="w-7 h-7" />
+            <span className="text-[1rem]">Thu hồi</span>  
+          </span>
         </MenuItem>
       )}
     </div>

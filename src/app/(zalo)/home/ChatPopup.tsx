@@ -1037,7 +1037,7 @@ export default function ChatWindow({
     e.preventDefault();
     const target = e.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
-    const menuWidth = 176;
+    const menuWidth = 200;
     const senderId = (() => {
       const idA = (msg.sender as unknown as { _id?: unknown })?._id;
       const idB = (msg.sender as unknown as { id?: unknown })?.id;
@@ -1065,18 +1065,24 @@ export default function ChatWindow({
     ].filter(Boolean).length;
     const ITEM_H = 36;
     const PADDING = 8;
-    const menuHeight = Math.max(ITEM_H, itemCount * ITEM_H + PADDING);
-    let x = rect.left + (rect.width - menuWidth) / 2;
-    x = Math.min(Math.max(x, 8), window.innerWidth - menuWidth - 8);
-    const GAP = 8;
-    let y = rect.bottom + GAP;
-    let placement: 'above' | 'below' = 'below';
-    const viewportH = window.innerHeight;
-    if (y + menuHeight > viewportH - GAP) {
-      placement = 'above';
-      y = rect.top - menuHeight - GAP;
+    const menuHeight = Math.max(ITEM_H + PADDING, itemCount * (ITEM_H + 4) + PADDING);
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 8;
     }
-    y = Math.min(Math.max(y, GAP), viewportH - menuHeight - GAP);
+    
+    const viewportH = window.innerHeight;
+    let placement: 'above' | 'below' = 'below';
+    
+    if (y + menuHeight > viewportH) {
+      y = y - menuHeight;
+      placement = 'above';
+    }
+    
+    y = Math.max(y, 0);
     setContextMenu({
       visible: true,
       x,
@@ -1192,6 +1198,35 @@ export default function ChatWindow({
 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [contextMenu, closeContextMenu]);
+
+  useEffect(() => {
+    if (!contextMenu?.visible) return;
+    const el = document.querySelector('[data-context-menu="true"]') as HTMLElement | null;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pad = 8;
+    let x = contextMenu.x;
+    let y = contextMenu.y;
+    let placement: 'above' | 'below' = contextMenu.placement ?? 'below';
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    if (x + rect.width + pad > vw) {
+      x = vw - rect.width - pad;
+    }
+    if (x < pad) {
+      x = pad;
+    }
+    if (y + rect.height + pad > vh) {
+      y = Math.max(pad, y - rect.height);
+      placement = 'above';
+    }
+    if (y < pad) {
+      y = pad;
+    }
+    if (x !== contextMenu.x || y !== contextMenu.y || placement !== contextMenu.placement) {
+      setContextMenu({ ...contextMenu, x, y, placement });
+    }
+  }, [contextMenu]);
 
   useEffect(() => {
     if (!contextMenu?.visible) return;

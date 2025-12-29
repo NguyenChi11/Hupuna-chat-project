@@ -301,6 +301,11 @@ export default function MessageList({
                           </div>
                         )}
                         <div className={`flex flex-col min-w-0 ${isMeGroup ? 'items-end' : 'items-start'}`}>
+                          {isGroup && !isGrouped && !isRecalled && (
+                            <p className={`text-sm mb-1 ${isMeGroup ? 'text-gray-600' : 'text-gray-600'}`}>
+                              {allUsersMap.get(senderInfo._id) || senderInfo.name}
+                            </p>
+                          )}
                           <div
                             className={`px-0 py-0 rounded-lg shadow-none max-w-[70vw] sm:max-w-[22rem] mt-1 bg-transparent relative ${hasReactions ? 'mb-4' : ''}`}
                             style={
@@ -462,7 +467,7 @@ export default function MessageList({
                                     }`}
                                   />
                                 )}
-                                {!isMobile && (
+                                {/* {!isMobile && (
                                   <FolderButton
                                     roomId={String(msg.roomId)}
                                     messageId={String(msg._id)}
@@ -505,7 +510,7 @@ export default function MessageList({
                                       setActiveMoreId(null);
                                     }}
                                   />
-                                )}
+                                )} */}
                               </>
                             )}
                             <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
@@ -526,6 +531,11 @@ export default function MessageList({
                                         : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
                                     } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
                                     onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
+                                    onContextMenu={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      onContextMenu(e, m);
+                                    }}
                                     onTouchStart={(e) => {
                                       try {
                                         e.stopPropagation();
@@ -602,12 +612,17 @@ export default function MessageList({
                                   <div
                                     key={`${m._id}-${idx}`}
                                     id={`msg-${m._id}`}
-                                    className={`relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-sm w-[8rem] h-[8rem] ${
+                                    className={`relative rounded-[0.25rem] overflow-hidden cursor-pointer hover:bg-gray-100 shadow-sm w-[8rem] h-[8rem] ${
                                       isSidebarOpen ? 'sm:w-[6rem] sm:h-[6rem]' : 'sm:w-[10rem] sm:h-[10rem]'
                                     } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       if (!up) onOpenMedia(String(m.fileUrl || m.previewUrl || ''), 'image');
+                                    }}
+                                    onContextMenu={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      onContextMenu(e, m);
                                     }}
                                     onTouchStart={(e) => {
                                       try {
@@ -915,7 +930,12 @@ export default function MessageList({
                             )}
                           </div>
                         )}
-                        <div className={`flex flex-col min-w-0 ${isMeGroup ? 'items-end' : 'items-start'}`}>
+                        <div className={`flex flex-col min-w-0 ${isMeGroup ? '' : 'items-start'}`}>
+                          {isGroup && !isGrouped && !isRecalled && (
+                            <p className={`text-sm  px-2  ${isMeGroup ? 'text-gray-600' : 'text-gray-600'}`}>
+                              {allUsersMap.get(senderInfo._id) || senderInfo.name}
+                            </p>
+                          )}
                           <div
                             className={`py-2 rounded-lg max-w-[70vw] sm:max-w-[18rem] mt-1  relative ${hasReactions ? 'mb-4' : ''}`}
                             onClick={() => {
@@ -955,7 +975,7 @@ export default function MessageList({
                                     }`}
                                   />
                                 )}
-                                {!isMobile && (
+                                {/* {!isMobile && (
                                   <FolderButton
                                     roomId={String(msg.roomId)}
                                     messageId={String(msg._id)}
@@ -998,7 +1018,7 @@ export default function MessageList({
                                       setActiveMoreId(null);
                                     }}
                                   />
-                                )}
+                                )} */}
                               </>
                             )}
                             <div className="space-y-2">
@@ -1018,6 +1038,11 @@ export default function MessageList({
                                   onClick={(e) => {
                                     const prog = uploadingFiles[m._id];
                                     if (prog !== undefined) e.preventDefault();
+                                  }}
+                                  onContextMenu={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onContextMenu(e, m);
                                   }}
                                   onTouchStart={(e) => {
                                     try {
@@ -1690,7 +1715,7 @@ export default function MessageList({
                     id={`msg-${msg._id}`}
                     onContextMenu={(e) => {
                       e.preventDefault();
-                      onReplyMessage?.(msg);
+                      onContextMenu(e, msg);
                     }}
                     className={`
                   w-full sm:max-w-[36rem] lg:max-w-[46rem]
