@@ -167,9 +167,9 @@ export default function LoginForm() {
           </div>
 
           {/* Right Side */}
-          <div className="p-6 sm:p-10 bg-white">
+          <div className="p-4 sm:p-6 bg-white">
             <div className="max-w-md mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-900">Chào mừng trở lại!</h2>
+              <h2 className="text-2xl lg:text-2xl font-bold text-center text-gray-900">Chào mừng trở lại!</h2>
               <p className="text-center text-gray-600 text-sm sm:text-base mt-1 mb-6">Đăng nhập để tiếp tục</p>
 
               <form
@@ -189,7 +189,7 @@ export default function LoginForm() {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition"
+                    className="w-full p-2 bg-gray-50 rounded-[0.75rem] border border-gray-200  focus:ring-blue-100 focus:border-blue-500 transition"
                     placeholder="Nhập tên đăng nhập"
                     required
                   />
@@ -205,7 +205,7 @@ export default function LoginForm() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition"
+                    className="w-full p-2 bg-gray-50 rounded-[0.75rem] border border-gray-200  focus:ring-blue-100 focus:border-blue-500 transition"
                     placeholder="Nhập mật khẩu"
                     required
                   />
@@ -231,16 +231,16 @@ export default function LoginForm() {
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full  cursor-pointer py-3 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl text-white font-bold text-lg shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2"
+                  className="w-full  cursor-pointer py-2 bg-blue-500 rounded-[0.75rem] text-white font-bold text-sm shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2"
                 >
                   Đăng nhập ngay
-                  <HiArrowRight className="w-6 h-6" />
+                  <HiArrowRight className="w-4 h-4" />
                 </button>
 
                 <button
                   type="button"
                   onClick={register}
-                  className="w-full cursor-pointer py-3 rounded-xl border border-blue-500 text-blue-600 font-bold hover:bg-blue-50"
+                  className="w-full cursor-pointer py-2 rounded-[0.75rem] text-sm border border-blue-500 text-blue-600 font-bold hover:bg-blue-50"
                 >
                   Tạo tài khoản mới
                 </button>

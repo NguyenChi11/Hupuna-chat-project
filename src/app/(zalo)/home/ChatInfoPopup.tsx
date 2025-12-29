@@ -572,7 +572,7 @@ export default function ChatInfoPopup({
             <div className="flex items-center gap-2">
               <button
                 onClick={onClose}
-                className="p-2 cursor-pointer rounded-full hover:bg-white/20 transition-all duration-200"
+                className="p-2 cursor-pointer rounded-full hover:bg-white/20 transition-all duration-200 block sm:hidden"
                 aria-label="Quay lại"
               >
                 <HiChevronLeft className="w-5 h-5" />

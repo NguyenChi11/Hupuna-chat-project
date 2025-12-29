@@ -864,7 +864,7 @@ export default function ChatWindow({
   } = useChatMentions({
     allUsers,
     activeMembers,
-    currentUserId: currentUser._id,
+    currentUser,
   });
 
   const dismissKeyboardAndScroll = useCallback(() => {
@@ -1523,16 +1523,14 @@ export default function ChatWindow({
         const id = String(m._id);
         if (!map.has(id)) map.set(id, m);
       });
-      const desc = Array.from(map.values()).sort(
-        (a: Message, b: Message) => {
-          const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
-          const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
-          if (tb !== ta) return tb - ta;
-          const ia = String(a._id || '');
-          const ib = String(b._id || '');
-          return ib.localeCompare(ia);
-        },
-      );
+      const desc = Array.from(map.values()).sort((a: Message, b: Message) => {
+        const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
+        const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
+        if (tb !== ta) return tb - ta;
+        const ia = String(a._id || '');
+        const ib = String(b._id || '');
+        return ib.localeCompare(ia);
+      });
       const asc = desc.slice().reverse();
       setMessages(asc);
       try {

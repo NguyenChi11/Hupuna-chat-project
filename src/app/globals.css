@@ -33,7 +33,7 @@ video {
 .animate-showModal {
   animation: showModal 0.3s ease-out forwards;
 }
-html {
+/* html {
   font-size: 1vw;
 }
 
@@ -65,7 +65,7 @@ html {
   html {
     font-size: 1.25vw;
   }
-}
+} */
 
 @supports (padding: env(safe-area-inset-left)) {
   body {

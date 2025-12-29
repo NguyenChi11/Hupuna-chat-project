@@ -77,13 +77,13 @@ export default function ChatHeader({
     if (!kw) return;
     setLocalSearchTerm(kw);
     if (isMobile && isSearchActive) {
-    if (lastInitialKeywordRef.current === kw && hasAutoSearchedRef.current) return;
-    hasAutoSearchedRef.current = true;
-    lastInitialKeywordRef.current = kw;
-    setTimeout(() => {
-      searchInputRef?.current?.focus?.();
-    }, 100);
-    onSearchTermChange?.(kw);
+      if (lastInitialKeywordRef.current === kw && hasAutoSearchedRef.current) return;
+      hasAutoSearchedRef.current = true;
+      lastInitialKeywordRef.current = kw;
+      setTimeout(() => {
+        searchInputRef?.current?.focus?.();
+      }, 100);
+      onSearchTermChange?.(kw);
     }
   }, [initialKeyword, isMobile, isSearchActive, onSearchTermChange]);
 
@@ -103,56 +103,56 @@ export default function ChatHeader({
   if (isMobile && isSearchActive) {
     return (
       <div className="flex items-center gap-2 px-2 py-2 bg-white border-b border-gray-200 shadow-sm">
-      {/* Back button */}
-      <button
-        onClick={() => {
-          if (isSearchActive) {
-            // Nếu đang tìm kiếm: Chỉ thoát chế độ tìm kiếm
-            manualCloseRef.current = true;
-            setLocalSearchTerm('');
-            onSearchTermChange?.('');
-            onToggleSearchSidebar?.();
-          } else {
-            // Nếu KHÔNG tìm kiếm: Gọi hàm quay lại danh sách chat
-            onBackFromChat?.();
-          }
-        }}
-        className="p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
-        title="Quay lại"
-      >
-        <HiArrowLeft className="w-5 h-5 text-gray-700" />
-      </button>
-
-      {/* Search icon */}
-      <HiMagnifyingGlass className="w-5 h-5 text-gray-500 flex-shrink-0" />
-
-      {/* Search input */}
-      <div className="flex-1 relative">
-        <input
-          ref={searchInputRef}
-          type="text"
-          value={localSearchTerm}
-          onChange={(e) => {
-            setLocalSearchTerm(e.target.value);
-            onSearchTermChange?.(e.target.value);
-          }}
-          onFocus={onSearchFocus}
-          placeholder="Tìm kiếm..."
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-          autoFocus
-        />
-        {localSearchTerm && (
-          <button
-            onClick={() => {
+        {/* Back button */}
+        <button
+          onClick={() => {
+            if (isSearchActive) {
+              // Nếu đang tìm kiếm: Chỉ thoát chế độ tìm kiếm
+              manualCloseRef.current = true;
               setLocalSearchTerm('');
               onSearchTermChange?.('');
+              onToggleSearchSidebar?.();
+            } else {
+              // Nếu KHÔNG tìm kiếm: Gọi hàm quay lại danh sách chat
+              onBackFromChat?.();
+            }
+          }}
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
+          title="Quay lại"
+        >
+          <HiArrowLeft className="w-5 h-5 text-gray-700" />
+        </button>
+
+        {/* Search icon */}
+        <HiMagnifyingGlass className="w-5 h-5 text-gray-500 flex-shrink-0" />
+
+        {/* Search input */}
+        <div className="flex-1 relative">
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={localSearchTerm}
+            onChange={(e) => {
+              setLocalSearchTerm(e.target.value);
+              onSearchTermChange?.(e.target.value);
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
-          >
-            <HiXMark className="w-4 h-4 text-gray-500" />
-          </button>
-        )}
-      </div>
+            onFocus={onSearchFocus}
+            placeholder="Tìm kiếm..."
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+            autoFocus
+          />
+          {localSearchTerm && (
+            <button
+              onClick={() => {
+                setLocalSearchTerm('');
+                onSearchTermChange?.('');
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
+            >
+              <HiXMark className="w-4 h-4 text-gray-500" />
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -286,9 +286,9 @@ export default function ChatHeader({
           `}
           title="Thông tin trò chuyện"
         >
-          <HiEllipsisVertical className="w-5 h-5" />
+          <HiEllipsisVertical className="w-4 h-4" />
           {/* Chấm tròn khi popup đang mở */}
-          {showPopup && <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full" />}
+          {showPopup && <div className="absolute top-0 right-0 w-2 h-2 bg-blue-600 rounded-full" />}
         </button>
       </div>
     </div>

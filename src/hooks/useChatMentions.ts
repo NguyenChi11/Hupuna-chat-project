@@ -8,11 +8,11 @@ import type { MemberInfo } from '@/types/Group';
 interface UseChatMentionsParams {
   allUsers: User[];
   activeMembers: MemberInfo[];
-  currentUserId: string;
+  currentUser: User;
   allUsersMap?: Map<string, string>;
 }
 
-export function useChatMentions({ allUsers, activeMembers, currentUserId, allUsersMap }: UseChatMentionsParams) {
+export function useChatMentions({ allUsers, activeMembers, currentUser, allUsersMap }: UseChatMentionsParams) {
   const [showMentionMenu, setShowMentionMenu] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionStartPos, setMentionStartPos] = useState<number | null>(null);
@@ -64,14 +64,25 @@ export function useChatMentions({ allUsers, activeMembers, currentUserId, allUse
 
   const getCursorPosition = (): number => {
     const selection = window.getSelection();
-    if (!selection || !editableRef.current) return 0;
+    if (!selection || !editableRef.current || selection.rangeCount === 0) return 0;
 
     const range = selection.getRangeAt(0);
-    const preCaretRange = range.cloneRange();
-    preCaretRange.selectNodeContents(editableRef.current);
-    preCaretRange.setEnd(range.endContainer, range.endOffset);
 
-    return preCaretRange.toString().length;
+    // Ensure the selection is actually inside our editable element
+    if (!editableRef.current.contains(range.commonAncestorContainer)) {
+      return 0;
+    }
+
+    try {
+      const preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(editableRef.current);
+      preCaretRange.setEnd(range.endContainer, range.endOffset);
+
+      return preCaretRange.toString().length;
+    } catch (error) {
+      console.error('Error getting cursor position:', error);
+      return 0;
+    }
   };
 
   const parseMentions = (text: string): { mentions: string[]; displayText: string } => {
@@ -96,18 +107,26 @@ export function useChatMentions({ allUsers, activeMembers, currentUserId, allUse
       return (u as unknown as User).name || (u as unknown as MemberInfo).name;
     };
 
-    const usersList =
-      activeMembers.length > 0 ? (activeMembers as unknown as User[]) : allUsers.filter((u) => u._id !== currentUserId);
+    const usersList = activeMembers.length > 0 ? (activeMembers as unknown as User[]) : allUsers;
 
-    if (!mentionQuery) return usersList;
+    // Ensure current user is in the list
+    const currentUserId = currentUser._id;
+    const hasCurrentUser = usersList.some((u) => {
+      const id = u._id || (u as unknown as { id: string }).id;
+      return String(id) === String(currentUserId);
+    });
+
+    const finalUsersList = hasCurrentUser ? usersList : [...usersList, currentUser];
+
+    if (!mentionQuery) return finalUsersList;
 
     const query = mentionQuery.toLowerCase();
 
-    return usersList.filter((user) => {
+    return finalUsersList.filter((user) => {
       const name = getName(user);
       return name && name.toLowerCase().includes(query);
     });
-  }, [mentionQuery, activeMembers, allUsers, currentUserId, allUsersMap]);
+  }, [mentionQuery, activeMembers, allUsers, currentUser, allUsersMap]);
 
   const handleInputChangeEditable = () => {
     if (!editableRef.current) return;

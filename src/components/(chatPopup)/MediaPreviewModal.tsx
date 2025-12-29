@@ -151,7 +151,7 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
         {items.length > 0 && (
           <div className="absolute left-1/2 -translate-x-1/2 bottom-28 sm:bottom-32 flex items-center gap-3 z-20">
             <button
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white"
+              className="p-2 cursor-pointer rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white"
               onClick={() => {
                 const el = listRef.current;
                 if (el) el.scrollBy({ left: -300, behavior: 'smooth' });
@@ -160,7 +160,7 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
               <HiChevronLeft className="w-5 h-5" />
             </button>
             <button
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white"
+              className="p-2 cursor-pointer  rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white"
               onClick={() => {
                 const el = listRef.current;
                 if (el) el.scrollBy({ left: 300, behavior: 'smooth' });
