@@ -864,7 +864,7 @@ export default function ChatWindow({
   } = useChatMentions({
     allUsers,
     activeMembers,
-    currentUserId: currentUser._id,
+    currentUser,
   });
 
   const dismissKeyboardAndScroll = useCallback(() => {
