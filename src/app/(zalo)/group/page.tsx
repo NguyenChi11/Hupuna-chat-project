@@ -7,6 +7,8 @@ import IncomingCallModal from '@/components/(call)/IncomingCallModal';
 
 import HomeDesktop from '@/components/(home)/HomeDesktop';
 import HomeMobile from '@/components/(home)/HomeMobile';
+import CommonGroupsMobile from '@/components/(group)/CommonGroupsMobile';
+import AddToGroupModal from '@/components/(chatPopup)/components/AddToGroupModal';
 import HomeOverlays from '@/components/(home)/HomeOverlays';
 import { useHomePage } from '@/hooks/useHomePage';
 import type { GroupConversation } from '@/types/Group';
@@ -72,7 +74,13 @@ export default function GroupPage() {
     roomId: string;
     sdp: RTCSessionDescriptionInit;
   } | null>(null);
-
+  
+  const [showAddToGroupModal, setShowAddToGroupModal] = useState(false);
+  const partnerUser = useMemo(() => {
+    if (!withUserId) return null;
+    return allUsers.find(u => String(u._id) === String(withUserId)) || null;
+  }, [withUserId, allUsers]);
+  
   useEffect(() => {
     const run = async () => {
       if (!currentUser || !currentUser._id) return;
@@ -209,29 +217,50 @@ export default function GroupPage() {
         onlyGroups={true}
       />
 
-      <HomeMobile
-        currentUser={currentUser}
-        groups={filteredGroups}
-        allUsers={allUsers}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        setShowCreateGroupModal={setShowCreateGroupModal}
-        selectedChat={selectedChat}
-        onSelectChat={handleSelectChat}
-        onBackFromChat={() => setSelectedChat(null)}
-        onChatAction={handleChatAction}
-        scrollToMessageId={scrollToMessageId}
-        onScrollComplete={() => {
-          setScrollToMessageId(null);
-          setRoomSearchKeyword(null);
-        }}
-        roomSearchKeyword={roomSearchKeyword}
-        setRoomSearchKeyword={setRoomSearchKeyword}
-        fetchAllData={fetchAllData}
-        onShowGlobalSearch={handleOpenGlobalSearch}
-        onNavigateToMessage={handleNavigateToMessage}
-        onlyGroups={true}
-      />
+      {withUserId && partnerUser ? (
+        <div className="md:hidden w-full h-full">
+          <CommonGroupsMobile
+            groups={filteredGroups}
+            partner={partnerUser}
+            onBack={() => {
+              if (typeof window !== 'undefined') window.history.back();
+            }}
+            onShowCreateGroup={() => {
+               // Hack to set initial member for create group
+               try {
+                 const w = window as Window & { __createGroupInitialMemberIds?: string[] };
+                 w.__createGroupInitialMemberIds = [String(partnerUser._id)];
+               } catch {}
+               setShowCreateGroupModal(true);
+            }}
+            onShowAddToGroup={() => setShowAddToGroupModal(true)}
+          />
+        </div>
+      ) : (
+        <HomeMobile
+          currentUser={currentUser}
+          groups={filteredGroups}
+          allUsers={allUsers}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          setShowCreateGroupModal={setShowCreateGroupModal}
+          selectedChat={selectedChat}
+          onSelectChat={handleSelectChat}
+          onBackFromChat={() => setSelectedChat(null)}
+          onChatAction={handleChatAction}
+          scrollToMessageId={scrollToMessageId}
+          onScrollComplete={() => {
+            setScrollToMessageId(null);
+            setRoomSearchKeyword(null);
+          }}
+          roomSearchKeyword={roomSearchKeyword}
+          setRoomSearchKeyword={setRoomSearchKeyword}
+          fetchAllData={fetchAllData}
+          onShowGlobalSearch={handleOpenGlobalSearch}
+          onNavigateToMessage={handleNavigateToMessage}
+          onlyGroups={true}
+        />
+      )}
 
       <HomeOverlays
         currentUser={currentUser}
@@ -256,6 +285,24 @@ export default function GroupPage() {
         }}
         reLoad={fetchAllData}
       />
+
+      {showAddToGroupModal && partnerUser && (
+        <AddToGroupModal
+          isOpen={showAddToGroupModal}
+          onClose={() => setShowAddToGroupModal(false)}
+          currentUser={currentUser}
+          selectedChat={partnerUser}
+          onShowCreateGroup={() => {
+            try {
+              const w = window as Window & { __createGroupInitialMemberIds?: string[] };
+              w.__createGroupInitialMemberIds = [String(partnerUser._id)];
+            } catch {}
+            setShowAddToGroupModal(false);
+            setShowCreateGroupModal(true);
+          }}
+          reLoad={fetchAllData}
+        />
+      )}
 
       {incomingCallHome && (
         <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center">

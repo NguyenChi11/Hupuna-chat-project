@@ -3259,6 +3259,7 @@ export default function ChatWindow({
               sendNotifyMessage={(text) => sendNotifyMessage(text)}
               lastUpdated={nicknamesStamp}
               initialSection={chatInfoInitialSection}
+              groups={groups}
             />
           </div>
         )}

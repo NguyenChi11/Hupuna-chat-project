@@ -336,7 +336,7 @@ export default function CreateGroupModal({
                     className="relative flex-shrink-0 cursor-pointer group"
                     onClick={() => handleMemberToggle(String(user._id))}
                   >
-                    <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 shadow-sm group-hover:opacity-70 transition-opacity">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 shadow-sm transition-opacity">
                       {user.avatar ? (
                         <Image
                           src={getProxyUrl(user.avatar)}
@@ -358,7 +358,7 @@ export default function CreateGroupModal({
                         />
                       )}
                     </div>
-                    <div className="absolute -top-1 -right-1 bg-gray-100 rounded-full text-gray-500 hidden group-hover:flex">
+                    <div className="absolute -top-1 -right-1 bg-gray-100 rounded-full text-gray-500 ">
                       <HiXCircle className="w-4 h-4" />
                     </div>
                   </div>

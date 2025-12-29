@@ -890,6 +890,12 @@ export async function POST(req: NextRequest) {
         }
 
         const latestAt = row.reminderAt || row.timestamp || Date.now();
+
+        // 🔥 Prevent firing if the reminder is in the future (with 1 min buffer)
+        if (latestAt > Date.now() + 60 * 1000) {
+          return NextResponse.json({ success: true, updated: false, message: 'Reminder is in the future' });
+        }
+
         const repeat = row.reminderRepeat || 'none';
 
         // Tính nextAt cho recurring reminder

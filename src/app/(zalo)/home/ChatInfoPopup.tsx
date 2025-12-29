@@ -46,6 +46,10 @@ import ICPin from '@/components/svg/ICPin';
 import PopupProfile from '@/components/base/PopupProfile';
 import { useRouter } from 'next/navigation';
 import SuccessModal from '@/components/modal/SuccessModal';
+import { confirmAlert } from '@/components/base/alert';
+
+import AddToGroupModal from '@/components/(chatPopup)/components/AddToGroupModal';
+import CommonGroupsModal from '@/components/(chatPopup)/components/CommonGroupsModal';
 
 interface ChatInfoPopupProps {
   onClose: () => void;
@@ -62,6 +66,7 @@ interface ChatInfoPopupProps {
   sendNotifyMessage?: (text: string, membersOverride?: string[]) => Promise<void> | void;
   lastUpdated?: number;
   initialSection?: 'reminder' | 'poll' | 'members' | null;
+  groups?: GroupConversation[];
 }
 
 export default function ChatInfoPopup({
@@ -79,6 +84,7 @@ export default function ChatInfoPopup({
   sendNotifyMessage,
   lastUpdated,
   initialSection,
+  groups = [],
 }: ChatInfoPopupProps) {
   const { messages, currentUser, allUsers, chatName, isGroup, selectedChat } = useChatContext();
   const [openMember, setOpenMember] = useState(false);
@@ -105,10 +111,20 @@ export default function ChatInfoPopup({
   const [showAutoDeleteModal, setShowAutoDeleteModal] = useState(false);
   const router = useRouter();
   const [showAddToGroupModal, setShowAddToGroupModal] = useState(false);
-  const [myGroupsQuick, setMyGroupsQuick] = useState<GroupConversation[]>([]);
-  const [addToGroupLoading, setAddToGroupLoading] = useState(false);
-  const [addToGroupError, setAddToGroupError] = useState('');
+  const [showCommonGroupsModal, setShowCommonGroupsModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const commonGroups = useMemo(() => {
+    if (isGroup || !selectedChat || !groups) return [];
+    const partnerId = String((selectedChat as User)._id);
+    return groups.filter((g) => {
+      if (!Array.isArray(g.members)) return false;
+      return g.members.some((m) => {
+        const mId = typeof m === 'string' ? m : m._id || (m as { id?: string }).id;
+        return String(mId) === partnerId;
+      });
+    });
+  }, [groups, selectedChat, isGroup]);
 
   const myId = String(currentUser._id || (currentUser as { id?: string })?.id || '');
   const myRole = useMemo(() => {
@@ -180,55 +196,9 @@ export default function ChatInfoPopup({
     currentUser,
     onChatAction,
   });
-  const fetchMyGroupsQuick = useCallback(async () => {
-    try {
-      const res = await fetch('/api/groups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'readGroups', _id: currentUser._id }),
-      });
-      const data = await res.json();
-      const list = Array.isArray(data.data) ? (data.data as GroupConversation[]) : [];
-      setMyGroupsQuick(list);
-    } catch {}
-  }, [currentUser]);
   const openAddToGroupModal = useCallback(() => {
-    setAddToGroupError('');
     setShowAddToGroupModal(true);
-    void fetchMyGroupsQuick();
-  }, [fetchMyGroupsQuick]);
-  const handleAddCurrentToGroup = useCallback(
-    async (groupId: string) => {
-      setAddToGroupLoading(true);
-      setAddToGroupError('');
-      try {
-        const targetId = String((selectedChat as User)._id);
-        const res = await fetch('/api/groups', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'addMembers',
-            conversationId: groupId,
-            newMembers: [targetId],
-            _id: currentUser._id,
-          }),
-        });
-        const json = await res.json();
-        if (!json.success) {
-          setAddToGroupError(json.error || 'Thêm thất bại');
-        } else {
-          setShowSuccessModal(true);
-          reLoad?.();
-          setShowAddToGroupModal(false);
-        }
-      } catch {
-        setAddToGroupError('Lỗi kết nối');
-      } finally {
-        setAddToGroupLoading(false);
-      }
-    },
-    [selectedChat, reLoad],
-  );
+  }, []);
 
   useEffect(() => {
     if (mediaList.length === 0) {
@@ -872,7 +842,7 @@ export default function ChatInfoPopup({
                       <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
                     <button
-                      onClick={() => router.push(`/group?with=${String((selectedChat as User)._id)}`)}
+                      onClick={() => setShowCommonGroupsModal(true)}
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
@@ -1157,73 +1127,51 @@ export default function ChatInfoPopup({
         </div>
       )}
       {showAddToGroupModal && !isGroup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden h-[40rem]">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-800">Thêm vào nhóm</h3>
-              <button
-                onClick={() => setShowAddToGroupModal(false)}
-                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer transition-colors"
-              >
-                <HiX className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <div className="p-4 space-y-3 overflow-y-auto h-[36rem] custom-scrollbar">
-              {myGroupsQuick.length === 0 ? (
-                <div className="text-sm text-gray-600">Chưa có nhóm nào</div>
-              ) : (
-                <div className="space-y-2">
-                  {myGroupsQuick.map((g) => {
-                    const isAlreadyMember =
-                      Array.isArray(g.members) &&
-                      g.members.some((m: { _id?: string; id?: string } | string) => {
-                        const mId = typeof m === 'string' ? m : m._id || m.id;
-                        return String(mId) === String((selectedChat as User)._id);
-                      });
-
-                    return (
-                      <button
-                        key={g._id}
-                        onClick={() => !isAlreadyMember && handleAddCurrentToGroup(String(g._id))}
-                        disabled={addToGroupLoading || isAlreadyMember}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors cursor-pointer ${
-                          isAlreadyMember ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100">
-                            {g.avatar ? (
-                              <Image
-                                src={getProxyUrl(g.avatar)}
-                                alt=""
-                                width={36}
-                                height={36}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-700 font-bold">
-                                {String(g.name || 'N')
-                                  .charAt(0)
-                                  .toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-sm font-medium text-gray-800">{g.name || 'Nhóm'}</div>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {isAlreadyMember
-                            ? 'Đã tham gia'
-                            : `${Array.isArray(g.members) ? (g.members as unknown[]).length : 0} tv`}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {addToGroupError && <div className="text-xs text-red-600">{addToGroupError}</div>}
-            </div>
-          </div>
-        </div>
+        <AddToGroupModal
+          isOpen={showAddToGroupModal}
+          onClose={() => setShowAddToGroupModal(false)}
+          currentUser={currentUser}
+          selectedChat={selectedChat as User}
+          onShowCreateGroup={() => {
+            if (window.innerWidth < 768) {
+              setShowAddToGroupModal(false);
+              setTimeout(() => onShowCreateGroup(), 300);
+            } else {
+              onShowCreateGroup();
+            }
+          }}
+          reLoad={reLoad}
+        />
+      )}
+      {showCommonGroupsModal && !isGroup && (
+        <CommonGroupsModal
+          isOpen={showCommonGroupsModal}
+          onClose={() => setShowCommonGroupsModal(false)}
+          groups={commonGroups}
+          partner={selectedChat as User}
+          onShowCreateGroup={() => {
+            if (window.innerWidth < 768) {
+              setShowCommonGroupsModal(false);
+              setTimeout(() => {
+                try {
+                  const w = window as Window & { __createGroupInitialMemberIds?: string[] };
+                  w.__createGroupInitialMemberIds = [String((selectedChat as User)._id)];
+                } catch {}
+                onShowCreateGroup();
+              }, 300);
+            } else {
+              try {
+                const w = window as Window & { __createGroupInitialMemberIds?: string[] };
+                w.__createGroupInitialMemberIds = [String((selectedChat as User)._id)];
+              } catch {}
+              onShowCreateGroup();
+            }
+          }}
+          onShowAddToGroup={() => {
+            setShowCommonGroupsModal(false);
+            setTimeout(() => setShowAddToGroupModal(true), 300);
+          }}
+        />
       )}
       <SuccessModal
         isOpen={showSuccessModal}

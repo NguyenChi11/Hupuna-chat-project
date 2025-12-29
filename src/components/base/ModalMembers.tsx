@@ -561,7 +561,14 @@ export default function GroupMembersModal({
                           <>
                             {canPromote(memberRole) && (
                               <button
-                                onClick={() => handleAction('promote', memberId)}
+                              onClick={() =>
+                                  confirmAlert({
+                                    title: 'Bổ nhiệm làm Phó nhóm',
+                                    message: `Bổ nhiệm ${member.name} làm Phó nhóm?`,
+                                    okText: 'Bổ nhiệm',
+                                    onOk: () => handleAction('promote', memberId),
+                                  })
+                                }
                                 className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
                                 title="Bổ nhiệm làm Phó nhóm"
                               >
@@ -570,7 +577,14 @@ export default function GroupMembersModal({
                             )}
                             {canDemote(memberRole) && (
                               <button
-                                onClick={() => handleAction('demote', memberId)}
+                               onClick={() =>
+                                  confirmAlert({
+                                    title: 'Hủy quyền Phó nhóm',
+                                    message: `Hủy quyền Phó nhóm ${member.name}?`,
+                                    okText: 'Có',
+                                    onOk: () => handleAction('demote', memberId),
+                                  })
+                                }
                                 className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
                                 title="Bãi nhiệm"
                               >
