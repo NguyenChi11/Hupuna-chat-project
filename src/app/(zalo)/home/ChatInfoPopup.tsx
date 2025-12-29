@@ -210,7 +210,7 @@ export default function ChatInfoPopup({
       [...mediaList]
         .filter((m) => m.type === 'image')
         .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-        .slice(0, 6),
+        .slice(0, 4),
     [mediaList],
   );
 
@@ -220,6 +220,14 @@ export default function ChatInfoPopup({
   const roomId = isGroup
     ? String((selectedChat as GroupConversation)._id)
     : getOneToOneRoomId(String(currentUser._id), String((selectedChat as User)._id));
+
+  useEffect(() => {
+    try {
+      const k = `roomMuted:${roomId}:${String(currentUser._id)}`;
+      const v = localStorage.getItem(k) === 'true';
+      setIsMuted(v);
+    } catch {}
+  }, [roomId, currentUser._id]);
 
   const [partnerNicknameOverride, setPartnerNicknameOverride] = useState<string>(
     isGroup ? '' : String((selectedChat as User).nicknames?.[myId] || ''),
@@ -642,7 +650,16 @@ export default function ChatInfoPopup({
                   }}
                   isMuted={isMuted}
                   onToggleMute={() => {
-                    alert('Chức năng đang được hoàn thiện');
+                    const next = !isMuted;
+                    setIsMuted(next);
+                    try {
+                      const k = `roomMuted:${roomId}:${String(currentUser._id)}`;
+                      localStorage.setItem(k, String(next));
+                      const evt = new CustomEvent('roomMutedChanged', {
+                        detail: { roomId, muted: next },
+                      });
+                      window.dispatchEvent(evt);
+                    } catch {}
                   }}
                   onOpenProfile={() => {
                     if (!isGroup) {
@@ -741,13 +758,13 @@ export default function ChatInfoPopup({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
-                <div className="px-5 pb-5 border-t border-gray-100">
+                <div className="pl-5 pr-1 pb-2 border-t border-gray-100">
                   {latestImages.length > 0 ? (
-                    <div className="grid grid-cols-6 gap-3 mt-2">
+                    <div className="grid grid-cols-5 gap-[0.125rem] mt-2">
                       {latestImages.map((img) => (
                         <div
                           key={img.id}
-                          className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 cursor-pointer group"
+                          className="relative aspect-square rounded-[0.25rem] overflow-hidden bg-gray-100 cursor-pointer group"
                           onClick={() => {
                             setAssetsTab('media');
                             setIsAssetsModalOpen(true);
@@ -760,23 +777,7 @@ export default function ChatInfoPopup({
                             alt="Ảnh"
                             className="w-full h-full object-cover"
                           />
-                          {/* <button
-                            className={`cursor-pointer absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg transition-all duration-200 z-10 ${
-                              activeMenuId === img.id
-                                ? 'opacity-100 ring-2 ring-blue-500'
-                                : 'opacity-0 group-hover:opacity-100'
-                            } hover:bg-white hover:scale-110`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveMenuId(activeMenuId === img.id ? null : img.id);
-                            }}
-                          >
-                            <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="currentColor">
-                              <circle cx="5" cy="12" r="2" />
-                              <circle cx="12" cy="12" r="2" />
-                              <circle cx="19" cy="12" r="2" />
-                            </svg>
-                          </button> */}
+
                           <ItemDropdownMenu
                             itemUrl={img.url}
                             itemId={img.id}
@@ -793,6 +794,21 @@ export default function ChatInfoPopup({
                           />
                         </div>
                       ))}
+                      <div
+                        className="relative aspect-square rounded-[0.25rem] overflow-hidden bg-gray-100 cursor-pointer group flex items-center justify-center"
+                        onClick={() => {
+                          setAssetsTab('media');
+                          setIsAssetsModalOpen(true);
+                          void fetchAssets('media', true);
+                          void fetchAssets('file', true);
+                          void fetchAssets('link', true);
+                        }}
+                        title="Xem tất cả ảnh, file, link"
+                      >
+                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-xs text-gray-500">Chưa có ảnh nào</div>

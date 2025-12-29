@@ -181,6 +181,24 @@ export default function ChatWindow({
     return [user1Id, user2Id].sort().join('_');
   };
   const roomId = isGroup ? getId(selectedChat) : getOneToOneRoomId(getId(currentUser), getId(selectedChat));
+  const [roomMuted, setRoomMuted] = useState(false);
+  useEffect(() => {
+    try {
+      const k = `roomMuted:${roomId}:${String(currentUser._id)}`;
+      const v = localStorage.getItem(k) === 'true';
+      setRoomMuted(v);
+    } catch {}
+  }, [roomId, currentUser._id]);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const d = (e as unknown as { detail?: { roomId?: string; muted?: boolean } }).detail;
+      if (!d) return;
+      if (String(d.roomId) !== String(roomId)) return;
+      setRoomMuted(!!d.muted);
+    };
+    window.addEventListener('roomMutedChanged', handler as EventListener);
+    return () => window.removeEventListener('roomMutedChanged', handler as EventListener);
+  }, [roomId]);
   const {
     callActive,
     callType,
@@ -1033,68 +1051,62 @@ export default function ChatWindow({
     [currentUser._id, currentUser.name, roomId, isGroup, selectedChat],
   );
 
-  const handleContextMenu = useCallback((e: React.MouseEvent, msg: Message) => {
-    e.preventDefault();
-    const target = e.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const menuWidth = 200;
-    const senderId = (() => {
-      const idA = (msg.sender as unknown as { _id?: unknown })?._id;
-      const idB = (msg.sender as unknown as { id?: unknown })?.id;
-      return String(idA ?? idB ?? msg.sender ?? '');
-    })();
-    const isMe = senderId === String(currentUser._id);
-    const isText = msg.type === 'text';
-    const isRecalled = !!msg.isRecalled;
-    const canShare = !isRecalled;
-    const canPin = !isRecalled;
-    const canReply = !isRecalled;
-    const canEdit = isMe && isText && !isRecalled;
-    const canCopy = isText && !isRecalled;
-    const canDownload =
-      !!msg.fileUrl && (msg.type === 'image' || msg.type === 'file' || msg.type === 'sticker');
-    const canRecall = isMe && !isRecalled;
-    const itemCount = [
-      canShare,
-      canPin,
-      canReply,
-      canEdit,
-      canCopy,
-      canDownload,
-      canRecall,
-    ].filter(Boolean).length;
-    const ITEM_H = 36;
-    const PADDING = 8;
-    const menuHeight = Math.max(ITEM_H + PADDING, itemCount * (ITEM_H + 4) + PADDING);
-    
-    const viewportW = window.innerWidth;
-    const viewportH = window.innerHeight;
-    let placement: 'above' | 'below' = 'below';
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent, msg: Message) => {
+      e.preventDefault();
+      const target = e.currentTarget as HTMLElement;
+      const rect = target.getBoundingClientRect();
+      const menuWidth = 200;
+      const senderId = (() => {
+        const idA = (msg.sender as unknown as { _id?: unknown })?._id;
+        const idB = (msg.sender as unknown as { id?: unknown })?.id;
+        return String(idA ?? idB ?? msg.sender ?? '');
+      })();
+      const isMe = senderId === String(currentUser._id);
+      const isText = msg.type === 'text';
+      const isRecalled = !!msg.isRecalled;
+      const canShare = !isRecalled;
+      const canPin = !isRecalled;
+      const canReply = !isRecalled;
+      const canEdit = isMe && isText && !isRecalled;
+      const canCopy = isText && !isRecalled;
+      const canDownload = !!msg.fileUrl && (msg.type === 'image' || msg.type === 'file' || msg.type === 'sticker');
+      const canRecall = isMe && !isRecalled;
+      const itemCount = [canShare, canPin, canReply, canEdit, canCopy, canDownload, canRecall].filter(Boolean).length;
+      const ITEM_H = 36;
+      const PADDING = 8;
+      const menuHeight = Math.max(ITEM_H + PADDING, itemCount * (ITEM_H + 4) + PADDING);
 
-    let x: number;
-    let y: number;
-    if (isText) {
-      x = e.clientX - menuWidth / 2;
-      y = e.clientY - menuHeight / 2;
-    } else {
-      x = rect.left + rect.width / 2 - menuWidth / 2;
-      y = rect.top + rect.height / 2 - menuHeight / 2;
-    }
-    if (x + menuWidth > viewportW) x = viewportW - menuWidth - 8;
-    if (x < 8) x = 8;
-    if (y + menuHeight > viewportH) {
-      y = Math.max(8, viewportH - menuHeight - 8);
-      placement = 'above';
-    }
-    if (y < 8) y = 8;
-    setContextMenu({
-      visible: true,
-      x,
-      y,
-      placement,
-      message: msg,
-    });
-  }, [currentUser._id]);
+      const viewportW = window.innerWidth;
+      const viewportH = window.innerHeight;
+      let placement: 'above' | 'below' = 'below';
+
+      let x: number;
+      let y: number;
+      if (isText) {
+        x = e.clientX - menuWidth / 2;
+        y = e.clientY - menuHeight / 2;
+      } else {
+        x = rect.left + rect.width / 2 - menuWidth / 2;
+        y = rect.top + rect.height / 2 - menuHeight / 2;
+      }
+      if (x + menuWidth > viewportW) x = viewportW - menuWidth - 8;
+      if (x < 8) x = 8;
+      if (y + menuHeight > viewportH) {
+        y = Math.max(8, viewportH - menuHeight - 8);
+        placement = 'above';
+      }
+      if (y < 8) y = 8;
+      setContextMenu({
+        visible: true,
+        x,
+        y,
+        placement,
+        message: msg,
+      });
+    },
+    [currentUser._id],
+  );
 
   const handleMobileLongPress = useCallback(
     (msg: Message, el: HTMLElement, startX: number, startY: number) => {
@@ -1719,7 +1731,7 @@ export default function ChatWindow({
         return unique;
       });
 
-      if (data.sender !== currentUser._id) {
+      if (data.sender !== currentUser._id && !roomMuted) {
         playMessageSound();
         showMessageNotification(data);
         void markAsReadApi(roomId, String(currentUser._id));
