@@ -123,8 +123,8 @@ export default function GroupAvatarSection({
       </div>
 
       {/* Tên nhóm + nút đổi tên */}
-      <div className="mt-6 flex items-center gap-3">
-        <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{groupName || 'Nhóm chat'}</h3>
+      <div className="mt-6 flex items-center gap-3 ">
+        <h3 className="text-xl font-medium text-gray-900 tracking-tight truncate max-w-[10rem]">{groupName || 'Nhóm chat'}</h3>
         <button
           onClick={onRenameGroup}
           className="cursor-pointer p-2.5 rounded-xl  bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-all duration-200 hover:shadow-md active:scale-95"

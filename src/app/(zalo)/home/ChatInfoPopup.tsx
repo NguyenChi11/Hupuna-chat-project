@@ -568,7 +568,7 @@ export default function ChatInfoPopup({
       ) : (
         <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
           {/* Header cố định */}
-          <div className="bg-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
+          <div className="bg-blue-400 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
             <div className="flex items-center gap-2">
               <button
                 onClick={onClose}

@@ -186,7 +186,7 @@ export default function AddToGroupModal({
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                        className={`w-6 h-6 rounded-full border flex items-center justify-center ${
                           isAlreadyMember
                             ? 'bg-blue-400 border-blue-400'
                             : selected
@@ -195,12 +195,12 @@ export default function AddToGroupModal({
                         }`}
                       >
                         {(selected || isAlreadyMember) && (
-                          <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
+                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M20 6L9 17l-5-5" />
                           </svg>
                         )}
                       </div>
-                      <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100">
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
                         {g.avatar ? (
                           <Image
                             src={getProxyUrl(g.avatar)}
@@ -217,13 +217,15 @@ export default function AddToGroupModal({
                           </div>
                         )}
                       </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-800">{g.name || 'Nhóm'}</div>
-                        <div className="text-xs text-gray-500">
+                      <div className="flex flex-col justify-center items-start min-w-0">
+                        <span className="text-[1.3rem] font-medium text-gray-800 truncate max-w-[17rem]">
+                          {g.name || 'Nhóm'}
+                        </span>
+                        <span className="text-[1rem] text-gray-500">
                           {isAlreadyMember
                             ? 'Đã tham gia'
                             : `${Array.isArray(g.members) ? (g.members as unknown[]).length : 0} tv`}
-                        </div>
+                        </span>
                       </div>
                     </div>
                   </button>

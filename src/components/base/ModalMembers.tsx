@@ -166,7 +166,16 @@ export default function GroupMembersModal({
       })
       .filter(Boolean) as LocalMemberInfo[];
 
-    setLocalMembers(enriched);
+    // 🔥 Deduplicate members by ID
+    const uniqueMembersMap = new Map<string, LocalMemberInfo>();
+    enriched.forEach((m) => {
+      const id = normalizeId(m._id || m.id);
+      if (!uniqueMembersMap.has(id)) {
+        uniqueMembersMap.set(id, m);
+      }
+    });
+
+    setLocalMembers(Array.from(uniqueMembersMap.values()));
   }, [members, allUsers, userMap, currentUser, conversationId, lastUpdated]);
 
   if (!isOpen) return null;
