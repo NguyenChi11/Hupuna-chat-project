@@ -61,16 +61,15 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');
               }}
             />
-          ) : null}
-
-          {/* Fallback: chữ cái đầu + gradient đẹp */}
-          <div
-            className={`w-full h-full flex items-center justify-center text-5xl font-bold text-white bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 ${
-              userAvatar ? 'hidden' : ''
-            }`}
-          >
-            {(userName || 'U').charAt(0).toUpperCase()}
-          </div>
+          ) : (
+            <Image
+              src="/logo/avata.webp"
+              alt={userName}
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+            />
+          )}
         </div>
 
         {/* Hiệu ứng sáng nhẹ khi hover */}

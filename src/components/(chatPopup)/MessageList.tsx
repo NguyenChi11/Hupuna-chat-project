@@ -1615,7 +1615,7 @@ export default function MessageList({
                       className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
                     >
                       <div
-                        className={`w-full max-w-[22rem] p-4 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
+                        className={`w-full max-w-[18rem] p-2 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
                         onClick={() => setDetailMsg(msg)}
                       >
                         <div className="flex items-center justify-between">
@@ -1674,14 +1674,14 @@ export default function MessageList({
                                   if (!isMobile) onOpenChatInfoSection?.('poll');
                                   setDetailMsg(msg);
                                 }}
-                                className={`w-full cursor-pointer px-4 py-3 rounded-xl border text-left transition-colors ${
+                                className={`w-full cursor-pointer px-2 py-1 rounded-[5px] border text-left transition-colors ${
                                   voted
                                     ? 'border-blue-600 bg-blue-50 text-blue-700'
                                     : 'border-gray-200 hover:bg-gray-50 text-gray-800'
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
-                                  <span className="truncate">{opt}</span>
+                                  <span className="truncate text-[12px]">{opt}</span>
                                   <span className="text-sm">{count}</span>
                                 </div>
                               </button>
@@ -1694,7 +1694,7 @@ export default function MessageList({
                               if (!isMobile) onOpenChatInfoSection?.('poll');
                               setDetailMsg(msg);
                             }}
-                            className="w-full cursor-pointer px-4 py-2 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
+                            className="w-full cursor-pointer px-2 py-1 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
                           >
                             {locked ? 'Xem lựa chọn' : 'Đổi lựa chọn'}
                           </button>

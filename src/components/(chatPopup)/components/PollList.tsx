@@ -3,13 +3,14 @@ import { HiX } from 'react-icons/hi';
 import { HiEllipsisVertical, HiLockClosed, HiLockOpen } from 'react-icons/hi2';
 import { useChatContext } from '@/context/ChatContext';
 import type { Message } from '@/types/Message';
-import type { GroupConversation } from '@/types/Group';
+import type { GroupConversation, MemberInfo } from '@/types/Group';
 import type { User } from '@/types/User';
 import { readMessagesApi, createMessageApi, updateMessageApi } from '@/fetch/messages';
 import { io } from 'socket.io-client';
-import { resolveSocketUrl } from '@/utils/utils';
+import { resolveSocketUrl, getProxyUrl } from '@/utils/utils';
 import CreatePollModal from './CreatePollModal';
 import PollDetailModal from './PollDetailModal';
+import Image from 'next/image';
 
 interface PollListProps {
   onClose: () => void;
@@ -351,10 +352,46 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
     setOpenMenuId(null);
   };
 
+  const getUserInfo = useCallback(
+    (userId: string) => {
+      if (String(userId) === String(currentUser._id)) return currentUser;
+      if (isGroup) {
+        const members = (selectedChat as GroupConversation).members || [];
+        const member = members.find((m) => String((m as any)._id || (m as any).id) === String(userId));
+        if (member) return member as unknown as User;
+      } else {
+        const other = selectedChat as User;
+        if (String(other._id) === String(userId)) return other;
+      }
+      return null;
+    },
+    [currentUser, isGroup, selectedChat],
+  );
+
+  const formatTime = (ts: number) => {
+    try {
+      // Format: 21/10 lúc 09:39
+      const d = new Date(ts);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const hour = String(d.getHours()).padStart(2, '0');
+      const minute = String(d.getMinutes()).padStart(2, '0');
+      return `${day}/${month} lúc ${hour}:${minute}`;
+    } catch {
+      return '';
+    }
+  };
+
   const getVotesCount = (item: Message, option: string) => {
     const v = item.pollVotes || {};
     const arr = (v[option] || []) as string[];
     return arr.length;
+  };
+
+  const getVotersForOption = (item: Message, option: string) => {
+    const v = item.pollVotes || {};
+    const arr = (v[option] || []) as string[];
+    return arr;
   };
 
   const didIVote = (item: Message, option: string) => {
@@ -368,144 +405,240 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
     <>
       <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
         {!embedded && (
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
-            <h2 className="text-lg font-semibold">Danh sách bình chọn</h2>
-            <div className="flex items-center gap-2">
+          <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm z-10">
+            <h2 className="text-lg font-bold text-gray-800">Bảng tin nhóm</h2>
+            <div className="flex items-center gap-3">
               {isGroup && (
                 <button
                   onClick={() => setShowCreate(true)}
-                  className="px-3 py-2 cursor-pointer rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-200"
+                  className="p-2 cursor-pointer rounded-full hover:bg-gray-100 text-blue-600 transition-all duration-200"
+                  title="Tạo bình chọn mới"
                 >
-                  Tạo
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
                 </button>
               )}
               <button
                 onClick={onClose}
-                className="p-2 cursor-pointer rounded-full hover:bg-white/20 transition-all duration-200"
+                className="p-2 cursor-pointer rounded-full hover:bg-gray-100 text-gray-500 transition-all duration-200"
               >
-                <HiX className="w-5 h-5" />
+                <HiX className="w-6 h-6" />
               </button>
             </div>
           </div>
         )}
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
-          <div className="space-y-5 p-5 pb-24">
+        
+        {/* Tabs giả lập (để giống ảnh) */}
+        {!embedded && (
+            <div className="bg-white border-b border-gray-200 flex text-sm font-medium text-gray-500">
+                <div className="flex-1 py-3 text-center cursor-pointer hover:text-gray-700">Tin nhắn đã ghim</div>
+                <div className="flex-1 py-3 text-center text-gray-900 border-b-2 border-gray-900 cursor-pointer">Bình chọn</div>
+                <div className="flex-1 py-3 text-center cursor-pointer hover:text-gray-700">Ghi chú</div>
+            </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 bg-gray-100 p-3">
+          <div className="space-y-4 pb-24 max-w-2xl mx-auto">
             {loading ? (
               <div className="text-center text-gray-500 py-10">
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
                 <p className="mt-2">Đang tải...</p>
               </div>
             ) : items.length === 0 ? (
-              <p className="text-center text-sm text-gray-500">Chưa có bình chọn nào</p>
+              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                  <svg className="w-16 h-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                  <p className="text-sm">Chưa có bình chọn nào</p>
+              </div>
             ) : (
               items.map((it) => {
                 const itemId = String(it._id);
                 const sender = it.sender as User | string;
-                const senderName = typeof sender === 'object' && sender ? sender.name || '' : '';
+                const senderId = typeof sender === 'object' ? String(sender._id) : String(sender);
+                const senderInfo = getUserInfo(senderId) || (typeof sender === 'object' ? sender : null);
+                const senderName = senderInfo?.name || 'Ai đó';
+                const senderAvatar = senderInfo?.avatar;
+                
                 const isMenuOpen = openMenuId === itemId;
                 const locked = !!it.isPollLocked;
+                const totalVotes = Object.values(it.pollVotes || {}).flat().length;
+
                 return (
                   <div
                     key={itemId}
-                    className={`relative p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow bg-white border border-gray-100`}
+                    className="relative bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <p className="text-base font-semibold text-gray-900 break-words truncate">
-                              {it.content || it.pollQuestion || 'Bình chọn'}
-                            </p>
-                          </div>
-                          <div className="relative flex items-center gap-2">
-                            <button
-                              onClick={() => handleTogglePin(it)}
-                              className="px-2 py-1 text-[0.74rem] rounded-lg
-                               border border-yellow-300 text-yellow-700 hover:bg-yellow-100 cursor-pointer"
-                            >
-                              {it.isPinned ? 'Bỏ ghim' : 'Ghim'}
-                            </button>
-                            <button
-                              onClick={() => setOpenMenuId(isMenuOpen ? null : itemId)}
-                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                              aria-label="Mở menu"
-                              title="Thêm"
-                            >
-                              <HiEllipsisVertical className="w-5 h-5 text-gray-600" />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="mt-3 space-y-2">
-                          {(it.pollOptions || []).map((opt, idx) => {
-                            const count = getVotesCount(it, opt);
-                            const voted = didIVote(it, opt);
-                            return (
-                              <button
-                                key={`${itemId}-${idx}`}
-                                onClick={() => handleEdit(it)}
-                                disabled={false}
-                                className={`w-full cursor-pointer px-4 py-3 rounded-xl border text-left transition-colors ${
-                                  voted
-                                    ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                    : 'border-gray-200 hover:bg-gray-50 text-gray-800'
-                                }`}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="truncate">{opt}</span>
-                                  <span className="text-sm">{count}</span>
+                    {/* Header Card */}
+                    <div className="p-4 pb-2">
+                        <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                                {senderAvatar ? (
+                                    <Image 
+                                        src={getProxyUrl(senderAvatar)} 
+                                        alt={senderName} 
+                                        width={40} 
+                                        height={40} 
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <Image 
+                                        src="/logo/avata.webp" 
+                                        alt={senderName} 
+                                        width={40} 
+                                        height={40} 
+                                        className="w-full h-full object-cover"
+                                    />
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                            <span>
+                                                {senderName} <span className="font-normal text-gray-500">tạo một bình chọn</span>
+                                            </span>
+                                            {locked && (
+                                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                                                    <HiLockClosed className="w-3 h-3" />
+                                                    Đã khóa
+                                                </span>
+                                            )}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            {formatTime(it.timestamp)}
+                                        </p>
+                                    </div>
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setOpenMenuId(isMenuOpen ? null : itemId)}
+                                            className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                                        >
+                                            <HiEllipsisVertical className="w-5 h-5" />
+                                        </button>
+                                        
+                                        {/* Dropdown Menu */}
+                                        {isMenuOpen && (
+                                            <div 
+                                                ref={(el) => {
+                                                    if (el) menuRefs.current.set(itemId, el);
+                                                    else menuRefs.current.delete(itemId);
+                                                }}
+                                                className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-20 py-1"
+                                            >
+                                                <button onClick={() => handleEdit(it)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">Xem chi tiết</button>
+                                                <button onClick={() => handleTogglePin(it)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
+                                                    {it.isPinned ? 'Bỏ ghim' : 'Ghim bình chọn'}
+                                                </button>
+                                                {canLock(it) && (
+                                                    <button onClick={() => handleToggleLock(it)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600">
+                                                        {locked ? 'Mở khóa bình chọn' : 'Khóa bình chọn'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                              </button>
-                            );
-                          })}
+                            </div>
                         </div>
 
-                        {locked && (
-                          <p className="text-xs text-gray-500 mt-2">
-                            Kết thúc lúc{' '}
-                            {new Date(it.pollLockedAt || it.editedAt || it.timestamp).toLocaleString('vi-VN')}
-                          </p>
-                        )}
-                        {senderName ? <p className="text-xs text-gray-400 mt-2">Tạo bởi {senderName}</p> : null}
-                      </div>
-                      <div
-                        className="relative flex items-center gap-2"
-                        ref={(el) => {
-                          if (el) menuRefs.current.set(itemId, el);
-                          else menuRefs.current.delete(itemId);
-                        }}
-                      >
-                        {isMenuOpen && (
-                          <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10">
-                            <button
-                              onClick={() => handleEdit(it)}
-                              className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
-                            >
-                              Xem chi tiết
-                            </button>
-                            <button
-                              onClick={() => handleEdit(it)}
-                              className="w-full px-4 py-2.5 text-left text-sm text-blue-600 hover:bg-blue-50 cursor-pointer"
-                            >
-                              Chỉnh sửa
-                            </button>
-                            <button
-                              onClick={() => handleTogglePin(it)}
-                              className="w-full px-4 py-2.5 text-left text-sm text-yellow-600 hover:bg-yellow-50 cursor-pointer"
-                            >
-                              {it.isPinned ? 'Bỏ ghim' : 'Ghim'}
-                            </button>
-                            {canLock(it) && (
-                              <button
-                                onClick={() => handleToggleLock(it)}
-                                className="w-full px-4 py-2.5 text-left text-sm text-indigo-600 hover:bg-indigo-50 cursor-pointer flex items-center gap-2"
-                              >
-                                {locked ? <HiLockClosed className="w-4 h-4" /> : <HiLockOpen className="w-4 h-4" />}
-                                {locked ? 'Mở khóa' : 'Khóa'}
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                        {/* Content */}
+                        <div className="mt-3">
+                            <p className="text-base font-medium text-gray-900 mb-2 leading-snug truncate">
+                                {it.content || it.pollQuestion || 'Bình chọn'}
+                            </p>
+                            <div className="flex items-center gap-1 mb-3 cursor-pointer" onClick={() => handleEdit(it)}>
+                                <span className="text-sm text-blue-500 font-medium hover:underline">
+                                    {totalVotes} người đã bình chọn
+                                </span>
+                                <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+
+                            {/* Options List */}
+                            <div className="space-y-2">
+                                {(it.pollOptions || []).map((opt, idx) => {
+                                    const voters = getVotersForOption(it, opt);
+                                    const count = voters.length;
+                                    const voted = didIVote(it, opt);
+                                    
+                                    // Get avatars of voters (max 3)
+                                    const voterAvatars = voters.slice(0, 3).map(uid => {
+                                        const u = getUserInfo(uid);
+                                        return u ? { id: uid, avatar: u.avatar, name: u.name } : { id: uid, avatar: null, name: 'User' };
+                                    });
+
+                                    return (
+                                        <div 
+                                            key={`${itemId}-${idx}`}
+                                            onClick={() => handleEdit(it)}
+                                            className={`group relative overflow-hidden rounded-lg border p-3 cursor-pointer transition-all duration-200
+                                                ${voted ? 'bg-blue-100 border-blue-200' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}
+                                            `}
+                                        >
+                                            {/* Progress bar effect (optional, not in design but nice) - Skipping for exact match */}
+                                            
+                                            <div className="relative flex items-center justify-between gap-3 z-10">
+                                                <span className={`text-sm font-medium ${voted ? 'text-blue-900' : 'text-gray-700'}`}>
+                                                    {opt}
+                                                </span>
+                                                
+                                                {/* Voter Avatars */}
+                                                <div className="flex items-center -space-x-2">
+                                                    {voterAvatars.map((u, i) => (
+                                                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200" title={u.name}>
+                                                            {u.avatar ? (
+                                                                <Image src={getProxyUrl(u.avatar)} alt="" width={24} height={24} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <Image src="/logo/avata.webp" alt="" width={24} height={24} className="w-full h-full object-cover" />
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                    {count > 3 && (
+                                                        <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-700 text-white text-[10px] flex items-center justify-center font-bold">
+                                                            +{count - 3}
+                                                        </div>
+                                                    )}
+                                                    {count > 0 && count <= 3 && voterAvatars.length < count && (
+                                                        // Fallback if we can't find users for all votes
+                                                         <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-300 text-gray-600 text-[10px] flex items-center justify-center font-bold">
+                                                            {count}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Action Footer */}
+                    <div className="p-4 pt-2">
+                         <button
+                            onClick={() => handleEdit(it)}
+                            disabled={false}
+                            className={`w-full py-2.5 rounded-lg font-medium transition-colors text-sm
+                                ${locked 
+                                    ? 'bg-gray-100 text-gray-500 cursor-default' 
+                                    : 'bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200'
+                                }`}
+                         >
+                            {locked 
+                                ? 'Đã khóa bình chọn' 
+                                : (it.pollVotes && Object.values(it.pollVotes).some(arr => arr.includes(String(currentUser._id))) ? 'Đổi bình chọn' : 'Bình chọn')
+                            }
+                         </button>
                     </div>
                   </div>
                 );
