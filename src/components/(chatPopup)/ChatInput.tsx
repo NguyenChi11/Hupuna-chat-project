@@ -400,7 +400,7 @@ export default function ChatInput({
   return (
     <div
       ref={containerRef}
-      className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50 md:bg-white md:border md:border-gray-200 md:rounded-xl md:px-1 md:py-2 md:pt-1"
+      className="relative w-full p-2 bg-gradient-to-t from-white via-white to-gray-50/50 md:bg-white md:border md:border-gray-200 md:rounded-xl md:px-1 md:py-2 md:pt-0"
     >
       {attachments && attachments.length > 0 ? (
         <div className="mb-2">
@@ -446,7 +446,7 @@ export default function ChatInput({
           </div>
         </div>
       ) : null}
-      <div className="hidden md:flex items-center gap-2 mb-1  rounded-xl bg-white ">
+      <div className="hidden md:flex items-center gap-2 mb-0  rounded-xl bg-white ">
         <button
           onClick={onVoiceInput}
           className={`rounded-lg cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
@@ -606,12 +606,12 @@ export default function ChatInput({
               updateSlashState();
             }}
             style={{ overscrollBehavior: 'contain' }}
-            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-base text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
+            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-[0.875rem] md:text-[1rem] text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
             data-placeholder="Nhập tin nhắn..."
           />
 
           {/* Placeholder đẹp hơn */}
-          <div className="pointer-events-none absolute inset-0 flex items-center px-6 py-4 text-gray-400 select-none">
+          <div className="pointer-events-none absolute inset-0 flex items-center px-6 py-4 text-gray-400 select-none text-[0.875rem] md:text-[1rem]">
             <span className="flex items-center gap-2">
               <HiSparkles className="w-5 h-5 text-indigo-400" />
               Nhập tin nhắn...

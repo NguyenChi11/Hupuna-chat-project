@@ -25,11 +25,11 @@ export default function RenameGroupModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header gradient đẹp như Zalo */}
-        <div className="relative cursor-pointer px-6 pt-8 pb-6 bg-gradient-to-br from-indigo-600 via-blue-600 to-purple-600 text-white text-center">
+        <div className="relative cursor-pointer px-6 pt-8 pb-6 bg-blue-500 text-white text-center">
           <div className="absolute top-4 right-4">
             <button
               onClick={onClose}
-              className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 active:scale-95"
+              className="p-2 cursor-pointer rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 active:scale-95"
             >
               <HiX className="w-5 h-5" />
             </button>
@@ -57,7 +57,7 @@ export default function RenameGroupModal({
               }}
               autoFocus
               placeholder="Nhập tên nhóm mới..."
-              className="w-full px-5 py-4 pr-12 text-lg font-medium bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-indigo-500 focus:bg-white transition-all duration-200 placeholder:text-gray-400"
+              className="w-full px-3 py-2 pr-12 text-lg font-medium bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-indigo-500 focus:bg-white transition-all duration-200 placeholder:text-gray-400"
             />
             {renameInput && <HiCheck className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500" />}
           </div>
@@ -80,9 +80,7 @@ export default function RenameGroupModal({
             disabled={!renameInput.trim()}
             className={`flex-1 py-4 cursor-pointer text-base font-bold text-white rounded-2xl shadow-lg transition-all duration-300 active:scale-95 flex items-center justify-center gap-2
               ${
-                !renameInput.trim()
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-purple-300'
+                !renameInput.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 shadow-blue-300'
               }`}
           >
             <HiCheck className="w-5 h-5" />

@@ -1033,58 +1033,52 @@ export default function ChatWindow({
     [currentUser._id, currentUser.name, roomId, isGroup, selectedChat],
   );
 
-  const handleContextMenu = useCallback((e: React.MouseEvent, msg: Message) => {
-    e.preventDefault();
-    const target = e.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const menuWidth = 176;
-    const senderId = (() => {
-      const idA = (msg.sender as unknown as { _id?: unknown })?._id;
-      const idB = (msg.sender as unknown as { id?: unknown })?.id;
-      return String(idA ?? idB ?? msg.sender ?? '');
-    })();
-    const isMe = senderId === String(currentUser._id);
-    const isText = msg.type === 'text';
-    const isRecalled = !!msg.isRecalled;
-    const canShare = !isRecalled;
-    const canPin = !isRecalled;
-    const canReply = !isRecalled;
-    const canEdit = isMe && isText && !isRecalled;
-    const canCopy = isText && !isRecalled;
-    const canDownload =
-      !!msg.fileUrl && (msg.type === 'image' || msg.type === 'file' || msg.type === 'sticker');
-    const canRecall = isMe && !isRecalled;
-    const itemCount = [
-      canShare,
-      canPin,
-      canReply,
-      canEdit,
-      canCopy,
-      canDownload,
-      canRecall,
-    ].filter(Boolean).length;
-    const ITEM_H = 36;
-    const PADDING = 8;
-    const menuHeight = Math.max(ITEM_H, itemCount * ITEM_H + PADDING);
-    let x = rect.left + (rect.width - menuWidth) / 2;
-    x = Math.min(Math.max(x, 8), window.innerWidth - menuWidth - 8);
-    const GAP = 8;
-    let y = rect.bottom + GAP;
-    let placement: 'above' | 'below' = 'below';
-    const viewportH = window.innerHeight;
-    if (y + menuHeight > viewportH - GAP) {
-      placement = 'above';
-      y = rect.top - menuHeight - GAP;
-    }
-    y = Math.min(Math.max(y, GAP), viewportH - menuHeight - GAP);
-    setContextMenu({
-      visible: true,
-      x,
-      y,
-      placement,
-      message: msg,
-    });
-  }, [currentUser._id]);
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent, msg: Message) => {
+      e.preventDefault();
+      const target = e.currentTarget as HTMLElement;
+      const rect = target.getBoundingClientRect();
+      const menuWidth = 176;
+      const senderId = (() => {
+        const idA = (msg.sender as unknown as { _id?: unknown })?._id;
+        const idB = (msg.sender as unknown as { id?: unknown })?.id;
+        return String(idA ?? idB ?? msg.sender ?? '');
+      })();
+      const isMe = senderId === String(currentUser._id);
+      const isText = msg.type === 'text';
+      const isRecalled = !!msg.isRecalled;
+      const canShare = !isRecalled;
+      const canPin = !isRecalled;
+      const canReply = !isRecalled;
+      const canEdit = isMe && isText && !isRecalled;
+      const canCopy = isText && !isRecalled;
+      const canDownload = !!msg.fileUrl && (msg.type === 'image' || msg.type === 'file' || msg.type === 'sticker');
+      const canRecall = isMe && !isRecalled;
+      const itemCount = [canShare, canPin, canReply, canEdit, canCopy, canDownload, canRecall].filter(Boolean).length;
+      const ITEM_H = 36;
+      const PADDING = 8;
+      const menuHeight = Math.max(ITEM_H, itemCount * ITEM_H + PADDING);
+      let x = rect.left + (rect.width - menuWidth) / 2;
+      x = Math.min(Math.max(x, 8), window.innerWidth - menuWidth - 8);
+      const GAP = 8;
+      let y = rect.bottom + GAP;
+      let placement: 'above' | 'below' = 'below';
+      const viewportH = window.innerHeight;
+      if (y + menuHeight > viewportH - GAP) {
+        placement = 'above';
+        y = rect.top - menuHeight - GAP;
+      }
+      y = Math.min(Math.max(y, GAP), viewportH - menuHeight - GAP);
+      setContextMenu({
+        visible: true,
+        x,
+        y,
+        placement,
+        message: msg,
+      });
+    },
+    [currentUser._id],
+  );
 
   const handleMobileLongPress = useCallback(
     (msg: Message, el: HTMLElement, startX: number, startY: number) => {
@@ -1484,16 +1478,14 @@ export default function ChatWindow({
         const id = String(m._id);
         if (!map.has(id)) map.set(id, m);
       });
-      const desc = Array.from(map.values()).sort(
-        (a: Message, b: Message) => {
-          const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
-          const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
-          if (tb !== ta) return tb - ta;
-          const ia = String(a._id || '');
-          const ib = String(b._id || '');
-          return ib.localeCompare(ia);
-        },
-      );
+      const desc = Array.from(map.values()).sort((a: Message, b: Message) => {
+        const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
+        const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
+        if (tb !== ta) return tb - ta;
+        const ia = String(a._id || '');
+        const ib = String(b._id || '');
+        return ib.localeCompare(ia);
+      });
       const asc = desc.slice().reverse();
       setMessages(asc);
       try {

@@ -163,7 +163,7 @@ export default function PinnedMessagesSection({
   return (
     <>
       {allPinnedMessages.length > 0 && (
-        <div className="relative group flex items-center justify-between gap-3 px-4 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-300 select-none m-2 sm:m-3">
+        <div className="relative group flex items-center justify-between gap-2 px-2 py-1 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-300 select-none m-2 sm:m-3">
           <div
             className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-gray-50 rounded-lg p-1 transition-colors"
             onClick={() => firstMsg && onJumpToMessage(firstMsg._id)}
@@ -172,8 +172,8 @@ export default function PinnedMessagesSection({
               <HiChatBubbleLeftRight className="w-4 h-4" />
             </div>
             <div className="flex flex-col min-w-0 items-start">
-              <div className="text-sm font-semibold text-gray-900 truncate">{typeLabel}</div>
-              <div className="text-sm text-gray-600 truncate">
+              <div className="text-[0.875rem] md:text-[1rem] font-semibold text-gray-900 truncate">{typeLabel}</div>
+              <div className="text-[0.875rem] md:text-[1rem] text-gray-600 truncate w-[10rem] md:w-[20rem]">
                 {senderName ? `Tin nhắn của ${senderName}` : 'Tin nhắn đã ghim'}
               </div>
             </div>
@@ -283,7 +283,7 @@ export default function PinnedMessagesSection({
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-semibold text-gray-900 truncate">{label}</div>
-                          <div className="text-sm text-gray-600 truncate">
+                          <div className="text-[0.875rem] md:text-[1rem] text-gray-600 truncate">
                             {name ? `Tin nhắn của ${name}` : 'Tin nhắn'}
                           </div>
                         </div>

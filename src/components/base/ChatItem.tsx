@@ -154,7 +154,7 @@ export default function ChatItem({
         onTouchCancel={clearLongPressTimer}
         onTouchMove={handleTouchMove}
         className={`
-          group relative m-2 rounded-[0.25rem] transition-all duration-300 cursor-pointer
+          group relative mx-1 rounded-[0.25rem] transition-all duration-300 cursor-pointer
           ${
             isSelected
               ? 'bg-blue-100 shadow-xl'
@@ -164,12 +164,12 @@ export default function ChatItem({
           active:scale-98
         `}
       >
-        <div className="flex items-center gap-4 py-[0.625rem] px-2 md:py-2 ">
+        <div className="flex items-center gap-1 md:gap-2 py-[0.5rem] md:py-2 px-2 ">
           {/* Avatar + Online + Group Icon */}
           <div className="relative flex-shrink-0">
             <div
               className={`
-                w-14 h-14 rounded-4xl overflow-hidden ring-2 ring-white shadow-2xl flex items-center justify-center text-white font-bold text-2xl
+                w-12 h-12  rounded-4xl overflow-hidden ring-2 ring-white shadow-2xl flex items-center justify-center text-white font-bold text-2xl
                 ${
                   isGroup
                     ? 'bg-gradient-to-br from-sky-500 via-blue-500 to-blue-500'
@@ -200,8 +200,8 @@ export default function ChatItem({
             {/* Online indicator (chỉ cá nhân) */}
             {!isGroup && (
               <div
-                className={`absolute bottom-0 right-0 w-5
-               h-5 rounded-full border-4 border-white shadow-lg
+                className={`absolute bottom-0 right-0 w-3 md:w-4
+               h-3 md:h-4 rounded-full border-2 md:border-3 border-white shadow-lg
                 ${presenceOnline ? 'bg-green-400' : 'bg-gray-400'}`}
               />
             )}
@@ -222,11 +222,11 @@ export default function ChatItem({
           </div>
 
           {/* Nội dung */}
-          <div className="flex-1 min-w-0 ml-2  transition-colors duration-150 border-b pb-2 border-gray-200">
+          <div className="flex-1 min-w-0 ml-2  transition-colors duration-150 border-b pb-2 border-gray-200 lg:border-b-0">
             <div className="flex items-center justify-between mb-1">
               <h4
                 className={`
-                  text-[1.125rem] font-medium truncate max-w-[11rem]
+                 text-[1.125rem] font-medium truncate max-w-[11rem]
                   ${unreadCount > 0 ? 'text-gray-900' : 'text-gray-500'}
                 `}
               >
@@ -241,7 +241,7 @@ export default function ChatItem({
             <div className="flex items-center justify-between">
               <p
                 className={`
-                  text-sm truncate max-w-[14rem]
+                  text-[0.75rem] md:text-[1rem] truncate max-w-[14rem]
                   ${unreadCount > 0 ? 'font-semibold text-gray-800' : 'text-gray-600'}
                 `}
               >
