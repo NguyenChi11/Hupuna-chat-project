@@ -2157,7 +2157,9 @@ export default function MessageList({
                         )}
                         {/* Group sender name - Show for everyone including me if set */}
                         {isGroup && !isGrouped && !isRecalled && (
-                          <p className={`text-sm  mb-1  ${msg.type === 'image' || msg.type === 'video' || msg.type === "file" ? 'px-4 py-1' : 'py-1'} ${isMe ? 'text-gray-600' : 'text-gray-600'}`}>
+                          <p
+                            className={`text-sm  mb-1  ${msg.type === 'image' || msg.type === 'video' || msg.type === 'file' ? 'px-4 py-1' : 'py-1'} ${isMe ? 'text-gray-600' : 'text-gray-600'}`}
+                          >
                             {senderName}
                           </p>
                         )}
@@ -2165,8 +2167,8 @@ export default function MessageList({
                         {/* TEXT */}
                         {msg.type === 'text' && !isRecalled && !isEditing && (
                           <div
-                            className={`relative text-[1rem] ${
-                              isSidebarOpen && !isMobile ? 'md:text-[1rem]' : 'md:text-[1.3rem]'
+                            className={`relative text-[0.875rem] ${
+                              isSidebarOpen && !isMobile ? 'md:text-[0.875rem]' : 'md:text-[1rem]'
                             } leading-relaxed text-black whitespace-pre-wrap`}
                             style={
                               isMobile &&
