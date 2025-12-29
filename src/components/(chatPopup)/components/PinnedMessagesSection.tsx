@@ -53,7 +53,7 @@ export default function PinnedMessagesSection({ onOpen }: PinnedMessagesSectionP
           <ICPin className="w-5 h-5 text-gray-500" />
         </div>
         <div className="text-left flex-1 min-w-0">
-          <p className="text-base text-[1.125rem] text-gray-900 group-hover:text-amber-600 transition-colors">
+          <p className="text-base text-[1.125rem] md:text-[1rem] text-gray-900 group-hover:text-amber-600 transition-colors">
             Tin nhắn đã ghim
           </p>
           {latestPinned && (

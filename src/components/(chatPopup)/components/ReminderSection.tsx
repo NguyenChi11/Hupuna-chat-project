@@ -19,7 +19,7 @@ export default function ReminderSection({ onOpen }: ReminderSectionProps) {
 
         {/* Nội dung */}
         <div className="text-left">
-          <p className="text-base text-[1.125rem]  text-gray-900 group-hover:text-amber-600 transition-colors">
+          <p className="text-base text-[1.125rem] md:text-[1rem] text-gray-900 group-hover:text-amber-600 transition-colors">
             Lịch hẹn
           </p>
         </div>

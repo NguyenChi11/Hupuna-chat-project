@@ -83,7 +83,7 @@ export default function ChatQuickActions({
         className="cursor-pointer group flex flex-col items-center gap-3 p-2 rounded-2xl transition-all duration-300 hover:bg-gray-50 active:scale-95"
         title="Tìm tin nhắn"
       >
-        <div className="p-4 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all group-hover:shadow-lg">
+        <div className="p-3 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all group-hover:shadow-lg">
           <HiMagnifyingGlass className="w-6 h-6" />
         </div>
         <span className="text-xs font-medium text-gray-700">Tìm tin nhắn</span>
@@ -93,7 +93,7 @@ export default function ChatQuickActions({
         className="cursor-pointer group flex flex-col items-center gap-3 p-2 rounded-2xl transition-all duration-300  active:scale-95"
         title="Trang cá nhân"
       >
-        <div className="p-4 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all group-hover:shadow-lg">
+        <div className="p-3 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all group-hover:shadow-lg">
           <HiUserGroup className="w-6 h-6" />
         </div>
         <span className="text-xs font-medium text-gray-700">Trang cá nhân</span>
@@ -105,7 +105,7 @@ export default function ChatQuickActions({
         title={isMuted ? 'Bật thông báo' : 'Tắt thông báo'}
       >
         <div
-          className={`p-4 rounded-2xl transition-all duration-300  group-hover:shadow-lg ${
+          className={`p-3 rounded-full transition-all duration-300  group-hover:shadow-lg ${
             isMuted
               ? 'bg-red-100 text-red-600 ring-2 ring-red-200'
               : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200'

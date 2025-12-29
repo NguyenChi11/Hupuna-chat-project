@@ -23,7 +23,7 @@ export default function GroupMembersSection({
           <div className="py-2.5 rounded-xl  text-gray-500">
             <HiUserGroup className="w-5 h-5" />
           </div>
-          <span className="text-[1.125rem] text-gray-900">
+          <span className="text-[1.125rem] md:text-[1rem] text-gray-900">
             Xem thành viên <span className="text-gray-500">({membersCount})</span>
           </span>
         </div>

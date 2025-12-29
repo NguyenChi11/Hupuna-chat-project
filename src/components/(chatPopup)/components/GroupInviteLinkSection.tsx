@@ -185,7 +185,7 @@ export default function GroupInviteLinkSection({
         <div className="p-2 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <HiLink className="w-5 h-5 text-gray-600" />
-            <span className="text-[1.125rem] text-gray-800">Link nhóm</span>
+            <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Link nhóm</span>
           </div>
         </div>
 

@@ -17,7 +17,7 @@ export default function PollSection({ onOpen }: PollSectionProps) {
           <HiChartBar className="w-5 h-5" />
         </div>
         <div className="text-left">
-          <p className="text-base text-[1.125rem] text-gray-900 group-hover:text-indigo-600 transition-colors">
+          <p className="text-base text-[1.125rem] md:text-[1rem] text-gray-900 group-hover:text-indigo-600 transition-colors">
             Bình chọn
           </p>
         </div>
