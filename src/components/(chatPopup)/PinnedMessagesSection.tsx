@@ -29,6 +29,7 @@ interface PinnedMessagesSectionProps {
   onLoadMorePinned: () => void;
   pinnedHasMore: boolean;
   pinnedLoading?: boolean;
+  isSidebarOpen?: boolean;
 }
 
 export default function PinnedMessagesSection({
@@ -42,6 +43,7 @@ export default function PinnedMessagesSection({
   onLoadMorePinned,
   pinnedHasMore,
   pinnedLoading,
+  isSidebarOpen,
 }: PinnedMessagesSectionProps) {
   const isEmpty = allPinnedMessages.length === 0 && !showPinnedList;
   const isVideoFile = (name?: string) => /\.(mp4|webm|mov|mkv|avi)$/i.test(String(name || ''));
@@ -127,6 +129,13 @@ export default function PinnedMessagesSection({
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const optionsRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => {
+    if (isSidebarOpen) {
+      setOpenDropdown(false);
+      setOpenOptions(null);
+    }
+  }, [isSidebarOpen]);
+
   const handleOpenOptions = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const buttonRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -179,41 +188,43 @@ export default function PinnedMessagesSection({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {firstMsg && renderMiniPreview(firstMsg)}
+            {!isSidebarOpen && firstMsg && renderMiniPreview(firstMsg)}
 
-            <div className="relative">
-              <button
-                className="cursor-pointer p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-                onClick={(e) => handleOpenOptions(e, 'main-pinned')}
-              >
-                <HiEllipsisVertical className="w-5 h-5" />
-              </button>
+            {!isSidebarOpen && (
+              <div className="relative">
+                <button
+                  className="cursor-pointer p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                  onClick={(e) => handleOpenOptions(e, 'main-pinned')}
+                >
+                  <HiEllipsisVertical className="w-5 h-5" />
+                </button>
 
-              {openOptions === 'main-pinned' &&
-                typeof document !== 'undefined' &&
-                createPortal(
-                  <div
-                    ref={optionsRef}
-                    style={{ top: optionsPosition.top, left: optionsPosition.left }}
-                    className="fixed z-[9999] w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1"
-                  >
-                    <button
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (firstMsg) onUnpinMessage(firstMsg);
-                        setOpenOptions(null);
-                      }}
+                {openOptions === 'main-pinned' &&
+                  typeof document !== 'undefined' &&
+                  createPortal(
+                    <div
+                      ref={optionsRef}
+                      style={{ top: optionsPosition.top, left: optionsPosition.left }}
+                      className="fixed z-[9999] w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1"
                     >
-                      <HiTrash className="w-4 h-4" />
-                      Bỏ ghim
-                    </button>
-                  </div>,
-                  document.body,
-                )}
-            </div>
+                      <button
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (firstMsg) onUnpinMessage(firstMsg);
+                          setOpenOptions(null);
+                        }}
+                      >
+                        <HiTrash className="w-4 h-4" />
+                        Bỏ ghim
+                      </button>
+                    </div>,
+                    document.body,
+                  )}
+              </div>
+            )}
 
-            <div className="h-10 w-px bg-gray-200" />
+            {!isSidebarOpen && <div className="h-10 w-px bg-gray-200" />}
             <div
               className="px-3 py-1.5 rounded-full border border-gray-300 bg-gray-50 text-gray-800 flex items-center gap-1.5 cursor-pointer"
               onClick={(e) => {
@@ -236,7 +247,7 @@ export default function PinnedMessagesSection({
             {openDropdown && (
               <div
                 ref={dropdownRef}
-                className="absolute right-3 top-full mt-2 w-[92vw] max-w-[28rem] bg-white border border-gray-200 rounded-2xl shadow-xl z-50"
+                className="absolute left-3 right-3 top-full mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl z-50"
               >
                 <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                   <div className="text-sm font-semibold text-gray-900">Danh sách ghim ({allPinnedMessages.length})</div>

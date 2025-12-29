@@ -3011,6 +3011,7 @@ export default function ChatWindow({
             onLoadMorePinned={loadMorePinnedMessages}
             pinnedHasMore={(pinnedTotal ?? 0) > allPinnedMessages.length}
             pinnedLoading={pinnedLoading}
+            isSidebarOpen={showPopup || (!isMobile && showSearchSidebar)}
           />
 
           {isGroup && !callActive && !callConnecting && roomCallActive && (
