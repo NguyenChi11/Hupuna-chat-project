@@ -4,8 +4,9 @@ import { HiPlus, HiChevronRight } from 'react-icons/hi2';
 import Image from 'next/image';
 import { User } from '@/types/User';
 import { GroupConversation } from '@/types/Group';
-import { getProxyUrl } from '@/utils/utils';
+import { getProxyUrl, resolveSocketUrl } from '@/utils/utils';
 import SuccessModal from '@/components/modal/SuccessModal';
+import io from 'socket.io-client';
 
 interface AddToGroupModalProps {
   isOpen: boolean;
@@ -85,6 +86,7 @@ export default function AddToGroupModal({
     setAddToGroupLoading(true);
     setAddToGroupError('');
     try {
+      const sock = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
       const targetId = String((selectedChat as User)._id);
       for (const gid of selectedGroupIds) {
         const res = await fetch('/api/groups', {
@@ -100,8 +102,26 @@ export default function AddToGroupModal({
         const json = await res.json();
         if (!json.success) {
           setAddToGroupError('Một số nhóm thêm thất bại');
+        } else {
+          const g = myGroupsQuick.find((x) => String(x._id) === String(gid)) || null;
+          const prevRaw = Array.isArray(g?.members) ? (g!.members as Array<{ _id?: string; id?: string } | string>) : [];
+          const prevIds = prevRaw
+            .map((m) => (typeof m === 'string' ? String(m) : String(m._id || m.id || '')))
+            .filter((v) => !!v);
+          const nextIds = Array.from(new Set([...prevIds, targetId]));
+          const prevMembersPayload = prevIds.map((id) => ({ _id: id }));
+          const nextMembersPayload = nextIds.map((id) => ({ _id: id }));
+          sock.emit('group_members_updated', {
+            roomId: String(gid),
+            members: nextMembersPayload,
+            prevMembers: prevMembersPayload,
+            sender: String(currentUser._id),
+            senderName: currentUser.name,
+            groupName: g?.name,
+          });
         }
       }
+      setTimeout(() => sock.disconnect(), 500);
       setShowSuccessModal(true);
       reLoad?.();
       onClose();

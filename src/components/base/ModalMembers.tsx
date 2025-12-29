@@ -283,6 +283,52 @@ export default function GroupMembersModal({
     }
   };
 
+  const handleLeaveGroup = async () => {
+    if (!conversationId) return;
+    try {
+      const res = await fetch('/api/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'leaveGroup',
+          conversationId,
+          _id: myId,
+        }),
+      });
+      if (!res.ok) throw new Error('Leave failed');
+      const actorName = currentUser.name || 'Một thành viên';
+      const text = `${actorName} đã rời nhóm`;
+      try {
+        await sendNotifyMessage?.(text);
+      } catch {}
+      try {
+        const roomIdStr = String(conversationId);
+        const nextMembers = localMembers.filter((m) => !compareIds(m._id || m.id, myId));
+        const payloadMembers = nextMembers.map((m) => ({
+          _id: String(m._id || m.id || ''),
+          role: m.role,
+          name: m.name,
+          avatar: m.avatar,
+        }));
+        const prevMembers = localMembers.map((m) => ({ _id: String(m._id || m.id || '') }));
+        const sock = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+        sock.emit('group_members_updated', {
+          roomId: roomIdStr,
+          members: payloadMembers,
+          prevMembers,
+          sender: myId,
+          senderName: currentUser.name,
+          groupName,
+        });
+        setTimeout(() => sock.disconnect(), 500);
+      } catch {}
+      setLocalMembers((prev) => prev.filter((m) => !compareIds(m._id || m.id, myId)));
+      reLoad?.();
+      onClose();
+    } catch {
+      toast({ type: 'error', message: 'Rời nhóm thất bại', duration: 3000 });
+    }
+  };
   const searchUser = localMembers.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
   const existingMemberIds = localMembers.map((m) => normalizeId(m._id || m.id));
   const setNickname = async (targetId: string, nickname: string) => {
@@ -396,6 +442,20 @@ export default function GroupMembersModal({
                 title="Thêm thành viên"
               >
                 <HiUserPlus className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() =>
+                  confirmAlert({
+                    title: 'Rời nhóm',
+                    message: 'Bạn chắc chắn muốn rời nhóm này?',
+                    okText: 'Rời nhóm',
+                    onOk: () => handleLeaveGroup(),
+                  })
+                }
+                className="p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95"
+                title="Rời nhóm"
+              >
+                <HiUserMinus className="w-6 h-6" />
               </button>
               <button
                 onClick={() => setShowSearch((v) => !v)}

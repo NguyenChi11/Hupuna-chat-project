@@ -241,7 +241,7 @@ export default function ChatItem({
             <div className="flex items-center justify-between">
               <p
                 className={`
-                  text-[0.75rem] md:text-[1rem] truncate max-w-[14rem]
+                  text-[0.875rem] md:text-[1rem] truncate max-w-[14rem]
                   ${unreadCount > 0 ? 'font-semibold text-gray-800' : 'text-gray-600'}
                 `}
               >

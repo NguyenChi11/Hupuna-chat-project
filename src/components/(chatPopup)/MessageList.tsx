@@ -2165,8 +2165,8 @@ export default function MessageList({
                         {/* TEXT */}
                         {msg.type === 'text' && !isRecalled && !isEditing && (
                           <div
-                            className={`relative text-[0.875rem] ${
-                              isSidebarOpen && !isMobile ? 'md:text-[0.825rem]' : 'md:text-[1rem]'
+                            className={`relative text-[1rem] ${
+                              isSidebarOpen && !isMobile ? 'md:text-[1rem]' : 'md:text-[1.3rem]'
                             } leading-relaxed text-black whitespace-pre-wrap`}
                             style={
                               isMobile &&
