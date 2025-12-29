@@ -15,7 +15,7 @@ export const ConfirmModal: React.FC<{
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
       <div
-        className="bg-white rounded-3xl md:rounded-none shadow-2xl md:shadow-none overflow-hidden w-full max-w-md md:max-w-none md:h-full animate-in fade-in zoom-in-95 duration-300"
+        className="bg-white rounded-3xl md:rounded-none shadow-2xl md:shadow-none overflow-hidden    animate-in fade-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header với icon cảnh báo + nút đóng */}

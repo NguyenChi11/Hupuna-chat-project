@@ -148,9 +148,13 @@ export default function SidebarMenu() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-pink-500 flex items-center justify-center text-2xl font-bold shadow-inner">
-                {(userInfo?.name || 'U').charAt(0).toUpperCase()}
-              </div>
+              <Image
+                src="/logo/avata.webp"
+                alt={userInfo?.name || 'User'}
+                width={56}
+                height={56}
+                className="w-full h-full object-cover"
+              />
             )}
             <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </button>
@@ -178,7 +182,13 @@ export default function SidebarMenu() {
                       />
                     ) : (
                       <div className="w-full h-full bg-white/30 backdrop-blur-md flex items-center justify-center text-3xl font-bold">
-                        {(userInfo.name || 'U').charAt(0).toUpperCase()}
+                        <Image
+                          src="/logo/avata.webp"
+                          alt={userInfo.name || 'User'}
+                          width={38}
+                          height={38}
+                          className="w-full h-full rounded-full object-cover"
+                        />
                       </div>
                     )}
                   </div>

@@ -114,7 +114,7 @@ export default function CommonGroupsMobile({
       {!isSearchOpen && <div className="h-2 bg-gray-100 shrink-0" />}
 
       {/* Group List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto ">
         {filteredGroups.map((group) => (
           <div key={group._id} className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50">
             <div className="relative w-12 h-12 rounded-full overflow-hidden border border-gray-100 shrink-0">

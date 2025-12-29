@@ -117,7 +117,7 @@ export default function AddToGroupModal({
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-white md:bg-black/50 md:px-4">
-        <div className="bg-white md:rounded-2xl shadow-2xl w-full h-full md:h-[40rem] md:max-w-md overflow-hidden flex flex-col">
+        <div className="bg-white md:rounded-2xl shadow-2xl w-full h-full md:h-[45rem] md:max-w-md overflow-hidden flex flex-col">
           <div className="p-4 border-b border-gray-100 bg-gray-50 flex-none">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-gray-800">Thêm vào nhóm</h3>

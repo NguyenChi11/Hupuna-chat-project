@@ -24,7 +24,7 @@ export default function CommonGroupsModal({
 
   return (
     <div className="fixed inset-0 z-[100] bg-white md:bg-black/50 md:flex md:items-center md:justify-center">
-      <div className="w-full h-full md:w-[400px] md:h-[600px] md:bg-white md:rounded-xl overflow-hidden relative shadow-xl">
+      <div className="bg-white md:rounded-2xl shadow-2xl w-full h-full md:h-[45rem] md:max-w-md overflow-hidden flex flex-col">
         <CommonGroupsMobile
            groups={groups}
            partner={partner}

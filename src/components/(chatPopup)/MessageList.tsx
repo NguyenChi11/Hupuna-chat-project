@@ -289,7 +289,13 @@ export default function MessageList({
                               </div>
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                                {(senderInfo.name?.charAt(0).toUpperCase() || '?') as string}
+                                <Image
+                                  src="/logo/avata.webp"
+                                  alt={senderInfo.name || 'User'}
+                                  width={38}
+                                  height={38}
+                                  className="w-full h-full rounded-full object-cover"
+                                />
                               </div>
                             )}
                           </div>
@@ -898,7 +904,13 @@ export default function MessageList({
                               </div>
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                                {(senderInfo.name?.charAt(0).toUpperCase() || '?') as string}
+                                <Image
+                                  src="/logo/avata.webp"
+                                  alt={senderInfo.name || 'User'}
+                                  width={38}
+                                  height={38}
+                                  className="w-full h-full rounded-full object-cover"
+                                />
                               </div>
                             )}
                           </div>
@@ -1704,7 +1716,13 @@ export default function MessageList({
                           </div>
                         ) : (
                           <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                            {avatarChar}
+                            <Image
+                              src="/logo/avata.webp"
+                              alt={senderInfo.name || 'User'}
+                              width={38}
+                              height={38}
+                              className="w-full h-full rounded-full object-cover"
+                            />
                           </div>
                         )}
                       </div>
@@ -2114,7 +2132,7 @@ export default function MessageList({
                         )}
                         {/* Group sender name - Show for everyone including me if set */}
                         {isGroup && !isGrouped && !isRecalled && (
-                          <p className={`text-xs font-bold mb-1 p-1 ${isMe ? 'text-gray-500' : 'text-blue-600'}`}>
+                          <p className={`text-sm  mb-1  ${msg.type === 'image' || msg.type === 'video' || msg.type === "file" ? 'px-4 py-1' : 'py-1'} ${isMe ? 'text-gray-600' : 'text-gray-600'}`}>
                             {senderName}
                           </p>
                         )}
@@ -2224,7 +2242,7 @@ export default function MessageList({
                         {/* IMAGE – FIX SIZE MOBILE */}
                         {msg.type === 'image' && msg.fileUrl && !isRecalled && (
                           <div
-                            className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[40vw] sm:max-w-[10rem]"
+                            className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[40vw] sm:max-w-[10rem]"
                             onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
                           >
                             {String(msg.fileUrl).startsWith('blob:') ? (
