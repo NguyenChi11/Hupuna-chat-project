@@ -1067,22 +1067,26 @@ export default function ChatWindow({
     const PADDING = 8;
     const menuHeight = Math.max(ITEM_H + PADDING, itemCount * (ITEM_H + 4) + PADDING);
     
-    let x = e.clientX;
-    let y = e.clientY;
-    
-    if (x + menuWidth > window.innerWidth) {
-      x = window.innerWidth - menuWidth - 8;
-    }
-    
+    const viewportW = window.innerWidth;
     const viewportH = window.innerHeight;
     let placement: 'above' | 'below' = 'below';
-    
+
+    let x: number;
+    let y: number;
+    if (isText) {
+      x = e.clientX - menuWidth / 2;
+      y = e.clientY - menuHeight / 2;
+    } else {
+      x = rect.left + rect.width / 2 - menuWidth / 2;
+      y = rect.top + rect.height / 2 - menuHeight / 2;
+    }
+    if (x + menuWidth > viewportW) x = viewportW - menuWidth - 8;
+    if (x < 8) x = 8;
     if (y + menuHeight > viewportH) {
-      y = y - menuHeight;
+      y = Math.max(8, viewportH - menuHeight - 8);
       placement = 'above';
     }
-    
-    y = Math.max(y, 0);
+    if (y < 8) y = 8;
     setContextMenu({
       visible: true,
       x,

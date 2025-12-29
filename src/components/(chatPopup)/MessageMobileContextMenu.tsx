@@ -162,7 +162,7 @@ export default function MessageMobileContextMenu({
 
   const panelStyle: React.CSSProperties = {
     top: y,
-    left: x,
+    left: '50%',
     transform: 'translateX(-50%)',
   };
 
@@ -316,7 +316,7 @@ export default function MessageMobileContextMenu({
             </div>
           </div>
         )}
-        <div className="w-screen max-w-[24rem] bg-white rounded-2xl shadow-2xl border border-gray-200 p-1 animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-[92vw] max-w-[24rem] mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200 p-1 animate-in fade-in zoom-in-95 duration-200">
           <div className="grid grid-cols-4 gap-1">
             {onReplyMessage && !isRecalled && (
               <button
