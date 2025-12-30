@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CiFloppyDisk, CiLink } from 'react-icons/ci';
 import { HiLink, HiClipboardCopy, HiRefresh, HiCheck, HiX, HiExclamationCircle, HiCheckCircle } from 'react-icons/hi';
 
 interface GroupInviteLinkSectionProps {
@@ -182,9 +183,9 @@ export default function GroupInviteLinkSection({
   return (
     <>
       <div className="bg-white  border border-gray-200 overflow-hidden">
-        <div className="p-2 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <HiLink className="w-5 h-5 text-gray-600" />
+            <CiLink className="w-5 h-5 text-gray-600" />
             <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Link nhóm</span>
           </div>
         </div>
@@ -220,7 +221,7 @@ export default function GroupInviteLinkSection({
                   {isCopied ? (
                     <HiCheck className="w-5 h-5 text-green-600" />
                   ) : (
-                    <HiClipboardCopy className="w-5 h-5 text-gray-600" />
+                    <CiFloppyDisk className="w-5 h-5 text-gray-600" />
                   )}
                 </button>
                 <button

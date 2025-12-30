@@ -2,6 +2,7 @@ import React, { ChangeEvent, RefObject } from 'react';
 import { HiPencil } from 'react-icons/hi';
 import { getProxyUrl } from '@/utils/utils';
 import Image from 'next/image';
+import { CiEdit } from 'react-icons/ci';
 
 interface GroupAvatarSectionProps {
   isGroup: boolean;
@@ -137,7 +138,7 @@ export default function GroupAvatarSection({
           className="cursor-pointer p-1 rounded-xl  bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-all duration-200 hover:shadow-md active:scale-95"
           title="Đổi tên nhóm"
         >
-          <HiPencil className="w-4 h-4" />
+          <CiEdit className="w-4 h-4" />
         </button>
       </div>
     </div>

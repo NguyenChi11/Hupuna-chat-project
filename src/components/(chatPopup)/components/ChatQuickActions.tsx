@@ -1,5 +1,7 @@
 import React from 'react';
+import { CiBellOn, CiSearch, CiUser } from 'react-icons/ci';
 import { HiEye, HiUserGroup } from 'react-icons/hi';
+import { LuUserRoundPlus } from 'react-icons/lu';
 import { HiEyeSlash, HiMapPin, HiBell, HiBellSlash, HiMagnifyingGlass, HiUserPlus, HiPhoto } from 'react-icons/hi2';
 
 interface ChatQuickActionsProps {
@@ -40,7 +42,7 @@ export default function ChatQuickActions({
           title="Tìm tin nhắn"
         >
           <div className="p-1 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all  group-hover:shadow-lg">
-            <HiMagnifyingGlass className="w-5 h-5" />
+            <CiSearch className="w-5 h-5" />
           </div>
           <span className="text-xs font-medium text-gray-700">Tìm tin nhắn</span>
         </button>
@@ -50,7 +52,7 @@ export default function ChatQuickActions({
           title="Thêm thành viên"
         >
           <div className="p-1 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all  group-hover:shadow-lg">
-            <HiUserPlus className="w-5 h-5" />
+            <LuUserRoundPlus className="w-5 h-5" />
           </div>
           <span className="text-xs font-medium text-gray-700">Thêm thành viên</span>
         </button>
@@ -67,7 +69,7 @@ export default function ChatQuickActions({
                 : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200'
             }`}
           >
-            {isMuted ? <HiBellSlash className="w-5 h-5" /> : <HiBell className="w-5 h-5" />}
+            {isMuted ? <CiBellOn className="w-5 h-5" /> : <CiBellOn className="w-5 h-5" />}
           </div>
           <span className={`text-xs font-medium ${isMuted ? 'text-red-700' : 'text-gray-700'}`}>
             {isMuted ? 'Đã tắt' : 'Tắt thông báo'}
@@ -84,7 +86,7 @@ export default function ChatQuickActions({
         title="Tìm tin nhắn"
       >
         <div className="p-1 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all group-hover:shadow-lg">
-          <HiMagnifyingGlass className="w-5 h-5" />
+          <CiSearch className="w-5 h-5" />
         </div>
         <span className="text-xs font-medium text-gray-700">Tìm tin nhắn</span>
       </button>
@@ -94,7 +96,7 @@ export default function ChatQuickActions({
         title="Trang cá nhân"
       >
         <div className="p-1 rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-all group-hover:shadow-lg">
-          <HiUserGroup className="w-5 h-5" />
+          <CiUser className="w-5 h-5" />
         </div>
         <span className="text-xs font-medium text-gray-700">Trang cá nhân</span>
       </button>
@@ -111,7 +113,7 @@ export default function ChatQuickActions({
               : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200'
           }`}
         >
-          {isMuted ? <HiBellSlash className="w-5 h-5" /> : <HiBell className="w-5 h-5" />}
+          {isMuted ? <CiBellOn className="w-5 h-5" /> : <CiBellOn className="w-5 h-5" />}
         </div>
         <span className={`text-xs font-medium ${isMuted ? 'text-red-700' : 'text-gray-700'}`}>
           {isMuted ? 'Đã tắt' : 'Tắt thông báo'}

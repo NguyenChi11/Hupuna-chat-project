@@ -1,6 +1,8 @@
 import { ICCalendar } from '@/components/svg/ICCalendar';
 import React from 'react';
+import { CiCalendarDate } from 'react-icons/ci';
 import { HiClock } from 'react-icons/hi';
+import { HiChevronRight } from 'react-icons/hi2';
 interface ReminderSectionProps {
   onOpen: () => void;
 }
@@ -8,13 +10,13 @@ export default function ReminderSection({ onOpen }: ReminderSectionProps) {
   return (
     <div className="bg-white   border border-gray-100 overflow-hidden">
       <button
-        className="cursor-pointer w-full p-2 flex items-center gap-5 hover:bg-gray-50 transition-all duration-200 group"
+        className="cursor-pointer w-full px-5 py-4 flex items-center gap-5 hover:bg-gray-50 transition-all duration-200 group"
         onClick={onOpen}
         title="Xem danh sách nhắc hẹn"
       >
         {/* Icon với gradient + hiệu ứng */}
-        <div className="py-3 rounded-xl   ">
-          <ICCalendar className="w-5 h-5 text-gray-500" />
+        <div className=" rounded-xl   ">
+          <CiCalendarDate className="w-5 h-5 text-gray-500" />
         </div>
 
         {/* Nội dung */}
@@ -26,14 +28,7 @@ export default function ReminderSection({ onOpen }: ReminderSectionProps) {
 
         {/* Mũi tên chỉ thị */}
         <div className="ml-auto text-gray-400 group-hover:text-amber-600 transition-colors">
-          <svg
-            className={`w-5 h-5 transition-transform duration-200 `}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          <HiChevronRight className="w-4 h-4 text-gray-400 group-hover:text-amber-600" />
         </div>
       </button>
     </div>

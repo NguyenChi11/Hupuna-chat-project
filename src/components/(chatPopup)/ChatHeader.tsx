@@ -14,6 +14,7 @@ import {
   HiVideoCamera,
   HiXMark,
 } from 'react-icons/hi2';
+import { CiPhone, CiSearch, CiVideoOn } from 'react-icons/ci';
 
 interface ChatHeaderProps {
   chatName: string;
@@ -124,7 +125,7 @@ export default function ChatHeader({
         </button>
 
         {/* Search icon */}
-        <HiMagnifyingGlass className="w-5 h-5 text-gray-500 flex-shrink-0" />
+        <CiSearch className="w-5 h-5 text-gray-500 flex-shrink-0" />
 
         {/* Search input */}
         <div className="flex-1 relative">
@@ -238,7 +239,7 @@ export default function ChatHeader({
                 className="p-2.5 rounded-full cursor-pointer transition-all duration-200 hover:bg-gray-100 text-gray-600"
                 title="Gọi thoại"
               >
-                <HiPhone className="w-5 h-5" />
+                <CiPhone className="w-5 h-5" />
               </button>
             )}
             {typeof onVideoCall === 'function' && (
@@ -247,7 +248,7 @@ export default function ChatHeader({
                 className="p-2.5 rounded-full cursor-pointer transition-all duration-200 hover:bg-gray-100 text-gray-600"
                 title="Gọi video"
               >
-                <HiVideoCamera className="w-5 h-5" />
+                <CiVideoOn className="w-5 h-5" />
               </button>
             )}
           </>
@@ -271,7 +272,7 @@ export default function ChatHeader({
           `}
           title="Tìm kiếm tin nhắn"
         >
-          <HiMagnifyingGlass className="w-5 h-5" />
+          <CiSearch className="w-5 h-5" />
         </button>
 
         {/* Nút More */}

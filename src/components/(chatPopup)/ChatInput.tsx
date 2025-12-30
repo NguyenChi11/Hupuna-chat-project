@@ -19,7 +19,18 @@ import {
   HiPencil,
   HiHandThumbUp,
 } from 'react-icons/hi2';
+import {
+  CiCircleMore,
+  CiCreditCard2,
+  CiEdit,
+  CiFaceSmile,
+  CiFileOn,
+  CiImageOn,
+  CiInstagram,
+  CiPen,
+} from 'react-icons/ci';
 import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
+import { IoIosAttach } from 'react-icons/io';
 import Image from 'next/image';
 import { useChatContext } from '@/context/ChatContext';
 import FolderDashboard from '@/components/(chatPopup)/components/Folder/FolderDashboard';
@@ -508,13 +519,13 @@ export default function ChatInput({
           className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Chọn emoji"
         >
-          <ICONS.SmileEmoji className="w-5 h-5" />
+          <CiFaceSmile className="w-6 h-6" />
         </button>
         <label
           className=" rounded-lg cursor-pointer p-1 hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Gửi ảnh hoặc video"
         >
-          <ICONS.ImageZalo className="w-5 h-5" />
+          <CiImageOn className="w-6 h-6" />
           <input
             type="file"
             accept="image/*,video/*"
@@ -531,7 +542,7 @@ export default function ChatInput({
           className=" rounded-lg cursor-pointer p-1 hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Gửi file"
         >
-          <ICONS.AttachmentZalo className="w-5 h-5" />
+          <CiFileOn className="w-6 h-6" />
           <input
             type="file"
             className="sr-only"
@@ -548,35 +559,35 @@ export default function ChatInput({
           className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Nhập bằng giọng nói"
         >
-          <ICONS.ContactZalo className="w-5 h-5" />
+          <CiCreditCard2 className="w-6 h-6" />
         </button>
         <button
           onClick={handleShowUpdatingPopup}
           className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Chọn Zalo"
         >
-          <ICONS.SelectionZalo className="w-5 h-5" />
+          <CiInstagram className="w-6 h-6" />
         </button>
         <button
           onClick={handleShowUpdatingPopup}
           className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Chỉnh sửa Zalo"
         >
-          <ICONS.TextEditZalo className="w-5 h-5" />
+          <CiEdit className="w-6 h-6" />
         </button>
         <button
           onClick={handleShowUpdatingPopup}
           className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Gửi Zalo"
         >
-          <ICONS.ChatFlashZalo className="w-5 h-5" />
+          <CiPen className="w-6 h-6" />
         </button>
         <button
           onClick={handleShowUpdatingPopup}
           className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Chọn Zalo"
         >
-          <ICONS.MoreZalo className="w-5 h-5" />
+          <CiCircleMore className="w-6 h-6" />
         </button>
       </div>
 
@@ -589,7 +600,7 @@ export default function ChatInput({
             } catch {}
             setTimeout(() => onToggleEmojiPicker(), 100);
           }}
-          className="lg:hidden group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
+          className="md:hidden group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
           aria-label="Chọn emoji"
         >
           <HiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
@@ -778,7 +789,7 @@ export default function ChatInput({
                   className="group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
                   aria-label="Chọn emoji"
                 >
-                  <HiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
+                  <CiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
                 </button>
                 <button
                   onClick={() => {
@@ -890,24 +901,7 @@ export default function ChatInput({
               }}
             />
           </label>
-          {/* <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
-            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
-              <HiFolder className="w-6 h-6 text-orange-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
-              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
-            </div>
-            <span className="text-sm font-medium text-gray-800">Thư Mục</span>
-            <input
-              type="button"
-              className="sr-only"
-              onClick={() => {
-                setShowFolderDashboard(true);
-                setShowMobileActions(false);
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                } catch {}
-              }}
-            />
-          </label> */}
+
           <button
             onClick={() => {
               onVoiceInput();
