@@ -51,7 +51,7 @@ export default function ProfileTabs({
           onClick={() => setTab(item)}
           className={`
             flex-1 relative py-4 px-1 text-center font-medium text-[1.5rem] cursor-pointer select-none
-            transition-all duration-300 group
+            transition-all duration-300 group 
             ${tab === item ? 'text-indigo-600 font-bold' : 'text-gray-500 hover:text-gray-700'}
             ${item === 'profile' ? 'hidden md:block' : ''}
           `}

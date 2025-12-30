@@ -312,7 +312,7 @@ export default function MessageList({
                       w-full  sm:max-w-[23rem]
                       flex gap-2 group relative
                       ${isMeGroup ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
-                      ${isGrouped ? 'mt-1' : 'mt-4'}
+                      ${isGrouped ? 'mt-2' : 'mt-4'}
                       ${groupIsLast ? 'mb-8' : ''}
                     `}
                           >
@@ -969,7 +969,7 @@ export default function MessageList({
                       w-full  sm:max-w-[23rem]
                       flex gap-2 group relative
                       ${isMeGroup ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
-                      ${isGrouped ? 'mt-1' : 'mt-4'}
+                      ${isGrouped ? 'mt-2' : 'mt-4'}
                       ${groupIsLast ? 'mb-8' : ''}
                     `}
                           >
@@ -1801,7 +1801,7 @@ export default function MessageList({
                   w-full sm:max-w-[36rem] lg:max-w-[46rem]
                   flex gap-2 group relative
                   ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
-                  ${isGrouped ? 'mt-1' : 'mt-1'}
+                  ${isGrouped ? 'mt-2' : 'mt-2'}
                   ${isLastMsg ? 'mb-8' : ''}
                   ${highlightedMsgId === msg._id ? 'bg-yellow-50 rounded-xl' : ''}
                 `}

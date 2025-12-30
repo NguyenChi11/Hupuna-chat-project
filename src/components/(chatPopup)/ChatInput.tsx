@@ -764,24 +764,6 @@ export default function ChatInput({
               >
                 <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
               </button>
-              <div className="hidden md:flex items-center gap-2 ml-1">
-                <button
-                  onClick={() => setShowReportConfirm(true)}
-                  className="group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
-                  aria-label="Báo xấu"
-                >
-                  <HiShieldCheck className="w-7 h-7 text-gray-500 group-hover:text-red-600 transition-colors" />
-                </button>
-                {canClearHistory && (
-                  <button
-                    onClick={() => setShowConfirmClear(true)}
-                    className="p-2 rounded-full cursor-pointer text-gray-700"
-                    aria-label="Xóa lịch sử"
-                  >
-                    <HiTrash className="w-7 h-7 text-gray-500" />
-                  </button>
-                )}
-              </div>
             </>
           ) : (
             <>

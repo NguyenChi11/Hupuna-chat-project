@@ -42,7 +42,13 @@ import { FaPager } from 'react-icons/fa6';
 import { HiRectangleGroup } from 'react-icons/hi2';
 // import { FaPager } from 'react-icons/fa6';
 
-export default function SidebarMenu() {
+interface SidebarMenuProps {
+  totalUnread?: number;
+  unreadGroups?: number;
+  unreadContacts?: number;
+}
+
+export default function SidebarMenu({ totalUnread = 0, unreadGroups = 0, unreadContacts = 0 }: SidebarMenuProps) {
   const router = useRouter();
 
   const [openMenu, setOpenMenu] = useState<{
@@ -132,7 +138,7 @@ export default function SidebarMenu() {
   return (
     <>
       {/* Sidebar Gradient */}
-      <div className="h-screen w-12 bg-gradient-to-b from-sky-500 via-blue-500 to-blue-500 flex flex-col items-center py-6 text-white shadow-2xl">
+      <div className="h-screen w-16 bg-gradient-to-b from-sky-500 via-blue-500 to-blue-500 flex flex-col items-center py-6 text-white shadow-2xl">
         {/* Avatar Dropdown */}
         <div ref={avatarRef} className="mb-10 relative">
           <button
@@ -161,159 +167,55 @@ export default function SidebarMenu() {
 
           {/* Avatar Menu */}
           {openMenu.avatar && userInfo && (
-            <div className="absolute left-4 top-12 w-80 bg-white text-gray-800 rounded-3xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
-              {/* Header - Thông tin người dùng */}
-              <div
-                className="p-2 bg-[#0068ff] text-white cursor-pointer hover:bg-[#005edc] transition-all duration-200"
-                onClick={() => {
-                  setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
-                  router.push(`/profile/${userInfo.username}`);
-                }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full overflow-hidden ring-1 ring-white/30 shadow-xl">
-                    {userInfo.avatar ? (
-                      <Image
-                        src={getProxyUrl(userInfo.avatar)}
-                        width={80}
-                        height={80}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-white/30 backdrop-blur-md flex items-center justify-center text-3xl font-bold">
-                        <Image
-                          src="/logo/avata.webp"
-                          alt={userInfo.name || 'User'}
-                          width={38}
-                          height={38}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-lg font-bold truncate">{userInfo.name}</p>
-                    <p className="text-sm opacity-90 truncate">@{userInfo.username}</p>
-                  </div>
-                </div>
+            <div className="absolute left-4 top-12 w-80 bg-white text-gray-800 rounded-lg shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 border border-gray-100">
+              {/* Header - Name */}
+              <div className="px-4 py-4">
+                <h3 className="text-xl font-bold text-gray-900">{userInfo.name}</h3>
               </div>
+
+              <div className="h-px bg-gray-100 mx-4" />
 
               {/* Menu Items */}
               <div className="py-2">
-                {/* Thông tin tài khoản */}
+                {/* Nâng cấp tài khoản */}
+                <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors group">
+                  <span className="text-gray-700 font-medium">Nâng cấp tài khoản</span>
+                  <HiUpload className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                </div>
+
+                {/* Hồ sơ của bạn */}
                 <div
-                  className="flex items-center gap-4 p-2 hover:bg-gray-50 cursor-pointer transition-all duration-150"
+                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => {
+                    setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
+                    router.push(`/profile/${userInfo.username}`);
+                  }}
+                >
+                  <span className="text-gray-700 font-medium">Hồ sơ của bạn</span>
+                </div>
+
+                {/* Cài đặt */}
+                <div
+                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
                   onClick={() => {
                     setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
                     setShowAccountModal(true);
                   }}
                 >
-                  <HiUserCircle className="w-6 h-6 text-[#0068ff]" />
-                  <span className="font-medium text-gray-800">Thông tin tài khoản</span>
+                  <span className="text-gray-700 font-medium">Tài khoản</span>
                 </div>
 
-                {/* Ngôn ngữ */}
-                {/* <div className="relative">
-                  <div
-                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-all duration-150"
-                    onClick={() =>
-                      setOpenMenu((prev) => ({ ...prev, submenu: prev.submenu === 'lang' ? null : 'lang' }))
-                    }
-                  >
-                    <div className="flex items-center gap-4">
-                      <HiOutlineTranslate className="w-6 h-6 text-green-600" />
-                      <span className="font-medium text-gray-800">Ngôn ngữ</span>
-                    </div>
-                    <HiChevronRight
-                      className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${
-                        openMenu.submenu === 'lang' ? 'rotate-90' : ''
-                      }`}
-                    />
-                  </div>
+                <div className="h-px bg-gray-100 mx-4 my-1" />
 
-                  {/* Submenu Ngôn ngữ */}
-                {/* {openMenu.submenu === 'lang' && (
-                    <div
-                      className="absolute left-full top-0 ml-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {['Tiếng Việt', 'English', '中文 (简体)'].map((lang, i) => (
-                        <div
-                          key={i}
-                          className="px-5 py-3.5 hover:bg-[#0068ff]/5 flex items-center justify-between cursor-pointer transition-all"
-                        >
-                          <span className="font-medium">{lang}</span>
-                          {i === 0 && <HiCheck className="w-5 h-5 text-[#0068ff]" />}
-                        </div>
-                      ))}
-                    </div>
-                  )} */}
-                {/* </div>  */}
-
-                {/* Hỗ trợ */}
-                {/* <div className="relative">
-                  <div
-                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-all duration-150"
-                    onClick={() =>
-                      setOpenMenu((prev) => ({ ...prev, submenu: prev.submenu === 'support' ? null : 'support' }))
-                    }
-                  >
-                    <div className="flex items-center gap-4">
-                      <HiQuestionMarkCircle className="w-6 h-6 text-blue-600" />
-                      <span className="font-medium text-gray-800">Hỗ trợ</span>
-                    </div>
-                    <HiChevronRight
-                      className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${
-                        openMenu.submenu === 'support' ? 'rotate-90' : ''
-                      }`}
-                    />
-                  </div>
-
-                  {/* Submenu Hỗ trợ */}
-                {/* {openMenu.submenu === 'support' && (
-                    <div
-                      className="absolute left-full top-0 ml-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {[
-                        {
-                          icon: <HiInformationCircle className="w-5 h-5 text-gray-600" />,
-                          label: 'Thông tin phiên bản',
-                          onClick: () => {
-                            setShowContactCard(true);
-                            setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
-                          },
-                        },
-                        { icon: <HiSupport className="w-5 h-5 text-gray-600" />, label: 'Liên hệ hỗ trợ' },
-                        { icon: <HiUpload className="w-5 h-5 text-gray-600" />, label: 'Gửi file log tới Zalo' },
-                        { icon: <HiBookOpen className="w-5 h-5 text-gray-600" />, label: 'Hướng dẫn sử dụng' },
-                      ].map((item, i) => (
-                        <div
-                          key={i}
-                          className="px-5 py-3.5 hover:bg-[#0068ff]/5 flex items-center gap-4 cursor-pointer transition-all"
-                          onClick={item.onClick}
-                        >
-                          {item.icon}
-                          <span className="font-medium text-gray-800">{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div> */}
-
-                {/* Đăng xuất - phân cách bằng divider */}
-                <div className="border-t border-gray-100 mt-2 pt-2">
-                  <div
-                    className="flex items-center gap-4 p-2 hover:bg-red-50 cursor-pointer transition-all duration-150 text-red-600 font-medium"
-                    onClick={() => {
-                      setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
-                      handleLogout();
-                    }}
-                  >
-                    <HiLogout className="w-6 h-6" />
-                    <span>Đăng xuất</span>
-                  </div>
+                {/* Đăng xuất */}
+                <div
+                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => {
+                    setOpenMenu({ avatar: false, business: false, cloud: false, submenu: null });
+                    handleLogout();
+                  }}
+                >
+                  <span className="text-gray-700 font-medium">Đăng xuất</span>
                 </div>
               </div>
             </div>
@@ -324,27 +226,42 @@ export default function SidebarMenu() {
         <nav className="flex-1 flex flex-col items-center gap-4 mt-4">
           <button
             onClick={() => navigate('/home', 'home')}
-            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'home' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+            className={`relative p-2 cursor-pointer rounded-[0.5rem] transition-all duration-300 ${activeItem === 'home' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <HiHome className="w-5 h-5" />
+            {totalUnread > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[1.25rem] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
+            )}
           </button>
           <button
             onClick={() => navigate('/group', 'group')}
-            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'group' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+            className={`relative p-2 cursor-pointer rounded-[0.5rem] transition-all duration-300 ${activeItem === 'group' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <HiRectangleGroup className="w-5 h-5" />
+            {unreadGroups > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[1.25rem] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
+                {unreadGroups > 99 ? '99+' : unreadGroups}
+              </span>
+            )}
           </button>
           <button
             onClick={() => navigate('/moments', 'moments')}
-            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'moments' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+            className={`p-2 cursor-pointer rounded-[0.5rem] transition-all duration-300 ${activeItem === 'moments' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <FaPager className="w-5 h-5" />
           </button>
           <button
             onClick={() => navigate('/directory', 'directory')}
-            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'directory' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+            className={`relative p-2 cursor-pointer rounded-[0.5rem] transition-all duration-300 ${activeItem === 'directory' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <HiUserGroup className="w-5 h-5" />
+            {unreadContacts > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[1.25rem] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
+                {unreadContacts > 99 ? '99+' : unreadContacts}
+              </span>
+            )}
           </button>
           <button
             onClick={() => {
@@ -354,7 +271,7 @@ export default function SidebarMenu() {
                 console.warn('User info or ID missing');
               }
             }}
-            className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${activeItem === 'profile' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+            className={`p-2 cursor-pointer rounded-[0.5rem] transition-all duration-300 ${activeItem === 'profile' ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
           >
             <HiUserCircle className="w-5 h-5" />
           </button>
@@ -366,7 +283,7 @@ export default function SidebarMenu() {
           <div className="relative">
             <button
               onClick={() => toggleMenu('cloud')}
-              className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${openMenu.cloud ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+              className={`p-2 cursor-pointer rounded-[0.5rem] transition-all duration-300 ${openMenu.cloud ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
             >
               <HiUpload className="w-5 h-5" />
             </button>
@@ -377,7 +294,7 @@ export default function SidebarMenu() {
             )}
           </div>
 
-          <button className="p-2 cursor-pointer rounded-2xl hover:bg-white/10 hover:scale-110 transition-all">
+          <button className="p-2 cursor-pointer rounded-[0.5rem] hover:bg-white/10 hover:scale-110 transition-all">
             <HiDeviceMobile className="w-5 h-5" />
           </button>
 
@@ -385,7 +302,7 @@ export default function SidebarMenu() {
           <div ref={businessRef} className="relative">
             <button
               onClick={() => toggleMenu('business')}
-              className={`p-2 cursor-pointer rounded-2xl transition-all duration-300 ${openMenu.business ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
+              className={`p-2 cursor-pointer rounded-[0.5rem] transition-all duration-300 ${openMenu.business ? 'bg-white/20 shadow-xl scale-110' : 'hover:bg-white/10 hover:scale-110'}`}
             >
               <HiBriefcase className="w-5 h-5" />
             </button>

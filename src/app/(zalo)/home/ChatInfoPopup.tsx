@@ -985,7 +985,6 @@ export default function ChatInfoPopup({
                         <HiShieldCheck className="w-6 h-6 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Báo xấu</span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
                   )}
                   {(!isGroup || (isGroup && myRole === 'OWNER')) && (
@@ -997,7 +996,6 @@ export default function ChatInfoPopup({
                         <HiTrash className="w-6 h-6 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Xóa lịch sử</span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
                   )}
                   {!isGroup && (
@@ -1009,7 +1007,6 @@ export default function ChatInfoPopup({
                         <HiBan className="w-6 h-6 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Quản lý chặn</span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
                   )}
                 </div>
