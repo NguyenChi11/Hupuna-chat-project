@@ -269,34 +269,36 @@ export default function ChatItem({
           <div
             ref={menuRef}
             style={{ top: menuPosition.y, left: menuPosition.x, position: 'fixed' }}
-            className="z-[9999] w-72 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+            className="z-[9999] w-60 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
           >
             {/* Ghim */}
             <button
               onClick={() => handleAction('pin')}
-              className="flex items-center cursor-pointer gap-4 w-full px-3 py-2 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50 transition-all font-semibold text-gray-800"
+              className="flex cursor-pointer items-center w-full px-4 py-3 hover:bg-gray-50 transition-colors gap-3 group"
             >
-              <div className={`p-3 rounded-2xl ${isPinned ? 'bg-orange-100' : 'bg-gray-100'}`}>
-                <HiOutlineMapPin className={`w-4 h-4 ${isPinned ? 'text-orange-600 rotate-45' : 'text-gray-600'}`} />
-              </div>
-              <span className="flex-1 text-left">{isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}</span>
-              {isPinned && <HiCheck className="w-5 h-5 text-orange-600" />}
+              <HiOutlineMapPin
+                className={`w-5 h-5 ${isPinned ? 'text-orange-500 rotate-45' : 'text-gray-400 group-hover:text-gray-600'}`}
+              />
+              <span className="flex-1 text-left text-gray-700 font-medium text-sm">
+                {isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}
+              </span>
+              {isPinned && <HiCheck className="w-4 h-4 text-orange-500" />}
             </button>
 
             {/* Ẩn/Hiện */}
             <button
               onClick={() => handleAction('hide')}
-              className="flex items-center cursor-pointer gap-4 w-full px-3 py-2 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all font-semibold text-gray-800 border-t border-gray-100"
+              className="flex cursor-pointer items-center w-full px-4 py-3 hover:bg-gray-50 transition-colors gap-3 group border-t border-gray-100"
             >
-              <div className={`p-3 rounded-2xl ${isHidden ? 'bg-green-100' : 'bg-red-100'}`}>
-                {isHidden ? (
-                  <HiEye className="w-4 h-4 text-green-600" />
-                ) : (
-                  <HiEyeSlash className="w-4 h-4 text-red-600" />
-                )}
-              </div>
-              <span className="flex-1 text-left">{isHidden ? 'Hiện lại' : 'Ẩn trò chuyện'}</span>
-              {isHidden && <HiCheck className="w-5 h-5 text-green-600" />}
+              {isHidden ? (
+                <HiEye className="w-5 h-5 text-green-500" />
+              ) : (
+                <HiEyeSlash className="w-5 h-5 text-gray-400 group-hover:text-gray-600" />
+              )}
+              <span className="flex-1 text-left text-gray-700 font-medium text-sm">
+                {isHidden ? 'Hiện lại' : 'Ẩn trò chuyện'}
+              </span>
+              {isHidden && <HiCheck className="w-4 h-4 text-green-500" />}
             </button>
           </div>
         </>

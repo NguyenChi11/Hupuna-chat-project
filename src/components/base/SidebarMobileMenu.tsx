@@ -77,9 +77,9 @@ export default function SidebarMobileMenu({
   return (
     <div
       ref={menuRef}
-      className="absolute top-12 right-0 z-50 w-64 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40 p-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right"
+      className="absolute top-12 right-0 z-50 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-1 animate-in fade-in zoom-in-95 duration-200 origin-top-right"
     >
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {/* Actions */}
         {!onlyPersonal && (
           <button
@@ -87,32 +87,19 @@ export default function SidebarMobileMenu({
               onOpenCreateGroup();
               onClose();
             }}
-            className="cursor-pointer w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/50 transition-colors text-gray-700 font-medium"
+            className="w-full cursor-pointer flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-gray-700 text-sm font-medium"
           >
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-md">
+            <div className="flex items-center justify-center w-5 h-5 text-gray-500">
               <FaPlus className="w-4 h-4" />
             </div>
             <span>Tạo nhóm mới</span>
           </button>
         )}
 
-        {/* <button
-          onClick={() => {
-            onOpenGlobalFolder();
-            onClose();
-          }}
-          className="cursor-pointer w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/50 transition-colors text-gray-700 font-medium"
-        >
-          <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-md">
-            <HiFolder className="w-4 h-4" />
-          </div>
-          <span>Folder dùng chung</span>
-        </button> */}
-
-        <div className="my-2 border-t border-gray-200/60" />
+        <div className="my-1 border-t border-gray-100" />
 
         {/* Filters */}
-        <div className="text-xs font-semibold text-gray-400 px-3 py-1 uppercase tracking-wider">Bộ lọc tin nhắn</div>
+        <div className="text-xs font-semibold text-gray-400 px-4 py-2 uppercase tracking-wider">Bộ lọc tin nhắn</div>
 
         {displayedFilters.map((filter) => {
           const { label, icon: Icon, color } = FILTER_CONFIG[filter];
@@ -120,15 +107,25 @@ export default function SidebarMobileMenu({
           const count = counts[filter];
 
           // Map colors for active state
-          const colorClasses =
+          const activeTextClass =
             {
-              indigo: 'bg-indigo-500 text-white shadow-indigo-500/30',
-              blue: 'bg-blue-500 text-white shadow-blue-500/30',
-              green: 'bg-emerald-500 text-white shadow-emerald-500/30',
-              purple: 'bg-purple-500 text-white shadow-purple-500/30',
-              pink: 'bg-pink-500 text-white shadow-pink-500/30',
-              gray: 'bg-gray-500 text-white shadow-gray-500/30',
-            }[color] || 'bg-gray-500 text-white';
+              indigo: 'text-indigo-600',
+              blue: 'text-blue-600',
+              green: 'text-emerald-600',
+              purple: 'text-purple-600',
+              pink: 'text-pink-600',
+              gray: 'text-gray-600',
+            }[color] || 'text-gray-600';
+
+          const activeBgClass =
+            {
+              indigo: 'bg-indigo-50',
+              blue: 'bg-blue-50',
+              green: 'bg-emerald-50',
+              purple: 'bg-purple-50',
+              pink: 'bg-pink-50',
+              gray: 'bg-gray-50',
+            }[color] || 'bg-gray-50';
 
           return (
             <button
@@ -138,27 +135,20 @@ export default function SidebarMobileMenu({
                 onClose();
               }}
               className={`
-                cursor-pointer w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200
-                ${isActive ? 'bg-white shadow-sm ring-1 ring-gray-200' : 'hover:bg-white/50'}
+                w-full cursor-pointer flex items-center justify-between px-4 py-2.5 transition-colors text-sm
+                ${isActive ? `${activeBgClass} ${activeTextClass} font-medium` : 'text-gray-600 hover:bg-gray-50'}
               `}
             >
               <div className="flex items-center gap-3">
-                <div
-                  className={`
-                    p-1.5 rounded-lg transition-colors shadow-sm
-                    ${isActive ? colorClasses : 'bg-gray-100 text-gray-500'}
-                 `}
-                >
-                  <Icon className="w-4 h-4" />
-                </div>
-                <span className={`${isActive ? 'font-bold text-gray-800' : 'font-medium text-gray-600'}`}>{label}</span>
+                <Icon className={`w-5 h-5 ${isActive ? activeTextClass : 'text-gray-400'}`} />
+                <span>{label}</span>
               </div>
 
               {count > 0 && (
                 <span
                   className={`
-                  text-xs px-2 py-0.5 rounded-full font-bold
-                  ${isActive ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}
+                  text-xs px-2 py-0.5 rounded-full font-medium
+                  ${isActive ? 'bg-white/60' : 'bg-gray-100 text-gray-600'}
                 `}
                 >
                   {count > 99 ? '99+' : count}
