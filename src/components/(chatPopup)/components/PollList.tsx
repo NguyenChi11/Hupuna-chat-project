@@ -520,7 +520,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                                     <div className="relative">
                                         <button
                                             onClick={() => setOpenMenuId(isMenuOpen ? null : itemId)}
-                                            className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                                            className="p-1 cursor-pointer text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
                                         >
                                             <HiEllipsisVertical className="w-5 h-5" />
                                         </button>

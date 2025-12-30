@@ -1451,7 +1451,10 @@ export default function MessageList({
                           {pillNode}
                           <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
                             <button
-                              onClick={() => setDetailMsg(related)}
+                              onClick={() => {
+                                if (!isMobile) onOpenChatInfoSection?.('reminder');
+                                setDetailMsg(related);
+                              }}
                               className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
                             >
                               Xem thêm
@@ -1481,7 +1484,10 @@ export default function MessageList({
                         {pillNode}
                         <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
                           <button
-                            onClick={() => setDetailMsg(stub)}
+                            onClick={() => {
+                              if (!isMobile) onOpenChatInfoSection?.('reminder');
+                              setDetailMsg(stub);
+                            }}
                             className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
                           >
                             Xem thêm
@@ -1615,7 +1621,7 @@ export default function MessageList({
                       className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
                     >
                       <div
-                        className={`w-full max-w-[18rem] p-2 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
+                        className={`w-full max-w-[18rem] p-3 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
                         onClick={() => setDetailMsg(msg)}
                       >
                         <div className="flex items-center justify-between">
@@ -1694,7 +1700,7 @@ export default function MessageList({
                               if (!isMobile) onOpenChatInfoSection?.('poll');
                               setDetailMsg(msg);
                             }}
-                            className="w-full cursor-pointer px-2 py-1 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
+                            className="w-full cursor-pointer px-2 py-1 mt-1 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
                           >
                             {locked ? 'Xem lựa chọn' : 'Đổi lựa chọn'}
                           </button>
