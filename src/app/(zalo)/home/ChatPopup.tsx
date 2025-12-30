@@ -409,6 +409,7 @@ export default function ChatWindow({
   const mobileSearchInputRef = useRef<HTMLInputElement | null>(null);
   const hasAutoSearchedRef = useRef(false);
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+  const isLgOnly = typeof window !== 'undefined' ? window.innerWidth >= 1024 && window.innerWidth < 1280 : false;
   const scrollLockUntilRef = useRef<number>(0);
   const mobileSelectingRef = useRef(false);
   const mobileSelectedMsgIdRef = useRef<string | null>(null);
@@ -2967,7 +2968,9 @@ export default function ChatWindow({
         className={`flex ${isMobile ? 'vv-fixed' : 'h-full'} bg-gray-700 overflow-hidden no-scrollbar`}
       >
         <div
-          className={`flex flex-col h-full relative bg-gray-100 transition-all duration-300 ${showPopup ? 'sm:w-[calc(100%-21.875rem)]' : 'w-full'} border-r border-gray-200`}
+          className={`flex flex-col h-full relative bg-gray-100 transition-all duration-300 ${
+            showPopup ? 'md:w-[calc(100%-21.875rem)] lg:w-full xl:w-[calc(100%-21.875rem)]' : 'w-full'
+          } border-r border-gray-200`}
         >
           <ChatHeader
             chatName={chatName}
@@ -3300,10 +3303,20 @@ export default function ChatWindow({
           </div>
         </div>
 
+        {showPopup && isLgOnly && (
+          <div
+            aria-hidden="true"
+            className="hidden lg:block lg:fixed lg:inset-0 lg:bg-transparent z-10"
+            onClick={() => {
+              setShowPopup(false);
+              setChatInfoInitialSection(null);
+            }}
+          />
+        )}
         {showPopup && (
           <div
             id="right-sidebar-container"
-            className="fixed inset-0 sm:relative sm:inset-auto sm:w-[21.875rem] h-full z-10 "
+            className="fixed inset-0 md:relative md:inset-auto md:w-[21.875rem] lg:fixed lg:inset-y-0 lg:right-0 lg:w-[21.875rem] lg:z-20 xl:relative xl:inset-auto xl:w-[21.875rem] h-full z-10 "
           >
             <ChatInfoPopup
               onClose={() => {

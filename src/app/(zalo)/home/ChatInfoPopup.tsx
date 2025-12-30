@@ -989,7 +989,7 @@ export default function ChatInfoPopup({
                   )}
                   {(!isGroup || (isGroup && myRole === 'OWNER')) && (
                     <button
-                      onClick={() => setShowConfirmClear(true)}
+                      // onClick={() => setShowConfirmClear(true)}
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
