@@ -18,6 +18,8 @@ import {
   HiIdentification,
   HiPencil,
   HiHandThumbUp,
+  HiCalendar,
+  HiClock,
 } from 'react-icons/hi2';
 import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
 import Image from 'next/image';
@@ -32,8 +34,16 @@ import MicIcon from '@/components/svg/MicIcon';
 import IconFile from '@/components/svg/IConFile';
 import ICFolder from '@/components/svg/ICFolder';
 import { AiTwotoneLike } from 'react-icons/ai';
+import CreatePollModal from './components/CreatePollModal';
+import CreateReminderModal from './components/CreateReminderModal';
+import { createMessageApi } from '@/fetch/messages';
+import { Socket } from 'socket.io-client';
+import { GroupConversation } from '@/types/Group';
+import { User } from '@/types/User';
+import { useToast } from '@/components/base/toast';
 
 interface ChatInputProps {
+  socket?: Socket | null;
   showEmojiPicker: boolean;
   onToggleEmojiPicker: () => void;
   isListening: boolean;
@@ -56,6 +66,7 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({
+  socket,
   onToggleEmojiPicker,
   isListening,
   onVoiceInput,
@@ -76,12 +87,173 @@ export default function ChatInput({
   overallUploadPercent = 0,
 }: ChatInputProps) {
   const { currentUser, selectedChat, isGroup } = useChatContext();
+  const showToast = useToast();
   const getId = (u: unknown): string => {
     const obj = u as { _id?: unknown; id?: unknown };
     if (obj && (obj._id != null || obj.id != null)) return String((obj._id ?? obj.id) as unknown);
     return String(u ?? '');
   };
   const roomId = isGroup ? getId(selectedChat) : [getId(currentUser), getId(selectedChat)].sort().join('_');
+
+  const [showCreatePoll, setShowCreatePoll] = useState(false);
+  const [showCreateNote, setShowCreateNote] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+
+  const handleCreatePoll = async ({ question, options }: { question: string; options: string[] }) => {
+    const q = question.trim();
+    if (!q) return;
+
+    try {
+      const createRes = await createMessageApi({
+        roomId,
+        sender: String(currentUser._id),
+        type: 'poll',
+        content: q,
+        timestamp: Date.now(),
+        pollQuestion: q,
+        pollOptions: options,
+        pollVotes: {},
+        isPollLocked: false,
+      });
+
+      if (createRes?.success) {
+        const receiver = isGroup ? null : String((selectedChat as User)._id);
+        const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
+        const sockBase = {
+          roomId,
+          sender: String(currentUser._id),
+          senderName: currentUser.name,
+          isGroup,
+          receiver,
+          members,
+        };
+
+        if (typeof createRes._id === 'string') {
+          socket?.emit('send_message', {
+            ...sockBase,
+            _id: createRes._id,
+            type: 'poll',
+            content: q,
+            timestamp: Date.now(),
+            pollQuestion: q,
+            pollOptions: options,
+            pollVotes: {},
+            isPollLocked: false,
+          });
+
+          // Notify
+          const notify = await createMessageApi({
+            roomId,
+            sender: String(currentUser._id),
+            type: 'notify',
+            content: `${currentUser.name} tạo cuộc bình chọn mới: "${q}"`,
+            timestamp: Date.now(),
+            replyToMessageId: createRes._id,
+          });
+          if (notify?.success) {
+            socket?.emit('send_message', {
+              ...sockBase,
+              _id: notify._id,
+              type: 'notify',
+              content: `${currentUser.name} tạo cuộc bình chọn mới: "${q}"`,
+              timestamp: Date.now(),
+              replyToMessageId: createRes._id,
+            });
+          }
+        }
+        setShowCreatePoll(false);
+      }
+    } catch (error) {
+      console.error('Failed to create poll:', error);
+    }
+  };
+
+  const handleCreateNote = async ({
+    content,
+    dateTime,
+    note,
+    repeat,
+  }: {
+    content: string;
+    dateTime: string;
+    note?: string;
+    repeat?: 'none' | 'daily' | 'weekly' | 'monthly';
+  }) => {
+    setCreateLoading(true);
+    const dt = Date.parse(dateTime);
+    if (!content.trim() || Number.isNaN(dt)) {
+      alert('Vui lòng nhập đầy đủ thông tin hợp lệ');
+      setCreateLoading(false);
+      return;
+    }
+
+    try {
+      const createRes = await createMessageApi({
+        roomId,
+        sender: String(currentUser._id),
+        type: 'reminder',
+        content: content.trim(),
+        timestamp: Date.now(),
+        reminderAt: dt,
+        reminderNote: note?.trim() || '',
+        reminderFired: false,
+        reminderRepeat: repeat || 'none',
+      });
+
+      if (createRes?.success) {
+        const receiver = isGroup ? null : String((selectedChat as User)._id);
+        const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
+        const sockBase = {
+          roomId,
+          sender: String(currentUser._id),
+          senderName: currentUser.name,
+          isGroup,
+          receiver,
+          members,
+        };
+
+        if (typeof createRes._id === 'string') {
+          socket?.emit('send_message', {
+            ...sockBase,
+            _id: createRes._id,
+            type: 'reminder',
+            content: content.trim(),
+            timestamp: Date.now(),
+            reminderAt: dt,
+            reminderNote: note?.trim() || '',
+            reminderFired: false,
+            reminderRepeat: repeat || 'none',
+          });
+
+          // Notify
+          const notify = await createMessageApi({
+            roomId,
+            sender: String(currentUser._id),
+            type: 'notify',
+            content: `${currentUser.name} tạo lịch hẹn mới: "${content.trim()}"`,
+            timestamp: Date.now(),
+            replyToMessageId: createRes._id,
+          });
+          if (notify?.success) {
+            socket?.emit('send_message', {
+              ...sockBase,
+              _id: notify._id,
+              type: 'notify',
+              content: `${currentUser.name} tạo lịch hẹn mới: "${content.trim()}"`,
+              timestamp: Date.now(),
+              replyToMessageId: createRes._id,
+            });
+          }
+        }
+        setShowCreateNote(false);
+      }
+    } catch (error) {
+      console.error('Failed to create reminder:', error);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   const [showFlashPicker, setShowFlashPicker] = useState(false);
   const [flashFolders, setFlashFolders] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedFlashFolder, setSelectedFlashFolder] = useState<{ id: string; name: string } | null>(null);
@@ -611,7 +783,7 @@ export default function ChatInput({
           />
 
           {/* Placeholder đẹp hơn */}
-          <div className="pointer-events-none absolute inset-0 flex items-center px-6 py-4 text-gray-400 select-none text-[0.875rem] md:text-[1rem]">
+          <div className="pointer-events-none w-[40rem] absolute inset-0 flex items-center px-6 py-4 text-gray-400 select-none text-[0.875rem] md:text-[1rem]">
             <span className="flex items-center gap-2">
               <HiSparkles className="w-5 h-5 text-indigo-400" />
               Nhập tin nhắn...
@@ -806,6 +978,43 @@ export default function ChatInput({
               }}
             />
           </label>
+          {isGroup && (
+            <button
+              onClick={() => {
+                setShowCreatePoll(true);
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }}
+              className="group relative cursor-pointer flex flex-col items-center"
+              aria-label="Bình chọn"
+            >
+              <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 hover:from-indigo-200 hover:to-blue-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+                <HiChartBar className="w-6 h-6 text-blue-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+                <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+              </div>
+              <span className="text-sm font-medium text-gray-800">Bình chọn</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              setShowCreateNote(true);
+              setShowMobileActions(false);
+              try {
+                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+              } catch {}
+            }}
+            className="group relative cursor-pointer flex flex-col items-center"
+            aria-label="Nhắc hẹn"
+          >
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-indigo-100 to-red-600 hover:from-indigo-200 hover:to-blue-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiClock className="w-6 h-6 text-white drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Nhắc hẹn</span>
+          </button>
           {/* <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <HiFolder className="w-6 h-6 text-orange-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
@@ -851,43 +1060,63 @@ export default function ChatInput({
             </div>
             <span className="text-sm font-medium text-gray-800">Voice</span>
           </button>
-          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Chat nhanh">
+          <button
+            onClick={() => {
+              showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' });
+              // setShowChatFlashDashboard(true);
+              // setShowMobileActions(false);
+              // try {
+              //   window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+              // } catch {}
+            }}
+            className="group relative cursor-pointer flex flex-col items-center"
+            aria-label="Chat nhanh"
+          >
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 hover:from-violet-200 hover:to-purple-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <HiLightningBolt className="w-6 h-6 text-yellow-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
               <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
             <span className="text-sm font-medium text-gray-800">Chat nhanh</span>
           </button>
-          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Vị trí">
+          <button
+            onClick={() => showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' })}
+            className="group relative cursor-pointer flex flex-col items-center"
+            aria-label="Vị trí"
+          >
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 hover:from-rose-200 hover:to-pink-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <HiMapPin className="w-6 h-6 text-rose-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
               <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
             <span className="text-sm font-medium text-gray-800">Vị trí</span>
           </button>
-          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Bình chọn">
-            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 hover:from-indigo-200 hover:to-blue-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
-              <HiChartBar className="w-6 h-6 text-blue-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
-              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
-            </div>
-            <span className="text-sm font-medium text-gray-800">Bình chọn</span>
-          </button>
 
-          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Danh thiếp">
+          <button
+            onClick={() => showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' })}
+            className="group relative cursor-pointer flex flex-col items-center"
+            aria-label="Danh thiếp"
+          >
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 hover:from-teal-200 hover:to-cyan-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <HiIdentification className="w-6 h-6 text-teal-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
               <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
             <span className="text-sm font-medium text-gray-800">Danh thiếp</span>
           </button>
-          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Vẽ hình">
+          <button
+            onClick={() => showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' })}
+            className="group relative cursor-pointer flex flex-col items-center"
+            aria-label="Vẽ hình"
+          >
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-purple-100 to-fuchsia-100 hover:from-purple-200 hover:to-fuchsia-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <HiPencil className="w-6 h-6 text-purple-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
               <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
             </div>
             <span className="text-sm font-medium text-gray-800">Vẽ hình</span>
           </button>
-          <button className="group relative cursor-pointer flex flex-col items-center" aria-label="@GIF">
+          <button
+            onClick={() => showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' })}
+            className="group relative cursor-pointer flex flex-col items-center"
+            aria-label="Vẽ hình"
+          >
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-slate-100 to-gray-100 hover:from-slate-200 hover:to-gray-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <span className="text-xs font-black text-gray-700 drop-shadow-md group-hover:scale-110 transition-transform duration-200">
                 @GIF
@@ -1085,6 +1314,19 @@ export default function ChatInput({
             </div>
           </div>
         </div>
+      )}
+
+      {showCreatePoll && (
+        <CreatePollModal isOpen={showCreatePoll} onClose={() => setShowCreatePoll(false)} onCreate={handleCreatePoll} />
+      )}
+
+      {showCreateNote && (
+        <CreateReminderModal
+          isOpen={showCreateNote}
+          onClose={() => setShowCreateNote(false)}
+          onCreate={handleCreateNote}
+          createLoading={createLoading}
+        />
       )}
     </div>
   );

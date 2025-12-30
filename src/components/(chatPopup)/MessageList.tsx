@@ -30,6 +30,7 @@ import FolderButton from './components/Folder/FolderButton';
 import { ContextMenuState } from './MessageContextMenu';
 import ICShareMessage from '../svg/ICShareMessage';
 import ReadStatus from './components/ReadStatus';
+import ReminderCard from './components/ReminderCard';
 
 interface SenderInfo {
   _id: string;
@@ -108,6 +109,7 @@ export default function MessageList({
   const [mobileCollapsedId, setMobileCollapsedId] = useState<string | null>(null);
   const [swipeState, setSwipeState] = useState<{ id: string | null; dx: number }>({ id: null, dx: 0 });
   const [longPressActiveId, setLongPressActiveId] = useState<string | null>(null);
+  const [expandedNotifyGroups, setExpandedNotifyGroups] = useState<Set<string>>(new Set());
   const swipeStartRef = useRef<{ x: number; y: number; id: string | null; isMe: boolean }>({
     x: 0,
     y: 0,
@@ -1351,6 +1353,65 @@ export default function MessageList({
 
                     // Notify message
                     if (msg.type === 'notify') {
+                      const isCall = !!(msg as Message & { callType?: 'voice' | 'video' }).callType;
+                      const rawContentLower = (msg.content || '').toLowerCase();
+                      const isReminder =
+                        rawContentLower.includes('đến giờ lịch hẹn') ||
+                        rawContentLower.includes('đã tạo lịch hẹn');
+
+                      if (!isCall && !isReminder) {
+                        const prev = index > 0 ? msgs[index - 1] : null;
+                        const prevIsNotify = prev?.type === 'notify';
+                        const prevIsCall =
+                          prevIsNotify && !!(prev as Message & { callType?: 'voice' | 'video' }).callType;
+                        const prevContentLower = (prev?.content || '').toLowerCase();
+                        const prevIsReminder =
+                          prevIsNotify &&
+                          (prevContentLower.includes('đến giờ lịch hẹn') ||
+                            prevContentLower.includes('đã tạo lịch hẹn'));
+
+                        if (prevIsNotify && !prevIsCall && !prevIsReminder) {
+                          // Skip grouping check if previous was a non-call notify
+                        } else {
+                          const notifyGroup = [msg];
+                          for (let k = index + 1; k < msgs.length; k++) {
+                            const next = msgs[k];
+                            if (next.type !== 'notify') break;
+                            const nextIsCall = !!(next as Message & { callType?: 'voice' | 'video' }).callType;
+                            const nextContentLower = (next.content || '').toLowerCase();
+                            const nextIsReminder =
+                              nextContentLower.includes('đến giờ lịch hẹn') ||
+                              nextContentLower.includes('đã tạo lịch hẹn');
+
+                            if (nextIsCall || nextIsReminder) break;
+                            notifyGroup.push(next);
+                          }
+
+                          if (notifyGroup.length >= 3) {
+                            const groupId = msg._id;
+                            const isExpanded = expandedNotifyGroups.has(groupId);
+
+                            if (!isExpanded) {
+                              notifyGroup.slice(1).forEach((m) => consumedIds.add(m._id));
+                              return (
+                                <div key={`group-notify-${groupId}`} className="flex justify-center my-4">
+                                  <button
+                                    onClick={() => {
+                                      const newSet = new Set(expandedNotifyGroups);
+                                      newSet.add(groupId);
+                                      setExpandedNotifyGroups(newSet);
+                                    }}
+                                    className="px-4 py-1.5 bg-white text-xs font-medium text-blue-600 rounded-full shadow-sm border border-blue-100 hover:bg-blue-50 transition-all cursor-pointer"
+                                  >
+                                    Xem cập nhật trước
+                                  </button>
+                                </div>
+                              );
+                            }
+                          }
+                        }
+                      }
+
                       if ((msg as Message & { callType?: 'voice' | 'video' }).callType) {
                         const callType =
                           (msg as Message & { callType?: 'voice' | 'video' }).callType === 'video' ? 'video' : 'voice';
@@ -1408,7 +1469,7 @@ export default function MessageList({
                             className="flex justify-center my-3"
                           >
                             <div
-                              className={`px-4 p-1.5 bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
+                              className={`px-4 p-1.5  bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
                             >
                               <div className="flex items-center gap-2">
                                 {iconType}
@@ -1418,366 +1479,396 @@ export default function MessageList({
                                   <p className="text-xs text-gray-500 truncate">{` ${dateLabel} • ${timeLabel}`}</p>
                                 </div>
 
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const t = callType === 'video' ? 'video' : 'voice';
-                                const evt = new CustomEvent('startCall', { detail: { type: t } });
-                                window.dispatchEvent(evt);
-                              }}
-                              className="ml-2 px-2 py-1 text-xs font-semibold rounded-lg border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
-                            >
-                              Gọi lại
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-                  const related = msg.replyToMessageId ? messages.find((m) => m._id === msg.replyToMessageId) : null;
-                  const rawDisplay = msg.content || '';
-                  const rawLower = rawDisplay.trim().toLowerCase();
-                  const isJoinByLink = rawLower.includes('tham gia nhóm');
-                  let display = rawDisplay;
-                  if (!isJoinByLink && isMe) {
-                    const myName = currentUser.name || '';
-                    const trimmedLower = display.trim().toLowerCase();
-                    if (!trimmedLower.startsWith('bạn') && myName && display.startsWith(myName)) {
-                      display = 'Bạn' + display.slice(myName.length);
-                    }
-                  }
-                  const contentLower = display.toLowerCase();
-                  const isCreate = contentLower.includes('đã tạo lịch hẹn');
-                  const isDue = contentLower.includes('đến giờ lịch hẹn');
-                  const isEdit = contentLower.includes('đã chỉnh sửa') || contentLower.includes('chỉnh sửa');
-                  const isDelete = contentLower.includes('đã xóa') || contentLower.includes('xóa');
-                  const isPoll = related?.type === 'poll' || contentLower.includes('bình chọn');
-                  const isPin = contentLower.includes('ghim');
-                  // Group actions
-                  const isInvite =
-                    contentLower.includes('đã thêm') ||
-                    (contentLower.includes('mời') && contentLower.includes('vào nhóm'));
-                  const isLeave = contentLower.includes('đã rời nhóm');
-                  const isPromote = contentLower.includes('bổ nhiệm') || contentLower.includes('phó nhóm');
-                  const isDemote = contentLower.includes('hủy quyền phó nhóm') || contentLower.includes('bãi nhiệm');
-                  const isKick = contentLower.includes('ra khỏi nhóm') || contentLower.includes('xóa khỏi nhóm');
-                  const isCreateGroup = contentLower.includes('tạo nhóm');
-                  const icon = isDue ? (
-                    <HiOutlineClock className="w-4 h-4 text-red-500" />
-                  ) : isCreate ? (
-                    <HiOutlineClock className="w-4 h-4 text-indigo-500" />
-                  ) : isPoll ? (
-                    <HiChartBar className="w-4 h-4 text-blue-500" />
-                  ) : isPin ? (
-                    <HiMapPin className="w-4 h-4 text-orange-500" />
-                  ) : isInvite ? (
-                    <HiUserPlus className="w-4 h-4 text-emerald-600" />
-                  ) : isLeave ? (
-                    <HiOutlineLogout className="w-4 h-4 text-red-600" />
-                  ) : isPromote ? (
-                    <HiShieldCheck className="w-4 h-4 text-blue-600" />
-                  ) : isDemote ? (
-                    <HiUserMinus className="w-4 h-4 text-yellow-600" />
-                  ) : isKick ? (
-                    <HiUserMinus className="w-4 h-4 text-red-600" />
-                  ) : isCreateGroup ? (
-                    <HiUserGroup className="w-4 h-4 text-purple-600" />
-                  ) : null;
-                  const nameLabel = senderInfo.name || '';
-                  // Hiển thị rõ tên người join bằng link (clickable) — luôn ưu tiên tên thật
-                  let displayNode: React.ReactNode = <p className="text-xs text-gray-500 truncate">{display}</p>;
-                  if (isJoinByLink) {
-                    const actualName =
-                      String(senderInfo._id) === String(currentUser._id) ? currentUser.name || nameLabel : nameLabel;
-                    const needle = 'đã tham gia nhóm';
-                    const idx = rawLower.indexOf(needle);
-                    const tail = idx > -1 ? rawDisplay.slice(idx) : 'đã tham gia nhóm qua link mời';
-                    displayNode = (
-                      <span className="text-xs text-gray-500 truncate">
-                        <a href={`/profile/${senderInfo._id}`} className="text-blue-600 hover:underline">
-                          {actualName || 'Một thành viên'}
-                        </a>
-                        {` ${tail}`}
-                      </span>
-                    );
-                  }
-                  const pillNode = (
-                    <div
-                      key={`pill-${msg._id}`}
-                      id={`msg-${msg._id}`}
-                      className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
-                    >
-                      <div
-                        className={`px-4 p-1.5 bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {icon}
-                          {displayNode}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                  if (isDue) {
-                    if (related?.type === 'reminder') {
-                      return (
-                        <React.Fragment key={`notify-${msg._id}-due`}>
-                          {pillNode}
-                          <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
-                            <button
-                              onClick={() => {
-                                if (!isMobile) onOpenChatInfoSection?.('reminder');
-                                setDetailMsg(related);
-                              }}
-                              className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
-                            >
-                              Xem thêm
-                            </button>
-                          </div>
-                        </React.Fragment>
-                      );
-                    }
-                    const inlineAt = (msg as Message & { reminderAt?: number }).reminderAt;
-                    const inlineContent =
-                      (msg as Message & { reminderContent?: string }).reminderContent || msg.content || '';
-                    const inlineNote = (msg as Message & { reminderNote?: string }).reminderNote;
-                    const stub: Message = {
-                      _id: (msg.replyToMessageId as unknown as string) || String(msg._id),
-                      roomId: String(msg.roomId || ''),
-                      sender: msg.sender,
-                      content: inlineContent,
-                      type: 'reminder',
-                      timestamp: Number(msg.timestamp) || Date.now(),
-                      reminderAt: typeof inlineAt === 'number' ? inlineAt : undefined,
-                      reminderNote: inlineNote,
-                      reminderRepeat: (msg as Message & { reminderRepeat?: 'none' | 'daily' | 'weekly' | 'monthly' })
-                        .reminderRepeat,
-                    } as Message;
-                    return (
-                      <React.Fragment key={`notify-${msg._id}-due-inline`}>
-                        {pillNode}
-                        <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
-                          <button
-                            onClick={() => {
-                              if (!isMobile) onOpenChatInfoSection?.('reminder');
-                              setDetailMsg(stub);
-                            }}
-                            className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
-                          >
-                            Xem thêm
-                          </button>
-                        </div>
-                      </React.Fragment>
-                    );
-                  }
-                  if (related?.type === 'reminder' && (isCreate || isEdit || isDelete)) {
-                    return (
-                      <React.Fragment key={`notify-${msg._id}-reminder`}>
-                        {pillNode}
-                        <div className="flex justify-center -mt-2">
-                          <button
-                            onClick={() => setDetailMsg(related)}
-                            className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
-                          >
-                            Xem thêm
-                          </button>
-                        </div>
-                      </React.Fragment>
-                    );
-                  }
-                  if (isCreate || isEdit || isDelete) {
-                    const inlineAt = (msg as Message & { reminderAt?: number }).reminderAt;
-                    const inlineContent = (msg as Message & { reminderContent?: string }).reminderContent || '';
-                    const inlineNote = (msg as Message & { reminderNote?: string }).reminderNote;
-                    if (typeof inlineAt === 'number' && inlineContent) {
-                      const stub: Message = {
-                        _id: (msg.replyToMessageId as unknown as string) || String(msg._id),
-                        roomId: String(msg.roomId || ''),
-                        sender: msg.sender,
-                        content: inlineContent,
-                        type: 'reminder',
-                        timestamp: Number(msg.timestamp) || Date.now(),
-                        reminderAt: inlineAt,
-                        reminderNote: inlineNote,
-                        reminderRepeat: (msg as Message & { reminderRepeat?: 'none' | 'daily' | 'weekly' | 'monthly' })
-                          .reminderRepeat,
-                      } as Message;
-                      return (
-                        <React.Fragment key={`notify-${msg._id}-reminder-inline`}>
-                          {pillNode}
-                          <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
-                            <button
-                              onClick={() => setDetailMsg(stub)}
-                              className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
-                            >
-                              Xem thêm
-                            </button>
-                          </div>
-                        </React.Fragment>
-                      );
-                    }
-                  }
-                  if (related?.type === 'poll') {
-                    return (
-                      <React.Fragment key={`notify-${msg._id}-poll`}>
-                        {pillNode}
-                        <div className="flex justify-center -mt-2">
-                          <button
-                            onClick={() => {
-                              if (!isMobile) onOpenChatInfoSection?.('poll');
-                              setDetailMsg(related);
-                            }}
-                            className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
-                          >
-                            Xem
-                          </button>
-                        </div>
-                      </React.Fragment>
-                    );
-                  }
-                  return pillNode;
-                }
-
-                    if (msg.type === 'reminder') {
-                      let display = msg.content;
-                      if (isMe && display?.startsWith(currentUser.name || '')) {
-                        display = 'Bạn' + display.substring((currentUser.name || '').length);
-                      }
-                      return (
-                        <div key={msg._id} id={`msg-${msg._id}`} className="flex justify-center my-3">
-                          <div
-                            className={`px-4 py-1.5 rounded-full ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
-                          >
-                            <div className="w-full max-w-[22rem] p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-2">
-                              <div className="flex items-center gap-2 min-w-0 text-red-500">
-                                <HiOutlineClock className="w-5 h-5" />
-                                <span className="font-semibold truncate">{msg.content || ''}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <HiOutlineClock className="w-4 h-4" />
-                                <span className="text-sm">
-                                  {new Date(
-                                    (msg as Message & { reminderAt?: number }).reminderAt || msg.timestamp,
-                                  ).toLocaleString('vi-VN')}
-                                </span>
-                              </div>
-                              {(msg as Message & { reminderNote?: string }).reminderNote ? (
-                                <p className="text-sm text-gray-700 truncate">
-                                  {(msg as Message & { reminderNote?: string }).reminderNote as string}
-                                </p>
-                              ) : null}
-                              <div className="pt-1">
                                 <button
-                                  onClick={() => {
-                                    if (!isMobile) onOpenChatInfoSection?.('reminder');
-                                    setDetailMsg(msg);
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const t = callType === 'video' ? 'video' : 'voice';
+                                    const evt = new CustomEvent('startCall', { detail: { type: t } });
+                                    window.dispatchEvent(evt);
                                   }}
-                                  className="w-full cursor-pointer px-4 py-2 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
+                                  className="ml-2 px-2 py-1 text-xs font-semibold rounded-lg border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
                                 >
-                                  Xem chi tiết
+                                  Gọi lại
                                 </button>
                               </div>
                             </div>
                           </div>
+                        );
+                      }
+                      const related = msg.replyToMessageId
+                        ? messages.find((m) => m._id === msg.replyToMessageId)
+                        : null;
+                      const rawDisplay = msg.content || '';
+                      const rawLower = rawDisplay.trim().toLowerCase();
+                      const isJoinByLink = rawLower.includes('tham gia nhóm');
+                      let display = rawDisplay;
+                      if (!isJoinByLink && isMe) {
+                        const myName = currentUser.name || '';
+                        const trimmedLower = display.trim().toLowerCase();
+                        if (!trimmedLower.startsWith('bạn') && myName && display.startsWith(myName)) {
+                          display = 'Bạn' + display.slice(myName.length);
+                        }
+                      }
+                      const contentLower = display.toLowerCase();
+                      const isCreate = contentLower.includes('đã tạo lịch hẹn');
+                      const isDue = contentLower.includes('đến giờ lịch hẹn');
+                      const isEdit = contentLower.includes('đã chỉnh sửa') || contentLower.includes('chỉnh sửa');
+                      const isDelete = contentLower.includes('đã xóa') || contentLower.includes('xóa');
+                      const isPoll = related?.type === 'poll' || contentLower.includes('bình chọn');
+                      const isPin = contentLower.includes('ghim');
+                      // Group actions
+                      const isInvite =
+                        contentLower.includes('đã thêm') ||
+                        (contentLower.includes('mời') && contentLower.includes('vào nhóm'));
+                      const isLeave = contentLower.includes('đã rời nhóm');
+                      const isPromote = contentLower.includes('bổ nhiệm') || contentLower.includes('phó nhóm');
+                      const isDemote =
+                        contentLower.includes('hủy quyền phó nhóm') || contentLower.includes('bãi nhiệm');
+                      const isKick = contentLower.includes('ra khỏi nhóm') || contentLower.includes('xóa khỏi nhóm');
+                      const isCreateGroup = contentLower.includes('tạo nhóm');
+                      const icon = isDue ? (
+                        <HiOutlineClock className="w-4 h-4 text-red-500" />
+                      ) : isCreate ? (
+                        <HiOutlineClock className="w-4 h-4 text-indigo-500" />
+                      ) : isPoll ? (
+                        <HiChartBar className="w-4 h-4 text-blue-500" />
+                      ) : isPin ? (
+                        <HiMapPin className="w-4 h-4 text-orange-500" />
+                      ) : isInvite ? (
+                        <HiUserPlus className="w-4 h-4 text-emerald-600" />
+                      ) : isLeave ? (
+                        <HiOutlineLogout className="w-4 h-4 text-red-600" />
+                      ) : isPromote ? (
+                        <HiShieldCheck className="w-4 h-4 text-blue-600" />
+                      ) : isDemote ? (
+                        <HiUserMinus className="w-4 h-4 text-yellow-600" />
+                      ) : isKick ? (
+                        <HiUserMinus className="w-4 h-4 text-red-600" />
+                      ) : isCreateGroup ? (
+                        <HiUserGroup className="w-4 h-4 text-purple-600" />
+                      ) : null;
+                      const nameLabel = senderInfo.name || '';
+                      // Hiển thị rõ tên người join bằng link (clickable) — luôn ưu tiên tên thật
+                      let displayNode: React.ReactNode = <p className="text-xs text-gray-500 truncate">{display}</p>;
+                      if (isJoinByLink) {
+                        const actualName =
+                          String(senderInfo._id) === String(currentUser._id)
+                            ? currentUser.name || nameLabel
+                            : nameLabel;
+                        const needle = 'đã tham gia nhóm';
+                        const idx = rawLower.indexOf(needle);
+                        const tail = idx > -1 ? rawDisplay.slice(idx) : 'đã tham gia nhóm qua link mời';
+                        displayNode = (
+                          <span className="text-xs text-gray-500 truncate">
+                            <a href={`/profile/${senderInfo._id}`} className="text-blue-600 hover:underline">
+                              {actualName || 'Một thành viên'}
+                            </a>
+                            {` ${tail}`}
+                          </span>
+                        );
+                      }
+                      const pillNode = (
+                        <div
+                          key={`pill-${msg._id}`}
+                          id={`msg-${msg._id}`}
+                          className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
+                        >
+                          <div
+                            className={`px-4 p-1.5 mb-2 bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
+                          >
+                            <div className="flex items-center gap-2">
+                              {icon}
+                              {displayNode}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                      if (isDue) {
+                        if (related?.type === 'reminder') {
+                          return (
+                            <React.Fragment key={`notify-${msg._id}-due`}>
+                              {pillNode}
+                              <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
+                                <ReminderCard
+                                  variant="due"
+                                  title={related.content || ''}
+                                  date={new Date(related.reminderAt || related.timestamp)}
+                                  onOpen={() => {
+                                    if (!isMobile) onOpenChatInfoSection?.('reminder');
+                                    setDetailMsg(related);
+                                  }}
+                                />
+                              </div>
+                            </React.Fragment>
+                          );
+                        }
+                        const inlineAt = (msg as Message & { reminderAt?: number }).reminderAt;
+                        const inlineContent =
+                          (msg as Message & { reminderContent?: string }).reminderContent || msg.content || '';
+                        const inlineNote = (msg as Message & { reminderNote?: string }).reminderNote;
+                        const stub: Message = {
+                          _id: (msg.replyToMessageId as unknown as string) || String(msg._id),
+                          roomId: String(msg.roomId || ''),
+                          sender: msg.sender,
+                          content: inlineContent,
+                          type: 'reminder',
+                          timestamp: Number(msg.timestamp) || Date.now(),
+                          reminderAt: typeof inlineAt === 'number' ? inlineAt : undefined,
+                          reminderNote: inlineNote,
+                          reminderRepeat: (
+                            msg as Message & { reminderRepeat?: 'none' | 'daily' | 'weekly' | 'monthly' }
+                          ).reminderRepeat,
+                        } as Message;
+                        return (
+                          <React.Fragment key={`notify-${msg._id}-due-inline`}>
+                            {pillNode}
+                            <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
+                              <ReminderCard
+                                variant="due"
+                                title={inlineContent || ''}
+                                date={
+                                  typeof inlineAt === 'number' && inlineAt
+                                    ? new Date(inlineAt)
+                                    : new Date(Number(msg.timestamp) || Date.now())
+                                }
+                                onOpen={() => {
+                                  if (!isMobile) onOpenChatInfoSection?.('reminder');
+                                  setDetailMsg(stub);
+                                }}
+                              />
+                            </div>
+                          </React.Fragment>
+                        );
+                      }
+                  if (related?.type === 'reminder' && isCreate) {
+                    return (
+                      <div key={`notify-${msg._id}-create`} className="flex justify-center my-4">
+                        <ReminderCard
+                          variant="create"
+                          title={related.content || ''}
+                          date={new Date(related.reminderAt || related.timestamp)}
+                          senderName={senderInfo.name}
+                          senderAvatar={senderInfo.avatar}
+                          isMe={isMe}
+                        />
+                      </div>
+                    );
+                  }
+
+                      if (related?.type === 'reminder' && (isEdit || isDelete)) {
+                        return (
+                          <React.Fragment key={`notify-${msg._id}-reminder`}>
+                            {pillNode}
+                            <div className="flex justify-center -mt-2">
+                              <button
+                                onClick={() => setDetailMsg(related)}
+                                className="z-10 -mt-1 px-5 py-1.5 bg-white text-blue-600 text-xs font-bold rounded-full border border-blue-100 shadow-sm hover:bg-blue-50 transition-all uppercase tracking-wide cursor-pointer"
+                              >
+                                XEM CHI TIẾT
+                              </button>
+                            </div>
+                          </React.Fragment>
+                        );
+                      }
+                      if (isCreate || isEdit || isDelete) {
+                        const inlineAt = (msg as Message & { reminderAt?: number }).reminderAt;
+                        const inlineContent = (msg as Message & { reminderContent?: string }).reminderContent || '';
+                        const inlineNote = (msg as Message & { reminderNote?: string }).reminderNote;
+                        if (typeof inlineAt === 'number' && inlineContent) {
+                          const stub: Message = {
+                            _id: (msg.replyToMessageId as unknown as string) || String(msg._id),
+                            roomId: String(msg.roomId || ''),
+                            sender: msg.sender,
+                            content: inlineContent,
+                            type: 'reminder',
+                            timestamp: Number(msg.timestamp) || Date.now(),
+                            reminderAt: inlineAt,
+                            reminderNote: inlineNote,
+                            reminderRepeat: (
+                              msg as Message & { reminderRepeat?: 'none' | 'daily' | 'weekly' | 'monthly' }
+                            ).reminderRepeat,
+                          } as Message;
+
+                          if (isCreate) {
+                            return (
+                              <div key={`notify-${msg._id}-create-inline`} className="flex justify-center my-4">
+                                <ReminderCard
+                                  variant="create"
+                                  title={inlineContent || ''}
+                                  date={new Date(inlineAt)}
+                                  senderName={senderInfo.name}
+                                  senderAvatar={senderInfo.avatar}
+                                  isMe={isMe}
+                                />
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <React.Fragment key={`notify-${msg._id}-reminder-inline`}>
+                              {pillNode}
+                              <div className={`flex justify-center -mt-2 ${isLastMsg ? 'mb-4' : ''}`}>
+                                <button
+                                  onClick={() => setDetailMsg(stub)}
+                                  className="z-10 -mt-1 px-5 py-1.5 bg-white text-blue-600 text-xs font-bold rounded-full border border-blue-100 shadow-sm hover:bg-blue-50 transition-all uppercase tracking-wide cursor-pointer"
+                                >
+                                  XEM CHI TIẾT
+                                </button>
+                              </div>
+                            </React.Fragment>
+                          );
+                        }
+                      }
+                      if (related?.type === 'poll') {
+                        return (
+                          <React.Fragment key={`notify-${msg._id}-poll`}>
+                            {pillNode}
+                            <div className="flex justify-center -mt-2">
+                              <button
+                                onClick={() => {
+                                  if (!isMobile) onOpenChatInfoSection?.('poll');
+                                  setDetailMsg(related);
+                                }}
+                                className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
+                              >
+                                Xem
+                              </button>
+                            </div>
+                          </React.Fragment>
+                        );
+                      }
+                      return pillNode;
+                    }
+
+                    if (msg.type === 'reminder') {
+                      return (
+                        <div key={msg._id} id={`msg-${msg._id}`} className="flex justify-center mt-4">
+                          <div onClick={() => setDetailMsg(msg)}>
+                            <ReminderCard
+                              variant="message"
+                              title={msg.content || ''}
+                              date={
+                                new Date(
+                                  (msg as Message & { reminderAt?: number }).reminderAt || msg.timestamp,
+                                )
+                              }
+                              senderName={senderInfo.name}
+                              senderAvatar={senderInfo.avatar}
+                              isMe={isMe}
+                              highlighted={highlightedMsgId === msg._id}
+                            />
+                          </div>
                         </div>
                       );
                     }
 
-                if (msg.type === 'poll') {
-                  const myId = String(currentUser._id);
-                  const options = Array.isArray(msg.pollOptions) ? (msg.pollOptions as string[]) : [];
-                  const votes = (msg.pollVotes || {}) as Record<string, string[]>;
-                  const locked = !!msg.isPollLocked;
-                  return (
-                    <div
-                      key={msg._id}
-                      id={`msg-${msg._id}`}
-                      className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
-                    >
-                      <div
-                        className={`w-full max-w-[18rem] p-3 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
-                        onClick={() => setDetailMsg(msg)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <p className="text-base font-semibold text-gray-900 break-words truncate">
-                              {msg.content || msg.pollQuestion || 'Bình chọn'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {/* {typeof msg.isPinned === 'boolean' && onPinMessage && ( */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onPinMessage?.(msg);
-                              }}
-                              className="px-2 py-1 text-xs font-semibold rounded-lg 
-                             border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
-                            >
-                              {msg.isPinned ? 'Bỏ ghim' : 'Ghim'}
-                            </button>
-                            {/* )} */}
-                          </div>
-                        </div>
-                        {locked && (
-                          <p className="text-xs text-gray-500 mt-2">
-                            Kết thúc lúc{' '}
-                            {new Date(msg.pollLockedAt || msg.editedAt || msg.timestamp).toLocaleString('vi-VN')}
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-500 mt-1">Chọn nhiều phương án</p>
-                        <button
-                          onClick={() => setDetailMsg(msg)}
-                          className="text-xs text-blue-600 hover:underline mt-1"
+                    if (msg.type === 'poll') {
+                      const myId = String(currentUser._id);
+                      const options = Array.isArray(msg.pollOptions) ? (msg.pollOptions as string[]) : [];
+                      const votes = (msg.pollVotes || {}) as Record<string, string[]>;
+                      const locked = !!msg.isPollLocked;
+                      return (
+                        <div
+                          key={msg._id}
+                          id={`msg-${msg._id}`}
+                          className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
                         >
-                          {(() => {
-                            const userIds = new Set<string>();
-                            let totalVotes = 0;
-                            (msg.pollOptions || []).forEach((opt) => {
-                              const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
-                              totalVotes += arr.length;
-                              arr.forEach((id) => userIds.add(String(id)));
-                            });
-                            return `${userIds.size} người bình chọn, ${totalVotes} lượt bình chọn`;
-                          })()}
-                        </button>
-                        <div className="mt-3 space-y-2">
-                          {options.map((opt, idx) => {
-                            const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
-                            const count = arr.length;
-                            const voted = arr.includes(myId);
-                            return (
+                          <div
+                            className={`w-full max-w-[18rem] p-3 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
+                            onClick={() => setDetailMsg(msg)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <p className="text-base font-semibold text-gray-900 break-words truncate">
+                                  {msg.content || msg.pollQuestion || 'Bình chọn'}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {/* {typeof msg.isPinned === 'boolean' && onPinMessage && ( */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onPinMessage?.(msg);
+                                  }}
+                                  className="px-2 py-1 text-xs font-semibold rounded-lg 
+                             border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
+                                >
+                                  {msg.isPinned ? 'Bỏ ghim' : 'Ghim'}
+                                </button>
+                                {/* )} */}
+                              </div>
+                            </div>
+                            {locked && (
+                              <p className="text-xs text-gray-500 mt-2">
+                                Kết thúc lúc{' '}
+                                {new Date(msg.pollLockedAt || msg.editedAt || msg.timestamp).toLocaleString('vi-VN')}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">Chọn nhiều phương án</p>
+                            <button
+                              onClick={() => setDetailMsg(msg)}
+                              className="text-xs text-blue-600 hover:underline mt-1"
+                            >
+                              {(() => {
+                                const userIds = new Set<string>();
+                                let totalVotes = 0;
+                                (msg.pollOptions || []).forEach((opt) => {
+                                  const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
+                                  totalVotes += arr.length;
+                                  arr.forEach((id) => userIds.add(String(id)));
+                                });
+                                return `${userIds.size} người bình chọn, ${totalVotes} lượt bình chọn`;
+                              })()}
+                            </button>
+                            <div className="mt-3 space-y-2">
+                              {(() => {
+                                const totalVotes = options.reduce((acc, opt) => {
+                                  const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
+                                  return acc + arr.length;
+                                }, 0);
+
+                                return options.map((opt, idx) => {
+                                  const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
+                                  const count = arr.length;
+                                  const voted = arr.includes(myId);
+                                  const percent = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
+
+                                  return (
+                                    <button
+                                      key={`${String(msg._id)}-${idx}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (!isMobile) onOpenChatInfoSection?.('poll');
+                                        setDetailMsg(msg);
+                                      }}
+                                      className={`w-full cursor-pointer bg-gray-100  relative overflow-hidden px-2 py-1 rounded-[5px]  text-left transition-colors
+                                   
+                                  `}
+                                    >
+                                      <div
+                                        className={`absolute top-0 left-0 bottom-0 transition-all duration-500 ease-out ${voted ? 'bg-blue-200' : 'bg-blue-200'}`}
+                                        style={{ width: `${percent}%` }}
+                                      />
+                                      <div className="flex items-center justify-between  relative z-10">
+                                        <span className="truncate text-[12px]">{opt}</span>
+                                        <span className="text-sm">{count}</span>
+                                      </div>
+                                    </button>
+                                  );
+                                });
+                              })()}
+                            </div>
+                            <div className="pt-2">
                               <button
-                                key={`${String(msg._id)}-${idx}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
+                                onClick={() => {
                                   if (!isMobile) onOpenChatInfoSection?.('poll');
                                   setDetailMsg(msg);
                                 }}
-                                className={`w-full cursor-pointer px-2 py-1 rounded-[5px] border text-left transition-colors ${
-                                  voted
-                                    ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                    : 'border-gray-200 hover:bg-gray-50 text-gray-800'
-                                }`}
+                                className="w-full cursor-pointer px-2 py-1 mt-1 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
                               >
-                                <div className="flex items-center justify-between">
-                                  <span className="truncate text-[12px]">{opt}</span>
-                                  <span className="text-sm">{count}</span>
-                                </div>
+                                {locked ? 'Xem lựa chọn' : 'Đổi lựa chọn'}
                               </button>
-                            );
-                          })}
-                        </div>
-                        <div className="pt-2">
-                          <button
-                            onClick={() => {
-                              if (!isMobile) onOpenChatInfoSection?.('poll');
-                              setDetailMsg(msg);
-                            }}
-                            className="w-full cursor-pointer px-2 py-1 mt-1 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
-                          >
-                            {locked ? 'Xem lựa chọn' : 'Đổi lựa chọn'}
-                          </button>
-                        </div>
+                            </div>
 
                             {/* Chỉ cho phép bình chọn trong modal: bỏ thêm lựa chọn inline */}
                           </div>
@@ -1785,7 +1876,6 @@ export default function MessageList({
                       );
                     }
 
-                    const avatarChar = senderInfo.name?.charAt(0).toUpperCase() || '?';
                     const senderName = allUsersMap.get(senderInfo._id) || senderInfo.name;
 
                     return (

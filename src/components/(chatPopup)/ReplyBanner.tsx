@@ -37,9 +37,9 @@ export default function ReplyBanner({ replyingTo, getSenderName, onCancel }: Rep
               : replyingTo.content || 'Tin nhắn';
 
   return (
-    <div className=" bottom-full left-0 right-0 p-3 bg-blue-50 border-t border-blue-200 flex justify-between items-center text-sm text-gray-700">
-      <div className="border-l-2 border-blue-600 pl-2 max-w-[15rem] sm:max-w-[80rem] overflow-hidden ">
-        <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+    <div className=" bottom-full left-0 right-0 p-3 bg-gray-200 rounded-t-xl flex justify-between items-center text-sm text-gray-700">
+      <div className="border-l-2 border-blue-400 pl-2 max-w-[15rem] sm:max-w-[80rem] overflow-hidden ">
+        <div className="text-sm  text-black dark:text-blue-400">
           Trả lời {getSenderName(replyingTo.sender)}
         </div>
         <div className="flex items-center gap-2 mt-1">
@@ -74,7 +74,7 @@ export default function ReplyBanner({ replyingTo, getSenderName, onCancel }: Rep
           <p className="text-xs text-gray-700 w-full">{contentLabel}</p>
         </div>
       </div>
-      <button onClick={onCancel} className="cursor-pointer text-red-500 hover:text-red-700 p-1">
+      <button onClick={onCancel} className="cursor-pointer text-gray-500 hover:text-gray-700 p-1">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

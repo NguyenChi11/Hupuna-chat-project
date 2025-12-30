@@ -856,10 +856,13 @@ export async function POST(req: NextRequest) {
 
         const reminderFilters: MongoFilters = {
           type: 'reminder',
-          roomId: { $in: allAccessibleRoomIds },
           isDeleted: { $ne: true },
           isRecalled: { $ne: true },
           reminderFired: { $ne: true },
+          $or: [
+            { roomId: { $in: allAccessibleRoomIds } },
+            { sender: String(searchUserId) },
+          ],
         };
         if (typeof fromTs === 'number' || typeof untilTs === 'number') {
           (reminderFilters as MongoFilters).reminderAt = {

@@ -139,6 +139,7 @@ export default function ChatWindow({
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const footerRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
   const markedReadRef = useRef<string | null>(null);
   const initialScrolledRef = useRef(false);
   const jumpLoadingRef = useRef(false);
@@ -1193,7 +1194,7 @@ export default function ChatWindow({
     setContextMenu(null);
   }, []);
 
-  const { playMessageSound, showMessageNotification } = useChatNotifications({ chatName });
+  const { playMessageSound, showMessageNotification, flashTabTitle } = useChatNotifications({ chatName });
 
   useEffect(() => {
     if (!contextMenu?.visible) return;
@@ -1706,6 +1707,7 @@ export default function ChatWindow({
     if (!roomId) return;
 
     socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+    setSocketInstance(socketRef.current);
 
     socketRef.current.on('receive_message', (data: Message) => {
       if (String(data.roomId) !== String(roomId)) return;
@@ -1734,6 +1736,7 @@ export default function ChatWindow({
       if (data.sender !== currentUser._id && !roomMuted) {
         playMessageSound();
         showMessageNotification(data);
+        flashTabTitle();
         void markAsReadApi(roomId, String(currentUser._id));
         try {
           socketRef.current?.emit('messages_read', { roomId, userId: String(currentUser._id) });
@@ -2104,6 +2107,7 @@ export default function ChatWindow({
 
     return () => {
       socketRef.current?.disconnect();
+      setSocketInstance(null);
     };
   }, [roomId, currentUser._id, playMessageSound, showMessageNotification, fetchMessages, sendNotifyMessage]);
 
@@ -3171,6 +3175,7 @@ export default function ChatWindow({
               </div>
             )}
             <ChatInput
+              socket={socketInstance}
               showEmojiPicker={showEmojiPicker}
               onToggleEmojiPicker={handleToggleEmojiPicker}
               isListening={isListening}

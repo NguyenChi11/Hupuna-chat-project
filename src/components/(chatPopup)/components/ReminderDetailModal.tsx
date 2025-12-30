@@ -324,7 +324,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
         {!editing ? (
           <div className="flex-1 overflow-y-auto">
             <div className="flex items-center gap-3 px-4 py-4">
-              <div className="w-12 h-12 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
+              <div className="w-10 h-10 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
                 {creatorInfo.avatar ? (
                   <Image
                     width={32}
@@ -362,7 +362,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
           <div className="flex-1 overflow-y-auto">
             <div className="divide-y divide-gray-200">
               <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-12 h-12 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
+                <div className="w-10 h-10 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
                   {creatorInfo.avatar ? (
                     <Image
                       width={32}

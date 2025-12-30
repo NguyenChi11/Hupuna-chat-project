@@ -20,6 +20,8 @@ import {
 } from 'react-icons/hi2';
 
 
+import { useChatNotifications } from '@/hooks/useChatNotifications';
+
 const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [isAuthed, setIsAuthed] = useState<boolean>(false);
   const [checked, setChecked] = useState<boolean>(false);
@@ -32,12 +34,21 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const socketRef = useRef<Socket | null>(null);
   const groupMembersRef = useRef<Map<string, Array<{ _id: string } | string>>>(new Map());
   const callNotifySeenRef = useRef<Set<string>>(new Set());
+  const [showNewMsgBanner, setShowNewMsgBanner] = useState(false);
+  const newMsgBannerTimerRef = useRef<number | null>(null);
+
+  const { playMessageSound, flashTabTitle } = useChatNotifications({});
 
   const router = useRouter();
   const pathname = usePathname();
 
   const isProfilePage =
     pathname === '/profile' || pathname === '/me' || pathname?.startsWith('/profile') || pathname?.startsWith('/me');
+
+  const pathnameRef = useRef(pathname);
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
 
   // Kiểm tra đăng nhập – giữ nguyên logic
   useEffect(() => {
@@ -220,6 +231,57 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       } catch {}
     })();
     s.on(
+      'update_sidebar',
+      (data: {
+        sender: string;
+        receiver?: string;
+        roomId: string;
+        type: string;
+        content?: string;
+        isRecalled?: boolean;
+        lastMessage?: string;
+        timestamp?: number;
+        senderName?: string;
+        isGroup: boolean;
+        members?: (string | { _id: string })[];
+        groupName?: string;
+      }) => {
+        // const p = pathnameRef.current;
+        // const isChatPage = p === '/' || p === '/home' || p?.startsWith('/chat');
+
+        if (data.sender === String(currentUser._id)) return;
+
+        const soundEnabled =
+          (currentUser as unknown as { notifications?: { soundEnabled?: boolean } })?.notifications?.soundEnabled !==
+          false;
+
+        if (soundEnabled) {
+          playMessageSound();
+        }
+        flashTabTitle();
+
+        const isMsgType =
+          data.type === 'text' ||
+          data.type === 'image' ||
+          data.type === 'file' ||
+          data.type === 'sticker' ||
+          data.type === 'video' ||
+          data.type === 'notify';
+        if (isMsgType) {
+          setShowNewMsgBanner(true);
+          if (newMsgBannerTimerRef.current) {
+            window.clearTimeout(newMsgBannerTimerRef.current);
+            newMsgBannerTimerRef.current = null;
+          }
+          newMsgBannerTimerRef.current = window.setTimeout(() => {
+            setShowNewMsgBanner(false);
+            newMsgBannerTimerRef.current = null;
+          }, 5000);
+        }
+      },
+    );
+
+    s.on(
       'call_notify',
       async (data: {
         roomId: string;
@@ -309,7 +371,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       } catch {}
       socketRef.current = null;
     };
-  }, [checked, isAuthed, currentUser]);
+  }, [checked, isAuthed, currentUser, playMessageSound, flashTabTitle]);
 
   // Xác định tab active
   const isActive = (paths: string[]) => {
@@ -384,6 +446,19 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       <main
         className={`flex-1 overflow-hidden ${isAuthed && !(hideMobileFooter || isWidgetIframe) ? 'pb-20 md:pb-0' : ''}`}
       >
+        {showNewMsgBanner && (
+          <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[200] pointer-events-auto">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white shadow-xl animate-pulse">
+              <span className="text-sm font-semibold">Bạn có tin nhắn mới</span>
+              <button
+                onClick={() => setShowNewMsgBanner(false)}
+                className="ml-2 text-white/80 hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
         {children}
       </main>
 

@@ -406,7 +406,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
       <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
         {!embedded && (
           <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm z-10">
-            <h2 className="text-lg font-bold text-gray-800">Bảng tin nhóm</h2>
+            <h2 className="text-lg font-bold text-gray-800">Bình chọn</h2>
             <div className="flex items-center gap-3">
               {isGroup && (
                 <button
@@ -437,16 +437,10 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
         )}
         
         {/* Tabs giả lập (để giống ảnh) */}
-        {!embedded && (
-            <div className="bg-white border-b border-gray-200 flex text-sm font-medium text-gray-500">
-                <div className="flex-1 py-3 text-center cursor-pointer hover:text-gray-700">Tin nhắn đã ghim</div>
-                <div className="flex-1 py-3 text-center text-gray-900 border-b-2 border-gray-900 cursor-pointer">Bình chọn</div>
-                <div className="flex-1 py-3 text-center cursor-pointer hover:text-gray-700">Ghi chú</div>
-            </div>
-        )}
+      
 
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 bg-gray-100 p-3">
-          <div className="space-y-4 pb-24 max-w-2xl mx-auto">
+          <div className="space-y-4 max-w-2xl mx-auto">
             {loading ? (
               <div className="text-center text-gray-500 py-10">
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
@@ -570,6 +564,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                                     const voters = getVotersForOption(it, opt);
                                     const count = voters.length;
                                     const voted = didIVote(it, opt);
+                                    const percent = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
                                     
                                     // Get avatars of voters (max 3)
                                     const voterAvatars = voters.slice(0, 3).map(uid => {
@@ -581,14 +576,19 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                                         <div 
                                             key={`${itemId}-${idx}`}
                                             onClick={() => handleEdit(it)}
-                                            className={`group relative overflow-hidden rounded-lg border p-3 cursor-pointer transition-all duration-200
-                                                ${voted ? 'bg-blue-100 border-blue-200' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}
+                                            className={`group relative overflow-hidden bg-gray-100 rounded-lg p-3 cursor-pointer transition-all duration-200
+                                               
+                                             
                                             `}
                                         >
-                                            {/* Progress bar effect (optional, not in design but nice) - Skipping for exact match */}
-                                            
+                                            {/* Progress Bar Background */}
+                                            <div 
+                                                className={`absolute top-0 left-0 bottom-0 transition-all duration-500 ease-out ${voted ? 'bg-blue-200' : 'bg-blue-200'}`}
+                                                style={{ width: `${percent}%` }}
+                                            />
+
                                             <div className="relative flex items-center justify-between gap-3 z-10">
-                                                <span className={`text-sm font-medium ${voted ? 'text-blue-900' : 'text-gray-700'}`}>
+                                                <span className={`text-sm  `}>
                                                     {opt}
                                                 </span>
                                                 
@@ -628,7 +628,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                          <button
                             onClick={() => handleEdit(it)}
                             disabled={false}
-                            className={`w-full py-2.5 rounded-lg font-medium transition-colors text-sm
+                            className={`w-full cursor-pointer py-2.5 rounded-lg font-medium transition-colors text-sm
                                 ${locked 
                                     ? 'bg-gray-100 text-gray-500 cursor-default' 
                                     : 'bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200'

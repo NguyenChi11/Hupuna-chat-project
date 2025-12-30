@@ -35,11 +35,13 @@ interface GlobalSearchMessageApi {
 }
 
 import { resolveSocketUrl } from '@/utils/utils';
+import { useChatNotifications } from '@/hooks/useChatNotifications';
 
 export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: boolean }) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { playMessageSound } = useChatNotifications({});
 
   // State quản lý dữ liệu
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -575,6 +577,19 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
           const rawContent = isTextLike ? data.content || '' : `[${data.type || 'Unknown'}]`;
           contentDisplay = `${senderName}: ${rawContent}`;
         }
+        const isMsgType =
+          data.type === 'text' ||
+          data.type === 'image' ||
+          data.type === 'file' ||
+          data.type === 'sticker' ||
+          data.type === 'video' ||
+          data.type === 'notify';
+        const soundEnabled =
+          (currentUser as unknown as { notifications?: { soundEnabled?: boolean } })?.notifications?.soundEnabled !==
+          false;
+        if (!isMyMsg && isMsgType && soundEnabled) {
+          playMessageSound();
+        }
         // 3. CẬP NHẬT STATE
         if (data.isGroup) {
           setGroups((prev) => {
@@ -667,7 +682,7 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
       window.removeEventListener('beforeunload', handleBeforeUnload);
       socketRef.current?.disconnect();
     };
-  }, [currentUser, fetchAllData]);
+  }, [currentUser, fetchAllData, playMessageSound]);
 
   // 5. Xử lý Chat Action (Pin/Hide)
   const handleChatAction = useCallback(
