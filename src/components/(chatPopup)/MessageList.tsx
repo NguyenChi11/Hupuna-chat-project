@@ -45,6 +45,7 @@ interface MessageListProps {
   allUsersMap: Map<string, string>;
   uploadingFiles: Record<string, number>;
   highlightedMsgId: string | null;
+  unreadBoundaryId?: string | null;
   isGroup: boolean;
   onContextMenu: (e: React.MouseEvent, msg: Message) => void;
   onReplyMessage?: (msg: Message) => void;
@@ -76,6 +77,7 @@ export default function MessageList({
   allUsersMap,
   uploadingFiles,
   highlightedMsgId,
+  unreadBoundaryId,
   isGroup,
   onContextMenu,
   onMobileLongPress,
@@ -166,6 +168,21 @@ export default function MessageList({
           year: 'numeric',
         });
   };
+  const formatTimeMarker = (ts: number) => {
+    const d = new Date(ts);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const sameDate = (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    const timeLabel = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const dateLabel = sameDate(d, today)
+      ? 'Hôm nay'
+      : sameDate(d, yesterday)
+        ? 'Hôm qua'
+        : d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return `${timeLabel} ${dateLabel}`;
+  };
   useEffect(() => {
     if (scrollManagedExternally || !highlightedMsgId) return;
 
@@ -244,6 +261,39 @@ export default function MessageList({
                         isGrouped = true;
                       }
                     }
+                    const nowTs =
+                      Number((msg as unknown as { serverTimestamp?: number }).serverTimestamp ?? msg.timestamp) || 0;
+                    const prevTs =
+                      prevMsg != null
+                        ? Number(
+                            (prevMsg as unknown as { serverTimestamp?: number }).serverTimestamp ?? prevMsg.timestamp,
+                          ) || 0
+                        : null;
+                    const showTimeMarker = prevTs != null && nowTs - (prevTs as number) >= 30 * 60 * 1000;
+                    const timeMarkerNode = showTimeMarker ? (
+                      <div className="flex justify-center my-4">
+                        <span className="px-4 py-2 text-white  text-xs font-medium  bg-gray-400/60 rounded-full shadow">
+                          {formatTimeMarker(nowTs)}
+                        </span>
+                      </div>
+                    ) : null;
+                    const unreadDividerNode =
+                      unreadBoundaryId && String(msg._id) === String(unreadBoundaryId) ? (
+                        <div className="flex items-center my-3">
+                          <div className="flex-1 h-px bg-blue-400/40" />
+
+                          <span
+                            className="mx-3 px-3 py-0.5 text-[11px] font-semibold text-center
+                   text-blue-600 bg-blue-100 
+                   rounded-full whitespace-nowrap"
+                          >
+                            Tin nhắn chưa đọc
+                          </span>
+
+                          <div className="flex-1 h-px bg-blue-400/40" />
+                        </div>
+                      ) : null;
+
                     const nextMsg = index < msgs.length - 1 ? msgs[index + 1] : null;
                     let isEndOfGroup = true;
                     if (nextMsg && nextMsg.type !== 'notify') {
@@ -307,214 +357,217 @@ export default function MessageList({
                           return up || sending || blob;
                         });
                         return (
-                          <div
-                            key={`group-${msg._id}`}
-                            id={`msg-${msg._id}`}
-                            className={`
+                          <React.Fragment key={`group-${msg._id}-frag`}>
+                            {unreadDividerNode}
+                            {timeMarkerNode}
+                            <div
+                              key={`group-${msg._id}`}
+                              id={`msg-${msg._id}`}
+                              className={`
                       w-full  sm:max-w-[23rem]
                       flex gap-2 group relative
                       ${isMeGroup ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
                       ${isGrouped ? 'mt-1' : 'mt-4'}
                       ${groupIsLast ? 'mb-8' : ''}
                     `}
-                          >
-                            {!isMeGroup && (
-                              <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
-                                {senderInfo.avatar ? (
-                                  <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
-                                    <Image
-                                      width={38}
-                                      height={38}
-                                      src={getProxyUrl(senderInfo.avatar)}
-                                      alt={senderInfo.name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                ) : (
-                                  <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                                    <Image
-                                      src="/logo/avata.webp"
-                                      alt={senderInfo.name || 'User'}
-                                      width={38}
-                                      height={38}
-                                      className="w-full h-full rounded-full object-cover"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            <div className={`flex flex-col min-w-0 ${isMeGroup ? 'items-end' : 'items-start'}`}>
-                              {isGroup && !isGrouped && !isRecalled && !isMeGroup && (
-                                <p
-                                  className={`text-sm mb-1 px-2 py-1 bg-white rounded-[2rem] ${isMeGroup ? 'text-gray-600' : 'text-gray-600'}`}
-                                >
-                                  {allUsersMap.get(senderInfo._id) || senderInfo.name}
-                                </p>
-                              )}
-                              <div
-                                className={`px-0 py-0 rounded-lg shadow-none max-w-[70vw] sm:max-w-[22rem] mt-1 bg-transparent relative ${hasReactions ? 'mb-4' : ''}`}
-                                style={
-                                  isMobile && swipeState.id === msg._id
-                                    ? { transform: `translateX(${Math.max(-100, Math.min(100, swipeState.dx))}px)` }
-                                    : undefined
-                                }
-                                onClick={() => {
-                                  setActiveMoreId(msg._id);
-                                  setReactionDetail(null);
-                                }}
-                                onTouchStart={(e) => {
-                                  try {
-                                    if (isRecalled) return;
-                                    longPressTriggeredRef.current = false;
-                                    if (longPressTimerRef.current != null) {
-                                      clearTimeout(longPressTimerRef.current);
-                                      longPressTimerRef.current = null;
-                                    }
-                                    const t = e.touches && e.touches[0];
-                                    const x0 = t ? t.clientX : 0;
-                                    const y0 = t ? t.clientY : 0;
-                                    const el = e.currentTarget as HTMLElement;
-                                    swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe: isMeGroup };
-                                    setSwipeState({ id: null, dx: 0 });
-                                    setLongPressActiveId(msg._id);
-                                    longPressTimerRef.current = window.setTimeout(() => {
-                                      longPressTriggeredRef.current = true;
-                                      setActiveMoreId(msg._id);
-                                      setReactionDetail(null);
-                                      onMobileLongPress?.(msg, el, x0, y0);
-                                    }, 420);
-                                  } catch {}
-                                }}
-                                onTouchEnd={(e) => {
-                                  try {
-                                    if (longPressTimerRef.current != null) {
-                                      clearTimeout(longPressTimerRef.current);
-                                      longPressTimerRef.current = null;
-                                    }
-                                    setLongPressActiveId(null);
-                                    if (longPressTriggeredRef.current) {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                    }
-                                    if (isMobile && swipeStartRef.current.id === msg._id) {
-                                      const okDir = swipeStartRef.current.isMe
-                                        ? swipeState.dx < -64
-                                        : swipeState.dx > 64;
-                                      if (okDir) {
-                                        onReplyMessage?.(msg);
-                                      }
-                                      setSwipeState({ id: null, dx: 0 });
-                                      swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
-                                    }
-                                  } catch {}
-                                }}
-                                onTouchMove={(e) => {
-                                  try {
-                                    if (longPressTimerRef.current != null) {
-                                      clearTimeout(longPressTimerRef.current);
-                                      longPressTimerRef.current = null;
-                                    }
-                                    setLongPressActiveId(null);
-                                    if (!isMobile) return;
-                                    const t = e.touches && e.touches[0];
-                                    const x = t ? t.clientX : 0;
-                                    const y = t ? t.clientY : 0;
-                                    const dx = x - swipeStartRef.current.x;
-                                    const dy = y - swipeStartRef.current.y;
-                                    if (swipeStartRef.current.id === msg._id) {
-                                      const horizontal = Math.abs(dx) > 8 && Math.abs(dy) < 24;
-                                      if (horizontal) {
-                                        const dirOk = swipeStartRef.current.isMe ? dx < 0 : dx > 0;
-                                        setSwipeState({ id: msg._id, dx: dirOk ? dx : 0 });
-                                        e.preventDefault();
-                                      }
-                                    }
-                                  } catch {}
-                                }}
-                                onTouchCancel={() => {
-                                  try {
-                                    if (longPressTimerRef.current != null) {
-                                      clearTimeout(longPressTimerRef.current);
-                                      longPressTimerRef.current = null;
-                                    }
-                                    setLongPressActiveId(null);
-                                    if (isMobile && swipeStartRef.current.id === msg._id) {
-                                      setSwipeState({ id: null, dx: 0 });
-                                      swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
-                                    }
-                                  } catch {}
-                                }}
-                              >
-                                {!isRecalled && (
-                                  <>
-                                    <button
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        const batchMsg = {
-                                          ...msg,
-                                          batchItems: mediaGroup.map((m) => ({
-                                            id: m._id,
-                                            content: m.content || '',
-                                            type: m.type === 'video' ? 'video' : 'image',
-                                            fileUrl: m.fileUrl || m.previewUrl,
-                                            fileName: m.fileName,
-                                          })),
-                                        } as Message;
-                                        onShareMessage(batchMsg);
-                                      }}
-                                      className={`absolute cursor-pointer top-1/2 -translate-y-1/2 p-1.5 bg-white/90 rounded-full shadow hover:bg-indigo-50 ${
-                                        isMeGroup ? 'right-full mr-2' : 'left-full ml-2'
-                                      }`}
-                                      aria-label="Chia sẻ nhóm media"
-                                      title="Chia sẻ nhóm media"
-                                    >
-                                      <ICShareMessage className="w-4 h-4 text-indigo-600" />
-                                    </button>
-                                    {isMobile && swipeState.id === msg._id && (
-                                      <div
-                                        className={`absolute top-1/2 -translate-y-1/2 ${isMeGroup ? 'left-full ml-2' : 'right-full mr-2'}`}
-                                        style={{ opacity: Math.min(Math.abs(swipeState.dx) / 64, 1) }}
-                                      >
-                                        <div className="p-2 bg-white rounded-full shadow border border-gray-200">
-                                          {isMeGroup ? (
-                                            <HiArrowUturnLeft className="w-5 h-5 text-blue-600" />
-                                          ) : (
-                                            <HiArrowUturnRight className="w-5 h-5 text-blue-600" />
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-                                    {!isMobile && (
-                                      <>
-                                        <button
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            onContextMenu(e, msg);
-                                          }}
-                                          className={`absolute cursor-pointer top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto`}
-                                          aria-label="Mở menu"
-                                          title="Thêm"
-                                        >
-                                          <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
-                                        </button>
-                                      </>
-                                    )}
-                                    {!isMobile && (
-                                      <ReactionButton
-                                        isMine={isMeGroup}
-                                        visible={activeMoreId === msg._id}
-                                        onPick={(emoji) => {
-                                          onToggleReaction?.(msg, emoji);
-                                          setActiveMoreId(null);
-                                        }}
-                                        className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
-                                          activeMoreId === msg._id
-                                            ? 'opacity-100 pointer-events-auto'
-                                            : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                        }`}
+                            >
+                              {!isMeGroup && (
+                                <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
+                                  {senderInfo.avatar ? (
+                                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                                      <Image
+                                        width={38}
+                                        height={38}
+                                        src={getProxyUrl(senderInfo.avatar)}
+                                        alt={senderInfo.name}
+                                        className="w-full h-full object-cover"
                                       />
-                                    )}
-                                    {/* {!isMobile && (
+                                    </div>
+                                  ) : (
+                                    <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                                      <Image
+                                        src="/logo/avata.webp"
+                                        alt={senderInfo.name || 'User'}
+                                        width={38}
+                                        height={38}
+                                        className="w-full h-full rounded-full object-cover"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              <div className={`flex flex-col min-w-0 ${isMeGroup ? 'items-end' : 'items-start'}`}>
+                                {isGroup && !isGrouped && !isRecalled && !isMeGroup && (
+                                  <p
+                                    className={`text-sm mb-1 px-2 py-1 bg-white rounded-[2rem] ${isMeGroup ? 'text-gray-600' : 'text-gray-600'}`}
+                                  >
+                                    {allUsersMap.get(senderInfo._id) || senderInfo.name}
+                                  </p>
+                                )}
+                                <div
+                                  className={`px-0 py-0 rounded-lg shadow-none max-w-[70vw] sm:max-w-[22rem] mt-1 bg-transparent relative ${hasReactions ? 'mb-4' : ''}`}
+                                  style={
+                                    isMobile && swipeState.id === msg._id
+                                      ? { transform: `translateX(${Math.max(-100, Math.min(100, swipeState.dx))}px)` }
+                                      : undefined
+                                  }
+                                  onClick={() => {
+                                    setActiveMoreId(msg._id);
+                                    setReactionDetail(null);
+                                  }}
+                                  onTouchStart={(e) => {
+                                    try {
+                                      if (isRecalled) return;
+                                      longPressTriggeredRef.current = false;
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      const t = e.touches && e.touches[0];
+                                      const x0 = t ? t.clientX : 0;
+                                      const y0 = t ? t.clientY : 0;
+                                      const el = e.currentTarget as HTMLElement;
+                                      swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe: isMeGroup };
+                                      setSwipeState({ id: null, dx: 0 });
+                                      setLongPressActiveId(msg._id);
+                                      longPressTimerRef.current = window.setTimeout(() => {
+                                        longPressTriggeredRef.current = true;
+                                        setActiveMoreId(msg._id);
+                                        setReactionDetail(null);
+                                        onMobileLongPress?.(msg, el, x0, y0);
+                                      }, 420);
+                                    } catch {}
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    try {
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      setLongPressActiveId(null);
+                                      if (longPressTriggeredRef.current) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                      }
+                                      if (isMobile && swipeStartRef.current.id === msg._id) {
+                                        const okDir = swipeStartRef.current.isMe
+                                          ? swipeState.dx < -64
+                                          : swipeState.dx > 64;
+                                        if (okDir) {
+                                          onReplyMessage?.(msg);
+                                        }
+                                        setSwipeState({ id: null, dx: 0 });
+                                        swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
+                                      }
+                                    } catch {}
+                                  }}
+                                  onTouchMove={(e) => {
+                                    try {
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      setLongPressActiveId(null);
+                                      if (!isMobile) return;
+                                      const t = e.touches && e.touches[0];
+                                      const x = t ? t.clientX : 0;
+                                      const y = t ? t.clientY : 0;
+                                      const dx = x - swipeStartRef.current.x;
+                                      const dy = y - swipeStartRef.current.y;
+                                      if (swipeStartRef.current.id === msg._id) {
+                                        const horizontal = Math.abs(dx) > 8 && Math.abs(dy) < 24;
+                                        if (horizontal) {
+                                          const dirOk = swipeStartRef.current.isMe ? dx < 0 : dx > 0;
+                                          setSwipeState({ id: msg._id, dx: dirOk ? dx : 0 });
+                                          e.preventDefault();
+                                        }
+                                      }
+                                    } catch {}
+                                  }}
+                                  onTouchCancel={() => {
+                                    try {
+                                      if (longPressTimerRef.current != null) {
+                                        clearTimeout(longPressTimerRef.current);
+                                        longPressTimerRef.current = null;
+                                      }
+                                      setLongPressActiveId(null);
+                                      if (isMobile && swipeStartRef.current.id === msg._id) {
+                                        setSwipeState({ id: null, dx: 0 });
+                                        swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
+                                      }
+                                    } catch {}
+                                  }}
+                                >
+                                  {!isRecalled && (
+                                    <>
+                                      <button
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          const batchMsg = {
+                                            ...msg,
+                                            batchItems: mediaGroup.map((m) => ({
+                                              id: m._id,
+                                              content: m.content || '',
+                                              type: m.type === 'video' ? 'video' : 'image',
+                                              fileUrl: m.fileUrl || m.previewUrl,
+                                              fileName: m.fileName,
+                                            })),
+                                          } as Message;
+                                          onShareMessage(batchMsg);
+                                        }}
+                                        className={`absolute cursor-pointer top-1/2 -translate-y-1/2 p-1.5 bg-white/90 rounded-full shadow hover:bg-indigo-50 ${
+                                          isMeGroup ? 'right-full mr-2' : 'left-full ml-2'
+                                        }`}
+                                        aria-label="Chia sẻ nhóm media"
+                                        title="Chia sẻ nhóm media"
+                                      >
+                                        <ICShareMessage className="w-4 h-4 text-indigo-600" />
+                                      </button>
+                                      {isMobile && swipeState.id === msg._id && (
+                                        <div
+                                          className={`absolute top-1/2 -translate-y-1/2 ${isMeGroup ? 'left-full ml-2' : 'right-full mr-2'}`}
+                                          style={{ opacity: Math.min(Math.abs(swipeState.dx) / 64, 1) }}
+                                        >
+                                          <div className="p-2 bg-white rounded-full shadow border border-gray-200">
+                                            {isMeGroup ? (
+                                              <HiArrowUturnLeft className="w-5 h-5 text-blue-600" />
+                                            ) : (
+                                              <HiArrowUturnRight className="w-5 h-5 text-blue-600" />
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {!isMobile && (
+                                        <>
+                                          <button
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              onContextMenu(e, msg);
+                                            }}
+                                            className={`absolute cursor-pointer top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto`}
+                                            aria-label="Mở menu"
+                                            title="Thêm"
+                                          >
+                                            <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
+                                          </button>
+                                        </>
+                                      )}
+                                      {!isMobile && (
+                                        <ReactionButton
+                                          isMine={isMeGroup}
+                                          visible={activeMoreId === msg._id}
+                                          onPick={(emoji) => {
+                                            onToggleReaction?.(msg, emoji);
+                                            setActiveMoreId(null);
+                                          }}
+                                          className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
+                                            activeMoreId === msg._id
+                                              ? 'opacity-100 pointer-events-auto'
+                                              : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
+                                          }`}
+                                        />
+                                      )}
+                                      {/* {!isMobile && (
                                   <FolderButton
                                     roomId={String(msg.roomId)}
                                     messageId={String(msg._id)}
@@ -558,364 +611,366 @@ export default function MessageList({
                                     }}
                                   />
                                 )} */}
-                                  </>
-                                )}
-                                <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
-                                  {mediaGroup.map((m, idx) => {
-                                    const isVid = m.type === 'video' || (m.fileUrl && isVideoFile(m.fileUrl));
-                                    const url = String(m.fileUrl || m.previewUrl || '');
-                                    const prog = uploadingFiles[m._id];
-                                    const sendingFallback = !!(m as unknown as { isSending?: boolean }).isSending;
-                                    const blobFallback = String(url).startsWith('blob:');
-                                    const up = prog !== undefined || sendingFallback || blobFallback;
-                                    return isVid ? (
-                                      <div
-                                        key={`${m._id}-${idx}`}
-                                        id={`msg-${m._id}`}
-                                        className={`relative bg-black rounded-[0.25rem] overflow-hidden cursor-pointer h-[8rem] w-[8rem]  ${
-                                          isSidebarOpen
-                                            ? 'sm:w-[6rem] sm:h-[6rem] aspect-square'
-                                            : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
-                                        } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
-                                        onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
-                                        onContextMenu={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          onContextMenu(e, m);
-                                        }}
-                                        onTouchStart={(e) => {
-                                          try {
+                                    </>
+                                  )}
+                                  <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+                                    {mediaGroup.map((m, idx) => {
+                                      const isVid = m.type === 'video' || (m.fileUrl && isVideoFile(m.fileUrl));
+                                      const url = String(m.fileUrl || m.previewUrl || '');
+                                      const prog = uploadingFiles[m._id];
+                                      const sendingFallback = !!(m as unknown as { isSending?: boolean }).isSending;
+                                      const blobFallback = String(url).startsWith('blob:');
+                                      const up = prog !== undefined || sendingFallback || blobFallback;
+                                      return isVid ? (
+                                        <div
+                                          key={`${m._id}-${idx}`}
+                                          id={`msg-${m._id}`}
+                                          className={`relative bg-black rounded-[0.25rem] overflow-hidden cursor-pointer h-[8rem] w-[8rem]  ${
+                                            isSidebarOpen
+                                              ? 'sm:w-[6rem] sm:h-[6rem] aspect-square'
+                                              : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
+                                          } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
+                                          onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
+                                          onContextMenu={(e) => {
+                                            e.preventDefault();
                                             e.stopPropagation();
-                                            if (m.isRecalled) return;
-                                            longPressTriggeredRef.current = false;
-                                            if (longPressTimerRef.current != null) {
-                                              clearTimeout(longPressTimerRef.current);
-                                              longPressTimerRef.current = null;
-                                            }
-                                            const t = e.touches && e.touches[0];
-                                            const x0 = t ? t.clientX : 0;
-                                            const y0 = t ? t.clientY : 0;
-                                            const el = e.currentTarget as HTMLElement;
-                                            swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe: isMeGroup };
-                                            setSwipeState({ id: null, dx: 0 });
-                                            setLongPressActiveId(m._id);
-                                            longPressTimerRef.current = window.setTimeout(() => {
-                                              longPressTriggeredRef.current = true;
-                                              setActiveMoreId(m._id);
-                                              setReactionDetail(null);
-                                              onMobileLongPress?.(m, el, x0, y0);
-                                            }, 420);
-                                          } catch {}
-                                        }}
-                                        onTouchEnd={(e) => {
-                                          try {
-                                            if (longPressTimerRef.current != null) {
-                                              clearTimeout(longPressTimerRef.current);
-                                              longPressTimerRef.current = null;
-                                            }
-                                            setLongPressActiveId(null);
-                                            if (longPressTriggeredRef.current) {
-                                              e.preventDefault();
+                                            onContextMenu(e, m);
+                                          }}
+                                          onTouchStart={(e) => {
+                                            try {
                                               e.stopPropagation();
-                                            }
-                                          } catch {}
-                                        }}
-                                        onTouchMove={() => {
-                                          try {
-                                            if (longPressTimerRef.current != null) {
-                                              clearTimeout(longPressTimerRef.current);
-                                              longPressTimerRef.current = null;
-                                            }
-                                            setLongPressActiveId(null);
-                                          } catch {}
-                                        }}
-                                      >
-                                        <video
-                                          src={getProxyUrl(url)}
-                                          className="w-full h-full object-cover"
-                                          playsInline
-                                          preload="metadata"
-                                        />
+                                              if (m.isRecalled) return;
+                                              longPressTriggeredRef.current = false;
+                                              if (longPressTimerRef.current != null) {
+                                                clearTimeout(longPressTimerRef.current);
+                                                longPressTimerRef.current = null;
+                                              }
+                                              const t = e.touches && e.touches[0];
+                                              const x0 = t ? t.clientX : 0;
+                                              const y0 = t ? t.clientY : 0;
+                                              const el = e.currentTarget as HTMLElement;
+                                              swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe: isMeGroup };
+                                              setSwipeState({ id: null, dx: 0 });
+                                              setLongPressActiveId(m._id);
+                                              longPressTimerRef.current = window.setTimeout(() => {
+                                                longPressTriggeredRef.current = true;
+                                                setActiveMoreId(m._id);
+                                                setReactionDetail(null);
+                                                onMobileLongPress?.(m, el, x0, y0);
+                                              }, 420);
+                                            } catch {}
+                                          }}
+                                          onTouchEnd={(e) => {
+                                            try {
+                                              if (longPressTimerRef.current != null) {
+                                                clearTimeout(longPressTimerRef.current);
+                                                longPressTimerRef.current = null;
+                                              }
+                                              setLongPressActiveId(null);
+                                              if (longPressTriggeredRef.current) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                              }
+                                            } catch {}
+                                          }}
+                                          onTouchMove={() => {
+                                            try {
+                                              if (longPressTimerRef.current != null) {
+                                                clearTimeout(longPressTimerRef.current);
+                                                longPressTimerRef.current = null;
+                                              }
+                                              setLongPressActiveId(null);
+                                            } catch {}
+                                          }}
+                                        >
+                                          <video
+                                            src={getProxyUrl(url)}
+                                            className="w-full h-full object-cover"
+                                            playsInline
+                                            preload="metadata"
+                                          />
 
-                                        {!up && (
-                                          <div className="absolute inset-0 flex items-center justify-center opacity-100">
-                                            <div className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow">
-                                              <HiPlay className="w-5 h-5 text-blue-600 ml-0.5" />
+                                          {!up && (
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                                              <div className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow">
+                                                <HiPlay className="w-5 h-5 text-blue-600 ml-0.5" />
+                                              </div>
                                             </div>
-                                          </div>
-                                        )}
-                                        {up && (
-                                          <div className="absolute inset-0 bg-black/60 text-white flex items-center justify-center">
-                                            <div className="flex items-center gap-2">
-                                              <div className="w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-                                              {prog !== undefined && (
-                                                <span className="text-sm font-semibold">
-                                                  {Math.round(prog as number)}%
+                                          )}
+                                          {up && (
+                                            <div className="absolute inset-0 bg-black/60 text-white flex items-center justify-center">
+                                              <div className="flex items-center gap-2">
+                                                <div className="w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                                                {prog !== undefined && (
+                                                  <span className="text-sm font-semibold">
+                                                    {Math.round(prog as number)}%
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <div
+                                          key={`${m._id}-${idx}`}
+                                          id={`msg-${m._id}`}
+                                          className={`relative rounded-[0.25rem] overflow-hidden cursor-pointer hover:bg-gray-100 shadow-sm w-[8rem] h-[8rem] ${
+                                            isSidebarOpen ? 'sm:w-[6rem] sm:h-[6rem]' : 'sm:w-[10rem] sm:h-[10rem]'
+                                          } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!up) onOpenMedia(String(m.fileUrl || m.previewUrl || ''), 'image');
+                                          }}
+                                          onContextMenu={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            onContextMenu(e, m);
+                                          }}
+                                          onTouchStart={(e) => {
+                                            try {
+                                              e.stopPropagation();
+                                              if (m.isRecalled) return;
+                                              longPressTriggeredRef.current = false;
+                                              if (longPressTimerRef.current != null) {
+                                                clearTimeout(longPressTimerRef.current);
+                                                longPressTimerRef.current = null;
+                                              }
+                                              const t = e.touches && e.touches[0];
+                                              const x0 = t ? t.clientX : 0;
+                                              const y0 = t ? t.clientY : 0;
+                                              const el = e.currentTarget as HTMLElement;
+                                              swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe: isMeGroup };
+                                              setSwipeState({ id: null, dx: 0 });
+                                              setLongPressActiveId(m._id);
+                                              longPressTimerRef.current = window.setTimeout(() => {
+                                                longPressTriggeredRef.current = true;
+                                                setActiveMoreId(m._id);
+                                                setReactionDetail(null);
+                                                onMobileLongPress?.(m, el, x0, y0);
+                                              }, 420);
+                                            } catch {}
+                                          }}
+                                          onTouchEnd={(e) => {
+                                            try {
+                                              if (longPressTimerRef.current != null) {
+                                                clearTimeout(longPressTimerRef.current);
+                                                longPressTimerRef.current = null;
+                                              }
+                                              setLongPressActiveId(null);
+                                              if (longPressTriggeredRef.current) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                              }
+                                            } catch {}
+                                          }}
+                                          onTouchMove={() => {
+                                            try {
+                                              if (longPressTimerRef.current != null) {
+                                                clearTimeout(longPressTimerRef.current);
+                                                longPressTimerRef.current = null;
+                                              }
+                                              setLongPressActiveId(null);
+                                            } catch {}
+                                          }}
+                                        >
+                                          {String(url).startsWith('blob:') ? (
+                                            <Image
+                                              width={600}
+                                              height={600}
+                                              src={url}
+                                              alt="Ảnh"
+                                              className="w-full h-full object-cover"
+                                            />
+                                          ) : (
+                                            <Image
+                                              width={600}
+                                              height={600}
+                                              src={getProxyUrl(url)}
+                                              alt="Ảnh"
+                                              className="w-full h-full object-cover"
+                                            />
+                                          )}
+
+                                          {up && (
+                                            <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                              {(() => {
+                                                const size = 40;
+                                                const stroke = 4;
+                                                const r = (size - stroke) / 2;
+                                                const c = 2 * Math.PI * r;
+                                                const p = Math.max(0, Math.min(100, Number(prog || 0)));
+                                                return (
+                                                  <div className="flex flex-col items-center">
+                                                    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                                                      <circle
+                                                        cx={size / 2}
+                                                        cy={size / 2}
+                                                        r={r}
+                                                        stroke="rgba(255,255,255,0.3)"
+                                                        strokeWidth={stroke}
+                                                        fill="none"
+                                                      />
+                                                      <circle
+                                                        cx={size / 2}
+                                                        cy={size / 2}
+                                                        r={r}
+                                                        stroke="white"
+                                                        strokeWidth={stroke}
+                                                        fill="none"
+                                                        strokeDasharray={c}
+                                                        strokeDashoffset={c - (p / 100) * c}
+                                                        strokeLinecap="round"
+                                                        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                                                      />
+                                                    </svg>
+                                                    {/* <span className="text-xs text-white font-semibold">{Math.round(p)}%</span> */}
+                                                  </div>
+                                                );
+                                              })()}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  {(() => {
+                                    const items = Object.entries(reactions)
+                                      .map(([emoji, arr]) => ({
+                                        emoji,
+                                        count: (arr || []).length,
+                                        mine: (arr || []).includes(myId),
+                                        users: (arr || []).map((id) => allUsersMap.get(String(id)) || 'Người dùng'),
+                                      }))
+                                      .filter((x) => x.count > 0)
+                                      .sort((a, b) => b.count - a.count);
+                                    if (items.length === 0) return null;
+                                    return (
+                                      <div
+                                        className={`absolute ${isMeGroup ? 'right-2 -mr-1' : 'left-2 -ml-1'} bottom-1 flex items-center gap-1`}
+                                      >
+                                        <div className="flex items-center bg-white rounded-full shadow-lg border border-gray-200">
+                                          {items.slice(0, 3).map((it, idx) => (
+                                            <div
+                                              key={`${msg._id}-react-group-${idx}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setReactionDetail(
+                                                  reactionDetail?.msgId === msg._id &&
+                                                    reactionDetail?.emoji === it.emoji
+                                                    ? null
+                                                    : { msgId: msg._id, emoji: it.emoji },
+                                                );
+                                              }}
+                                              className={`flex items-center gap-0.5 py-0.5 rounded-full text-sm cursor-pointer transition-all duration-200 hover:bg-gray-100 active:scale-95 ${it.mine ? 'bg-blue-50' : 'bg-transparent'}`}
+                                              title={`${it.count} người`}
+                                            >
+                                              <span className="text-lg leading-none">{it.emoji}</span>
+                                              {it.count > 1 && (
+                                                <span
+                                                  className={`text-xs font-medium ${it.mine ? 'text-blue-600' : 'text-gray-600'}`}
+                                                >
+                                                  {it.count}
                                                 </span>
                                               )}
                                             </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <div
-                                        key={`${m._id}-${idx}`}
-                                        id={`msg-${m._id}`}
-                                        className={`relative rounded-[0.25rem] overflow-hidden cursor-pointer hover:bg-gray-100 shadow-sm w-[8rem] h-[8rem] ${
-                                          isSidebarOpen ? 'sm:w-[6rem] sm:h-[6rem]' : 'sm:w-[10rem] sm:h-[10rem]'
-                                        } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (!up) onOpenMedia(String(m.fileUrl || m.previewUrl || ''), 'image');
-                                        }}
-                                        onContextMenu={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          onContextMenu(e, m);
-                                        }}
-                                        onTouchStart={(e) => {
-                                          try {
-                                            e.stopPropagation();
-                                            if (m.isRecalled) return;
-                                            longPressTriggeredRef.current = false;
-                                            if (longPressTimerRef.current != null) {
-                                              clearTimeout(longPressTimerRef.current);
-                                              longPressTimerRef.current = null;
-                                            }
-                                            const t = e.touches && e.touches[0];
-                                            const x0 = t ? t.clientX : 0;
-                                            const y0 = t ? t.clientY : 0;
-                                            const el = e.currentTarget as HTMLElement;
-                                            swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe: isMeGroup };
-                                            setSwipeState({ id: null, dx: 0 });
-                                            setLongPressActiveId(m._id);
-                                            longPressTimerRef.current = window.setTimeout(() => {
-                                              longPressTriggeredRef.current = true;
-                                              setActiveMoreId(m._id);
-                                              setReactionDetail(null);
-                                              onMobileLongPress?.(m, el, x0, y0);
-                                            }, 420);
-                                          } catch {}
-                                        }}
-                                        onTouchEnd={(e) => {
-                                          try {
-                                            if (longPressTimerRef.current != null) {
-                                              clearTimeout(longPressTimerRef.current);
-                                              longPressTimerRef.current = null;
-                                            }
-                                            setLongPressActiveId(null);
-                                            if (longPressTriggeredRef.current) {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                            }
-                                          } catch {}
-                                        }}
-                                        onTouchMove={() => {
-                                          try {
-                                            if (longPressTimerRef.current != null) {
-                                              clearTimeout(longPressTimerRef.current);
-                                              longPressTimerRef.current = null;
-                                            }
-                                            setLongPressActiveId(null);
-                                          } catch {}
-                                        }}
-                                      >
-                                        {String(url).startsWith('blob:') ? (
-                                          <Image
-                                            width={600}
-                                            height={600}
-                                            src={url}
-                                            alt="Ảnh"
-                                            className="w-full h-full object-cover"
-                                          />
-                                        ) : (
-                                          <Image
-                                            width={600}
-                                            height={600}
-                                            src={getProxyUrl(url)}
-                                            alt="Ảnh"
-                                            className="w-full h-full object-cover"
-                                          />
-                                        )}
-
-                                        {up && (
-                                          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                                            {(() => {
-                                              const size = 40;
-                                              const stroke = 4;
-                                              const r = (size - stroke) / 2;
-                                              const c = 2 * Math.PI * r;
-                                              const p = Math.max(0, Math.min(100, Number(prog || 0)));
-                                              return (
-                                                <div className="flex flex-col items-center">
-                                                  <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                                                    <circle
-                                                      cx={size / 2}
-                                                      cy={size / 2}
-                                                      r={r}
-                                                      stroke="rgba(255,255,255,0.3)"
-                                                      strokeWidth={stroke}
-                                                      fill="none"
-                                                    />
-                                                    <circle
-                                                      cx={size / 2}
-                                                      cy={size / 2}
-                                                      r={r}
-                                                      stroke="white"
-                                                      strokeWidth={stroke}
-                                                      fill="none"
-                                                      strokeDasharray={c}
-                                                      strokeDashoffset={c - (p / 100) * c}
-                                                      strokeLinecap="round"
-                                                      transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                                                    />
-                                                  </svg>
-                                                  {/* <span className="text-xs text-white font-semibold">{Math.round(p)}%</span> */}
-                                                </div>
-                                              );
-                                            })()}
-                                          </div>
-                                        )}
+                                          ))}
+                                          {items.length > 3 && (
+                                            <div className="px-2 text-xs text-gray-500 font-medium">
+                                              +{items.length - 3}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
                                       </div>
                                     );
-                                  })}
-                                </div>
-                                {(() => {
-                                  const items = Object.entries(reactions)
-                                    .map(([emoji, arr]) => ({
-                                      emoji,
-                                      count: (arr || []).length,
-                                      mine: (arr || []).includes(myId),
-                                      users: (arr || []).map((id) => allUsersMap.get(String(id)) || 'Người dùng'),
-                                    }))
-                                    .filter((x) => x.count > 0)
-                                    .sort((a, b) => b.count - a.count);
-                                  if (items.length === 0) return null;
-                                  return (
-                                    <div
-                                      className={`absolute ${isMeGroup ? 'right-2 -mr-1' : 'left-2 -ml-1'} bottom-1 flex items-center gap-1`}
-                                    >
-                                      <div className="flex items-center bg-white rounded-full shadow-lg border border-gray-200">
-                                        {items.slice(0, 3).map((it, idx) => (
-                                          <div
-                                            key={`${msg._id}-react-group-${idx}`}
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setReactionDetail(
-                                                reactionDetail?.msgId === msg._id && reactionDetail?.emoji === it.emoji
-                                                  ? null
-                                                  : { msgId: msg._id, emoji: it.emoji },
-                                              );
-                                            }}
-                                            className={`flex items-center gap-0.5 py-0.5 rounded-full text-sm cursor-pointer transition-all duration-200 hover:bg-gray-100 active:scale-95 ${it.mine ? 'bg-blue-50' : 'bg-transparent'}`}
-                                            title={`${it.count} người`}
-                                          >
-                                            <span className="text-lg leading-none">{it.emoji}</span>
-                                            {it.count > 1 && (
-                                              <span
-                                                className={`text-xs font-medium ${it.mine ? 'text-blue-600' : 'text-gray-600'}`}
-                                              >
-                                                {it.count}
-                                              </span>
-                                            )}
-                                          </div>
-                                        ))}
-                                        {items.length > 3 && (
-                                          <div className="px-2 text-xs text-gray-500 font-medium">
-                                            +{items.length - 3}
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div className="absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
-                                    </div>
-                                  );
-                                })()}
-                                {reactionDetail && reactionDetail.msgId === msg._id && (
-                                  <>
-                                    <div className="fixed inset-0 z-30" onClick={() => setReactionDetail(null)} />
-                                    <div
-                                      ref={(el) => {
-                                        if (el && reactionDetail.msgId === msg._id) {
-                                          const rect = el.parentElement?.getBoundingClientRect();
-                                          if (rect) {
-                                            const spaceBelow = window.innerHeight - rect.bottom;
-                                            const spaceAbove = rect.top;
-                                            const popoverHeight = 250;
-                                            if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
-                                              el.style.bottom = '100%';
-                                              el.style.top = 'auto';
-                                              el.style.marginBottom = '0.625rem';
-                                              el.style.marginTop = '0';
-                                            } else {
-                                              el.style.top = '100%';
-                                              el.style.bottom = 'auto';
-                                              el.style.marginTop = '0.625rem';
-                                              el.style.marginBottom = '0';
+                                  })()}
+                                  {reactionDetail && reactionDetail.msgId === msg._id && (
+                                    <>
+                                      <div className="fixed inset-0 z-30" onClick={() => setReactionDetail(null)} />
+                                      <div
+                                        ref={(el) => {
+                                          if (el && reactionDetail.msgId === msg._id) {
+                                            const rect = el.parentElement?.getBoundingClientRect();
+                                            if (rect) {
+                                              const spaceBelow = window.innerHeight - rect.bottom;
+                                              const spaceAbove = rect.top;
+                                              const popoverHeight = 250;
+                                              if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
+                                                el.style.bottom = '100%';
+                                                el.style.top = 'auto';
+                                                el.style.marginBottom = '0.625rem';
+                                                el.style.marginTop = '0';
+                                              } else {
+                                                el.style.top = '100%';
+                                                el.style.bottom = 'auto';
+                                                el.style.marginTop = '0.625rem';
+                                                el.style.marginBottom = '0';
+                                              }
                                             }
                                           }
-                                        }
-                                      }}
-                                      className={`absolute ${isMeGroup ? 'right-2' : 'left-2'} z-40`}
-                                    >
-                                      {(() => {
-                                        const users = (reactions[reactionDetail.emoji] || []).map(
-                                          (id) => allUsersMap.get(String(id)) || String(id),
-                                        );
-                                        return (
-                                          <div className="min-w-[11.25rem] max-w-[15rem] px-3 py-2.5 bg-white rounded-xl border border-gray-200 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-                                            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
-                                              <span className="text-2xl">{reactionDetail.emoji}</span>
-                                              <span className="text-sm font-semibold text-gray-700">
-                                                {users.length} người
-                                              </span>
+                                        }}
+                                        className={`absolute ${isMeGroup ? 'right-2' : 'left-2'} z-40`}
+                                      >
+                                        {(() => {
+                                          const users = (reactions[reactionDetail.emoji] || []).map(
+                                            (id) => allUsersMap.get(String(id)) || String(id),
+                                          );
+                                          return (
+                                            <div className="min-w-[11.25rem] max-w-[15rem] px-3 py-2.5 bg-white rounded-xl border border-gray-200 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+                                              <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
+                                                <span className="text-2xl">{reactionDetail.emoji}</span>
+                                                <span className="text-sm font-semibold text-gray-700">
+                                                  {users.length} người
+                                                </span>
+                                              </div>
+                                              {users.length > 0 ? (
+                                                <ul className="space-y-1.5 max-h-48 overflow-y-auto">
+                                                  {users.map((name, idx) => (
+                                                    <li
+                                                      key={`${msg._id}-user-group-${idx}`}
+                                                      className="text-sm text-gray-700 py-1 hover:text-blue-600 transition-colors"
+                                                    >
+                                                      {name}
+                                                    </li>
+                                                  ))}
+                                                </ul>
+                                              ) : (
+                                                <div className="text-sm text-gray-500 py-1">Chưa có ai</div>
+                                              )}
                                             </div>
-                                            {users.length > 0 ? (
-                                              <ul className="space-y-1.5 max-h-48 overflow-y-auto">
-                                                {users.map((name, idx) => (
-                                                  <li
-                                                    key={`${msg._id}-user-group-${idx}`}
-                                                    className="text-sm text-gray-700 py-1 hover:text-blue-600 transition-colors"
-                                                  >
-                                                    {name}
-                                                  </li>
-                                                ))}
-                                              </ul>
-                                            ) : (
-                                              <div className="text-sm text-gray-500 py-1">Chưa có ai</div>
-                                            )}
-                                          </div>
-                                        );
-                                      })()}
+                                          );
+                                        })()}
+                                      </div>
+                                    </>
+                                  )}
+                                  {endRun && (
+                                    <div className={`text-xs mt-2 ${isMeGroup ? 'text-gray-700' : 'text-gray-500'}`}>
+                                      <span className="inline-block px-2 py-1 bg-white rounded-[2rem]">
+                                        {formatTimestamp(
+                                          Number(
+                                            (lastInGroup as unknown as { serverTimestamp?: number }).serverTimestamp ??
+                                              lastInGroup.timestamp,
+                                          ) || 0,
+                                        )}
+                                      </span>
                                     </div>
-                                  </>
-                                )}
-                                {endRun && (
-                                  <div className={`text-xs mt-2 ${isMeGroup ? 'text-gray-700' : 'text-gray-500'}`}>
-                                    <span className="inline-block px-2 py-1 bg-white rounded-[2rem]">
-                                      {formatTimestamp(
-                                        Number(
-                                          (lastInGroup as unknown as { serverTimestamp?: number }).serverTimestamp ??
-                                            lastInGroup.timestamp,
-                                        ) || 0,
-                                      )}
-                                    </span>
-                                  </div>
-                                )}
+                                  )}
+                                </div>
+                                <ReadStatus
+                                  message={lastInGroup}
+                                  isGroup={isGroup}
+                                  isRecalled={!!lastInGroup.isRecalled}
+                                  isMine={isMeGroup}
+                                  isLast={groupIsLast}
+                                  myId={myId}
+                                  allUsersMap={allUsersMap}
+                                  getSenderInfo={getSenderInfo}
+                                  isMobile={isMobile}
+                                  isUploading={groupUploading}
+                                />
                               </div>
-                              <ReadStatus
-                                message={lastInGroup}
-                                isGroup={isGroup}
-                                isRecalled={!!lastInGroup.isRecalled}
-                                isMine={isMeGroup}
-                                isLast={groupIsLast}
-                                myId={myId}
-                                allUsersMap={allUsersMap}
-                                getSenderInfo={getSenderInfo}
-                                isMobile={isMobile}
-                                isUploading={groupUploading}
-                              />
                             </div>
-                          </div>
+                          </React.Fragment>
                         );
                       }
                     }
@@ -964,88 +1019,91 @@ export default function MessageList({
                           return up || sending || blob;
                         });
                         return (
-                          <div
-                            key={`group-file-${msg._id}`}
-                            id={`msg-${msg._id}`}
-                            className={`
+                          <React.Fragment key={`group-file-${msg._id}-frag`}>
+                            {unreadDividerNode}
+                            {timeMarkerNode}
+                            <div
+                              key={`group-file-${msg._id}`}
+                              id={`msg-${msg._id}`}
+                              className={`
                       w-full  sm:max-w-[23rem]
                       flex gap-2 group relative
                       ${isMeGroup ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
                       ${isGrouped ? 'mt-1' : 'mt-4'}
                       ${groupIsLast ? 'mb-8' : ''}
                     `}
-                          >
-                            {!isMeGroup && (
-                              <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
-                                {senderInfo.avatar ? (
-                                  <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
-                                    <Image
-                                      width={38}
-                                      height={38}
-                                      src={getProxyUrl(senderInfo.avatar)}
-                                      alt={senderInfo.name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                ) : (
-                                  <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                                    <Image
-                                      src="/logo/avata.webp"
-                                      alt={senderInfo.name || 'User'}
-                                      width={38}
-                                      height={38}
-                                      className="w-full h-full rounded-full object-cover"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            <div className={`flex flex-col min-w-0 ${isMeGroup ? '' : 'items-start'}`}>
-                              {isGroup && !isGrouped && !isRecalled && !isMeGroup && (
-                                <p className={`text-sm  px-2  ${isMeGroup ? 'text-gray-600' : 'text-gray-600'}`}>
-                                  {allUsersMap.get(senderInfo._id) || senderInfo.name}
-                                </p>
-                              )}
-                              <div
-                                className={`py-2 rounded-lg max-w-[70vw] sm:max-w-[18rem] mt-1  relative ${hasReactions ? 'mb-4' : ''}`}
-                                onClick={() => {
-                                  setActiveMoreId(msg._id);
-                                  setReactionDetail(null);
-                                }}
-                              >
-                                {!isRecalled && (
-                                  <>
-                                    {!isMobile && (
-                                      <>
-                                        <button
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            onContextMenu(e, msg);
-                                          }}
-                                          className={`absolute top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-2' : 'left-full ml-2'} opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto`}
-                                          aria-label="Mở menu"
-                                          title="Thêm"
-                                        >
-                                          <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
-                                        </button>
-                                      </>
-                                    )}
-                                    {!isMobile && (
-                                      <ReactionButton
-                                        isMine={isMeGroup}
-                                        visible={activeMoreId === msg._id}
-                                        onPick={(emoji) => {
-                                          onToggleReaction?.(msg, emoji);
-                                          setActiveMoreId(null);
-                                        }}
-                                        className={`${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} ${
-                                          activeMoreId === msg._id
-                                            ? 'opacity-100 pointer-events-auto'
-                                            : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                        }`}
+                            >
+                              {!isMeGroup && (
+                                <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
+                                  {senderInfo.avatar ? (
+                                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                                      <Image
+                                        width={38}
+                                        height={38}
+                                        src={getProxyUrl(senderInfo.avatar)}
+                                        alt={senderInfo.name}
+                                        className="w-full h-full object-cover"
                                       />
-                                    )}
-                                    {/* {!isMobile && (
+                                    </div>
+                                  ) : (
+                                    <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                                      <Image
+                                        src="/logo/avata.webp"
+                                        alt={senderInfo.name || 'User'}
+                                        width={38}
+                                        height={38}
+                                        className="w-full h-full rounded-full object-cover"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              <div className={`flex flex-col min-w-0 ${isMeGroup ? '' : 'items-start'}`}>
+                                {isGroup && !isGrouped && !isRecalled && !isMeGroup && (
+                                  <p className={`text-sm  px-2  ${isMeGroup ? 'text-gray-600' : 'text-gray-600'}`}>
+                                    {allUsersMap.get(senderInfo._id) || senderInfo.name}
+                                  </p>
+                                )}
+                                <div
+                                  className={`py-2 rounded-lg max-w-[70vw] sm:max-w-[18rem] mt-1  relative ${hasReactions ? 'mb-4' : ''}`}
+                                  onClick={() => {
+                                    setActiveMoreId(msg._id);
+                                    setReactionDetail(null);
+                                  }}
+                                >
+                                  {!isRecalled && (
+                                    <>
+                                      {!isMobile && (
+                                        <>
+                                          <button
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              onContextMenu(e, msg);
+                                            }}
+                                            className={`absolute top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMeGroup ? 'right-full mr-2' : 'left-full ml-2'} opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto`}
+                                            aria-label="Mở menu"
+                                            title="Thêm"
+                                          >
+                                            <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
+                                          </button>
+                                        </>
+                                      )}
+                                      {!isMobile && (
+                                        <ReactionButton
+                                          isMine={isMeGroup}
+                                          visible={activeMoreId === msg._id}
+                                          onPick={(emoji) => {
+                                            onToggleReaction?.(msg, emoji);
+                                            setActiveMoreId(null);
+                                          }}
+                                          className={`${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} ${
+                                            activeMoreId === msg._id
+                                              ? 'opacity-100 pointer-events-auto'
+                                              : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
+                                          }`}
+                                        />
+                                      )}
+                                      {/* {!isMobile && (
                                   <FolderButton
                                     roomId={String(msg.roomId)}
                                     messageId={String(msg._id)}
@@ -1089,264 +1147,266 @@ export default function MessageList({
                                     }}
                                   />
                                 )} */}
-                                  </>
-                                )}
-                                <div className="space-y-2">
-                                  {fileGroup.map((m, idx) => (
-                                    <a
-                                      key={`${m._id}-${idx}`}
-                                      id={`msg-${m._id}`}
-                                      href={getProxyUrl(String(m.fileUrl || ''), true)}
-                                      download={m.fileName || 'download'}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className={`relative flex items-center bg-white gap-3 p-2 rounded-xl border cursor-pointer ${
-                                        highlightedMsgId === m._id
-                                          ? 'bg-yellow-50 border-yellow-300'
-                                          : 'border-gray-200 hover:bg-gray-50'
-                                      } ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
-                                      onClick={(e) => {
-                                        const prog = uploadingFiles[m._id];
-                                        if (prog !== undefined) e.preventDefault();
-                                      }}
-                                      onContextMenu={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        onContextMenu(e, m);
-                                      }}
-                                      onTouchStart={(e) => {
-                                        try {
-                                          if (m.isRecalled) return;
-                                          longPressTriggeredRef.current = false;
-                                          if (longPressTimerRef.current != null) {
-                                            clearTimeout(longPressTimerRef.current);
-                                            longPressTimerRef.current = null;
-                                          }
-                                          const t = e.touches && e.touches[0];
-                                          const x0 = t ? t.clientX : 0;
-                                          const y0 = t ? t.clientY : 0;
-                                          const el = e.currentTarget as HTMLElement;
-                                          setLongPressActiveId(m._id);
-                                          longPressTimerRef.current = window.setTimeout(() => {
-                                            longPressTriggeredRef.current = true;
-                                            setActiveMoreId(m._id);
-                                            setReactionDetail(null);
-                                            onMobileLongPress?.(m, el, x0, y0);
-                                          }, 420);
-                                        } catch {}
-                                      }}
-                                      onTouchEnd={(e) => {
-                                        try {
-                                          if (longPressTimerRef.current != null) {
-                                            clearTimeout(longPressTimerRef.current);
-                                            longPressTimerRef.current = null;
-                                          }
-                                          setLongPressActiveId(null);
-                                          if (longPressTriggeredRef.current) {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                          }
-                                        } catch {}
-                                      }}
-                                      onTouchMove={() => {
-                                        try {
-                                          if (longPressTimerRef.current != null) {
-                                            clearTimeout(longPressTimerRef.current);
-                                            longPressTimerRef.current = null;
-                                          }
-                                          setLongPressActiveId(null);
-                                        } catch {}
-                                      }}
-                                      aria-disabled={uploadingFiles[m._id] !== undefined ? true : undefined}
-                                    >
-                                      <div className="p-2 bg-blue-600 rounded-xl">
-                                        <HiOutlineDocumentText className="w-5 h-5 text-white" />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-gray-800 truncate">
-                                          {m.fileName || 'Tệp đính kèm'}
-                                        </p>
-                                        <p className="text-xs text-gray-500 truncate">Nhấn để tải xuống</p>
-                                      </div>
-                                      {uploadingFiles[m._id] !== undefined && (
-                                        <div className="absolute inset-0 bg-black/60 text-white flex items-center justify-center">
-                                          {(() => {
-                                            const size = 32;
-                                            const stroke = 3;
-                                            const r = (size - stroke) / 2;
-                                            const c = 2 * Math.PI * r;
-                                            const p = Math.max(0, Math.min(100, Number(uploadingFiles[m._id] || 0)));
-                                            return (
-                                              <div className="flex flex-col items-center">
-                                                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                                                  <circle
-                                                    cx={size / 2}
-                                                    cy={size / 2}
-                                                    r={r}
-                                                    stroke="rgba(255,255,255,0.35)"
-                                                    strokeWidth={stroke}
-                                                    fill="none"
-                                                  />
-                                                  <circle
-                                                    cx={size / 2}
-                                                    cy={size / 2}
-                                                    r={r}
-                                                    stroke="white"
-                                                    strokeWidth={stroke}
-                                                    fill="none"
-                                                    strokeDasharray={c}
-                                                    strokeDashoffset={c - (p / 100) * c}
-                                                    strokeLinecap="round"
-                                                    transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                                                  />
-                                                </svg>
-                                                <span className="text-xs font-semibold mt-1">{Math.round(p)}%</span>
-                                              </div>
-                                            );
-                                          })()}
-                                        </div>
-                                      )}
-                                    </a>
-                                  ))}
-                                </div>
-                                {(() => {
-                                  const items = Object.entries(reactions)
-                                    .map(([emoji, arr]) => ({
-                                      emoji,
-                                      count: (arr || []).length,
-                                      mine: (arr || []).includes(myId),
-                                      users: (arr || []).map((id) => allUsersMap.get(String(id)) || 'Người dùng'),
-                                    }))
-                                    .filter((x) => x.count > 0)
-                                    .sort((a, b) => b.count - a.count);
-                                  if (items.length === 0) return null;
-                                  return (
-                                    <div
-                                      className={`absolute ${isMeGroup ? 'right-2 -mr-1' : 'left-2 -ml-1'} bottom-1 flex items-center gap-1`}
-                                    >
-                                      <div className="flex items-center bg-white rounded-full shadow-lg border border-gray-200">
-                                        {items.slice(0, 3).map((it, idx) => (
-                                          <div
-                                            key={`${msg._id}-react-filegroup-${idx}`}
-                                            onClick={(e) => {
+                                    </>
+                                  )}
+                                  <div className="space-y-2">
+                                    {fileGroup.map((m, idx) => (
+                                      <a
+                                        key={`${m._id}-${idx}`}
+                                        id={`msg-${m._id}`}
+                                        href={getProxyUrl(String(m.fileUrl || ''), true)}
+                                        download={m.fileName || 'download'}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className={`relative flex items-center bg-white gap-3 p-2 rounded-xl border cursor-pointer ${
+                                          highlightedMsgId === m._id
+                                            ? 'bg-yellow-50 border-yellow-300'
+                                            : 'border-gray-200 hover:bg-gray-50'
+                                        } ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
+                                        onClick={(e) => {
+                                          const prog = uploadingFiles[m._id];
+                                          if (prog !== undefined) e.preventDefault();
+                                        }}
+                                        onContextMenu={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          onContextMenu(e, m);
+                                        }}
+                                        onTouchStart={(e) => {
+                                          try {
+                                            if (m.isRecalled) return;
+                                            longPressTriggeredRef.current = false;
+                                            if (longPressTimerRef.current != null) {
+                                              clearTimeout(longPressTimerRef.current);
+                                              longPressTimerRef.current = null;
+                                            }
+                                            const t = e.touches && e.touches[0];
+                                            const x0 = t ? t.clientX : 0;
+                                            const y0 = t ? t.clientY : 0;
+                                            const el = e.currentTarget as HTMLElement;
+                                            setLongPressActiveId(m._id);
+                                            longPressTimerRef.current = window.setTimeout(() => {
+                                              longPressTriggeredRef.current = true;
+                                              setActiveMoreId(m._id);
+                                              setReactionDetail(null);
+                                              onMobileLongPress?.(m, el, x0, y0);
+                                            }, 420);
+                                          } catch {}
+                                        }}
+                                        onTouchEnd={(e) => {
+                                          try {
+                                            if (longPressTimerRef.current != null) {
+                                              clearTimeout(longPressTimerRef.current);
+                                              longPressTimerRef.current = null;
+                                            }
+                                            setLongPressActiveId(null);
+                                            if (longPressTriggeredRef.current) {
+                                              e.preventDefault();
                                               e.stopPropagation();
-                                              setReactionDetail(
-                                                reactionDetail?.msgId === msg._id && reactionDetail?.emoji === it.emoji
-                                                  ? null
-                                                  : { msgId: msg._id, emoji: it.emoji },
+                                            }
+                                          } catch {}
+                                        }}
+                                        onTouchMove={() => {
+                                          try {
+                                            if (longPressTimerRef.current != null) {
+                                              clearTimeout(longPressTimerRef.current);
+                                              longPressTimerRef.current = null;
+                                            }
+                                            setLongPressActiveId(null);
+                                          } catch {}
+                                        }}
+                                        aria-disabled={uploadingFiles[m._id] !== undefined ? true : undefined}
+                                      >
+                                        <div className="p-2 bg-blue-600 rounded-xl">
+                                          <HiOutlineDocumentText className="w-5 h-5 text-white" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm font-semibold text-gray-800 truncate">
+                                            {m.fileName || 'Tệp đính kèm'}
+                                          </p>
+                                          <p className="text-xs text-gray-500 truncate">Nhấn để tải xuống</p>
+                                        </div>
+                                        {uploadingFiles[m._id] !== undefined && (
+                                          <div className="absolute inset-0 bg-black/60 text-white flex items-center justify-center">
+                                            {(() => {
+                                              const size = 32;
+                                              const stroke = 3;
+                                              const r = (size - stroke) / 2;
+                                              const c = 2 * Math.PI * r;
+                                              const p = Math.max(0, Math.min(100, Number(uploadingFiles[m._id] || 0)));
+                                              return (
+                                                <div className="flex flex-col items-center">
+                                                  <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                                                    <circle
+                                                      cx={size / 2}
+                                                      cy={size / 2}
+                                                      r={r}
+                                                      stroke="rgba(255,255,255,0.35)"
+                                                      strokeWidth={stroke}
+                                                      fill="none"
+                                                    />
+                                                    <circle
+                                                      cx={size / 2}
+                                                      cy={size / 2}
+                                                      r={r}
+                                                      stroke="white"
+                                                      strokeWidth={stroke}
+                                                      fill="none"
+                                                      strokeDasharray={c}
+                                                      strokeDashoffset={c - (p / 100) * c}
+                                                      strokeLinecap="round"
+                                                      transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                                                    />
+                                                  </svg>
+                                                  <span className="text-xs font-semibold mt-1">{Math.round(p)}%</span>
+                                                </div>
                                               );
-                                            }}
-                                            className={`flex items-center gap-0.5 py-0.5 rounded-full text-sm cursor-pointer transition-all duration-200 hover:bg-gray-100 active:scale-95 ${it.mine ? 'bg-blue-50' : 'bg-transparent'}`}
-                                            title={`${it.count} người`}
-                                          >
-                                            <span className="text-lg leading-none">{it.emoji}</span>
-                                            {it.count > 1 && (
-                                              <span
-                                                className={`text-xs font-medium ${it.mine ? 'text-blue-600' : 'text-gray-600'}`}
-                                              >
-                                                {it.count}
-                                              </span>
-                                            )}
-                                          </div>
-                                        ))}
-                                        {items.length > 3 && (
-                                          <div className="px-2 text-xs text-gray-500 font-medium">
-                                            +{items.length - 3}
+                                            })()}
                                           </div>
                                         )}
+                                      </a>
+                                    ))}
+                                  </div>
+                                  {(() => {
+                                    const items = Object.entries(reactions)
+                                      .map(([emoji, arr]) => ({
+                                        emoji,
+                                        count: (arr || []).length,
+                                        mine: (arr || []).includes(myId),
+                                        users: (arr || []).map((id) => allUsersMap.get(String(id)) || 'Người dùng'),
+                                      }))
+                                      .filter((x) => x.count > 0)
+                                      .sort((a, b) => b.count - a.count);
+                                    if (items.length === 0) return null;
+                                    return (
+                                      <div
+                                        className={`absolute ${isMeGroup ? 'right-2 -mr-1' : 'left-2 -ml-1'} bottom-1 flex items-center gap-1`}
+                                      >
+                                        <div className="flex items-center bg-white rounded-full shadow-lg border border-gray-200">
+                                          {items.slice(0, 3).map((it, idx) => (
+                                            <div
+                                              key={`${msg._id}-react-filegroup-${idx}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setReactionDetail(
+                                                  reactionDetail?.msgId === msg._id &&
+                                                    reactionDetail?.emoji === it.emoji
+                                                    ? null
+                                                    : { msgId: msg._id, emoji: it.emoji },
+                                                );
+                                              }}
+                                              className={`flex items-center gap-0.5 py-0.5 rounded-full text-sm cursor-pointer transition-all duration-200 hover:bg-gray-100 active:scale-95 ${it.mine ? 'bg-blue-50' : 'bg-transparent'}`}
+                                              title={`${it.count} người`}
+                                            >
+                                              <span className="text-lg leading-none">{it.emoji}</span>
+                                              {it.count > 1 && (
+                                                <span
+                                                  className={`text-xs font-medium ${it.mine ? 'text-blue-600' : 'text-gray-600'}`}
+                                                >
+                                                  {it.count}
+                                                </span>
+                                              )}
+                                            </div>
+                                          ))}
+                                          {items.length > 3 && (
+                                            <div className="px-2 text-xs text-gray-500 font-medium">
+                                              +{items.length - 3}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
                                       </div>
-                                      <div className="absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
-                                    </div>
-                                  );
-                                })()}
-                                {reactionDetail && reactionDetail.msgId === msg._id && (
-                                  <>
-                                    <div className="fixed inset-0 z-30" onClick={() => setReactionDetail(null)} />
-                                    <div
-                                      ref={(el) => {
-                                        if (el && reactionDetail.msgId === msg._id) {
-                                          const rect = el.parentElement?.getBoundingClientRect();
-                                          if (rect) {
-                                            const spaceBelow = window.innerHeight - rect.bottom;
-                                            const spaceAbove = rect.top;
-                                            const popoverHeight = 250;
-                                            if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
-                                              el.style.bottom = '100%';
-                                              el.style.top = 'auto';
-                                              el.style.marginBottom = '0.625rem';
-                                              el.style.marginTop = '0';
-                                            } else {
-                                              el.style.top = '100%';
-                                              el.style.bottom = 'auto';
-                                              el.style.marginTop = '0.625rem';
-                                              el.style.marginBottom = '0';
+                                    );
+                                  })()}
+                                  {reactionDetail && reactionDetail.msgId === msg._id && (
+                                    <>
+                                      <div className="fixed inset-0 z-30" onClick={() => setReactionDetail(null)} />
+                                      <div
+                                        ref={(el) => {
+                                          if (el && reactionDetail.msgId === msg._id) {
+                                            const rect = el.parentElement?.getBoundingClientRect();
+                                            if (rect) {
+                                              const spaceBelow = window.innerHeight - rect.bottom;
+                                              const spaceAbove = rect.top;
+                                              const popoverHeight = 250;
+                                              if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
+                                                el.style.bottom = '100%';
+                                                el.style.top = 'auto';
+                                                el.style.marginBottom = '0.625rem';
+                                                el.style.marginTop = '0';
+                                              } else {
+                                                el.style.top = '100%';
+                                                el.style.bottom = 'auto';
+                                                el.style.marginTop = '0.625rem';
+                                                el.style.marginBottom = '0';
+                                              }
                                             }
                                           }
-                                        }
-                                      }}
-                                      className={`absolute ${isMeGroup ? 'right-2' : 'left-2'} z-40`}
-                                    >
-                                      {(() => {
-                                        const users = (reactions[reactionDetail.emoji] || []).map(
-                                          (id) => allUsersMap.get(String(id)) || String(id),
-                                        );
-                                        return (
-                                          <div className="min-w-[11.25rem] max-w-[15rem] px-3 py-2.5 bg-white rounded-xl border border-gray-200 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-                                            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
-                                              <span className="text-2xl">{reactionDetail.emoji}</span>
-                                              <span className="text-sm font-semibold text-gray-700">
-                                                {users.length} người
-                                              </span>
+                                        }}
+                                        className={`absolute ${isMeGroup ? 'right-2' : 'left-2'} z-40`}
+                                      >
+                                        {(() => {
+                                          const users = (reactions[reactionDetail.emoji] || []).map(
+                                            (id) => allUsersMap.get(String(id)) || String(id),
+                                          );
+                                          return (
+                                            <div className="min-w-[11.25rem] max-w-[15rem] px-3 py-2.5 bg-white rounded-xl border border-gray-200 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+                                              <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
+                                                <span className="text-2xl">{reactionDetail.emoji}</span>
+                                                <span className="text-sm font-semibold text-gray-700">
+                                                  {users.length} người
+                                                </span>
+                                              </div>
+                                              {users.length > 0 ? (
+                                                <ul className="space-y-1.5 max-h-48 overflow-y-auto">
+                                                  {users.map((name, idx) => (
+                                                    <li
+                                                      key={`${msg._id}-user-filegroup-${idx}`}
+                                                      className="text-sm text-gray-700 py-1 hover:text-blue-600 transition-colors"
+                                                    >
+                                                      {name}
+                                                    </li>
+                                                  ))}
+                                                </ul>
+                                              ) : (
+                                                <div className="text-sm text-gray-500 py-1">Chưa có ai</div>
+                                              )}
                                             </div>
-                                            {users.length > 0 ? (
-                                              <ul className="space-y-1.5 max-h-48 overflow-y-auto">
-                                                {users.map((name, idx) => (
-                                                  <li
-                                                    key={`${msg._id}-user-filegroup-${idx}`}
-                                                    className="text-sm text-gray-700 py-1 hover:text-blue-600 transition-colors"
-                                                  >
-                                                    {name}
-                                                  </li>
-                                                ))}
-                                              </ul>
-                                            ) : (
-                                              <div className="text-sm text-gray-500 py-1">Chưa có ai</div>
-                                            )}
-                                          </div>
-                                        );
-                                      })()}
+                                          );
+                                        })()}
+                                      </div>
+                                    </>
+                                  )}
+                                  {endRun && (
+                                    <div
+                                      className={`text-xs mt-2 block ${isMeGroup ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
+                                    >
+                                      <span>
+                                        {formatTimestamp(
+                                          Number(
+                                            (lastInGroup as unknown as { serverTimestamp?: number }).serverTimestamp ??
+                                              lastInGroup.timestamp,
+                                          ) || 0,
+                                        )}
+                                      </span>
                                     </div>
-                                  </>
-                                )}
-                                {endRun && (
-                                  <div
-                                    className={`text-xs mt-2 block ${isMeGroup ? 'text-gray-700' : 'text-gray-500'} flex items-center gap-2`}
-                                  >
-                                    <span>
-                                      {formatTimestamp(
-                                        Number(
-                                          (lastInGroup as unknown as { serverTimestamp?: number }).serverTimestamp ??
-                                            lastInGroup.timestamp,
-                                        ) || 0,
-                                      )}
-                                    </span>
-                                  </div>
-                                )}
+                                  )}
+                                </div>
+                                <ReadStatus
+                                  message={lastInGroup}
+                                  isGroup={isGroup}
+                                  isRecalled={!!lastInGroup.isRecalled}
+                                  isMine={isMeGroup}
+                                  isLast={groupIsLast}
+                                  myId={myId}
+                                  allUsersMap={allUsersMap}
+                                  getSenderInfo={getSenderInfo}
+                                  isMobile={isMobile}
+                                  isUploading={groupUploading}
+                                />
                               </div>
-                              <ReadStatus
-                                message={lastInGroup}
-                                isGroup={isGroup}
-                                isRecalled={!!lastInGroup.isRecalled}
-                                isMine={isMeGroup}
-                                isLast={groupIsLast}
-                                myId={myId}
-                                allUsersMap={allUsersMap}
-                                getSenderInfo={getSenderInfo}
-                                isMobile={isMobile}
-                                isUploading={groupUploading}
-                              />
                             </div>
-                          </div>
+                          </React.Fragment>
                         );
                       }
                     }
@@ -1356,8 +1416,7 @@ export default function MessageList({
                       const isCall = !!(msg as Message & { callType?: 'voice' | 'video' }).callType;
                       const rawContentLower = (msg.content || '').toLowerCase();
                       const isReminder =
-                        rawContentLower.includes('đến giờ lịch hẹn') ||
-                        rawContentLower.includes('đã tạo lịch hẹn');
+                        rawContentLower.includes('đến giờ lịch hẹn') || rawContentLower.includes('đã tạo lịch hẹn');
 
                       if (!isCall && !isReminder) {
                         const prev = index > 0 ? msgs[index - 1] : null;
@@ -1462,37 +1521,41 @@ export default function MessageList({
                             : dt.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
                         const timeLabel = dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                         return (
-                          <div
-                            key={msg._id}
-                            id={`msg-${msg._id}`} // ✅ Đảm bảo ID luôn có
-                            data-message-id={msg._id}
-                            className="flex justify-center my-3"
-                          >
+                          <React.Fragment key={`notify-call-${msg._id}-frag`}>
+                            {unreadDividerNode}
+                            {timeMarkerNode}
                             <div
-                              className={`px-4 p-1.5  bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
+                              key={msg._id}
+                              id={`msg-${msg._id}`}
+                              data-message-id={msg._id}
+                              className="flex justify-center my-3"
                             >
-                              <div className="flex items-center gap-2">
-                                {iconType}
-                                {iconDir}
-                                <div>
-                                  <p className="text-xs text-gray-500 truncate">{`${title} – ${detail}`}</p>
-                                  <p className="text-xs text-gray-500 truncate">{` ${dateLabel} • ${timeLabel}`}</p>
-                                </div>
+                              <div
+                                className={`px-4 p-1.5  bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {iconType}
+                                  {iconDir}
+                                  <div>
+                                    <p className="text-xs text-gray-500 truncate">{`${title} – ${detail}`}</p>
+                                    <p className="text-xs text-gray-500 truncate">{` ${dateLabel} • ${timeLabel}`}</p>
+                                  </div>
 
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const t = callType === 'video' ? 'video' : 'voice';
-                                    const evt = new CustomEvent('startCall', { detail: { type: t } });
-                                    window.dispatchEvent(evt);
-                                  }}
-                                  className="ml-2 px-2 py-1 text-xs font-semibold rounded-lg border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
-                                >
-                                  Gọi lại
-                                </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const t = callType === 'video' ? 'video' : 'voice';
+                                      const evt = new CustomEvent('startCall', { detail: { type: t } });
+                                      window.dispatchEvent(evt);
+                                    }}
+                                    className="ml-2 px-2 py-1 text-xs font-semibold rounded-lg border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
+                                  >
+                                    Gọi lại
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          </React.Fragment>
                         );
                       }
                       const related = msg.replyToMessageId
@@ -1568,20 +1631,24 @@ export default function MessageList({
                         );
                       }
                       const pillNode = (
-                        <div
-                          key={`pill-${msg._id}`}
-                          id={`msg-${msg._id}`}
-                          className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
-                        >
+                        <React.Fragment key={`pill-${msg._id}-frag`}>
+                          {unreadDividerNode}
+                          {timeMarkerNode}
                           <div
-                            className={`px-4 p-1.5 mb-2 bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
+                            key={`pill-${msg._id}`}
+                            id={`msg-${msg._id}`}
+                            className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
                           >
-                            <div className="flex items-center gap-2">
-                              {icon}
-                              {displayNode}
+                            <div
+                              className={`px-4 p-1.5 mb-2 bg-white rounded-full max-w-[80vw]  sm:max-w-[28rem] overflow-hidden ${highlightedMsgId === msg._id ? 'bg-yellow-50' : 'bg-gray-100'}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {icon}
+                                {displayNode}
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        </React.Fragment>
                       );
                       if (isDue) {
                         if (related?.type === 'reminder') {
@@ -1640,20 +1707,20 @@ export default function MessageList({
                           </React.Fragment>
                         );
                       }
-                  if (related?.type === 'reminder' && isCreate) {
-                    return (
-                      <div key={`notify-${msg._id}-create`} className="flex justify-center my-4">
-                        <ReminderCard
-                          variant="create"
-                          title={related.content || ''}
-                          date={new Date(related.reminderAt || related.timestamp)}
-                          senderName={senderInfo.name}
-                          senderAvatar={senderInfo.avatar}
-                          isMe={isMe}
-                        />
-                      </div>
-                    );
-                  }
+                      if (related?.type === 'reminder' && isCreate) {
+                        return (
+                          <div key={`notify-${msg._id}-create`} className="flex justify-center my-4">
+                            <ReminderCard
+                              variant="create"
+                              title={related.content || ''}
+                              date={new Date(related.reminderAt || related.timestamp)}
+                              senderName={senderInfo.name}
+                              senderAvatar={senderInfo.avatar}
+                              isMe={isMe}
+                            />
+                          </div>
+                        );
+                      }
 
                       if (related?.type === 'reminder' && (isEdit || isDelete)) {
                         return (
@@ -1742,23 +1809,22 @@ export default function MessageList({
 
                     if (msg.type === 'reminder') {
                       return (
-                        <div key={msg._id} id={`msg-${msg._id}`} className="flex justify-center mt-4">
-                          <div onClick={() => setDetailMsg(msg)}>
-                            <ReminderCard
-                              variant="message"
-                              title={msg.content || ''}
-                              date={
-                                new Date(
-                                  (msg as Message & { reminderAt?: number }).reminderAt || msg.timestamp,
-                                )
-                              }
-                              senderName={senderInfo.name}
-                              senderAvatar={senderInfo.avatar}
-                              isMe={isMe}
-                              highlighted={highlightedMsgId === msg._id}
-                            />
+                        <React.Fragment key={`reminder-${msg._id}-frag`}>
+                          {timeMarkerNode}
+                          <div key={msg._id} id={`msg-${msg._id}`} className="flex justify-center mt-4">
+                            <div onClick={() => setDetailMsg(msg)}>
+                              <ReminderCard
+                                variant="message"
+                                title={msg.content || ''}
+                                date={new Date((msg as Message & { reminderAt?: number }).reminderAt || msg.timestamp)}
+                                senderName={senderInfo.name}
+                                senderAvatar={senderInfo.avatar}
+                                isMe={isMe}
+                                highlighted={highlightedMsgId === msg._id}
+                              />
+                            </div>
                           </div>
-                        </div>
+                        </React.Fragment>
                       );
                     }
 
@@ -1768,125 +1834,131 @@ export default function MessageList({
                       const votes = (msg.pollVotes || {}) as Record<string, string[]>;
                       const locked = !!msg.isPollLocked;
                       return (
-                        <div
-                          key={msg._id}
-                          id={`msg-${msg._id}`}
-                          className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
-                        >
+                        <React.Fragment key={`poll-${msg._id}-frag`}>
+                          {timeMarkerNode}
                           <div
-                            className={`w-full max-w-[18rem] p-3 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
-                            onClick={() => setDetailMsg(msg)}
+                            key={msg._id}
+                            id={`msg-${msg._id}`}
+                            className={`flex justify-center mt-3 ${isLastMsg ? 'mb-4' : 'mb-3'}`}
                           >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <p className="text-base font-semibold text-gray-900 break-words truncate">
-                                  {msg.content || msg.pollQuestion || 'Bình chọn'}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {/* {typeof msg.isPinned === 'boolean' && onPinMessage && ( */}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onPinMessage?.(msg);
-                                  }}
-                                  className="px-2 py-1 text-xs font-semibold rounded-lg 
-                             border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
-                                >
-                                  {msg.isPinned ? 'Bỏ ghim' : 'Ghim'}
-                                </button>
-                                {/* )} */}
-                              </div>
-                            </div>
-                            {locked && (
-                              <p className="text-xs text-gray-500 mt-2">
-                                Kết thúc lúc{' '}
-                                {new Date(msg.pollLockedAt || msg.editedAt || msg.timestamp).toLocaleString('vi-VN')}
-                              </p>
-                            )}
-                            <p className="text-xs text-gray-500 mt-1">Chọn nhiều phương án</p>
-                            <button
+                            <div
+                              className={`w-full max-w-[18rem] p-3 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
                               onClick={() => setDetailMsg(msg)}
-                              className="text-xs text-blue-600 hover:underline mt-1"
                             >
-                              {(() => {
-                                const userIds = new Set<string>();
-                                let totalVotes = 0;
-                                (msg.pollOptions || []).forEach((opt) => {
-                                  const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
-                                  totalVotes += arr.length;
-                                  arr.forEach((id) => userIds.add(String(id)));
-                                });
-                                return `${userIds.size} người bình chọn, ${totalVotes} lượt bình chọn`;
-                              })()}
-                            </button>
-                            <div className="mt-3 space-y-2">
-                              {(() => {
-                                const totalVotes = options.reduce((acc, opt) => {
-                                  const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
-                                  return acc + arr.length;
-                                }, 0);
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <p className="text-base font-semibold text-gray-900 break-words truncate">
+                                    {msg.content || msg.pollQuestion || 'Bình chọn'}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {/* {typeof msg.isPinned === 'boolean' && onPinMessage && ( */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onPinMessage?.(msg);
+                                    }}
+                                    className="px-2 py-1 text-xs font-semibold rounded-lg 
+                             border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
+                                  >
+                                    {msg.isPinned ? 'Bỏ ghim' : 'Ghim'}
+                                  </button>
+                                  {/* )} */}
+                                </div>
+                              </div>
+                              {locked && (
+                                <p className="text-xs text-gray-500 mt-2">
+                                  Kết thúc lúc{' '}
+                                  {new Date(msg.pollLockedAt || msg.editedAt || msg.timestamp).toLocaleString('vi-VN')}
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-500 mt-1">Chọn nhiều phương án</p>
+                              <button
+                                onClick={() => setDetailMsg(msg)}
+                                className="text-xs text-blue-600 hover:underline mt-1"
+                              >
+                                {(() => {
+                                  const userIds = new Set<string>();
+                                  let totalVotes = 0;
+                                  (msg.pollOptions || []).forEach((opt) => {
+                                    const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
+                                    totalVotes += arr.length;
+                                    arr.forEach((id) => userIds.add(String(id)));
+                                  });
+                                  return `${userIds.size} người bình chọn, ${totalVotes} lượt bình chọn`;
+                                })()}
+                              </button>
+                              <div className="mt-3 space-y-2">
+                                {(() => {
+                                  const totalVotes = options.reduce((acc, opt) => {
+                                    const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
+                                    return acc + arr.length;
+                                  }, 0);
 
-                                return options.map((opt, idx) => {
-                                  const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
-                                  const count = arr.length;
-                                  const voted = arr.includes(myId);
-                                  const percent = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
+                                  return options.map((opt, idx) => {
+                                    const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
+                                    const count = arr.length;
+                                    const voted = arr.includes(myId);
+                                    const percent = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
 
-                                  return (
-                                    <button
-                                      key={`${String(msg._id)}-${idx}`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (!isMobile) onOpenChatInfoSection?.('poll');
-                                        setDetailMsg(msg);
-                                      }}
-                                      className={`w-full cursor-pointer bg-gray-100  relative overflow-hidden px-2 py-1 rounded-[5px]  text-left transition-colors
+                                    return (
+                                      <button
+                                        key={`${String(msg._id)}-${idx}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (!isMobile) onOpenChatInfoSection?.('poll');
+                                          setDetailMsg(msg);
+                                        }}
+                                        className={`w-full cursor-pointer bg-gray-100  relative overflow-hidden px-2 py-1 rounded-[5px]  text-left transition-colors
                                    
                                   `}
-                                    >
-                                      <div
-                                        className={`absolute top-0 left-0 bottom-0 transition-all duration-500 ease-out ${voted ? 'bg-blue-200' : 'bg-blue-200'}`}
-                                        style={{ width: `${percent}%` }}
-                                      />
-                                      <div className="flex items-center justify-between  relative z-10">
-                                        <span className="truncate text-[12px]">{opt}</span>
-                                        <span className="text-sm">{count}</span>
-                                      </div>
-                                    </button>
-                                  );
-                                });
-                              })()}
-                            </div>
-                            <div className="pt-2">
-                              <button
-                                onClick={() => {
-                                  if (!isMobile) onOpenChatInfoSection?.('poll');
-                                  setDetailMsg(msg);
-                                }}
-                                className="w-full cursor-pointer px-2 py-1 mt-1 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
-                              >
-                                {locked ? 'Xem lựa chọn' : 'Đổi lựa chọn'}
-                              </button>
-                            </div>
+                                      >
+                                        <div
+                                          className={`absolute top-0 left-0 bottom-0 transition-all duration-500 ease-out ${voted ? 'bg-blue-200' : 'bg-blue-200'}`}
+                                          style={{ width: `${percent}%` }}
+                                        />
+                                        <div className="flex items-center justify-between  relative z-10">
+                                          <span className="truncate text-[12px]">{opt}</span>
+                                          <span className="text-sm">{count}</span>
+                                        </div>
+                                      </button>
+                                    );
+                                  });
+                                })()}
+                              </div>
+                              <div className="pt-2">
+                                <button
+                                  onClick={() => {
+                                    if (!isMobile) onOpenChatInfoSection?.('poll');
+                                    setDetailMsg(msg);
+                                  }}
+                                  className="w-full cursor-pointer px-2 py-1 mt-1 text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 font-semibold text-sm"
+                                >
+                                  {locked ? 'Xem lựa chọn' : 'Đổi lựa chọn'}
+                                </button>
+                              </div>
 
-                            {/* Chỉ cho phép bình chọn trong modal: bỏ thêm lựa chọn inline */}
+                              {/* Chỉ cho phép bình chọn trong modal: bỏ thêm lựa chọn inline */}
+                            </div>
                           </div>
-                        </div>
+                        </React.Fragment>
                       );
                     }
 
                     const senderName = allUsersMap.get(senderInfo._id) || senderInfo.name;
 
                     return (
-                      <div
-                        key={msg._id}
-                        id={`msg-${msg._id}`}
-                        onContextMenu={(e) => {
-                          e.preventDefault();
-                          onContextMenu(e, msg);
-                        }}
-                        className={`
+                      <React.Fragment key={`${msg._id}-frag`}>
+                        {unreadDividerNode}
+                        {timeMarkerNode}
+                        <div
+                          key={msg._id}
+                          id={`msg-${msg._id}`}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            onContextMenu(e, msg);
+                          }}
+                          className={`
                   w-full sm:max-w-[36rem] lg:max-w-[46rem]
                   flex gap-2 group relative
                   ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'}
@@ -1894,112 +1966,116 @@ export default function MessageList({
                   ${isLastMsg ? 'mb-8' : ''}
                   ${highlightedMsgId === msg._id ? 'bg-yellow-50 rounded-xl' : ''}
                 `}
-                      >
-                        {/* Avatar */}
-                        {!isMe && (
-                          <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
-                            {senderInfo.avatar ? (
-                              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
-                                <Image
-                                  width={38}
-                                  height={38}
-                                  src={getProxyUrl(senderInfo.avatar)}
-                                  alt={senderInfo.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                                <Image
-                                  src="/logo/avata.webp"
-                                  alt={senderInfo.name || 'User'}
-                                  width={38}
-                                  height={38}
-                                  className="w-full h-full rounded-full object-cover"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Content */}
-                        <div className={`flex flex-col min-w-0 ${isMe ? 'items-end' : 'items-start'}`}>
-                          {isEdited && !isRecalled && (
-                            <span
-                              className="text-[10px] px-1 text-blue-500 hover:underline hover:cursor-pointer"
-                              onClick={() => setExpandedOriginalId((prev) => (prev === msg._id ? null : msg._id))}
-                            >
-                              {expandedOriginalId === msg._id ? <p>Ẩn chỉnh sửa</p> : <p>Đã chỉnh sửa</p>}
-                            </span>
+                        >
+                          {/* Avatar */}
+                          {!isMe && (
+                            <div className={`${isGrouped ? 'opacity-0' : ''} flex-shrink-0`}>
+                              {senderInfo.avatar ? (
+                                <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                                  <Image
+                                    width={38}
+                                    height={38}
+                                    src={getProxyUrl(senderInfo.avatar)}
+                                    alt={senderInfo.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                                  <Image
+                                    src="/logo/avata.webp"
+                                    alt={senderInfo.name || 'User'}
+                                    width={38}
+                                    height={38}
+                                    className="w-full h-full rounded-full object-cover"
+                                  />
+                                </div>
+                              )}
+                            </div>
                           )}
-                          {/* Reply preview */}
-                          {repliedToMsg &&
-                            (() => {
-                              const url = String(repliedToMsg.fileUrl || repliedToMsg.previewUrl || '');
-                              const isVid =
-                                repliedToMsg.type === 'video' || isVideoFile(repliedToMsg.fileName) || isVideoFile(url);
-                              const isImg =
-                                repliedToMsg.type === 'image' ||
-                                /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(
-                                  String(repliedToMsg.fileName || url || ''),
-                                );
-                              const label = repliedToMsg.isRecalled
-                                ? 'Tin nhắn đã bị thu hồi'
-                                : repliedToMsg.type === 'file'
-                                  ? repliedToMsg.fileName || '[File]'
-                                  : repliedToMsg.type === 'image'
-                                    ? '[Ảnh]'
-                                    : repliedToMsg.type === 'video'
-                                      ? '[Video]'
-                                      : repliedToMsg.type === 'sticker'
-                                        ? '[Sticker]'
-                                        : repliedToMsg.type === 'reminder'
-                                          ? repliedToMsg.content || '[Nhắc nhở]'
-                                          : repliedToMsg.content || 'Tin nhắn';
-                              return (
-                                <div
-                                  onClick={() => onJumpToMessage(repliedToMsg._id)}
-                                  className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 mt-2 text-xs bg-gray-100 border-l-2 border-blue-500 rounded-xl cursor-pointer"
-                                >
-                                  <p className="font-semibold text-blue-600">{msg.replyToMessageName || senderName}</p>
-                                  <div className="flex items-center gap-2">
-                                    {!repliedToMsg.isRecalled &&
-                                      (isImg || isVid) &&
-                                      (isImg ? (
-                                        <Image
-                                          src={getProxyUrl(url)}
-                                          alt="Ảnh"
-                                          width={40}
-                                          height={40}
-                                          className="w-10 h-10 rounded-md object-cover border border-blue-200"
-                                        />
-                                      ) : (
-                                        <div className="relative w-10 h-10 bg-black rounded-md overflow-hidden border border-blue-200">
-                                          <video
+
+                          {/* Content */}
+                          <div className={`flex flex-col min-w-0 ${isMe ? 'items-end' : 'items-start'}`}>
+                            {isEdited && !isRecalled && (
+                              <span
+                                className="text-[10px] px-1 text-blue-500 hover:underline hover:cursor-pointer"
+                                onClick={() => setExpandedOriginalId((prev) => (prev === msg._id ? null : msg._id))}
+                              >
+                                {expandedOriginalId === msg._id ? <p>Ẩn chỉnh sửa</p> : <p>Đã chỉnh sửa</p>}
+                              </span>
+                            )}
+                            {/* Reply preview */}
+                            {repliedToMsg &&
+                              (() => {
+                                const url = String(repliedToMsg.fileUrl || repliedToMsg.previewUrl || '');
+                                const isVid =
+                                  repliedToMsg.type === 'video' ||
+                                  isVideoFile(repliedToMsg.fileName) ||
+                                  isVideoFile(url);
+                                const isImg =
+                                  repliedToMsg.type === 'image' ||
+                                  /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(
+                                    String(repliedToMsg.fileName || url || ''),
+                                  );
+                                const label = repliedToMsg.isRecalled
+                                  ? 'Tin nhắn đã bị thu hồi'
+                                  : repliedToMsg.type === 'file'
+                                    ? repliedToMsg.fileName || '[File]'
+                                    : repliedToMsg.type === 'image'
+                                      ? '[Ảnh]'
+                                      : repliedToMsg.type === 'video'
+                                        ? '[Video]'
+                                        : repliedToMsg.type === 'sticker'
+                                          ? '[Sticker]'
+                                          : repliedToMsg.type === 'reminder'
+                                            ? repliedToMsg.content || '[Nhắc nhở]'
+                                            : repliedToMsg.content || 'Tin nhắn';
+                                return (
+                                  <div
+                                    onClick={() => onJumpToMessage(repliedToMsg._id)}
+                                    className="max-w-[88vw] sm:max-w-[26rem] lg:max-w-[34rem] px-3 py-2 mb-1 mt-2 text-xs bg-gray-100 border-l-2 border-blue-500 rounded-xl cursor-pointer"
+                                  >
+                                    <p className="font-semibold text-blue-600">
+                                      {msg.replyToMessageName || senderName}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                      {!repliedToMsg.isRecalled &&
+                                        (isImg || isVid) &&
+                                        (isImg ? (
+                                          <Image
                                             src={getProxyUrl(url)}
-                                            className="w-full h-full object-cover"
-                                            muted
-                                            playsInline
-                                            preload="metadata"
+                                            alt="Ảnh"
+                                            width={40}
+                                            height={40}
+                                            className="w-10 h-10 rounded-md object-cover border border-blue-200"
                                           />
-                                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            <div className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center">
-                                              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-gray-800">
-                                                <path d="M8 5v14l11-7z" fill="currentColor" />
-                                              </svg>
+                                        ) : (
+                                          <div className="relative w-10 h-10 bg-black rounded-md overflow-hidden border border-blue-200">
+                                            <video
+                                              src={getProxyUrl(url)}
+                                              className="w-full h-full object-cover"
+                                              muted
+                                              playsInline
+                                              preload="metadata"
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                              <div className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center">
+                                                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-gray-800">
+                                                  <path d="M8 5v14l11-7z" fill="currentColor" />
+                                                </svg>
+                                              </div>
                                             </div>
                                           </div>
-                                        </div>
-                                      ))}
-                                    <p className="truncate text-gray-600">{label}</p>
+                                        ))}
+                                      <p className="truncate text-gray-600">{label}</p>
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            })()}
+                                );
+                              })()}
 
-                          {/* MAIN BUBBLE */}
-                          <div
-                            className={`  
+                            {/* MAIN BUBBLE */}
+                            <div
+                              className={`  
                   px-4 py-2 rounded-lg shadow-md max-w-[70vw] ${
                     !isRecalled && msg.type === 'text' && isSidebarOpen && !isMobile
                       ? 'sm:max-w-[26rem] lg:max-w-[32rem]'
@@ -2022,626 +2098,630 @@ export default function MessageList({
                   ${contextMenu?.visible && String(contextMenu.message._id) === String(msg._id) ? 'z-[9998]' : ''}
                   ${longPressActiveId === msg._id ? 'ring-2 ring-blue-300 scale-[0.98]' : ''}
                   `}
-                            style={
-                              isMobile && swipeState.id === msg._id
-                                ? { transform: `translateX(${Math.max(-100, Math.min(100, swipeState.dx))}px)` }
-                                : undefined
-                            }
-                            onClick={() => {
-                              setTimeVisibleId((prev) => (prev === msg._id ? null : msg._id));
-                              setActiveMoreId(msg._id);
-                              setReactionDetail(null);
-                            }}
-                            onTouchStart={(e) => {
-                              try {
-                                if (isRecalled) return;
-                                longPressTriggeredRef.current = false;
-                                if (longPressTimerRef.current != null) {
-                                  clearTimeout(longPressTimerRef.current);
-                                  longPressTimerRef.current = null;
-                                }
-                                const t = e.touches && e.touches[0];
-                                const x0 = t ? t.clientX : 0;
-                                const y0 = t ? t.clientY : 0;
-                                const el = e.currentTarget as HTMLElement;
-                                swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe };
-                                setSwipeState({ id: null, dx: 0 });
-                                setLongPressActiveId(msg._id);
-                                longPressTimerRef.current = window.setTimeout(() => {
-                                  longPressTriggeredRef.current = true;
-                                  setActiveMoreId(msg._id);
-                                  setReactionDetail(null);
-                                  if (isMobile && msg.type === 'text') {
-                                    setMobileCollapsedId(msg._id);
+                              style={
+                                isMobile && swipeState.id === msg._id
+                                  ? { transform: `translateX(${Math.max(-100, Math.min(100, swipeState.dx))}px)` }
+                                  : undefined
+                              }
+                              onClick={() => {
+                                setTimeVisibleId((prev) => (prev === msg._id ? null : msg._id));
+                                setActiveMoreId(msg._id);
+                                setReactionDetail(null);
+                              }}
+                              onTouchStart={(e) => {
+                                try {
+                                  if (isRecalled) return;
+                                  longPressTriggeredRef.current = false;
+                                  if (longPressTimerRef.current != null) {
+                                    clearTimeout(longPressTimerRef.current);
+                                    longPressTimerRef.current = null;
                                   }
-                                  onMobileLongPress?.(msg, el, x0, y0);
-                                }, 420);
-                              } catch {}
-                            }}
-                            onTouchEnd={(e) => {
-                              try {
-                                if (longPressTimerRef.current != null) {
-                                  clearTimeout(longPressTimerRef.current);
-                                  longPressTimerRef.current = null;
-                                }
-                                setLongPressActiveId(null);
-                                if (longPressTriggeredRef.current) {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }
-                                if (isMobile && swipeStartRef.current.id === msg._id) {
-                                  const okDir = swipeStartRef.current.isMe ? swipeState.dx < -64 : swipeState.dx > 64;
-                                  if (okDir) {
-                                    onReplyMessage?.(msg);
-                                  }
+                                  const t = e.touches && e.touches[0];
+                                  const x0 = t ? t.clientX : 0;
+                                  const y0 = t ? t.clientY : 0;
+                                  const el = e.currentTarget as HTMLElement;
+                                  swipeStartRef.current = { x: x0, y: y0, id: msg._id, isMe };
                                   setSwipeState({ id: null, dx: 0 });
-                                  swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
-                                }
-                              } catch {}
-                            }}
-                            onTouchMove={(e) => {
-                              try {
-                                if (longPressTimerRef.current != null) {
-                                  clearTimeout(longPressTimerRef.current);
-                                  longPressTimerRef.current = null;
-                                }
-                                setLongPressActiveId(null);
-                                if (!isMobile) return;
-                                const t = e.touches && e.touches[0];
-                                const x = t ? t.clientX : 0;
-                                const y = t ? t.clientY : 0;
-                                const dx = x - swipeStartRef.current.x;
-                                const dy = y - swipeStartRef.current.y;
-                                if (swipeStartRef.current.id === msg._id) {
-                                  const horizontal = Math.abs(dx) > 8 && Math.abs(dy) < 24;
-                                  if (horizontal) {
-                                    const dirOk = swipeStartRef.current.isMe ? dx < 0 : dx > 0;
-                                    setSwipeState({ id: msg._id, dx: dirOk ? dx : 0 });
+                                  setLongPressActiveId(msg._id);
+                                  longPressTimerRef.current = window.setTimeout(() => {
+                                    longPressTriggeredRef.current = true;
+                                    setActiveMoreId(msg._id);
+                                    setReactionDetail(null);
+                                    if (isMobile && msg.type === 'text') {
+                                      setMobileCollapsedId(msg._id);
+                                    }
+                                    onMobileLongPress?.(msg, el, x0, y0);
+                                  }, 420);
+                                } catch {}
+                              }}
+                              onTouchEnd={(e) => {
+                                try {
+                                  if (longPressTimerRef.current != null) {
+                                    clearTimeout(longPressTimerRef.current);
+                                    longPressTimerRef.current = null;
+                                  }
+                                  setLongPressActiveId(null);
+                                  if (longPressTriggeredRef.current) {
                                     e.preventDefault();
+                                    e.stopPropagation();
                                   }
-                                }
-                              } catch {}
-                            }}
-                            onTouchCancel={() => {
-                              try {
-                                if (longPressTimerRef.current != null) {
-                                  clearTimeout(longPressTimerRef.current);
-                                  longPressTimerRef.current = null;
-                                }
-                                setLongPressActiveId(null);
-                                if (isMobile && swipeStartRef.current.id === msg._id) {
-                                  setSwipeState({ id: null, dx: 0 });
-                                  swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
-                                }
-                              } catch {}
-                            }}
-                          >
-                            {!isRecalled && (
-                              <>
-                                {(msg.type === 'image' || msg.type === 'video') && (
-                                  <button
-                                    onClick={(e) => {
+                                  if (isMobile && swipeStartRef.current.id === msg._id) {
+                                    const okDir = swipeStartRef.current.isMe ? swipeState.dx < -64 : swipeState.dx > 64;
+                                    if (okDir) {
+                                      onReplyMessage?.(msg);
+                                    }
+                                    setSwipeState({ id: null, dx: 0 });
+                                    swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
+                                  }
+                                } catch {}
+                              }}
+                              onTouchMove={(e) => {
+                                try {
+                                  if (longPressTimerRef.current != null) {
+                                    clearTimeout(longPressTimerRef.current);
+                                    longPressTimerRef.current = null;
+                                  }
+                                  setLongPressActiveId(null);
+                                  if (!isMobile) return;
+                                  const t = e.touches && e.touches[0];
+                                  const x = t ? t.clientX : 0;
+                                  const y = t ? t.clientY : 0;
+                                  const dx = x - swipeStartRef.current.x;
+                                  const dy = y - swipeStartRef.current.y;
+                                  if (swipeStartRef.current.id === msg._id) {
+                                    const horizontal = Math.abs(dx) > 8 && Math.abs(dy) < 24;
+                                    if (horizontal) {
+                                      const dirOk = swipeStartRef.current.isMe ? dx < 0 : dx > 0;
+                                      setSwipeState({ id: msg._id, dx: dirOk ? dx : 0 });
                                       e.preventDefault();
-                                      onShareMessage(msg);
-                                    }}
-                                    className={`absolute top-1/2 -translate-y-1/2  cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMe ? 'right-full mr-2' : 'left-full ml-2'} opacity-100 pointer-events-auto`}
-                                    aria-label="Chia sẻ"
-                                    title="Chia sẻ"
-                                  >
-                                    <ICShareMessage className="w-4 h-4 text-indigo-600" />
-                                  </button>
-                                )}
-                                {isMobile && swipeState.id === msg._id && (
-                                  <div
-                                    className={`absolute top-1/2 -translate-y-1/2 ${isMe ? 'left-full ml-2' : 'right-full mr-2'}`}
-                                    style={{ opacity: Math.min(Math.abs(swipeState.dx) / 64, 1) }}
-                                  >
-                                    <div className="p-2 bg-white rounded-full shadow border border-gray-200">
-                                      {isMe ? (
-                                        <HiArrowUturnLeft className="w-5 h-5 text-blue-600" />
-                                      ) : (
-                                        <HiArrowUturnRight className="w-5 h-5 text-blue-600" />
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                                {!isMobile && (
-                                  <>
+                                    }
+                                  }
+                                } catch {}
+                              }}
+                              onTouchCancel={() => {
+                                try {
+                                  if (longPressTimerRef.current != null) {
+                                    clearTimeout(longPressTimerRef.current);
+                                    longPressTimerRef.current = null;
+                                  }
+                                  setLongPressActiveId(null);
+                                  if (isMobile && swipeStartRef.current.id === msg._id) {
+                                    setSwipeState({ id: null, dx: 0 });
+                                    swipeStartRef.current = { x: 0, y: 0, id: null, isMe: false };
+                                  }
+                                } catch {}
+                              }}
+                            >
+                              {!isRecalled && (
+                                <>
+                                  {(msg.type === 'image' || msg.type === 'video') && (
                                     <button
                                       onClick={(e) => {
                                         e.preventDefault();
-                                        onContextMenu(e, msg);
+                                        onShareMessage(msg);
                                       }}
-                                      className={`absolute top-1/2 -translate-y-1/2 z-10 cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMe ? 'right-full mr-10' : 'left-full ml-10'} opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto`}
-                                      aria-label="Mở menu"
-                                      title="Thêm"
+                                      className={`absolute top-1/2 -translate-y-1/2  cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMe ? 'right-full mr-2' : 'left-full ml-2'} opacity-100 pointer-events-auto`}
+                                      aria-label="Chia sẻ"
+                                      title="Chia sẻ"
                                     >
-                                      <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
+                                      <ICShareMessage className="w-4 h-4 text-indigo-600" />
                                     </button>
-                                    <ReactionButton
-                                      isMine={isMe}
-                                      visible={activeMoreId === msg._id}
-                                      onPick={(emoji) => {
-                                        onToggleReaction?.(msg, emoji);
-                                        setActiveMoreId(null);
-                                      }}
-                                      className={`absolute top-1/2 -translate-y-1/2  ${isMe ? 'right-full mr-18' : 'left-full ml-18'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'} transition-opacity duration-200`}
-                                    />
-                                  </>
-                                )}
-                              </>
-                            )}
-
-                            {!isRecalled && (
-                              <>
-                                {(() => {
-                                  const items = Object.entries(reactions)
-                                    .map(([emoji, arr]) => ({
-                                      emoji,
-                                      count: (arr || []).length,
-                                      mine: (arr || []).includes(myId),
-                                      users: (arr || []).map((id) => allUsersMap.get(String(id)) || 'Người dùng'),
-                                    }))
-                                    .filter((x) => x.count > 0)
-                                    .sort((a, b) => b.count - a.count);
-
-                                  if (items.length === 0) return null;
-
-                                  return (
+                                  )}
+                                  {isMobile && swipeState.id === msg._id && (
                                     <div
-                                      className={`
+                                      className={`absolute top-1/2 -translate-y-1/2 ${isMe ? 'left-full ml-2' : 'right-full mr-2'}`}
+                                      style={{ opacity: Math.min(Math.abs(swipeState.dx) / 64, 1) }}
+                                    >
+                                      <div className="p-2 bg-white rounded-full shadow border border-gray-200">
+                                        {isMe ? (
+                                          <HiArrowUturnLeft className="w-5 h-5 text-blue-600" />
+                                        ) : (
+                                          <HiArrowUturnRight className="w-5 h-5 text-blue-600" />
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {!isMobile && (
+                                    <>
+                                      <button
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          onContextMenu(e, msg);
+                                        }}
+                                        className={`absolute top-1/2 -translate-y-1/2 z-10 cursor-pointer p-1.5 bg-white/90 rounded-full shadow hover:bg-blue-50 ${isMe ? 'right-full mr-10' : 'left-full ml-10'} opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto`}
+                                        aria-label="Mở menu"
+                                        title="Thêm"
+                                      >
+                                        <HiEllipsisVertical className="w-4 h-4 text-gray-600" />
+                                      </button>
+                                      <ReactionButton
+                                        isMine={isMe}
+                                        visible={activeMoreId === msg._id}
+                                        onPick={(emoji) => {
+                                          onToggleReaction?.(msg, emoji);
+                                          setActiveMoreId(null);
+                                        }}
+                                        className={`absolute top-1/2 -translate-y-1/2  ${isMe ? 'right-full mr-18' : 'left-full ml-18'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'} transition-opacity duration-200`}
+                                      />
+                                    </>
+                                  )}
+                                </>
+                              )}
+
+                              {!isRecalled && (
+                                <>
+                                  {(() => {
+                                    const items = Object.entries(reactions)
+                                      .map(([emoji, arr]) => ({
+                                        emoji,
+                                        count: (arr || []).length,
+                                        mine: (arr || []).includes(myId),
+                                        users: (arr || []).map((id) => allUsersMap.get(String(id)) || 'Người dùng'),
+                                      }))
+                                      .filter((x) => x.count > 0)
+                                      .sort((a, b) => b.count - a.count);
+
+                                    if (items.length === 0) return null;
+
+                                    return (
+                                      <div
+                                        className={`
                                   absolute ${isMe ? 'right-2 -mr-1' : 'left-2 -ml-1'} 
                                   -bottom-4 
                                   flex items-center gap-1
                                 `}
-                                    >
-                                      <div className="flex items-center">
-                                        {items.slice(0, 3).map((it, idx) => (
-                                          <div
-                                            key={`${msg._id}-react-${idx}`}
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setReactionDetail(
-                                                reactionDetail?.msgId === msg._id && reactionDetail?.emoji === it.emoji
-                                                  ? null
-                                                  : { msgId: msg._id, emoji: it.emoji },
-                                              );
-                                            }}
-                                            className={`
+                                      >
+                                        <div className="flex items-center">
+                                          {items.slice(0, 3).map((it, idx) => (
+                                            <div
+                                              key={`${msg._id}-react-${idx}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setReactionDetail(
+                                                  reactionDetail?.msgId === msg._id &&
+                                                    reactionDetail?.emoji === it.emoji
+                                                    ? null
+                                                    : { msgId: msg._id, emoji: it.emoji },
+                                                );
+                                              }}
+                                              className={`
                                           flex items-center gap-0.5 py-0.5 rounded-full text-sm cursor-pointer
                                           transition-all duration-200 hover:bg-gray-100 active:scale-95
                                           ${it.mine ? 'bg-blue-50' : 'bg-transparent'}
                                         `}
-                                            title={`${it.count} người`}
-                                          >
-                                            <span className="text-lg leading-none">{it.emoji}</span>
-                                            {it.count > 1 && (
-                                              <span
-                                                className={`text-xs font-medium ${it.mine ? 'text-blue-600' : 'text-gray-600'}`}
-                                              >
-                                                {it.count}
-                                              </span>
-                                            )}
-                                          </div>
-                                        ))}
-                                        {items.length > 3 && (
-                                          <div className="px-2 text-xs text-gray-500 font-medium">
-                                            +{items.length - 3}
-                                          </div>
-                                        )}
+                                              title={`${it.count} người`}
+                                            >
+                                              <span className="text-lg leading-none">{it.emoji}</span>
+                                              {it.count > 1 && (
+                                                <span
+                                                  className={`text-xs font-medium ${it.mine ? 'text-blue-600' : 'text-gray-600'}`}
+                                                >
+                                                  {it.count}
+                                                </span>
+                                              )}
+                                            </div>
+                                          ))}
+                                          {items.length > 3 && (
+                                            <div className="px-2 text-xs text-gray-500 font-medium">
+                                              +{items.length - 3}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <div className="absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
                                       </div>
+                                    );
+                                  })()}
 
-                                      <div className="absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
-                                    </div>
-                                  );
-                                })()}
+                                  {reactionDetail && reactionDetail.msgId === msg._id && (
+                                    <>
+                                      <div className="fixed inset-0 z-30" onClick={() => setReactionDetail(null)} />
 
-                                {reactionDetail && reactionDetail.msgId === msg._id && (
-                                  <>
-                                    <div className="fixed inset-0 z-30" onClick={() => setReactionDetail(null)} />
+                                      <div
+                                        ref={(el) => {
+                                          if (el && reactionDetail.msgId === msg._id) {
+                                            const rect = el.parentElement?.getBoundingClientRect();
+                                            if (rect) {
+                                              const spaceBelow = window.innerHeight - rect.bottom;
+                                              const spaceAbove = rect.top;
+                                              const popoverHeight = 250;
 
-                                    <div
-                                      ref={(el) => {
-                                        if (el && reactionDetail.msgId === msg._id) {
-                                          const rect = el.parentElement?.getBoundingClientRect();
-                                          if (rect) {
-                                            const spaceBelow = window.innerHeight - rect.bottom;
-                                            const spaceAbove = rect.top;
-                                            const popoverHeight = 250;
-
-                                            if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
-                                              el.style.bottom = '100%';
-                                              el.style.top = 'auto';
-                                              el.style.marginBottom = '0.625rem';
-                                              el.style.marginTop = '0';
-                                            } else {
-                                              el.style.top = '100%';
-                                              el.style.bottom = 'auto';
-                                              el.style.marginTop = '0.625rem';
-                                              el.style.marginBottom = '0';
+                                              if (spaceBelow < popoverHeight && spaceAbove > spaceBelow) {
+                                                el.style.bottom = '100%';
+                                                el.style.top = 'auto';
+                                                el.style.marginBottom = '0.625rem';
+                                                el.style.marginTop = '0';
+                                              } else {
+                                                el.style.top = '100%';
+                                                el.style.bottom = 'auto';
+                                                el.style.marginTop = '0.625rem';
+                                                el.style.marginBottom = '0';
+                                              }
                                             }
                                           }
-                                        }
-                                      }}
-                                      className={`
+                                        }}
+                                        className={`
                                     absolute ${isMe ? 'right-2' : 'left-2'} 
                                     z-40
                                   `}
-                                    >
-                                      {(() => {
-                                        const users = (reactions[reactionDetail.emoji] || []).map(
-                                          (id) => allUsersMap.get(String(id)) || String(id),
-                                        );
+                                      >
+                                        {(() => {
+                                          const users = (reactions[reactionDetail.emoji] || []).map(
+                                            (id) => allUsersMap.get(String(id)) || String(id),
+                                          );
 
-                                        return (
-                                          <div className="min-w-[11.25rem] max-w-[15rem] px-3 py-2.5 bg-white rounded-xl border border-gray-200 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-                                            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
-                                              <span className="text-2xl">{reactionDetail.emoji}</span>
-                                              <span className="text-sm font-semibold text-gray-700">
-                                                {users.length} người
-                                              </span>
+                                          return (
+                                            <div className="min-w-[11.25rem] max-w-[15rem] px-3 py-2.5 bg-white rounded-xl border border-gray-200 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+                                              <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
+                                                <span className="text-2xl">{reactionDetail.emoji}</span>
+                                                <span className="text-sm font-semibold text-gray-700">
+                                                  {users.length} người
+                                                </span>
+                                              </div>
+                                              {users.length > 0 ? (
+                                                <ul className="space-y-1.5 max-h-48 overflow-y-auto">
+                                                  {users.map((name, idx) => (
+                                                    <li
+                                                      key={`${msg._id}-user-${idx}`}
+                                                      className="text-sm text-gray-700 py-1 hover:text-blue-600 transition-colors"
+                                                    >
+                                                      {name}
+                                                    </li>
+                                                  ))}
+                                                </ul>
+                                              ) : (
+                                                <div className="text-sm text-gray-500 py-1">Chưa có ai</div>
+                                              )}
                                             </div>
-                                            {users.length > 0 ? (
-                                              <ul className="space-y-1.5 max-h-48 overflow-y-auto">
-                                                {users.map((name, idx) => (
-                                                  <li
-                                                    key={`${msg._id}-user-${idx}`}
-                                                    className="text-sm text-gray-700 py-1 hover:text-blue-600 transition-colors"
-                                                  >
-                                                    {name}
-                                                  </li>
-                                                ))}
-                                              </ul>
-                                            ) : (
-                                              <div className="text-sm text-gray-500 py-1">Chưa có ai</div>
-                                            )}
+                                          );
+                                        })()}
+                                      </div>
+                                    </>
+                                  )}
+                                </>
+                              )}
+                              {/* Group sender name - Show for everyone including me if set */}
+                              {isGroup && !isGrouped && !isRecalled && !isMe && (
+                                <p
+                                  className={`text-sm inline-block  ${msg.type === 'image' || msg.type === 'video' || msg.type === 'file' ? ' px-2 py-1 bg-white rounded-[2rem] mb-1' : 'py-1'} ${isMe ? 'text-gray-600' : 'text-gray-600'}`}
+                                >
+                                  {senderName}
+                                </p>
+                              )}
+
+                              {/* TEXT */}
+                              {msg.type === 'text' && !isRecalled && !isEditing && (
+                                <div
+                                  className={`relative text-[0.875rem] ${
+                                    isSidebarOpen && !isMobile ? 'md:text-[0.875rem]' : 'md:text-[1rem]'
+                                  } leading-relaxed text-black whitespace-pre-wrap`}
+                                  style={
+                                    isMobile &&
+                                    contextMenu?.visible &&
+                                    String(contextMenu.message._id) === String(msg._id) &&
+                                    mobileCollapsedId === msg._id
+                                      ? { maxHeight: 'calc(var(--vvh) * 0.42)', overflow: 'hidden' }
+                                      : undefined
+                                  }
+                                >
+                                  {renderMessageContent(msg.content || '', msg.mentions, isMe)}
+                                  {isMobile &&
+                                    contextMenu?.visible &&
+                                    String(contextMenu.message._id) === String(msg._id) &&
+                                    mobileCollapsedId === msg._id && (
+                                      <div className="absolute bottom-0 left-0 right-0 h-16 flex items-end justify-center pointer-events-none">
+                                        <div className="absolute inset-x-0 bottom-8 h-16 bg-gradient-to-t from-white/95 to-transparent" />
+                                        <button
+                                          onClick={() => {
+                                            setMobileCollapsedId(null);
+                                            try {
+                                              document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                                            } catch {}
+                                          }}
+                                          className="pointer-events-auto mb-2 px-3 py-1 rounded-full bg-white/90 border border-gray-200 text-sm text-blue-600 shadow hover:bg-blue-50 active:scale-95"
+                                        >
+                                          Xem thêm
+                                        </button>
+                                      </div>
+                                    )}
+                                  {(() => {
+                                    const linkMatch = (msg.content || '').match(/(https?:\/\/|www\.)\S+/i);
+                                    if (!linkMatch) return null;
+                                    const raw = linkMatch[0];
+                                    const href = raw.startsWith('http') ? raw : `https://${raw}`;
+                                    const hostname = (() => {
+                                      try {
+                                        return new URL(href).hostname.replace('www.', '');
+                                      } catch {
+                                        return 'Website';
+                                      }
+                                    })();
+                                    return (
+                                      <div
+                                        className={`mt-2 rounded-xl border ${isMe ? 'border-white/30' : 'border-gray-200'} bg-white overflow-hidden`}
+                                      >
+                                        <button
+                                          onClick={() => window.open(href, '_blank')}
+                                          className="w-full text-left p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50"
+                                        >
+                                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-sky-500 via-blue-500 to-blue-500 text-white">
+                                            <HiLink className="w-5 h-5" />
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold text-purple-600 truncate">{raw}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">{hostname}</p>
+                                          </div>
+                                        </button>
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              )}
+
+                              {msg.type === 'text' && !isRecalled && isEditing && (
+                                <div className="text-sm leading-relaxed">
+                                  <textarea
+                                    value={typeof editContent === 'string' ? editContent : msg.content || ''}
+                                    onChange={(e) => setEditContent?.(e.target.value)}
+                                    className={`w-full p-2 rounded-xl border ${isMe ? ' text-gray-800' : ' text-gray-800'}`}
+                                    rows={3}
+                                  />
+                                  <div className={`mt-2 flex gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                    <button
+                                      onClick={() => {
+                                        setEditingMessageId?.(null);
+                                        setEditContent?.('');
+                                      }}
+                                      className="px-3 py-1.5 cursor-pointer rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 hover:cursor-pointer"
+                                    >
+                                      Hủy
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const content =
+                                          typeof editContent === 'string' ? editContent : msg.content || '';
+                                        onSaveEdit?.(msg._id, content);
+                                      }}
+                                      className="px-3 py-1.5 cursor-pointer rounded-lg bg-blue-500 text-white hover:bg-blue-600 hover:cursor-pointer"
+                                    >
+                                      Lưu
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* IMAGE – FIX SIZE MOBILE */}
+                              {msg.type === 'image' && msg.fileUrl && !isRecalled && (
+                                <div
+                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[40vw] sm:max-w-[10rem]"
+                                  onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
+                                >
+                                  {String(msg.fileUrl).startsWith('blob:') ? (
+                                    <Image
+                                      width={600}
+                                      height={600}
+                                      src={String(msg.fileUrl)}
+                                      alt="Ảnh"
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <Image
+                                      src={getProxyUrl(msg.fileUrl)}
+                                      alt="Ảnh"
+                                      width={600}
+                                      height={600}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  )}
+
+                                  {isUploading && (
+                                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                      {(() => {
+                                        const size = 40;
+                                        const stroke = 4;
+                                        const r = (size - stroke) / 2;
+                                        const c = 2 * Math.PI * r;
+                                        const p = Math.max(0, Math.min(100, Number(uploadProgress || 0)));
+                                        return (
+                                          <div className="flex flex-col items-center">
+                                            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                                              <circle
+                                                cx={size / 2}
+                                                cy={size / 2}
+                                                r={r}
+                                                stroke="rgba(255,255,255,0.3)"
+                                                strokeWidth={stroke}
+                                                fill="none"
+                                              />
+                                              <circle
+                                                cx={size / 2}
+                                                cy={size / 2}
+                                                r={r}
+                                                stroke="white"
+                                                strokeWidth={stroke}
+                                                fill="none"
+                                                strokeDasharray={c}
+                                                strokeDashoffset={c - (p / 100) * c}
+                                                strokeLinecap="round"
+                                                transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                                              />
+                                            </svg>
+                                            {/* <span className="text-xs text-white font-semibold">{Math.round(p)}%</span> */}
                                           </div>
                                         );
                                       })()}
                                     </div>
-                                  </>
-                                )}
-                              </>
-                            )}
-                            {/* Group sender name - Show for everyone including me if set */}
-                            {isGroup && !isGrouped && !isRecalled && !isMe && (
-                              <p
-                                className={`text-sm inline-block  ${msg.type === 'image' || msg.type === 'video' || msg.type === 'file' ? ' px-2 py-1 bg-white rounded-[2rem] mb-1' : 'py-1'} ${isMe ? 'text-gray-600' : 'text-gray-600'}`}
-                              >
-                                {senderName}
-                              </p>
-                            )}
-
-                            {/* TEXT */}
-                            {msg.type === 'text' && !isRecalled && !isEditing && (
-                              <div
-                                className={`relative text-[0.875rem] ${
-                                  isSidebarOpen && !isMobile ? 'md:text-[0.875rem]' : 'md:text-[1rem]'
-                                } leading-relaxed text-black whitespace-pre-wrap`}
-                                style={
-                                  isMobile &&
-                                  contextMenu?.visible &&
-                                  String(contextMenu.message._id) === String(msg._id) &&
-                                  mobileCollapsedId === msg._id
-                                    ? { maxHeight: 'calc(var(--vvh) * 0.42)', overflow: 'hidden' }
-                                    : undefined
-                                }
-                              >
-                                {renderMessageContent(msg.content || '', msg.mentions, isMe)}
-                                {isMobile &&
-                                  contextMenu?.visible &&
-                                  String(contextMenu.message._id) === String(msg._id) &&
-                                  mobileCollapsedId === msg._id && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-16 flex items-end justify-center pointer-events-none">
-                                      <div className="absolute inset-x-0 bottom-8 h-16 bg-gradient-to-t from-white/95 to-transparent" />
-                                      <button
-                                        onClick={() => {
-                                          setMobileCollapsedId(null);
-                                          try {
-                                            document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-                                          } catch {}
-                                        }}
-                                        className="pointer-events-auto mb-2 px-3 py-1 rounded-full bg-white/90 border border-gray-200 text-sm text-blue-600 shadow hover:bg-blue-50 active:scale-95"
-                                      >
-                                        Xem thêm
-                                      </button>
-                                    </div>
                                   )}
-                                {(() => {
-                                  const linkMatch = (msg.content || '').match(/(https?:\/\/|www\.)\S+/i);
-                                  if (!linkMatch) return null;
-                                  const raw = linkMatch[0];
-                                  const href = raw.startsWith('http') ? raw : `https://${raw}`;
-                                  const hostname = (() => {
-                                    try {
-                                      return new URL(href).hostname.replace('www.', '');
-                                    } catch {
-                                      return 'Website';
-                                    }
-                                  })();
-                                  return (
-                                    <div
-                                      className={`mt-2 rounded-xl border ${isMe ? 'border-white/30' : 'border-gray-200'} bg-white overflow-hidden`}
-                                    >
-                                      <button
-                                        onClick={() => window.open(href, '_blank')}
-                                        className="w-full text-left p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50"
-                                      >
-                                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-sky-500 via-blue-500 to-blue-500 text-white">
-                                          <HiLink className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-sm font-semibold text-purple-600 truncate">{raw}</p>
-                                          <p className="text-xs text-gray-500 mt-0.5">{hostname}</p>
-                                        </div>
-                                      </button>
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                            )}
-
-                            {msg.type === 'text' && !isRecalled && isEditing && (
-                              <div className="text-sm leading-relaxed">
-                                <textarea
-                                  value={typeof editContent === 'string' ? editContent : msg.content || ''}
-                                  onChange={(e) => setEditContent?.(e.target.value)}
-                                  className={`w-full p-2 rounded-xl border ${isMe ? ' text-gray-800' : ' text-gray-800'}`}
-                                  rows={3}
-                                />
-                                <div className={`mt-2 flex gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                  <button
-                                    onClick={() => {
-                                      setEditingMessageId?.(null);
-                                      setEditContent?.('');
-                                    }}
-                                    className="px-3 py-1.5 cursor-pointer rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 hover:cursor-pointer"
-                                  >
-                                    Hủy
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const content = typeof editContent === 'string' ? editContent : msg.content || '';
-                                      onSaveEdit?.(msg._id, content);
-                                    }}
-                                    className="px-3 py-1.5 cursor-pointer rounded-lg bg-blue-500 text-white hover:bg-blue-600 hover:cursor-pointer"
-                                  >
-                                    Lưu
-                                  </button>
                                 </div>
-                              </div>
-                            )}
-
-                            {/* IMAGE – FIX SIZE MOBILE */}
-                            {msg.type === 'image' && msg.fileUrl && !isRecalled && (
-                              <div
-                                className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[40vw] sm:max-w-[10rem]"
-                                onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
-                              >
-                                {String(msg.fileUrl).startsWith('blob:') ? (
-                                  <Image
-                                    width={600}
-                                    height={600}
-                                    src={String(msg.fileUrl)}
-                                    alt="Ảnh"
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <Image
-                                    src={getProxyUrl(msg.fileUrl)}
-                                    alt="Ảnh"
-                                    width={600}
-                                    height={600}
-                                    className="w-full h-full object-cover"
-                                  />
-                                )}
-
-                                {isUploading && (
-                                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                                    {(() => {
-                                      const size = 40;
-                                      const stroke = 4;
-                                      const r = (size - stroke) / 2;
-                                      const c = 2 * Math.PI * r;
-                                      const p = Math.max(0, Math.min(100, Number(uploadProgress || 0)));
-                                      return (
-                                        <div className="flex flex-col items-center">
-                                          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                                            <circle
-                                              cx={size / 2}
-                                              cy={size / 2}
-                                              r={r}
-                                              stroke="rgba(255,255,255,0.3)"
-                                              strokeWidth={stroke}
-                                              fill="none"
-                                            />
-                                            <circle
-                                              cx={size / 2}
-                                              cy={size / 2}
-                                              r={r}
-                                              stroke="white"
-                                              strokeWidth={stroke}
-                                              fill="none"
-                                              strokeDasharray={c}
-                                              strokeDashoffset={c - (p / 100) * c}
-                                              strokeLinecap="round"
-                                              transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                                            />
-                                          </svg>
-                                          {/* <span className="text-xs text-white font-semibold">{Math.round(p)}%</span> */}
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            {msg.type === 'image' && !isRecalled && msg.content && (
-                              <div className={`mt-2 text-sm leading-relaxed px-2 text-gray-700`}>
-                                {renderMessageContent(msg.content || '', msg.mentions, isMe)}
-                              </div>
-                            )}
-
-                            {/* VIDEO – FIX SIZE MOBILE */}
-                            {isVideo && msg.fileUrl && !isRecalled && (
-                              <div
-                                className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black"
-                                onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl!), 'video')}
-                              >
-                                <video
-                                  src={getProxyUrl(msg.fileUrl)}
-                                  className="w-full h-full object-cover m-[0.125rem]"
-                                  playsInline
-                                  preload="metadata"
-                                />
-
-                                {/* play overlay */}
-                                <div className="absolute inset-0 flex items-center justify-center opacity-100">
-                                  <div className="w-12 h-12 bg-white/80 rounded-full flex items-center justify-center shadow">
-                                    <HiPlay className="w-7 h-7 text-blue-600 ml-1" />
-                                  </div>
+                              )}
+                              {msg.type === 'image' && !isRecalled && msg.content && (
+                                <div className={`mt-2 text-sm leading-relaxed px-2 text-gray-700`}>
+                                  {renderMessageContent(msg.content || '', msg.mentions, isMe)}
                                 </div>
+                              )}
 
-                                {isUploading && (
-                                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white">
-                                    {uploadProgress !== undefined ? (
-                                      <>{Math.round(uploadProgress)}%</>
-                                    ) : (
-                                      <div className="w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {isVideo && !isRecalled && msg.content && (
-                              <div className={`px-2 mt-2 text-sm leading-relaxed text-gray-700`}>
-                                {renderMessageContent(msg.content || '', msg.mentions, isMe)}
-                              </div>
-                            )}
-
-                            {/* FILE – FIX SIZE MOBILE */}
-                            {msg.type === 'file' && msg.fileUrl && !isVideo && !isRecalled && (
-                              <a
-                                href={getProxyUrl(msg.fileUrl, true)}
-                                download={msg.fileName || 'download'}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="relative flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl max-w-[70vw] sm:max-w-[18rem] shadow-sm hover:bg-gray-50"
-                                onClick={(e) => {
-                                  if (isUploading) e.preventDefault();
-                                }}
-                                aria-disabled={isUploading ? true : undefined}
-                              >
-                                <div className="p-2 bg-blue-600 rounded-xl">
-                                  <HiOutlineDocumentText className="w-6 h-6 text-white" />
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-gray-800 truncate">
-                                    {msg.fileName || 'Tệp đính kèm'}
-                                  </p>
-                                  <p className="text-xs text-gray-500 truncate">Nhấn để tải xuống</p>
-                                </div>
-                                {isUploading && (
-                                  <div className="absolute inset-0 bg-black/60 text-white flex items-center justify-center rounded-2xl">
-                                    {(() => {
-                                      const size = 32;
-                                      const stroke = 3;
-                                      const r = (size - stroke) / 2;
-                                      const c = 2 * Math.PI * r;
-                                      const p = Math.max(0, Math.min(100, Number(uploadProgress || 0)));
-                                      return (
-                                        <div className="flex flex-col items-center">
-                                          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                                            <circle
-                                              cx={size / 2}
-                                              cy={size / 2}
-                                              r={r}
-                                              stroke="rgba(255,255,255,0.35)"
-                                              strokeWidth={stroke}
-                                              fill="none"
-                                            />
-                                            <circle
-                                              cx={size / 2}
-                                              cy={size / 2}
-                                              r={r}
-                                              stroke="white"
-                                              strokeWidth={stroke}
-                                              fill="none"
-                                              strokeDasharray={c}
-                                              strokeDashoffset={c - (p / 100) * c}
-                                              strokeLinecap="round"
-                                              transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                                            />
-                                          </svg>
-                                          <span className="text-xs font-semibold mt-1">{Math.round(p)}%</span>
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-                                )}
-                              </a>
-                            )}
-                            {msg.type === 'file' && !isRecalled && msg.content && (
-                              <div className={`mt-2 text-sm leading-relaxed px-2 text-gray-700`}>
-                                {renderMessageContent(msg.content || '', msg.mentions, isMe)}
-                              </div>
-                            )}
-
-                            {isRecalled && <p className="text-sm italic opacity-70">đã thu hồi tin nhắn</p>}
-
-                            {/* ✅ Hiển thị nội dung gốc nếu đã chỉnh sửa */}
-                            {isEdited && !isRecalled && msg.originalContent && (
-                              <div className=" border-gray-300 ">
-                                {expandedOriginalId === msg._id && (
-                                  <div className="text-xs border-t-[1px] border-t-gray-300  text-gray-500 space-y-1 flex items-center justify-between">
-                                    <p
-                                      className={`p-1 m-1 whitespace-pre-wrap pt-2 pb-1 rounded w-full ${isMe ? 'bg-white' : ''}`}
-                                    >
-                                      {msg.originalContent}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            {isEndOfGroup && (
-                              <div className={`text-xs mt-1 ${isMe ? 'text-gray-700' : 'text-gray-500'}`}>
-                                <span
-                                  className={
-                                    msg.type === 'text' ? undefined : 'inline-block px-2 py-1 bg-white rounded-[2rem]'
-                                  }
+                              {/* VIDEO – FIX SIZE MOBILE */}
+                              {isVideo && msg.fileUrl && !isRecalled && (
+                                <div
+                                  className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black"
+                                  onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl!), 'video')}
                                 >
-                                  {formatTimestamp(
-                                    Number(
-                                      (msg as unknown as { serverTimestamp?: number }).serverTimestamp ?? msg.timestamp,
-                                    ) || 0,
+                                  <video
+                                    src={getProxyUrl(msg.fileUrl)}
+                                    className="w-full h-full object-cover m-[0.125rem]"
+                                    playsInline
+                                    preload="metadata"
+                                  />
+
+                                  {/* play overlay */}
+                                  <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                                    <div className="w-12 h-12 bg-white/80 rounded-full flex items-center justify-center shadow">
+                                      <HiPlay className="w-7 h-7 text-blue-600 ml-1" />
+                                    </div>
+                                  </div>
+
+                                  {isUploading && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white">
+                                      {uploadProgress !== undefined ? (
+                                        <>{Math.round(uploadProgress)}%</>
+                                      ) : (
+                                        <div className="w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                                      )}
+                                    </div>
                                   )}
-                                </span>
-                              </div>
-                            )}
+                                </div>
+                              )}
+
+                              {isVideo && !isRecalled && msg.content && (
+                                <div className={`px-2 mt-2 text-sm leading-relaxed text-gray-700`}>
+                                  {renderMessageContent(msg.content || '', msg.mentions, isMe)}
+                                </div>
+                              )}
+
+                              {/* FILE – FIX SIZE MOBILE */}
+                              {msg.type === 'file' && msg.fileUrl && !isVideo && !isRecalled && (
+                                <a
+                                  href={getProxyUrl(msg.fileUrl, true)}
+                                  download={msg.fileName || 'download'}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="relative flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl max-w-[70vw] sm:max-w-[18rem] shadow-sm hover:bg-gray-50"
+                                  onClick={(e) => {
+                                    if (isUploading) e.preventDefault();
+                                  }}
+                                  aria-disabled={isUploading ? true : undefined}
+                                >
+                                  <div className="p-2 bg-blue-600 rounded-xl">
+                                    <HiOutlineDocumentText className="w-6 h-6 text-white" />
+                                  </div>
+
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-gray-800 truncate">
+                                      {msg.fileName || 'Tệp đính kèm'}
+                                    </p>
+                                    <p className="text-xs text-gray-500 truncate">Nhấn để tải xuống</p>
+                                  </div>
+                                  {isUploading && (
+                                    <div className="absolute inset-0 bg-black/60 text-white flex items-center justify-center rounded-2xl">
+                                      {(() => {
+                                        const size = 32;
+                                        const stroke = 3;
+                                        const r = (size - stroke) / 2;
+                                        const c = 2 * Math.PI * r;
+                                        const p = Math.max(0, Math.min(100, Number(uploadProgress || 0)));
+                                        return (
+                                          <div className="flex flex-col items-center">
+                                            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                                              <circle
+                                                cx={size / 2}
+                                                cy={size / 2}
+                                                r={r}
+                                                stroke="rgba(255,255,255,0.35)"
+                                                strokeWidth={stroke}
+                                                fill="none"
+                                              />
+                                              <circle
+                                                cx={size / 2}
+                                                cy={size / 2}
+                                                r={r}
+                                                stroke="white"
+                                                strokeWidth={stroke}
+                                                fill="none"
+                                                strokeDasharray={c}
+                                                strokeDashoffset={c - (p / 100) * c}
+                                                strokeLinecap="round"
+                                                transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                                              />
+                                            </svg>
+                                            <span className="text-xs font-semibold mt-1">{Math.round(p)}%</span>
+                                          </div>
+                                        );
+                                      })()}
+                                    </div>
+                                  )}
+                                </a>
+                              )}
+                              {msg.type === 'file' && !isRecalled && msg.content && (
+                                <div className={`mt-2 text-sm leading-relaxed px-2 text-gray-700`}>
+                                  {renderMessageContent(msg.content || '', msg.mentions, isMe)}
+                                </div>
+                              )}
+
+                              {isRecalled && <p className="text-sm italic opacity-70">đã thu hồi tin nhắn</p>}
+
+                              {/* ✅ Hiển thị nội dung gốc nếu đã chỉnh sửa */}
+                              {isEdited && !isRecalled && msg.originalContent && (
+                                <div className=" border-gray-300 ">
+                                  {expandedOriginalId === msg._id && (
+                                    <div className="text-xs border-t-[1px] border-t-gray-300  text-gray-500 space-y-1 flex items-center justify-between">
+                                      <p
+                                        className={`p-1 m-1 whitespace-pre-wrap pt-2 pb-1 rounded w-full ${isMe ? 'bg-white' : ''}`}
+                                      >
+                                        {msg.originalContent}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              {isEndOfGroup && (
+                                <div className={`text-xs mt-1 ${isMe ? 'text-gray-700' : 'text-gray-500'}`}>
+                                  <span
+                                    className={
+                                      msg.type === 'text' ? undefined : 'inline-block px-2 py-1 bg-white rounded-[2rem]'
+                                    }
+                                  >
+                                    {formatTimestamp(
+                                      Number(
+                                        (msg as unknown as { serverTimestamp?: number }).serverTimestamp ??
+                                          msg.timestamp,
+                                      ) || 0,
+                                    )}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <ReadStatus
+                              message={msg}
+                              isGroup={isGroup}
+                              isRecalled={isRecalled}
+                              isMine={isMe}
+                              isLast={isLastMsg}
+                              myId={myId}
+                              allUsersMap={allUsersMap}
+                              getSenderInfo={getSenderInfo}
+                              isMobile={isMobile}
+                              isUploading={(() => {
+                                const up = uploadingFiles[msg._id] !== undefined;
+                                const sending = !!(msg as unknown as { isSending?: boolean }).isSending;
+                                const blob = typeof msg.fileUrl === 'string' && msg.fileUrl.startsWith('blob:');
+                                const isMediaOrFile =
+                                  msg.type === 'image' || msg.type === 'video' || (msg.type === 'file' && !isVideo);
+                                return isMediaOrFile && (up || sending || blob);
+                              })()}
+                            />
                           </div>
-                          <ReadStatus
-                            message={msg}
-                            isGroup={isGroup}
-                            isRecalled={isRecalled}
-                            isMine={isMe}
-                            isLast={isLastMsg}
-                            myId={myId}
-                            allUsersMap={allUsersMap}
-                            getSenderInfo={getSenderInfo}
-                            isMobile={isMobile}
-                            isUploading={(() => {
-                              const up = uploadingFiles[msg._id] !== undefined;
-                              const sending = !!(msg as unknown as { isSending?: boolean }).isSending;
-                              const blob = typeof msg.fileUrl === 'string' && msg.fileUrl.startsWith('blob:');
-                              const isMediaOrFile =
-                                msg.type === 'image' || msg.type === 'video' || (msg.type === 'file' && !isVideo);
-                              return isMediaOrFile && (up || sending || blob);
-                            })()}
-                          />
                         </div>
-                      </div>
+                      </React.Fragment>
                     );
                   })}
                 </>

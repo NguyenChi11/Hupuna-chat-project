@@ -480,7 +480,7 @@ export default function Sidebar({
                     setSearchTerm('');
                     setGlobalSearchResults({ contacts: [], messages: [] });
                   }}
-                  className="absolute cursor-pointer  right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 group-focus-within:bg-gray-300 group-focus-within:hover:bg-gray-400 transition-all duration-300 flex items-center justify-center active:scale-95"
+                  className="absolute cursor-pointer  right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 group-focus-within:bg-gray-300 group-focus-within:hover:bg-gray-400 transition-all duration-300 flex items-center justify-center active:scale-95"
                 >
                   <HiXMark className="w-4 h-4 text-white group-focus-within:text-gray-600 transition-colors duration-300" />
                 </button>

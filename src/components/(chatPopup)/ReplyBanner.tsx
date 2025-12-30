@@ -39,7 +39,7 @@ export default function ReplyBanner({ replyingTo, getSenderName, onCancel }: Rep
   return (
     <div className=" bottom-full left-0 right-0 p-3 bg-gray-200 rounded-t-xl flex justify-between items-center text-sm text-gray-700">
       <div className="border-l-2 border-blue-400 pl-2 max-w-[15rem] sm:max-w-[80rem] overflow-hidden ">
-        <div className="text-sm  text-black dark:text-blue-400">
+        <div className="text-sm  text-black ">
           Trả lời {getSenderName(replyingTo.sender)}
         </div>
         <div className="flex items-center gap-2 mt-1">

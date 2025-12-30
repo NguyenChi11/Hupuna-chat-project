@@ -64,7 +64,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
               isDeleted: { $ne: true },
               type: { $ne: 'notify' },
             },
-            limit: 100,
+            limit: 500,
             sort: { timestamp: -1 },
           }),
         });

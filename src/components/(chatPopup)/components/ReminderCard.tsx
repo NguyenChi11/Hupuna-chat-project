@@ -82,7 +82,7 @@ export default function ReminderCard({
           {isMe ? 'Bạn' : senderName} đã tạo một nhắc hẹn
         </span>
       </div>
-      <div className="flex p-4 gap-4 items-center">
+      <div className="flex p-4 gap-4 items-center cursor-pointer">
         <div className="flex flex-col items-center justify-center min-w-[50px]">
           <span className="text-red-500 text-xs font-bold uppercase tracking-wider">THG {month}</span>
           <span className="text-3xl text-gray-800 font-normal leading-none mt-1">{day}</span>

@@ -46,7 +46,7 @@ import ShareMessageModal from '@/components/(chatPopup)/ShareMessageModal';
 import { stopGlobalRingTone } from '@/utils/callRing';
 import { useCallSession } from '@/hooks/useCallSession';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
-import { HiChevronDoubleDown } from 'react-icons/hi2';
+import { HiChevronDoubleDown, HiChevronDoubleUp } from 'react-icons/hi2';
 import MessageMobileContextMenu from '@/components/(chatPopup)/MessageMobileContextMenu';
 
 const STICKERS = [
@@ -152,6 +152,20 @@ export default function ChatWindow({
   const [pendingNewCount, setPendingNewCount] = useState(0);
   const pendingNewCountRef = useRef(0);
   const hasScrolledUpRef = useRef(false);
+  const [unreadBoundaryId, setUnreadBoundaryId] = useState<string | null>(null);
+  const [showJumpToUnread, setShowJumpToUnread] = useState(false);
+  const unreadHideTimerRef = useRef<number | null>(null);
+  const syncLocalReadBy = useCallback(() => {
+    const myId = String(currentUser._id || '');
+    if (!myId) return;
+    setMessages((prev) =>
+      prev.map((m) => {
+        const arr = Array.isArray(m.readBy) ? (m.readBy as string[]) : [];
+        if (arr.some((id) => String(id) === myId)) return m;
+        return { ...m, readBy: [...arr, myId] };
+      }),
+    );
+  }, [currentUser._id]);
   const isGroup = 'isGroup' in selectedChat && selectedChat.isGroup === true;
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [, setPinnedMessage] = useState<Message | null>(null);
@@ -415,9 +429,15 @@ export default function ChatWindow({
   const mobileSelectedMsgIdRef = useRef<string | null>(null);
   const mobileCurrentIndexRef = useRef<number>(-1);
   const closingSearchRef = useRef(false);
+  const [mobileSearchHasMore, setMobileSearchHasMore] = useState(false);
+  const MOBILE_SEARCH_LIMIT = 200;
+  const mobileSearchResultsRef = useRef<Message[]>([]);
   useEffect(() => {
     mobileCurrentIndexRef.current = mobileCurrentResultIndex;
   }, [mobileCurrentResultIndex]);
+  useEffect(() => {
+    mobileSearchResultsRef.current = mobileSearchResults;
+  }, [mobileSearchResults]);
 
   useEffect(() => {
     if (isMobile) return;
@@ -428,10 +448,11 @@ export default function ChatWindow({
   }, [roomSearchKeyword, scrollToMessageId, isMobile, showSearchSidebar]);
 
   const fetchMobileSearchResults = useCallback(
-    async (query: string) => {
+    async (query: string, append: boolean = false) => {
       if (!query.trim() || !roomId) {
         setMobileSearchResults([]);
         setMobileCurrentResultIndex(-1);
+        setMobileSearchHasMore(false);
         return;
       }
       setIsMobileSearching(true);
@@ -449,32 +470,35 @@ export default function ChatWindow({
               isDeleted: { $ne: true },
               type: { $ne: 'notify' },
             },
-            limit: 100,
+            skip: append ? mobileSearchResultsRef.current.length : 0,
+            limit: MOBILE_SEARCH_LIMIT,
             sort: { timestamp: -1 },
           }),
         });
         const data = await res.json();
         const results: Message[] = data.data || [];
-        setMobileSearchResults(results);
-        if (results.length > 0) {
+        const merged: Message[] = append ? [...mobileSearchResultsRef.current, ...results] : results;
+        setMobileSearchResults(merged);
+        setMobileSearchHasMore(results.length === MOBILE_SEARCH_LIMIT);
+        if (merged.length > 0) {
           const selectedId = mobileSelectedMsgIdRef.current;
           if (mobileSelectingRef.current && selectedId) {
-            const idx = results.findIndex((m) => String(m._id) === String(selectedId));
+            const idx = merged.findIndex((m) => String(m._id) === String(selectedId));
             if (idx >= 0) {
               setMobileCurrentResultIndex(idx);
             } else {
               const prevIdx = mobileCurrentIndexRef.current;
-              const safeIdx = Math.max(0, Math.min(results.length - 1, prevIdx));
+              const safeIdx = Math.max(0, Math.min(merged.length - 1, prevIdx));
               setMobileCurrentResultIndex(safeIdx);
             }
             mobileSelectingRef.current = false;
             mobileSelectedMsgIdRef.current = null;
           } else if (mobileCurrentIndexRef.current === -1) {
-            const lastIdx = results.length - 1;
+            const lastIdx = merged.length - 1;
             setMobileCurrentResultIndex(lastIdx);
           } else {
             const prevIdx = mobileCurrentIndexRef.current;
-            const safeIdx = Math.max(0, Math.min(results.length - 1, prevIdx));
+            const safeIdx = Math.max(0, Math.min(merged.length - 1, prevIdx));
             setMobileCurrentResultIndex(safeIdx);
           }
         } else {
@@ -484,6 +508,7 @@ export default function ChatWindow({
         console.error('Fetch search results error:', error);
         setMobileSearchResults([]);
         setMobileCurrentResultIndex(-1);
+        setMobileSearchHasMore(false);
       } finally {
         setIsMobileSearching(false);
       }
@@ -526,7 +551,7 @@ export default function ChatWindow({
     }
 
     const handler = setTimeout(() => {
-      fetchMobileSearchResults(mobileSearchTerm);
+      fetchMobileSearchResults(mobileSearchTerm, false);
     }, 500);
 
     return () => {
@@ -548,18 +573,44 @@ export default function ChatWindow({
     }, 1200);
   }, [mobileSearchResults, mobileCurrentResultIndex]);
 
-  const handleNextResult = useCallback(() => {
-    if (mobileSearchResults.length === 0) return;
-    const newIndex = mobileCurrentResultIndex >= mobileSearchResults.length - 1 ? 0 : mobileCurrentResultIndex + 1;
-    setMobileCurrentResultIndex(newIndex);
+  const handleNextResult = useCallback(async () => {
+    if (mobileSearchResultsRef.current.length === 0) return;
+    if (mobileCurrentResultIndex >= mobileSearchResultsRef.current.length - 1) {
+      if (mobileSearchHasMore) {
+        await fetchMobileSearchResults(mobileSearchTerm, true);
+        const len = mobileSearchResultsRef.current.length;
+        const idx = Math.min(mobileCurrentResultIndex + 1, len - 1);
+        setMobileCurrentResultIndex(idx);
+        mobileSelectingRef.current = true;
+        mobileSelectedMsgIdRef.current = mobileSearchResultsRef.current[idx]._id;
+        handleJumpToMessage(mobileSearchResultsRef.current[idx]._id);
+        setTimeout(() => {
+          mobileSelectingRef.current = false;
+          mobileSelectedMsgIdRef.current = null;
+        }, 1200);
+      } else {
+        const idx = 0;
+        setMobileCurrentResultIndex(idx);
+        mobileSelectingRef.current = true;
+        mobileSelectedMsgIdRef.current = mobileSearchResultsRef.current[idx]._id;
+        handleJumpToMessage(mobileSearchResultsRef.current[idx]._id);
+        setTimeout(() => {
+          mobileSelectingRef.current = false;
+          mobileSelectedMsgIdRef.current = null;
+        }, 1200);
+      }
+      return;
+    }
+    const idx = mobileCurrentResultIndex + 1;
+    setMobileCurrentResultIndex(idx);
     mobileSelectingRef.current = true;
-    mobileSelectedMsgIdRef.current = mobileSearchResults[newIndex]._id;
-    handleJumpToMessage(mobileSearchResults[newIndex]._id);
+    mobileSelectedMsgIdRef.current = mobileSearchResultsRef.current[idx]._id;
+    handleJumpToMessage(mobileSearchResultsRef.current[idx]._id);
     setTimeout(() => {
       mobileSelectingRef.current = false;
       mobileSelectedMsgIdRef.current = null;
     }, 1200);
-  }, [mobileSearchResults, mobileCurrentResultIndex]);
+  }, [mobileSearchHasMore, mobileCurrentResultIndex, mobileSearchTerm, fetchMobileSearchResults]);
 
   // Reset mobile search when sidebar closes
   useEffect(() => {
@@ -839,11 +890,13 @@ export default function ChatWindow({
     const mine = latest && String(latest.sender) === String(currentUser._id);
     const should = mine || uploadingCount > 0;
     if (jumpLoadingRef.current) return;
-    if (!should) return;
+    // Nếu người dùng đã cuộn lên (không ở cuối) hoặc đang tải thêm tin cũ, không auto-scroll
+    const userScrolledUp = hasScrolledUpRef.current && !isAtBottomRef.current;
+    if (!should || userScrolledUp || loadingMore) return;
     scrollToBottom();
     setTimeout(scrollToBottom, 0);
     setTimeout(scrollToBottom, 250);
-  }, [messages.length, uploadingCount, currentUser._id, scrollToBottom]);
+  }, [messages.length, uploadingCount, currentUser._id, scrollToBottom, loadingMore]);
 
   useEffect(() => {
     const el = messagesContainerRef.current;
@@ -1635,6 +1688,8 @@ export default function ChatWindow({
     setPinnedTotal(null);
     void fetchPinnedMessages();
     initialScrolledRef.current = false;
+    setUnreadBoundaryId(null);
+    setShowJumpToUnread(false);
   }, [roomId, fetchMessages, fetchPinnedMessages]);
 
   // Đồng bộ tin nhắn khi mở lại cùng phòng (selectedChat thay đổi nhưng roomId giữ nguyên)
@@ -1737,10 +1792,6 @@ export default function ChatWindow({
         playMessageSound();
         showMessageNotification(data);
         flashTabTitle();
-        void markAsReadApi(roomId, String(currentUser._id));
-        try {
-          socketRef.current?.emit('messages_read', { roomId, userId: String(currentUser._id) });
-        } catch {}
       }
       const locked = !!scrollLockUntilRef.current && Date.now() < scrollLockUntilRef.current;
       const elMeasure = messagesContainerRef.current;
@@ -1757,6 +1808,13 @@ export default function ChatWindow({
         pendingNewCountRef.current = 0;
         hasScrolledUpRef.current = false;
         setShowScrollDown(false);
+        if (data.sender !== currentUser._id) {
+          void markAsReadApi(roomId, String(currentUser._id));
+          syncLocalReadBy();
+          try {
+            socketRef.current?.emit('messages_read', { roomId, userId: String(currentUser._id) });
+          } catch {}
+        }
       } else {
         if (data.sender !== currentUser._id) {
           setPendingNewCount((c) => {
@@ -1765,6 +1823,13 @@ export default function ChatWindow({
             return next;
           });
           setShowScrollDown(hasScrolledUpRef.current || pendingNewCountRef.current > 0);
+          if (atBottomNow) {
+            void markAsReadApi(roomId, String(currentUser._id));
+            syncLocalReadBy();
+            try {
+              socketRef.current?.emit('messages_read', { roomId, userId: String(currentUser._id) });
+            } catch {}
+          }
         }
       }
     });
@@ -2217,7 +2282,7 @@ export default function ChatWindow({
   useEffect(() => {
     if (!roomId || !currentUser) return;
     if (markedReadRef.current === roomId) return;
-    void markAsRead();
+    // Không đánh dấu đã đọc ngay khi vào room
   }, [roomId, currentUser, markAsRead]);
 
   useEffect(() => {
@@ -2273,6 +2338,91 @@ export default function ChatWindow({
       clearInterval(timerId);
     };
   }, [roomId, currentUser, messages, isGroup]);
+
+  useEffect(() => {
+    if (!currentUser || messages.length === 0) {
+      setUnreadBoundaryId(null);
+      setShowJumpToUnread(false);
+      return;
+    }
+    const myId = String(currentUser._id || '');
+    const firstUnread = messages.find((m) => {
+      const rb = (m.readBy || []) as string[];
+      const notRead = !rb.some((id) => String(id) === myId);
+      const isIncoming = !compareIds((m as Message).sender, myId);
+      return notRead && isIncoming;
+    });
+    const boundary = firstUnread ? String(firstUnread._id) : null;
+    setUnreadBoundaryId(boundary);
+    if (!boundary) {
+      setShowJumpToUnread(false);
+      return;
+    }
+    const container = messagesContainerRef.current;
+  
+    const computeTop = (ee: HTMLElement, parent: HTMLElement) => {
+      const er = ee.getBoundingClientRect();
+      const pr = parent.getBoundingClientRect();
+      return parent.scrollTop + (er.top - pr.top);
+    };
+    const isFullyVisible = (ee: HTMLElement, parent: HTMLElement) => {
+      const cTop = parent.scrollTop;
+      const cBottom = cTop + parent.clientHeight;
+      const eTop = computeTop(ee, parent);
+      const eBottom = eTop + ee.clientHeight;
+      return eTop >= cTop && eBottom <= cBottom;
+    };
+    const updateVis = () => {
+      const c = messagesContainerRef.current;
+      const target =
+        (c?.querySelector(`#msg-${boundary}`) as HTMLElement | null) ||
+        (document.getElementById(`msg-${boundary}`) as HTMLElement | null);
+      if (c && target) {
+        const reached = isFullyVisible(target, c);
+        setShowJumpToUnread(!reached);
+        if (reached && !unreadHideTimerRef.current) {
+          unreadHideTimerRef.current = window.setTimeout(() => {
+            setUnreadBoundaryId(null);
+            if (roomId && currentUser) {
+              void markAsReadApi(roomId, String(currentUser._id));
+              syncLocalReadBy();
+              try {
+                socketRef.current?.emit('messages_read', { roomId, userId: String(currentUser._id) });
+              } catch {}
+            }
+            if (unreadHideTimerRef.current) {
+              clearTimeout(unreadHideTimerRef.current);
+              unreadHideTimerRef.current = null;
+            }
+          }, 10000);
+        }
+      } else {
+        setShowJumpToUnread(true);
+      }
+    };
+    updateVis();
+    const handler = () => updateVis();
+    container?.addEventListener('scroll', handler);
+    window.addEventListener('resize', handler);
+    return () => {
+      container?.removeEventListener('scroll', handler);
+      window.removeEventListener('resize', handler);
+      if (unreadHideTimerRef.current) {
+        clearTimeout(unreadHideTimerRef.current);
+        unreadHideTimerRef.current = null;
+      }
+    };
+  }, [messages, currentUser]);
+
+  const jumpToUnread = useCallback(() => {
+    if (!unreadBoundaryId) return;
+    const id = String(unreadBoundaryId);
+    try {
+      const evt = new CustomEvent('jumpToMessage', { detail: { messageId: id } });
+      window.dispatchEvent(evt);
+    } catch {}
+    handleJumpToMessage(id);
+  }, [unreadBoundaryId, handleJumpToMessage]);
 
   // Đóng mention menu khi click bên ngoài
   useEffect(() => {
@@ -3063,6 +3213,7 @@ export default function ChatWindow({
               allUsersMap={allUsersMap}
               uploadingFiles={uploadingFiles}
               highlightedMsgId={highlightedMsgId}
+              unreadBoundaryId={unreadBoundaryId}
               isGroup={isGroup}
               onContextMenu={handleContextMenu}
               onMobileLongPress={handleMobileLongPress}
@@ -3093,6 +3244,16 @@ export default function ChatWindow({
             />
             <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>
+
+          <button
+            onClick={jumpToUnread}
+            aria-label="Cuộn lên tin chưa đọc"
+            className={`absolute cursor-pointer md:bottom-[8.5rem] bottom-[9.5rem] right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
+              showJumpToUnread ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+          >
+            <HiChevronDoubleUp className="w-6 h-6 text-gray-700" />
+          </button>
 
           <button
             onClick={() => scrollToBottom(true)}
