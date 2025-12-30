@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ClipboardEvent, KeyboardEvent, RefObject, useEffect, useRef, useState } from 'react';
+import React, { ClipboardEvent, KeyboardEvent, RefObject, useEffect, useRef, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 
 // React Icons hi2 – Đỉnh cao nhất 2025
@@ -32,6 +32,11 @@ import MicIcon from '@/components/svg/MicIcon';
 import IconFile from '@/components/svg/IConFile';
 import ICFolder from '@/components/svg/ICFolder';
 import { AiTwotoneLike } from 'react-icons/ai';
+import { ICONS } from '@/components/constants';
+import { HiShieldCheck, HiTrash } from 'react-icons/hi';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useToast } from '@/components/base/toast';
+import type { GroupConversation, GroupRole } from '@/types/Group';
 
 interface ChatInputProps {
   showEmojiPicker: boolean;
@@ -76,6 +81,27 @@ export default function ChatInput({
   overallUploadPercent = 0,
 }: ChatInputProps) {
   const { currentUser, selectedChat, isGroup } = useChatContext();
+  const showToast = useToast();
+
+  const myRole = useMemo(() => {
+    if (!isGroup) return 'MEMBER';
+    const group = selectedChat as GroupConversation;
+    if (!group.members || !Array.isArray(group.members)) return 'MEMBER';
+
+    const myId = String(currentUser._id || (currentUser as { id?: string })?.id || '');
+    const member = group.members.find((m) => {
+      const mId = typeof m === 'string' ? m : m._id || (m as { id?: string }).id;
+      return String(mId) === myId;
+    });
+
+    if (member && typeof member !== 'string') {
+      return (member.role || 'MEMBER') as GroupRole;
+    }
+    return 'MEMBER';
+  }, [isGroup, selectedChat, currentUser]);
+
+  const canClearHistory = !isGroup || (isGroup && myRole === 'OWNER');
+
   const getId = (u: unknown): string => {
     const obj = u as { _id?: unknown; id?: unknown };
     if (obj && (obj._id != null || obj.id != null)) return String((obj._id ?? obj.id) as unknown);
@@ -107,6 +133,13 @@ export default function ChatInput({
   const pendingFocusRef = useRef(false);
   const allowFocusRef = useRef(true);
   const [hasContent, setHasContent] = useState(false);
+  const [showUpdatingPopup, setShowUpdatingPopup] = useState(false);
+  const [showConfirmClear, setShowConfirmClear] = useState(false);
+  const [showReportConfirm, setShowReportConfirm] = useState(false);
+  const handleShowUpdatingPopup = () => {
+    setShowUpdatingPopup(true);
+    window.setTimeout(() => setShowUpdatingPopup(false), 1500);
+  };
 
   const checkContent = () => {
     if (editableRef.current) {
@@ -441,24 +474,47 @@ export default function ChatInput({
                 >
                   <HiX className="w-3 h-3" />
                 </button>
+                <button
+                  onClick={() => setShowReportConfirm(true)}
+                  className="group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                  aria-label="Báo xấu"
+                >
+                  <HiShieldCheck className="w-7 h-7 text-gray-500 group-hover:text-red-600 transition-colors" />
+                </button>
+                {canClearHistory && (
+                  <button
+                    onClick={() => setShowConfirmClear(true)}
+                    className={`p-2 rounded-full cursor-pointer text-gray-700  ${
+                      isUploading ? 'opacity-50 pointer-events-none grayscale' : ''
+                    }`}
+                    aria-label="Xóa lịch sử"
+                  >
+                    <HiTrash className="w-7 h-7 text-gray-500" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
         </div>
       ) : null}
-      <div className="hidden md:flex items-center gap-2 mb-0  rounded-xl bg-white ">
+      <div className="hidden md:flex items-center mt-1 gap-2 mb-0  rounded-xl bg-white ">
         <button
-          onClick={onVoiceInput}
-          className={`rounded-lg cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
-          aria-label="Nhập bằng giọng nói"
+          onClick={() => {
+            try {
+              editableRef.current?.blur?.();
+            } catch {}
+            setTimeout(() => onToggleEmojiPicker(), 100);
+          }}
+          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+          aria-label="Chọn emoji"
         >
-          <MicIcon className="w-9 h-9" />
+          <ICONS.SmileEmoji className="w-5 h-5" />
         </button>
         <label
-          className=" rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
+          className=" rounded-lg cursor-pointer p-1 hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Gửi ảnh hoặc video"
         >
-          <ImageIconZalo className="w-9 h-9" />
+          <ICONS.ImageZalo className="w-5 h-5" />
           <input
             type="file"
             accept="image/*,video/*"
@@ -472,10 +528,10 @@ export default function ChatInput({
           />
         </label>
         <label
-          className=" rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
+          className=" rounded-lg cursor-pointer p-1 hover:bg-gray-100 transition-all duration-200 text-gray-700"
           aria-label="Gửi file"
         >
-          <IconFile className="w-9 h-9" />
+          <ICONS.AttachmentZalo className="w-5 h-5" />
           <input
             type="file"
             className="sr-only"
@@ -487,13 +543,41 @@ export default function ChatInput({
             }}
           />
         </label>
-        {/* <button
-          onClick={() => setShowFolderDashboard(true)}
-          className=" rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-200 text-gray-700"
-          aria-label="Mở Folder"
+        <button
+          onClick={handleShowUpdatingPopup}
+          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+          aria-label="Nhập bằng giọng nói"
         >
-          <ICFolder className="w-9 h-9" />
-        </button> */}
+          <ICONS.ContactZalo className="w-5 h-5" />
+        </button>
+        <button
+          onClick={handleShowUpdatingPopup}
+          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+          aria-label="Chọn Zalo"
+        >
+          <ICONS.SelectionZalo className="w-5 h-5" />
+        </button>
+        <button
+          onClick={handleShowUpdatingPopup}
+          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+          aria-label="Chỉnh sửa Zalo"
+        >
+          <ICONS.TextEditZalo className="w-5 h-5" />
+        </button>
+        <button
+          onClick={handleShowUpdatingPopup}
+          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+          aria-label="Gửi Zalo"
+        >
+          <ICONS.ChatFlashZalo className="w-5 h-5" />
+        </button>
+        <button
+          onClick={handleShowUpdatingPopup}
+          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+          aria-label="Chọn Zalo"
+        >
+          <ICONS.MoreZalo className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Input Area + Send Button */}
@@ -680,6 +764,24 @@ export default function ChatInput({
               >
                 <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
               </button>
+              <div className="hidden md:flex items-center gap-2 ml-1">
+                <button
+                  onClick={() => setShowReportConfirm(true)}
+                  className="group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                  aria-label="Báo xấu"
+                >
+                  <HiShieldCheck className="w-7 h-7 text-gray-500 group-hover:text-red-600 transition-colors" />
+                </button>
+                {canClearHistory && (
+                  <button
+                    onClick={() => setShowConfirmClear(true)}
+                    className="p-2 rounded-full cursor-pointer text-gray-700"
+                    aria-label="Xóa lịch sử"
+                  >
+                    <HiTrash className="w-7 h-7 text-gray-500" />
+                  </button>
+                )}
+              </div>
             </>
           ) : (
             <>
@@ -704,12 +806,12 @@ export default function ChatInput({
                     onInputEditable();
                     handleSendWrapper();
                   }}
-                  className={`p-2 rounded-full cursor-pointer text-gray-700 hover:bg-gray-100 transition-all duration-300 active:scale-90 ${
+                  className={`p-2 rounded-full cursor-pointer text-gray-700  ${
                     isUploading ? 'opacity-50 pointer-events-none grayscale' : ''
                   }`}
                   aria-label="Gửi like"
                 >
-                  <AiTwotoneLike className="w-7 h-7" />
+                  <Image src="/imgs/like.png" width={24} height={24} alt="Like Zalo" className="w-7 h-7" />
                 </button>
               </div>
               <div className="md:hidden flex items-center gap-2">
@@ -858,6 +960,42 @@ export default function ChatInput({
             </div>
             <span className="text-sm font-medium text-gray-800">Chat nhanh</span>
           </button>
+          <button
+            onClick={() => {
+              setShowReportConfirm(true);
+              setShowMobileActions(false);
+              try {
+                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+              } catch {}
+            }}
+            className="group relative cursor-pointer flex flex-col items-center"
+            aria-label="Báo xấu"
+          >
+            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 hover:from-rose-200 hover:to-pink-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+              <HiShieldCheck className="w-6 h-6 text-red-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Báo xấu</span>
+          </button>
+          {canClearHistory && (
+            <button
+              onClick={() => {
+                setShowConfirmClear(true);
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }}
+              className="group relative cursor-pointer flex flex-col items-center"
+              aria-label="Xóa lịch sử"
+            >
+              <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-slate-100 to-gray-100 hover:from-slate-200 hover:to-gray-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
+                <HiTrash className="w-6 h-6 text-gray-700 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
+                <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
+              </div>
+              <span className="text-sm font-medium text-gray-800">Xóa lịch sử</span>
+            </button>
+          )}
           <button className="group relative cursor-pointer flex flex-col items-center" aria-label="Vị trí">
             <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 hover:from-rose-200 hover:to-pink-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
               <HiMapPin className="w-6 h-6 text-rose-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
@@ -899,6 +1037,65 @@ export default function ChatInput({
         </div>
       )}
 
+      {showConfirmClear && (
+        <ConfirmModal
+          title="Xóa lịch sử"
+          message="Bạn có chắc muốn xóa toàn bộ lịch sử trò chuyện?"
+          onCancel={() => setShowConfirmClear(false)}
+          onConfirm={async () => {
+            setShowConfirmClear(false);
+            try {
+              const res = await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'clearHistory', roomId }),
+              });
+              if (res.ok) {
+                showToast({ type: 'success', message: 'Đã xóa lịch sử trò chuyện' });
+                try {
+                  window.dispatchEvent(new CustomEvent('chatHistoryCleared', { detail: { roomId } }));
+                } catch {}
+              } else {
+                showToast({ type: 'error', message: 'Xóa lịch sử thất bại' });
+              }
+            } catch {
+              showToast({ type: 'error', message: 'Lỗi khi xóa lịch sử' });
+            }
+          }}
+          confirmText="Xóa"
+          variant="danger"
+        />
+      )}
+      {showReportConfirm && (
+        <ConfirmModal
+          title="Báo xấu"
+          message="Bạn có muốn báo cáo cuộc trò chuyện này?"
+          onCancel={() => setShowReportConfirm(false)}
+          onConfirm={async () => {
+            setShowReportConfirm(false);
+            try {
+              await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create',
+                  data: {
+                    roomId,
+                    sender: currentUser._id,
+                    type: 'notify',
+                    content: 'Bạn đã báo xấu cuộc trò chuyện này',
+                  },
+                }),
+              });
+              showToast({ type: 'success', message: 'Đã gửi báo xấu' });
+            } catch {
+              showToast({ type: 'error', message: 'Gửi báo xấu thất bại' });
+            }
+          }}
+          confirmText="Báo xấu"
+          variant="warning"
+        />
+      )}
       {/* Custom CSS cho placeholder */}
       <style jsx>{`
         [contenteditable]:empty ~ div > span {
@@ -1082,6 +1279,23 @@ export default function ChatInput({
             </div>
             <div className="p-4">
               <ChatFlashDashboard roomId={roomId} onClose={() => setShowChatFlashDashboard(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+      {showUpdatingPopup && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowUpdatingPopup(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xs overflow-hidden">
+            <div className="px-5 py-4 text-center space-y-2">
+              <p className="text-base font-bold text-gray-900">Đang cập nhật</p>
+              <p className="text-sm text-gray-500">Tính năng đang được cập nhật.</p>
+              <button
+                onClick={() => setShowUpdatingPopup(false)}
+                className="cursor-pointer mt-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition"
+              >
+                Đóng
+              </button>
             </div>
           </div>
         </div>

@@ -1458,6 +1458,20 @@ export default function ChatWindow({
     return () => window.removeEventListener('mobileActionsToggle', handler);
   }, [scrollToBottom]);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const anyE = e as unknown as { detail?: { roomId?: string } };
+      const d = anyE.detail || {};
+      if (String(d.roomId) !== String(roomId)) return;
+      setMessages([]);
+      setAllPinnedMessages([]);
+      setHasMore(false);
+      setOldestTs(null);
+    };
+    window.addEventListener('chatHistoryCleared', handler as EventListener);
+    return () => window.removeEventListener('chatHistoryCleared', handler as EventListener);
+  }, [roomId]);
+
   const { isListening, handleVoiceInput } = useChatVoiceInput({
     editableRef,
     handleInputChangeEditable,

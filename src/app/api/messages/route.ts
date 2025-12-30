@@ -8,6 +8,7 @@ import {
   getRowByIdOrCode,
   updateByField,
   updateMany,
+  deleteManyRows,
 } from '@/lib/mongoDBCRUD';
 import { Message, MESSAGES_COLLECTION_NAME } from '@/types/Message';
 import { User, USERS_COLLECTION_NAME } from '@/types/User';
@@ -532,6 +533,17 @@ export async function POST(req: NextRequest) {
           ok = await deleteByField<Message>(collectionName, key, val);
         }
         return NextResponse.json({ success: ok });
+      }
+
+      case 'clearHistory': {
+        if (!roomId) {
+          return NextResponse.json({ error: 'Missing roomId' }, { status: 400 });
+        }
+        const result = await deleteManyRows<Message>(collectionName, { roomId: String(roomId) } as Filter<Message>);
+        return NextResponse.json({
+          success: true,
+          deletedCount: (result as unknown as { deletedCount?: number })?.deletedCount ?? undefined,
+        });
       }
 
       // Thay thế case 'globalSearch' trong /api/messages/route.ts
