@@ -1,4 +1,3 @@
-import React from 'react';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 import { HiOutlineClock } from 'react-icons/hi2';
@@ -71,16 +70,26 @@ export default function ReminderCard({
       <div className="flex items-center gap-2 p-3 border-b border-gray-100 bg-white">
         <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
           {senderAvatar ? (
-            <Image src={getProxyUrl(senderAvatar)} width={24} height={24} className="object-cover w-full h-full" alt="" />
+            <Image
+              src={getProxyUrl(senderAvatar)}
+              width={24}
+              height={24}
+              className="object-cover w-full h-full"
+              alt=""
+            />
           ) : (
             <div className="w-full h-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-bold">
-              {(senderName || '').charAt(0).toUpperCase()}
+              <Image
+                src="/logo/avata.webp"
+                alt=""
+                width={64}
+                height={64}
+                className="w-full h-full object-cover"
+              />
             </div>
           )}
         </div>
-        <span className="text-sm text-gray-700">
-          {isMe ? 'Bạn' : senderName} đã tạo một nhắc hẹn
-        </span>
+        <span className="text-sm text-gray-700">{isMe ? 'Bạn' : senderName} đã tạo một nhắc hẹn</span>
       </div>
       <div className="flex p-4 gap-4 items-center cursor-pointer">
         <div className="flex flex-col items-center justify-center min-w-[50px]">

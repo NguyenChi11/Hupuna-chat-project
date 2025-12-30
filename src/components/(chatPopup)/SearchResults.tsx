@@ -16,6 +16,7 @@ import {
   HiChevronRight,
   HiClock,
   HiFolder,
+  HiGlobeAlt,
 } from 'react-icons/hi2';
 
 interface Message {
@@ -69,52 +70,39 @@ const SearchTabs = ({
   setActiveTab,
   contactsCount,
   messagesCount,
-  filesCount,
 }: {
   activeTab: 'all' | 'contacts' | 'messages' | 'files';
   setActiveTab: (tab: 'all' | 'contacts' | 'messages' | 'files') => void;
   contactsCount: number;
   messagesCount: number;
-  filesCount: number;
 }) => {
   const tabs = [
     {
       key: 'all' as const,
       label: 'Tất cả',
       icon: HiMagnifyingGlass,
-      count: contactsCount + messagesCount + filesCount,
+      count: contactsCount + messagesCount,
     },
     { key: 'contacts' as const, label: 'Liên hệ', icon: HiUser, count: contactsCount },
     { key: 'messages' as const, label: 'Tin nhắn', icon: HiChatBubbleLeftRight, count: messagesCount },
-    { key: 'files' as const, label: 'File', icon: HiFolder, count: filesCount },
   ];
 
+  const formatCount = (n: number) => (n >= 99 ? '99+' : String(n));
   return (
-    <div className="flex flex-nowrap overflow-x-auto border-b border-gray-200 custom-scrollbar bg-white/80 backdrop-blur-sm sticky top-0 z-5 -mx-4 px-4 ">
+    <div className="flex flex-nowrap border-b border-gray-200 bg-white sticky top-0 z-5 -mx-4 px-4 ">
       {tabs.map((tab) => {
-        const Icon = tab.icon;
         const isActive = activeTab === tab.key;
         return (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`flex-shrink-0 flex cursor-pointer items-center justify-center gap-2 py-4 px-3 text-sm font-semibold transition-all relative ${
-              isActive ? 'text-indigo-600' : 'text-gray-600 hover:text-gray-900'
+              isActive ? 'text-[#0088ff]' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <Icon className="w-5 h-5" />
             <span>{tab.label}</span>
-            {tab.count > 0 && (
-              <span
-                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  isActive ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 text-gray-700'
-                }`}
-              >
-                {tab.count}
-              </span>
-            )}
             {isActive && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-indigo-600 rounded-full" />
+              <div className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#0088ff] rounded-full" />
             )}
           </button>
         );
@@ -193,10 +181,9 @@ const ContactsSection = ({
   if (contacts.length === 0) return null;
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-3 pt-1 bg-white">
       <div className="flex items-center gap-3 px-2">
-        <div className="w-2 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-full" />
-        <h4 className="text-lg font-bold text-gray-800">Liên hệ ({contacts.length})</h4>
+        <h4 className="text-sm font-bold text-gray-800">Liên hệ ({contacts.length})</h4>
       </div>
 
       {contacts.map((contact) => {
@@ -244,7 +231,7 @@ const ContactsSection = ({
             </div>
 
             <div className="flex-1 text-left">
-              <p className="font-bold text-gray-900 text-lg">
+              <p className=" text-gray-900">
                 <HighlightText text={displayName} keyword={searchTerm} />
               </p>
               <p className="text-sm text-gray-500 flex items-center gap-2">
@@ -253,7 +240,7 @@ const ContactsSection = ({
               </p>
             </div>
 
-            <HiChevronRight className="w-6 h-6 text-gray-400 group-hover:text-indigo-600 transition-colors" />
+     
           </button>
         );
       })}
@@ -275,21 +262,21 @@ const MessagesSection = ({
   onOpenRoomResults?: (roomId: string, roomName: string, isGroupChat: boolean, avatar?: string) => void;
 }) => {
   if (groupedMessages.length === 0) return null;
+  const formatCount = (n: number) => (n >= 99 ? '99+' : String(n));
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-3 px-2">
-        <div className="w-2 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full" />
-        <h4 className="text-lg font-bold text-gray-800">
-          Tin nhắn ({groupedMessages.reduce((a, g) => a + g.messages.length, 0)})
+    <section className="space-y-4 bg-white ">
+      <div className="flex items-center gap-3 px-2 pt-2">
+        <h4 className="text-sm font-bold text-gray-800">
+          Tin nhắn ({formatCount(groupedMessages.reduce((a, g) => a + g.messages.length, 0))})
         </h4>
       </div>
 
       {groupedMessages.map((group) => (
-        <div key={group.roomId} className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-2 flex items-center gap-4">
+        <div key={group.roomId} className="bg-white overflow-hidden border border-gray-100">
+          <div className="p-2 flex items-center gap-4">
             <div className="relative">
-              <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-12 h-12 rounded-3xl overflow-hidden ring-2 ring-white shadow-xl">
                 {group.avatar ? (
                   <Image
                     src={getProxyUrl(group.avatar as string)}
@@ -315,41 +302,24 @@ const MessagesSection = ({
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-gray-900 text-lg truncate">{group.roomName}</p>
+              <p className=" text-gray-900 text-lg truncate">{group.roomName}</p>
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm text-gray-600 flex items-center gap-2">
-                  <HiChatBubbleLeftRight className="w-4 h-4" />
-                  {group.isGroupChat ? 'Nhóm' : 'Chat cá nhân'}
-                </p>
-                <button
-                  onClick={() => {
-                    if (onOpenRoomResults) {
-                      onOpenRoomResults(group.roomId, group.roomName, group.isGroupChat, group.avatar);
-                    } else {
-                      onNavigateToMessage(group.messages[0]);
-                    }
-                    onClearSearch();
-                  }}
-                  className="flex items-center gap-1 text-xs text-blue-600 font-medium hover:text-blue-700 cursor-pointer"
-                >
-                  <span>{group.messages.length} kết quả phù hợp</span>
-                  <HiChevronRight className="w-4 h-4" />
-                </button>
+                <p className="text-sm text-gray-600">{group.isGroupChat ? 'Nhóm' : 'Chat cá nhân'}</p>
+               
               </div>
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100">
-            {group.messages.slice(0, 8).map((msg) => (
+          <div className="divide-y divide-gray-200 border-b border-gray-300">
+            {group.messages.slice(0, 1).map((msg) => (
               <button
                 key={msg._id}
                 onClick={() => {
                   onNavigateToMessage(msg);
                   onClearSearch();
                 }}
-                className="w-full cursor-pointer p-5 text-left hover:bg-green-50 transition-all flex items-start gap-4 active:scale-99"
+                className="w-full cursor-pointer p-5 text-left hover:bg-gray-50 transition-all flex items-start gap-4 active:scale-99"
               >
-                <HiChatBubbleLeftRight className="w-6 h-6 text-green-600 mt-1 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-gray-800">{msg.senderName}</span>
@@ -365,25 +335,23 @@ const MessagesSection = ({
                 <HiChevronRight className="w-6 h-6 text-gray-400" />
               </button>
             ))}
+             <button
+                  onClick={() => {
+                    if (onOpenRoomResults) {
+                      onOpenRoomResults(group.roomId, group.roomName, group.isGroupChat, group.avatar);
+                    } else {
+                      onNavigateToMessage(group.messages[0]);
+                    }
+                    onClearSearch();
+                  }}
+                  className="flex px-10 py-3 items-center gap-1 text-sm font-medium hover:text-blue-700 cursor-pointer"
+                >
+                  <span className=''>{formatCount(group.messages.length)} kết quả phù hợp</span>
+                  <HiChevronRight className="w-4 h-4" />
+                </button>
           </div>
 
-          {group.messages.length > 8 && (
-            <div className="p-2 bg-green-50 text-center">
-              <button
-                onClick={() => {
-                  if (onOpenRoomResults) {
-                    onOpenRoomResults(group.roomId, group.roomName, group.isGroupChat, group.avatar);
-                  } else {
-                    onNavigateToMessage(group.messages[0]);
-                  }
-                  onClearSearch();
-                }}
-                className="cursor-pointer text-green-700 font-bold hover:text-green-800"
-              >
-                Xem thêm {group.messages.length - 8} tin nhắn
-              </button>
-            </div>
-          )}
+          
         </div>
       ))}
     </section>
@@ -413,9 +381,9 @@ const FilesSection = ({
       </div>
 
       {groupedFiles.map((group) => (
-        <div key={group.roomId} className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+        <div key={group.roomId} className="bg-white  overflow-hidden border border-gray-100">
           <div className="bg-gradient-to-r from-orange-50 to-red-50 p-2 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white text-2xl font-bold">
+            <div className="w-10 h-10 rounded-3xl overflow-hidden ring-2 ring-white shadow-xl">
               {group.avatar ? (
                   <Image
                     src={getProxyUrl(group.avatar as string)}
@@ -503,8 +471,6 @@ export default function SearchResults({
   hasResults,
   contacts,
   groupedMessages,
-  groupedFiles,
-  fileMessages,
   searchTerm,
   onSelectContact,
   onNavigateToMessage,
@@ -522,13 +488,12 @@ export default function SearchResults({
         setActiveTab={setActiveTab}
         contactsCount={contacts.length}
         messagesCount={groupedMessages.reduce((a, g) => a + g.messages.length, 0)}
-        filesCount={fileMessages.length}
       />
 
       {isSearching && <LoadingState />}
       {!isSearching && !hasResults && <EmptyState />}
       {!isSearching && hasResults && (
-        <div className="space-y-10 px-2 pt-4">
+        <div className="space-y-3  bg-gray-200">
           {(activeTab === 'all' || activeTab === 'contacts') && (
             <ContactsSection
               contacts={contacts}
@@ -544,15 +509,6 @@ export default function SearchResults({
               onNavigateToMessage={onNavigateToMessage}
               onClearSearch={handleClearSearch}
               onOpenRoomResults={onOpenRoomResults}
-            />
-          )}
-          {(activeTab === 'all' || activeTab === 'files') && (
-            <FilesSection
-              groupedFiles={groupedFiles}
-              fileMessages={fileMessages}
-              searchTerm={searchTerm}
-              onNavigateToMessage={onNavigateToMessage}
-              onClearSearch={handleClearSearch}
             />
           )}
         </div>
