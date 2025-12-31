@@ -63,7 +63,7 @@ export default function ReminderCard({
   }
   return (
     <div
-      className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden w-full max-w-[20rem] ${
+      className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden w-full max-w-[18rem] ${
         highlighted ? 'ring-2 ring-yellow-300' : ''
       }`}
     >

@@ -626,9 +626,43 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
               return prev;
             }
             const isActiveChat = activeChatId === data.roomId;
+
+            // --- XỬ LÝ BIỆT DANH (GROUP NICKNAME) ---
+            let displaySenderName = senderName;
+            if (!isMyMsg) {
+              const currentGroup = prev[index];
+              const senderMember = currentGroup.members?.find((m: any) => {
+                const mId = typeof m === 'object' && m?._id ? String(m._id) : String(m);
+                return mId === String(data.sender);
+              });
+              // Kiểm tra nickname trong member
+              if (senderMember && typeof senderMember === 'object' && (senderMember as any).nickname) {
+                displaySenderName = (senderMember as any).nickname;
+              }
+            }
+
+            // --- RE-FORMAT LAST MESSAGE NẾU CÓ BIỆT DANH ---
+            let finalContentDisplay = contentDisplay;
+            // Chỉ re-format nếu không phải là tin nhắn hệ thống (notify không người gửi) và không phải tin nhắn của mình
+            // Nếu là recall, cũng cần xử lý
+            if (!isMyMsg) {
+              const isTextLike = data.type === 'text' || data.type === 'notify';
+              const rawContent = data.content || '';
+
+              if (data.isRecalled || data.type === 'recall') {
+                finalContentDisplay = `${displaySenderName}: Tin nhắn đã được thu hồi`;
+              } else if (isTextLike) {
+                finalContentDisplay = `${displaySenderName}: ${rawContent}`;
+              } else {
+                // Image, file, sticker, etc.
+                const typeLabel = data.type ? `[${data.type}]` : '[Tin nhắn]';
+                finalContentDisplay = `${displaySenderName}: ${typeLabel}`;
+              }
+            }
+
             const updatedGroup = {
               ...prev[index],
-              lastMessage: contentDisplay,
+              lastMessage: finalContentDisplay,
               lastMessageAt: data.timestamp || Date.now(),
               isRecall: data.isRecalled || false,
               unreadCount: isMyMsg || isActiveChat ? 0 : (prev[index].unreadCount || 0) + 1,

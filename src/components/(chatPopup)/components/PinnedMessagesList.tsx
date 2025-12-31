@@ -330,7 +330,7 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
       </div>
 
       {/* Tabs */}
-      <div className="bg-white flex items-center border-b border-gray-200 sticky top-[0] z-10">
+      <div className="bg-white px-1 flex items-center border-b border-gray-200 sticky top-[0] z-10">
         <div
           onClick={() => setActiveTab('pinned')}
           className={`flex-1 text-center py-3 border-b-2 font-medium text-sm cursor-pointer transition-colors ${

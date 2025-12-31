@@ -240,8 +240,22 @@ export async function POST(req: NextRequest) {
               if (senderIdStr === userIdStr) {
                 senderName = 'Bạn';
               } else {
-                const senderInfo = userMap.get(senderIdStr) || userMap.get(String(Number(senderIdStr)));
-                senderName = senderInfo ? senderInfo.name : 'Người lạ';
+                const membersArr = Array.isArray(group.members) ? (group.members as MemberInfo[]) : [];
+                const matchedMember =
+                  membersArr.find((m) => String(m._id) === senderIdStr) ||
+                  membersArr.find(
+                    (m) =>
+                      !isNaN(Number(String(m._id))) &&
+                      !isNaN(Number(senderIdStr)) &&
+                      Number(String(m._id)) === Number(senderIdStr),
+                  );
+                const roomNick = matchedMember && (matchedMember.nickname || '').trim();
+                if (roomNick) {
+                  senderName = roomNick;
+                } else {
+                  const senderInfo = userMap.get(senderIdStr) || userMap.get(String(Number(senderIdStr)));
+                  senderName = senderInfo ? senderInfo.name : 'Người lạ';
+                }
               }
 
               if (lastMsgObj.isRecalled) {

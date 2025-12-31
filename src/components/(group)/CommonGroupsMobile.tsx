@@ -119,7 +119,7 @@ export default function CommonGroupsMobile({
                 </div>
               )}
             </div>
-            <span className="text-[1.3rem] font-medium text-gray-800 truncate ">
+            <span className="text-[1.3rem] text-gray-800 truncate ">
               {group.name || 'Nhóm'}
             </span>
           </div>

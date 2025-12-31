@@ -684,7 +684,7 @@ export default function GroupMembersModal({
                                   });
                                   setOpenMenuId(null);
                                 }}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                                className="cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
                               >
                                 Đặt biệt danh
                               </button>
@@ -700,7 +700,7 @@ export default function GroupMembersModal({
                                     });
                                     setOpenMenuId(null);
                                   }}
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                                  className="cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
                                 >
                                   Phân làm Phó nhóm
                                 </button>
@@ -716,7 +716,7 @@ export default function GroupMembersModal({
                                     });
                                     setOpenMenuId(null);
                                   }}
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                                  className="cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
                                 >
                                   Bổ nhiệm làm Phó nhóm
                                 </button>
@@ -732,7 +732,7 @@ export default function GroupMembersModal({
                                     });
                                     setOpenMenuId(null);
                                   }}
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                                  className="cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
                                 >
                                   Bãi nhiệm
                                 </button>
@@ -748,7 +748,7 @@ export default function GroupMembersModal({
                                     });
                                     setOpenMenuId(null);
                                   }}
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600"
+                                  className="cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600"
                                 >
                                   Xóa khỏi nhóm
                                 </button>
