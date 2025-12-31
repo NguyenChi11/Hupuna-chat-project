@@ -422,47 +422,12 @@ export default function Sidebar({
       className="relative flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-r border-gray-200 w-full lg:w-[20rem] shadow-2xl overflow-hidden"
     >
       {/* HEADER GRADIENT SIÊU SANG */}
-      <div className="bg-blue-400 shadow-2xl mb-1">
-        {/* User Info */}
-        {/* <div className="px-4 py-4  items-center gap-4 hidden md:flex text-white">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-3xl overflow-hidden ring-2 ring-white/30 shadow-xl">
-              {currentUser.avatar ? (
-                <Image
-                  width={56}
-                  height={56}
-                  src={getProxyUrl(currentUser.avatar)}
-                  alt={currentUser.name || 'User'}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-pink-500 flex items-center justify-center text-2xl font-bold">
-                  {(currentUser.name || 'U').charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
-            <div className="absolute bottom-0 right-0 w-5 h-5 bg-green-400 rounded-full border-4 border-white shadow-lg"></div>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold truncate">{currentUser.name || currentUser.username}</h3>
-            <p className="text-sm opacity-90 truncate">@{currentUser.username}</p>
-          </div>
-
-          <button
-            onClick={() => router.push(`/profile/${currentUser.username}`)}
-            className="cursor-pointer p-3 bg-white/20 hover:bg-white/30 rounded-2xl backdrop-blur-sm transition-all active:scale-95"
-          >
-            <HiUserCircle className="w-6 h-6" />
-          </button>
-        </div> */}
-
-        {/* Search + Create Group */}
-        <div className="px-2 pb-3 pt-3">
-          <div className="flex items-center gap-4">
+      <div className="bg-blue-400 shadow-2xl lg:bg-white lg:shadow-none mb-1">
+        <div className="px-2 pb-3 pt-3 lg:px-2 lg:py-3 ">
+          <div className="flex items-center gap-4 lg:gap-3">
             <div className="relative flex-1 group">
-              {/* Icon kính lúp - mặc định trắng mờ, focus chuyển sang xanh Zalo */}
-              <HiMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 pointer-events-none z-10 transition-colors duration-300 group-focus-within:text-[#0068ff] group-focus-within:opacity-100" />
+              {/* Icon kính lúp */}
+              <HiMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 lg:text-gray-500 pointer-events-none z-10 transition-colors duration-300 group-focus-within:text-[#0068ff] group-focus-within:opacity-100" />
 
               <input
                 ref={searchInputRef}
@@ -470,32 +435,38 @@ export default function Sidebar({
                 placeholder="Tìm kiếm"
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-11 pr-10 py-1 bg-transparent rounded-xl focus:outline-none focus:bg-white transition-all duration-300 text-base text-white placeholder-white/70 focus:text-gray-800 focus:placeholder-gray-500"
+                className="w-full pl-11 pr-10 py-1 bg-transparent rounded-xl focus:outline-none focus:bg-white transition-all duration-300 text-base text-white placeholder-white/70 focus:text-gray-800 focus:placeholder-gray-500 lg:pl-10 lg:py-2 lg:bg-[#EAEDF0] lg:rounded-md lg:text-sm lg:text-gray-900 lg:placeholder-gray-500 lg:focus:ring-1 lg:focus:ring-[#0068ff]"
               />
 
-              {/* Nút xóa - chỉ hiện khi có text, mặc định trắng mờ trên nền trong suốt, focus thì xám trên nền trắng */}
+              {/* Nút xóa */}
               {searchTerm && (
                 <button
                   onClick={() => {
                     setSearchTerm('');
                     setGlobalSearchResults({ contacts: [], messages: [] });
                   }}
-                  className="absolute cursor-pointer  right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 group-focus-within:bg-gray-300 group-focus-within:hover:bg-gray-400 transition-all duration-300 flex items-center justify-center active:scale-95"
+                  className="absolute cursor-pointer right-3 lg:right-2 top-1/2 -translate-y-1/2 w-7 h-7 lg:w-6 lg:h-6 rounded-full bg-white/20 hover:bg-white/30 group-focus-within:bg-gray-300 group-focus-within:hover:bg-gray-400 lg:bg-transparent lg:hover:bg-gray-200 lg:group-focus-within:bg-transparent transition-all duration-300 flex items-center justify-center active:scale-95"
                 >
-                  <HiXMark className="w-4 h-4 text-white group-focus-within:text-gray-600 transition-colors duration-300" />
+                  <HiXMark className="w-4 h-4 text-white group-focus-within:text-gray-600 lg:text-gray-500 transition-colors duration-300" />
                 </button>
               )}
             </div>
 
             {!isWidgetIframe && (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 lg:gap-1">
                 {!onlyPersonal && (
                   <button
                     onClick={() => setShowCreateGroupModal(true)}
-                    className="cursor-pointer w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-3xl backdrop-blur-sm transition-all active:scale-95"
+                    className="cursor-pointer w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-3xl backdrop-blur-sm lg:bg-transparent lg:hover:bg-gray-100 lg:rounded-md transition-all active:scale-95 group"
                     title="Tạo nhóm mới"
                   >
-                    <FaPlus className="w-4 h-4 text-white" />
+                    {/* Old Icon */}
+                    <FaPlus className="w-4 h-4 text-white lg:hidden" />
+                    {/* New Icon */}
+                    <div className="hidden lg:block relative">
+                      <HiUserGroup className="w-5 h-5 text-gray-600 group-hover:text-[#0068ff] transition-colors" />
+                      <span className="absolute -top-1 -right-1 text-[10px] text-gray-600 font-bold">+</span>
+                    </div>
                   </button>
                 )}
 
@@ -503,9 +474,12 @@ export default function Sidebar({
                   <button
                     ref={mobileMenuButtonRef}
                     onClick={() => setShowMobileMenu(!showMobileMenu)}
-                    className="cursor-pointer p-1 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-3xl backdrop-blur-sm transition-all active:scale-95"
+                    className="cursor-pointer p-1 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-3xl backdrop-blur-sm lg:bg-transparent lg:hover:bg-gray-100 lg:rounded-md transition-all active:scale-95 group"
                   >
-                    <HiEllipsisVertical className="w-5 h-5 text-white text-sm" />
+                    {/* Old Icon */}
+                    <HiEllipsisVertical className="w-5 h-5 text-white text-sm lg:hidden" />
+                    {/* New Icon */}
+                    <FaPlus className="hidden lg:block w-5 h-5 text-gray-600 group-hover:text-[#0068ff] transition-colors" />
                   </button>
 
                   <SidebarMobileMenu
@@ -527,18 +501,6 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      {!isSearchActive && !isWidgetIframe && (
-        <>
-          {/* <div className="px-2 pt-2 hidden lg:block bg-white/70 backdrop-blur-sm border-b border-gray-200">
-            <MessageFilter filterType={filterType} setFilterType={setFilterType} counts={filterCounts} />
-          </div> */}
-          {/* <div className="px-2 pt-2 sm:hidden block bg-white/70 backdrop-blur-sm border-b border-gray-200">
-            <MessageFilter filterType={filterType} setFilterType={setFilterType} counts={filterCounts} />
-          </div> */}
-        </>
-      )}
-      {/* Mobile/Tablet Extra Tabs */}
       {onlyGroups && (
         <div className="flex items-center justify-around px-2 py-3 bg-white border-b border-gray-200 md:hidden">
           <button

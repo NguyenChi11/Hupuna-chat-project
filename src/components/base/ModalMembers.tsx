@@ -472,7 +472,7 @@ export default function GroupMembersModal({
           {showSearch && (
             <div className="px-4 pb-3">
               <div className="relative">
-                <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/90 text-gray-900" />
+                <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/90 focus:outline-none focus:bg-white focus:text-gray-900 transition-all" />
                 <input
                   type="text"
                   value={searchTerm}
@@ -491,7 +491,7 @@ export default function GroupMembersModal({
           <div className="flex items-center gap-6 px-4 border-b border-gray-200 overflow-x-auto custom-scrollbar">
             <button
               onClick={() => setActiveTab('all')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
+              className={`cursor-pointer py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === 'all'
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -501,7 +501,7 @@ export default function GroupMembersModal({
             </button>
             <button
               onClick={() => setActiveTab('admin')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
+              className={`cursor-pointer py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === 'admin'
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -511,7 +511,7 @@ export default function GroupMembersModal({
             </button>
             <button
               onClick={() => setActiveTab('invited')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
+              className={`cursor-pointer py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === 'invited'
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -521,7 +521,7 @@ export default function GroupMembersModal({
             </button>
             <button
               onClick={() => setActiveTab('blocked')}
-              className={`py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
+              className={`cursor-pointer py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === 'blocked'
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
