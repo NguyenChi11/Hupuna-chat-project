@@ -231,7 +231,7 @@ export default function Sidebar({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'globalSearch',
-            data: { userId: currentUser._id, searchTerm: term, limit: 50 },
+            data: { userId: currentUser._id, searchTerm: term, limit: 200 },
           }),
         });
 
@@ -282,15 +282,9 @@ export default function Sidebar({
       })();
     }
   }, [searchTerm, globalSearchResults.contacts.length, globalSearchResults.messages.length, handleGlobalSearch]);
-  const regularMessages = useMemo(
-    () => globalSearchResults.messages.filter((msg) => !['file', 'image', 'video'].includes(msg.type)),
-    [globalSearchResults.messages],
-  );
-
-  const fileMessages = useMemo(
-    () => globalSearchResults.messages.filter((msg) => ['file', 'image', 'video'].includes(msg.type)),
-    [globalSearchResults.messages],
-  );
+  const regularMessages = useMemo(() => globalSearchResults.messages, [globalSearchResults.messages]);
+ 
+  const fileMessages = useMemo(() => globalSearchResults.messages, [globalSearchResults.messages]);
 
   const groupedMessages = useMemo(() => {
     const getRoomAvatar = (roomId: string, isGroupChat: boolean | undefined) => {

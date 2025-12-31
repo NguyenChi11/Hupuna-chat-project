@@ -156,7 +156,7 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   return (
     <div
       data-context-menu="true"
-      className={`fixed z-[9999] bg-white space-y-3 rounded-lg shadow-2xl border border-gray-200 py-1 w-[250px] text-sm ${animClass}`}
+      className={`fixed z-[9999] bg-white space-y-2 rounded-lg shadow-2xl border border-gray-200 py-1 w-[200px] text-sm ${animClass}`}
       style={style}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -170,7 +170,7 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex items-center gap-4">
-            <ICReply size={24} className="w-7 h-7" />
+            <ICReply size={24} className="w-6 h-6" />
             <p className="text-[1rem]">Trả lời</p>
           </span>
         </MenuItem>
@@ -185,7 +185,7 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex gap-4 items-center">
-            <ICShareMessage className="w-7 h-7" />
+            <ICShareMessage className="w-6 h-6" />
             <p className="text-[1rem]">Chia sẻ</p>
           </span>
         </MenuItem>
@@ -204,7 +204,7 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className='flex gap-2 items-center'>
-            <ICCopy className="w-9 h-9 font-bold" />
+            <ICCopy className="w-7 h-7 font-bold" />
             <span className="text-[1rem] ">Sao chép</span>
           </span>
         </MenuItem>
@@ -220,12 +220,12 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
         >
           {isCurrentlyPinned ? (
             <p className="text-red-500 flex gap-4 items-center">
-              <ICPin className={`text-red-600 w-6 h-6 `} size={24} />
+              <ICPin className={`text-red-600 w-5 h-5 `}  />
               <span className="text-[1rem]">Bỏ ghim tin nhắn</span> 
             </p>
           ) : (
             <p className="flex gap-4 items-center ">  
-              <ICPin className="w-6 h-6" />
+              <ICPin className="w-5 h-5" />
               <span className="text-[1rem]">Ghim tin nhắn</span> 
             </p>
           )}
@@ -245,7 +245,7 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex gap-4 items-center">
-            <HiPencil className="w-7 h-7" />
+            <HiPencil className="w-6 h-6" />
             <span className="text-[1rem]">Chỉnh sửa</span>  
           </span>
         </MenuItem>
@@ -262,7 +262,7 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex gap-4 items-center">
-            <HiOutlineDownload className="w-7 h-7" />
+            <HiOutlineDownload className="w-5 h-5" />
             <span className="text-[1rem]">Tải xuống</span>  
           </span>
         </MenuItem>
@@ -279,7 +279,7 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex gap-4 items-center">
-            <HiOutlineTrash className="w-7 h-7" />
+            <HiOutlineTrash className="w-5 h-5" />
             <span className="text-[1rem]">Thu hồi</span>  
           </span>
         </MenuItem>

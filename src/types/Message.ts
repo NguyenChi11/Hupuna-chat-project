@@ -34,6 +34,11 @@ export interface Message {
   pollVotes?: Record<string, string[]>;
   isPollLocked?: boolean;
   pollLockedAt?: number;
+  pollAllowMultiple?: boolean;
+  pollAllowAddOptions?: boolean;
+  pollHideVoters?: boolean;
+  pollHideResultsUntilVote?: boolean;
+  pollEndAt?: number | null;
    sharedFrom?: {
     messageId: string;
     originalSender: string;
@@ -73,6 +78,11 @@ export interface MessageCreate {
   pollVotes?: Record<string, string[]>;
   isPollLocked?: boolean;
   pollLockedAt?: number;
+  pollAllowMultiple?: boolean;
+  pollAllowAddOptions?: boolean;
+  pollHideVoters?: boolean;
+  pollHideResultsUntilVote?: boolean;
+  pollEndAt?: number | null;
    sharedFrom?: {
     messageId: string;
     originalSender: string;

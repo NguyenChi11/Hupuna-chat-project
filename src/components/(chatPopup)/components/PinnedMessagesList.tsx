@@ -81,7 +81,23 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
   };
 
   // --- Handlers ---
-  const handleCreatePoll = async ({ question, options }: { question: string; options: string[] }) => {
+  const handleCreatePoll = async ({
+    question,
+    options,
+    pollAllowMultiple,
+    pollAllowAddOptions,
+    pollHideVoters,
+    pollHideResultsUntilVote,
+    pollEndAt,
+  }: {
+    question: string;
+    options: string[];
+    pollAllowMultiple?: boolean;
+    pollAllowAddOptions?: boolean;
+    pollHideVoters?: boolean;
+    pollHideResultsUntilVote?: boolean;
+    pollEndAt?: number | null;
+  }) => {
     const q = question.trim();
     if (!q) return;
 
@@ -96,6 +112,11 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
         pollOptions: options,
         pollVotes: {},
         isPollLocked: false,
+        pollAllowMultiple,
+        pollAllowAddOptions,
+        pollHideVoters,
+        pollHideResultsUntilVote,
+        pollEndAt: pollEndAt ?? null,
       });
 
       if (createRes?.success) {
@@ -121,6 +142,11 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
             pollOptions: options,
             pollVotes: {},
             isPollLocked: false,
+            pollAllowMultiple,
+            pollAllowAddOptions,
+            pollHideVoters,
+            pollHideResultsUntilVote,
+            pollEndAt: pollEndAt ?? null,
           });
 
           // Notify

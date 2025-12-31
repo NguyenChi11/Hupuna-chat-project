@@ -511,7 +511,15 @@ export async function POST(req: NextRequest) {
 
       case 'updateMany': {
         if (!filters || !data) return NextResponse.json({ error: 'Missing filters or data' }, { status: 400 });
-        const result = await updateMany<Message>(collectionName, filters, { $set: data });
+        const safeFilters = { ...filters };
+        if (safeFilters._id && typeof safeFilters._id === 'string') {
+          if (ObjectId.isValid(safeFilters._id)) {
+            safeFilters._id = new ObjectId(safeFilters._id);
+          } else if (!isNaN(Number(safeFilters._id))) {
+            safeFilters._id = Number(safeFilters._id);
+          }
+        }
+        const result = await updateMany<Message>(collectionName, safeFilters, { $set: data });
         return NextResponse.json({
           success: true,
           matchedCount: result.matchedCount,

@@ -34,6 +34,7 @@ import {
   recallMessageApi,
   markAsReadApi,
   updateMessageApi,
+  tryLockPollApi,
 } from '@/fetch/messages';
 import SearchSidebar from '@/components/(chatPopup)/SearchMessageModal';
 import { isVideoFile, resolveSocketUrl, getProxyUrl } from '@/utils/utils';
@@ -184,6 +185,8 @@ export default function ChatWindow({
   >([]);
   const reminderScheduledIdsRef = useRef<Set<string>>(new Set());
   const reminderTimersByIdRef = useRef<Map<string, number>>(new Map());
+  const pollScheduledIdsRef = useRef<Set<string>>(new Set());
+  const pollTimersByIdRef = useRef<Map<string, number>>(new Map());
   const messagesRef = useRef<Message[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
   const [messageToShare, setMessageToShare] = useState<Message | null>(null);
@@ -863,6 +866,116 @@ export default function ChatWindow({
       await sendMessageProcess(newMsg);
     },
     [roomId, currentUser._id, sendMessageProcess],
+  );
+
+  const schedulePollAutoLock = useCallback(
+    (msg: Message) => {
+      // Chỉ người tạo poll mới được set timer auto-lock để tránh duplicate notification
+      if (!compareIds(msg.sender, currentUser._id)) return;
+
+      const idStr = String(msg._id);
+      const existing = pollTimersByIdRef.current.get(idStr);
+      if (existing) {
+        clearTimeout(existing);
+        pollTimersByIdRef.current.delete(idStr);
+        pollScheduledIdsRef.current.delete(idStr);
+      }
+      const endAt = (msg as unknown as { pollEndAt?: number | null }).pollEndAt;
+      const locked = !!(msg as unknown as { isPollLocked?: boolean }).isPollLocked;
+      if (typeof endAt !== 'number' || locked) return;
+      const now = Date.now();
+      const delay = Math.max(0, endAt - now);
+      const timerId = window.setTimeout(async () => {
+        const latest = messagesRef.current.find((x) => String(x._id) === idStr);
+        if (!latest || (latest as Message).isRecalled || (latest as Message).isPollLocked) {
+          pollScheduledIdsRef.current.delete(idStr);
+          const t = pollTimersByIdRef.current.get(idStr);
+          if (t) {
+            clearTimeout(t);
+            pollTimersByIdRef.current.delete(idStr);
+          }
+          return;
+        }
+        let latestEndAt = (latest as unknown as { pollEndAt?: number | null }).pollEndAt;
+        try {
+          const r = await fetch('/api/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getById', _id: (latest as Message)._id }),
+          });
+          const j = await r.json();
+          const srv = (j && (j.row?.row || j.row)) as Message | undefined;
+          const srvEndAt = srv && (srv as unknown as { pollEndAt?: number | null }).pollEndAt;
+          if (typeof srvEndAt === 'number' || srvEndAt === null) {
+            latestEndAt = srvEndAt;
+          }
+        } catch {}
+        const now2 = Date.now();
+        if (typeof latestEndAt === 'number' && latestEndAt > now2) {
+          const newDelay = Math.max(0, latestEndAt - now2);
+          const newTimer = window.setTimeout(async () => {
+            const latest2 = messagesRef.current.find((x) => String(x._id) === idStr);
+            if (!latest2 || (latest2 as Message).isRecalled || (latest2 as Message).isPollLocked) {
+              pollScheduledIdsRef.current.delete(idStr);
+              const t2 = pollTimersByIdRef.current.get(idStr);
+              if (t2) {
+                clearTimeout(t2);
+                pollTimersByIdRef.current.delete(idStr);
+              }
+              return;
+            }
+            const timeStr2 = new Date(latestEndAt as number).toLocaleString('vi-VN');
+            const now3 = Date.now();
+            const updateData = {
+              isPollLocked: true as true,
+              pollLockedAt: now3,
+              editedAt: now3,
+              timestamp: now3,
+            };
+            try {
+              const result = await tryLockPollApi(String((latest2 as Message)._id), updateData);
+              if (result.success && result.modifiedCount && result.modifiedCount > 0) {
+                socketRef.current?.emit('edit_message', { _id: (latest2 as Message)._id, roomId, ...updateData });
+                await sendNotifyMessage(
+                  `Bình chọn đã tự động khóa: "${String(
+                    (latest2 as Message).content || (latest2 as Message).pollQuestion || '',
+                  )}" (kết thúc lúc ${timeStr2})`,
+                  String((latest2 as Message)._id),
+                );
+              }
+            } catch {}
+            pollScheduledIdsRef.current.delete(idStr);
+            pollTimersByIdRef.current.delete(idStr);
+          }, newDelay);
+          pollTimersByIdRef.current.set(idStr, newTimer);
+          return;
+        }
+        const timeStr = new Date((latestEndAt as number) || now2).toLocaleString('vi-VN');
+        const updateData = {
+          isPollLocked: true as true,
+          pollLockedAt: now2,
+          editedAt: now2,
+          timestamp: now2,
+        };
+        try {
+          const result = await tryLockPollApi(String((latest as Message)._id), updateData);
+          if (result.success && result.modifiedCount && result.modifiedCount > 0) {
+            socketRef.current?.emit('edit_message', { _id: (latest as Message)._id, roomId, ...updateData });
+            await sendNotifyMessage(
+              `Bình chọn đã tự động khóa: "${String(
+                (latest as Message).content || (latest as Message).pollQuestion || '',
+              )}" (kết thúc lúc ${timeStr})`,
+              String((latest as Message)._id),
+            );
+          }
+        } catch {}
+        pollScheduledIdsRef.current.delete(idStr);
+        pollTimersByIdRef.current.delete(idStr);
+      }, delay);
+      pollTimersByIdRef.current.set(idStr, timerId);
+      pollScheduledIdsRef.current.add(idStr);
+    },
+    [roomId, sendNotifyMessage, currentUser._id],
   );
 
   const { uploadingFiles, handleUploadAndSend } = useChatUpload({
@@ -1797,6 +1910,13 @@ export default function ChatWindow({
         });
         return unique;
       });
+      if ((data as unknown as { type?: MessageType }).type === 'poll') {
+        const endAt = (data as unknown as { pollEndAt?: number | null }).pollEndAt;
+        const locked = !!(data as unknown as { isPollLocked?: boolean }).isPollLocked;
+        if (typeof endAt === 'number' && !locked) {
+          schedulePollAutoLock(data);
+        }
+      }
 
       if (data.sender !== currentUser._id && !roomMuted) {
         playMessageSound();
@@ -1949,6 +2069,11 @@ export default function ChatWindow({
                     pollVotes: data.pollVotes ?? msg.pollVotes,
                     isPollLocked: data.isPollLocked ?? msg.isPollLocked,
                     pollLockedAt: data.pollLockedAt ?? msg.pollLockedAt,
+                    pollAllowMultiple: (data as unknown as { pollAllowMultiple?: boolean }).pollAllowMultiple ?? (msg as unknown as { pollAllowMultiple?: boolean }).pollAllowMultiple,
+                    pollAllowAddOptions: (data as unknown as { pollAllowAddOptions?: boolean }).pollAllowAddOptions ?? (msg as unknown as { pollAllowAddOptions?: boolean }).pollAllowAddOptions,
+                    pollHideVoters: (data as unknown as { pollHideVoters?: boolean }).pollHideVoters ?? (msg as unknown as { pollHideVoters?: boolean }).pollHideVoters,
+                    pollHideResultsUntilVote: (data as unknown as { pollHideResultsUntilVote?: boolean }).pollHideResultsUntilVote ?? (msg as unknown as { pollHideResultsUntilVote?: boolean }).pollHideResultsUntilVote,
+                    pollEndAt: (data as any).pollEndAt !== undefined ? (data as any).pollEndAt : (msg as any).pollEndAt,
                     timestamp: data.timestamp ?? msg.timestamp,
                     isPinned: typeof data.isPinned === 'boolean' ? data.isPinned : msg.isPinned,
                     pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : msg.pinnedAt,
@@ -2104,6 +2229,21 @@ export default function ChatWindow({
             reminderTimersByIdRef.current.set(idStr, timerId);
             reminderScheduledIdsRef.current.add(idStr);
           }
+          const tPoll = pollTimersByIdRef.current.get(idStr);
+          if (tPoll) {
+            clearTimeout(tPoll);
+            pollTimersByIdRef.current.delete(idStr);
+            pollScheduledIdsRef.current.delete(idStr);
+          }
+          const endAt = (data as any).pollEndAt;
+          const shouldSchedule = typeof endAt === 'number' && !(data as any).isPollLocked;
+          if (shouldSchedule) {
+            const existingMsg = messagesRef.current.find((m) => String(m._id) === idStr);
+            const composed = existingMsg
+              ? { ...(existingMsg as Message), pollEndAt: endAt, isPollLocked: (data as any).isPollLocked }
+              : ({ _id: data._id, roomId: data.roomId, pollEndAt: endAt, isPollLocked: (data as any).isPollLocked } as unknown as Message);
+            schedulePollAutoLock(composed as Message);
+          }
           // Không re-fetch để tránh reload, cập nhật cục bộ qua socket
         }
       },
@@ -2159,6 +2299,12 @@ export default function ChatWindow({
           reminderTimersByIdRef.current.delete(idStr);
           reminderScheduledIdsRef.current.delete(idStr);
         }
+        const tp = pollTimersByIdRef.current.get(idStr);
+        if (tp) {
+          clearTimeout(tp);
+          pollTimersByIdRef.current.delete(idStr);
+        }
+        pollScheduledIdsRef.current.delete(idStr);
         // Không re-fetch để tránh reload, cập nhật cục bộ qua socket
       }
     });
@@ -2173,6 +2319,12 @@ export default function ChatWindow({
           reminderTimersByIdRef.current.delete(idStr);
         }
         reminderScheduledIdsRef.current.delete(idStr);
+        const tp = pollTimersByIdRef.current.get(idStr);
+        if (tp) {
+          clearTimeout(tp);
+          pollTimersByIdRef.current.delete(idStr);
+        }
+        pollScheduledIdsRef.current.delete(idStr);
         void fetchMessages();
       }
     });
@@ -2221,6 +2373,26 @@ export default function ChatWindow({
       })();
     } catch {}
   }, [roomId, incomingCall, callActive, callConnecting, acceptIncomingCallWith_s2]);
+
+  useEffect(() => {
+    messages.forEach((m) => {
+      const idStr = String(m._id);
+      const scheduled = pollScheduledIdsRef.current.has(idStr);
+      const endAt = (m as unknown as { pollEndAt?: number | null }).pollEndAt;
+      const locked = !!(m as unknown as { isPollLocked?: boolean }).isPollLocked;
+      if (typeof endAt === 'number' && !locked && !scheduled) {
+        schedulePollAutoLock(m);
+      }
+      if ((endAt == null || locked) && scheduled) {
+        const tp = pollTimersByIdRef.current.get(idStr);
+        if (tp) {
+          clearTimeout(tp);
+          pollTimersByIdRef.current.delete(idStr);
+        }
+        pollScheduledIdsRef.current.delete(idStr);
+      }
+    });
+  }, [messages, schedulePollAutoLock]);
 
   useEffect(() => {
     const el = footerRef.current;

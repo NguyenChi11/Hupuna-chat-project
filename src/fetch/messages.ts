@@ -151,3 +151,20 @@ export async function fireReminderOnceApi(messageId: string): Promise<{ success:
   const json = await res.json();
   return { success: !!json.success, modifiedCount: json.modifiedCount };
 }
+
+export async function tryLockPollApi(
+  messageId: string,
+  updates: { isPollLocked: true; pollLockedAt: number; editedAt: number; timestamp: number },
+): Promise<{ success: boolean; modifiedCount?: number }> {
+  const res = await fetch('/api/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'updateMany',
+      filters: { _id: messageId, isPollLocked: { $ne: true } },
+      data: updates,
+    }),
+  });
+  const json = await res.json();
+  return { success: !!json.success, modifiedCount: json.modifiedCount };
+}

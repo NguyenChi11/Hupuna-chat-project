@@ -88,7 +88,8 @@ export default function GlobalSearchModal({
   }, [results?.messages]);
 
   const groupedMessages = useMemo(() => {
-    if (!regularMessages || regularMessages.length === 0) return [];
+    const allMsgs = [...(regularMessages || []), ...(fileMessages || [])];
+    if (allMsgs.length === 0) return [];
 
     const groups = new Map<
       string,
@@ -103,7 +104,7 @@ export default function GlobalSearchModal({
       }
     >();
 
-    regularMessages.forEach((msg) => {
+    allMsgs.forEach((msg) => {
       if (!msg || !msg.roomId) return;
 
       const key = msg.roomId;
@@ -122,13 +123,11 @@ export default function GlobalSearchModal({
 
       const group = groups.get(key)!;
       group.messages.push(msg);
-      if (msg.timestamp && msg.timestamp > group.latestTimestamp) {
-        group.latestTimestamp = msg.timestamp;
-      }
+      group.latestTimestamp = Math.max(group.latestTimestamp, msg.timestamp || Date.now());
     });
 
     return Array.from(groups.values()).sort((a, b) => b.latestTimestamp - a.latestTimestamp);
-  }, [regularMessages, allUsers]);
+  }, [regularMessages, fileMessages, allUsers]);
 
   const groupedFiles = useMemo(() => {
     if (!fileMessages || fileMessages.length === 0) return [];

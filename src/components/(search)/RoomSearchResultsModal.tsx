@@ -169,13 +169,23 @@ export default function RoomSearchResultsModal({
 
   const senderOptions = useMemo(() => {
     const ids = new Set<string>();
+    const names = new Map<string, string>();
+
     messages.forEach((m) => {
       const id = typeof m.sender === 'object' && m.sender ? String((m.sender as User)._id) : String(m.sender || '');
-      if (id) ids.add(id);
+      if (id) {
+        ids.add(id);
+        if (typeof m.sender === 'object' && (m.sender as User).name) {
+          names.set(id, (m.sender as User).name);
+        }
+      }
     });
+
     const arr = Array.from(ids).map((id) => {
       const u = allUsers.find((x) => String(x._id) === String(id));
-      return { id, name: u?.name || '' };
+      // Prioritize name -> username -> message sender name -> ID
+      const name = u?.name || u?.username || names.get(id) || id;
+      return { id, name };
     });
     return arr.sort((a, b) => a.name.localeCompare(b.name));
   }, [messages, allUsers]);
@@ -255,7 +265,7 @@ export default function RoomSearchResultsModal({
       <span>
         {parts.map((p, i) =>
           re.test(p) ? (
-            <span key={i} className="bg-indigo-100 text-indigo-700 font-semibold rounded">
+            <span key={i} className=" text-blue-600 md:text-blue-700 font-semibold rounded">
               {p}
             </span>
           ) : (
@@ -288,11 +298,13 @@ export default function RoomSearchResultsModal({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="font-bold">{(roomName || '').charAt(0).toUpperCase()}</span>
+                <Image src="/logo/avata.webp" alt=" " width={64} height={64} className="w-full h-full object-cover" />
               )}
             </div>
             <div>
-              <div className="font-semibold text-gray-900 text-sm">{roomName || 'Cuộc trò chuyện'}</div>
+              <div className="font-semibold text-gray-900 text-sm truncate w-[10rem] md:w-[10rem]">
+                {roomName || 'Cuộc trò chuyện'}
+              </div>
               <div className="text-xs text-gray-500">{keyword}</div>
             </div>
           </div>

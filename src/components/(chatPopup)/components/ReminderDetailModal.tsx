@@ -350,14 +350,13 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
             <div className="divide-y divide-gray-200">
               <div className="flex items-start gap-3 px-4 py-4">
                 <HiBellAlert className="w-6 h-6 text-rose-600 shrink-0" />
-
-                <p className="flex-1 min-w-0 text-2xl text-gray-800 whitespace-pre-wrap break-words">{content}</p>
+                <p className="flex-1 min-w-0 text-xl text-gray-800 whitespace-pre-wrap break-words">{content}</p>
               </div>
               <div className="flex items-center gap-3 px-4 py-4">
                 <HiOutlineClock className="w-6 h-6 text-gray-700" />
                 <div className="flex-1">
-                  <div className="text-gray-800 text-2xl">{dtLabel}</div>
-                  <div className="text-gray-500 text-xl">Lặp: {repeatLabel}</div>
+                  <div className="text-gray-800 text-xl">{dtLabel}</div>
+                  <div className="text-gray-500 text-lg">Lặp: {repeatLabel}</div>
                 </div>
               </div>
             </div>

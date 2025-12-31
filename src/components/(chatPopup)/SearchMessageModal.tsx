@@ -306,11 +306,11 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
           <select
             value={senderFilter}
             onChange={(e) => setSenderFilter(e.target.value)}
-            className=" cursor-pointer border border-gray-300 rounded-lg px-2 py-1 text-sm cursor-pointer flex-1"
+            className=" cursor-pointer text-[1rem] border border-gray-300 rounded-lg px-2 py-1 text-sm cursor-pointer flex-1"
           >
             <option value="">Tất cả</option>
             {senderOptions.map((opt) => (
-              <option className="cursor-pointer" key={opt.id} value={opt.id}>
+              <option className="cursor-pointer " key={opt.id} value={opt.id}>
                 {opt.name || opt.id}
               </option>
             ))}

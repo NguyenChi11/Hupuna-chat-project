@@ -22,6 +22,11 @@ import {
   HiArrowUturnRight,
   HiPencil,
   HiPhoto,
+  HiListBullet,
+  HiCheckCircle,
+  HiEyeSlash,
+  HiPlus,
+  HiLockClosed,
 } from 'react-icons/hi2';
 import { HiPhone, HiVideoCamera, HiArrowDown, HiArrowUp } from 'react-icons/hi2';
 import { HiLink, HiOutlineLogout, HiOutlineShare } from 'react-icons/hi';
@@ -1555,6 +1560,8 @@ export default function MessageList({
                         const trimmedLower = display.trim().toLowerCase();
                         if (!trimmedLower.startsWith('bạn') && myName && display.startsWith(myName)) {
                           display = 'Bạn' + display.slice(myName.length);
+                        } else if (display.startsWith('Một thành viên')) {
+                          display = 'Bạn' + display.slice('Một thành viên'.length);
                         }
                       }
                       const contentLower = display.toLowerCase();
@@ -1868,7 +1875,39 @@ export default function MessageList({
                                   {new Date(msg.pollLockedAt || msg.editedAt || msg.timestamp).toLocaleString('vi-VN')}
                                 </p>
                               )}
-                              <p className="text-xs text-gray-500 mt-1">Chọn nhiều phương án</p>
+                              <div className="flex flex-col gap-0.5 mt-1">
+                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                  {msg.pollAllowMultiple ? (
+                                    <>
+                                      <HiListBullet className="w-3.5 h-3.5 flex-shrink-0" />
+                                      <span>Chọn nhiều phương án</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <HiCheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                                      <span>Chọn 1 phương án</span>
+                                    </>
+                                  )}
+                                </div>
+                                {msg.pollHideVoters && (
+                                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                    <HiEyeSlash className="w-3.5 h-3.5 flex-shrink-0" />
+                                    <span>Ẩn người bình chọn</span>
+                                  </div>
+                                )}
+                                {msg.pollAllowAddOptions && (
+                                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                    <HiPlus className="w-3.5 h-3.5 flex-shrink-0" />
+                                    <span>Cho phép thêm phương án</span>
+                                  </div>
+                                )}
+                                {msg.pollHideResultsUntilVote && (
+                                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                    <HiLockClosed className="w-3.5 h-3.5 flex-shrink-0" />
+                                    <span>Ẩn kết quả khi chưa bình chọn</span>
+                                  </div>
+                                )}
+                              </div>
                               <button
                                 onClick={() => setDetailMsg(msg)}
                                 className="text-xs text-blue-600 hover:underline mt-1"
@@ -1876,11 +1915,19 @@ export default function MessageList({
                                 {(() => {
                                   const userIds = new Set<string>();
                                   let totalVotes = 0;
+                                  let hasVoted = false;
                                   (msg.pollOptions || []).forEach((opt) => {
                                     const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
                                     totalVotes += arr.length;
                                     arr.forEach((id) => userIds.add(String(id)));
+                                    if (arr.includes(myId)) hasVoted = true;
                                   });
+                                  const showResults = !(msg.pollHideResultsUntilVote && !hasVoted);
+                                  if (!showResults) return 'Bình chọn để xem kết quả';
+
+                                  if (msg.pollHideVoters) {
+                                    return `${totalVotes} lượt bình chọn`;
+                                  }
                                   return `${userIds.size} người bình chọn, ${totalVotes} lượt bình chọn`;
                                 })()}
                               </button>
@@ -1890,12 +1937,17 @@ export default function MessageList({
                                     const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
                                     return acc + arr.length;
                                   }, 0);
+                                  const hasVoted = options.some((opt) => {
+                                    const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
+                                    return arr.includes(myId);
+                                  });
+                                  const showResults = !(msg.pollHideResultsUntilVote && !hasVoted);
 
                                   return options.map((opt, idx) => {
                                     const arr = Array.isArray(votes[opt]) ? (votes[opt] as string[]) : [];
                                     const count = arr.length;
                                     const voted = arr.includes(myId);
-                                    const percent = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
+                                    const percent = showResults && totalVotes > 0 ? (count / totalVotes) * 100 : 0;
 
                                     return (
                                       <button
@@ -1915,7 +1967,7 @@ export default function MessageList({
                                         />
                                         <div className="flex items-center justify-between  relative z-10">
                                           <span className="truncate text-[12px]">{opt}</span>
-                                          <span className="text-sm">{count}</span>
+                                          <span className="text-sm">{showResults ? count : ''}</span>
                                         </div>
                                       </button>
                                     );

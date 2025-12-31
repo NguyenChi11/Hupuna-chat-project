@@ -133,7 +133,23 @@ export default function ChatInput({
   const [showCreateNote, setShowCreateNote] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
 
-  const handleCreatePoll = async ({ question, options }: { question: string; options: string[] }) => {
+  const handleCreatePoll = async ({
+    question,
+    options,
+    pollAllowMultiple,
+    pollAllowAddOptions,
+    pollHideVoters,
+    pollHideResultsUntilVote,
+    pollEndAt,
+  }: {
+    question: string;
+    options: string[];
+    pollAllowMultiple?: boolean;
+    pollAllowAddOptions?: boolean;
+    pollHideVoters?: boolean;
+    pollHideResultsUntilVote?: boolean;
+    pollEndAt?: number | null;
+  }) => {
     const q = question.trim();
     if (!q) return;
 
@@ -148,6 +164,11 @@ export default function ChatInput({
         pollOptions: options,
         pollVotes: {},
         isPollLocked: false,
+        pollAllowMultiple,
+        pollAllowAddOptions,
+        pollHideVoters,
+        pollHideResultsUntilVote,
+        pollEndAt: pollEndAt ?? null,
       });
 
       if (createRes?.success) {
@@ -173,6 +194,11 @@ export default function ChatInput({
             pollOptions: options,
             pollVotes: {},
             isPollLocked: false,
+            pollAllowMultiple,
+            pollAllowAddOptions,
+            pollHideVoters,
+            pollHideResultsUntilVote,
+            pollEndAt: pollEndAt ?? null,
           });
 
           // Notify

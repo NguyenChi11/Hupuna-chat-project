@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HiX } from 'react-icons/hi';
-import { HiEllipsisVertical, HiLockClosed, HiLockOpen } from 'react-icons/hi2';
+import { HiCheckCircle, HiEllipsisVertical, HiEyeSlash, HiListBullet, HiLockClosed, HiLockOpen, HiPlus } from 'react-icons/hi2';
 import { useChatContext } from '@/context/ChatContext';
 import type { Message } from '@/types/Message';
 import type { GroupConversation, MemberInfo } from '@/types/Group';
@@ -98,6 +98,11 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
         pollVotes?: Record<string, string[]>;
         isPollLocked?: boolean;
         pollLockedAt?: number;
+        pollAllowMultiple?: boolean;
+        pollAllowAddOptions?: boolean;
+        pollHideVoters?: boolean;
+        pollHideResultsUntilVote?: boolean;
+        pollEndAt?: number | null;
         timestamp?: number;
         isPinned?: boolean;
       }) => {
@@ -114,6 +119,11 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                   pollVotes: data.pollVotes ?? m.pollVotes,
                   isPollLocked: data.isPollLocked ?? m.isPollLocked,
                   pollLockedAt: data.pollLockedAt ?? m.pollLockedAt,
+                  pollAllowMultiple: data.pollAllowMultiple ?? m.pollAllowMultiple,
+                  pollAllowAddOptions: data.pollAllowAddOptions ?? m.pollAllowAddOptions,
+                  pollHideVoters: data.pollHideVoters ?? m.pollHideVoters,
+                  pollHideResultsUntilVote: data.pollHideResultsUntilVote ?? m.pollHideResultsUntilVote,
+                  pollEndAt: typeof data.pollEndAt !== 'undefined' ? data.pollEndAt : m.pollEndAt,
                   timestamp: data.timestamp ?? m.timestamp,
                   isPinned: typeof data.isPinned === 'boolean' ? data.isPinned : m.isPinned,
                 }
@@ -125,14 +135,15 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
     );
     socketRef.current.on(
       'edit_message',
-      (data: { _id: string; roomId: string; newContent: string; editedAt: number }) => {
+      (data: Partial<Message> & { _id: string; roomId: string; newContent?: string; originalContent?: string }) => {
         if (String(data.roomId) !== String(roomId)) return;
         setItems((prev) =>
           prev.map((m) =>
             String(m._id) === String(data._id)
               ? {
                   ...m,
-                  content: data.newContent,
+                  ...data,
+                  content: data.newContent || data.content || m.content,
                   editedAt: data.editedAt,
                   originalContent: m.originalContent || m.content,
                 }
@@ -157,7 +168,23 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
     };
   }, [roomId, load]); // ✅ BỎ SOCKET_URL khỏi dependencies
 
-  const handleCreate = async ({ question, options }: { question: string; options: string[] }) => {
+  const handleCreate = async ({
+    question,
+    options,
+    pollAllowMultiple,
+    pollAllowAddOptions,
+    pollHideVoters,
+    pollHideResultsUntilVote,
+    pollEndAt,
+  }: {
+    question: string;
+    options: string[];
+    pollAllowMultiple?: boolean;
+    pollAllowAddOptions?: boolean;
+    pollHideVoters?: boolean;
+    pollHideResultsUntilVote?: boolean;
+    pollEndAt?: number | null;
+  }) => {
     const q = question.trim();
     const raw = options.map((o) => o.trim()).filter((o) => o);
     const lowers = Array.from(new Set(raw.map((o) => o.toLowerCase())));
@@ -174,6 +201,11 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
         pollOptions: unique,
         pollVotes: {},
         isPollLocked: false,
+        pollAllowMultiple,
+        pollAllowAddOptions,
+        pollHideVoters,
+        pollHideResultsUntilVote,
+        pollEndAt: pollEndAt ?? null,
       });
       if (createRes?.success) {
         const receiver = isGroup ? null : String((selectedChat as User)._id);
@@ -198,6 +230,11 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
             pollOptions: unique,
             pollVotes: {},
             isPollLocked: false,
+            pollAllowMultiple,
+            pollAllowAddOptions,
+            pollHideVoters,
+            pollHideResultsUntilVote,
+            pollEndAt: pollEndAt ?? null,
           });
           const notify = await createMessageApi({
             roomId,
@@ -227,12 +264,13 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
     const sender = item.sender as User | string;
     const senderId = typeof sender === 'object' && sender ? String(sender._id) : String(sender);
     const isCreator = senderId === String(currentUser._id);
-    return isGroup ? isCreator : false;
+    return isCreator;
   };
 
   const handleToggleLock = async (item: Message) => {
     if (!canLock(item)) return;
     const next = !item.isPollLocked;
+    if (!next && item.pollEndAt != null) return;
     try {
       const now = Date.now();
       const name = currentUser.name;
@@ -473,6 +511,11 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                 const isMenuOpen = openMenuId === itemId;
                 const locked = !!it.isPollLocked;
                 const totalVotes = Object.values(it.pollVotes || {}).flat().length;
+                const uniqueVoters = new Set(Object.values(it.pollVotes || {}).flat()).size;
+                const hasVoted = Object.values(it.pollVotes || {}).some((arr) =>
+                  arr.includes(String(currentUser._id)),
+                );
+                const showResults = !(it.pollHideResultsUntilVote && !hasVoted);
 
                 return (
                   <div
@@ -536,12 +579,12 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                                                 }}
                                                 className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-20 py-1"
                                             >
-                                                <button onClick={() => handleEdit(it)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">Xem chi tiết</button>
-                                                <button onClick={() => handleTogglePin(it)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
+                                                <button onClick={() => handleEdit(it)} className="cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-50">Xem chi tiết</button>
+                                                <button onClick={() => handleTogglePin(it)} className="cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
                                                     {it.isPinned ? 'Bỏ ghim' : 'Ghim bình chọn'}
                                                 </button>
-                                                {canLock(it) && (
-                                                    <button onClick={() => handleToggleLock(it)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600">
+                                                {canLock(it) && !(it.pollEndAt != null && Date.now() >= Number(it.pollEndAt)) && (
+                                                    <button onClick={() => handleToggleLock(it)} className="cursor-pointer w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600">
                                                         {locked ? 'Mở khóa bình chọn' : 'Khóa bình chọn'}
                                                     </button>
                                                 )}
@@ -557,9 +600,44 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                         <p className="text-base font-medium text-gray-900 mb-2 leading-snug truncate">
                           {it.content || it.pollQuestion || 'Bình chọn'}
                         </p>
+                        
+                        <div className="flex flex-col gap-0.5 mb-2">
+                             <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                               {it.pollAllowMultiple ? (
+                                 <>
+                                   <HiListBullet className="w-3.5 h-3.5 flex-shrink-0" />
+                                   <span>Chọn nhiều phương án</span>
+                                 </>
+                               ) : (
+                                 <>
+                                   <HiCheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                                   <span>Chọn 1 phương án</span>
+                                 </>
+                               )}
+                             </div>
+                             {it.pollHideVoters && (
+                               <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                 <HiEyeSlash className="w-3.5 h-3.5 flex-shrink-0" />
+                                 <span>Ẩn người bình chọn</span>
+                               </div>
+                             )}
+                             {it.pollAllowAddOptions && (
+                               <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                 <HiPlus className="w-3.5 h-3.5 flex-shrink-0" />
+                                 <span>Cho phép thêm phương án</span>
+                               </div>
+                             )}
+                             {it.pollHideResultsUntilVote && (
+                               <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                 <HiLockClosed className="w-3.5 h-3.5 flex-shrink-0" />
+                                 <span>Ẩn kết quả khi chưa bình chọn</span>
+                               </div>
+                             )}
+                        </div>
+
                         <div className="flex items-center gap-1 mb-3 cursor-pointer" onClick={() => handleEdit(it)}>
                           <span className="text-sm text-blue-500 font-medium hover:underline">
-                            {totalVotes} người đã bình chọn
+                            {showResults ? `${uniqueVoters} người đã bình chọn` : 'Bình chọn để xem kết quả'}
                           </span>
                           <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -572,7 +650,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                                     const voters = getVotersForOption(it, opt);
                                     const count = voters.length;
                                     const voted = didIVote(it, opt);
-                                    const percent = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
+                                    const percent = showResults && totalVotes > 0 ? (count / totalVotes) * 100 : 0;
                                     
                                     // Get avatars of voters (max 3)
                                     const voterAvatars = voters.slice(0, 3).map(uid => {
@@ -601,6 +679,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                                                 </span>
                                                 
                                                 {/* Voter Avatars */}
+                                                {!it.pollHideVoters && showResults && (
                                                 <div className="flex items-center -space-x-2">
                                                     {voterAvatars.map((u, i) => (
                                                         <div key={i} className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200" title={u.name}>
@@ -623,6 +702,12 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                                                         </div>
                                                     )}
                                                 </div>
+                                                )}
+                                                {it.pollHideVoters && showResults && count > 0 && (
+                                                    <div className="text-xs text-gray-500 font-medium">
+                                                        {count} lượt
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     );
