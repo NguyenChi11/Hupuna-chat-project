@@ -4,15 +4,14 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { HiX, HiSearch, HiShieldCheck, HiCheck, HiChevronDown, HiPencil } from 'react-icons/hi';
-
+import { HiX, HiSearch } from 'react-icons/hi';
 import CreateGroupModal from '../../app/(zalo)/home/CreateGroupModal';
 import { User } from '../../types/User';
 import { MemberInfo, GroupRole } from '../../types/Group';
 import { getProxyUrl, resolveSocketUrl } from '../../utils/utils';
 import { useToast } from './toast';
 import { confirmAlert } from './alert';
-import { HiUserMinus, HiUserPlus } from 'react-icons/hi2';
+import { HiUserMinus, HiUserPlus, HiEllipsisVertical } from 'react-icons/hi2';
 import ICPeopleGroup from '@/components/svg/ICPeopleGroup';
 import io from 'socket.io-client';
 import { KeyIcon } from 'lucide-react';
@@ -77,7 +76,7 @@ export default function GroupMembersModal({
   sendNotifyMessage,
   lastUpdated,
 }: Props) {
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [localMembers, setLocalMembers] = useState<LocalMemberInfo[]>([]);
@@ -87,8 +86,9 @@ export default function GroupMembersModal({
     name: string;
     currentVal: string;
   } | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'invited'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'admin' | 'invited' | 'blocked'>('all');
   const [showSearch, setShowSearch] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const toast = useToast();
   const router = useRouter();
 
@@ -130,6 +130,12 @@ export default function GroupMembersModal({
       .map((m: unknown) => {
         const raw = m as Partial<MemberInfo> & { id?: string | number; _id?: string | number };
         const memberId = normalizeId(raw._id ?? raw.id);
+        console.log(`[ModalMembers] Process member ${memberId}:`, {
+          name: raw.name,
+          role: raw.role,
+          addedBy: raw.addedBy,
+          rawObject: raw,
+        });
 
         if (!memberId) {
           console.warn('⚠️ Member without ID:', raw);
@@ -161,6 +167,7 @@ export default function GroupMembersModal({
           avatar,
           role: baseRole,
           joinedAt: baseJoinedAt,
+          addedBy: raw.addedBy,
           originalName,
         } as LocalMemberInfo;
       })
@@ -205,6 +212,7 @@ export default function GroupMembersModal({
       avatar: u.avatar,
       role: 'MEMBER',
       joinedAt: Date.now(),
+      addedBy: myId, // ✅ Include addedBy for optimistic UI
     }));
     setLocalMembers((prev) => [...prev, ...newMembersFormatted]);
     setShowCreateGroupModal(false);
@@ -330,6 +338,16 @@ export default function GroupMembersModal({
     }
   };
   const searchUser = localMembers.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const displayMembers = searchUser.filter((m) => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'admin') return m.role === 'OWNER' || m.role === 'ADMIN';
+    // TODO: Implement invited and blocked lists when data is available
+    if (activeTab === 'invited') return false;
+    if (activeTab === 'blocked') return false;
+    return true;
+  });
+
   const existingMemberIds = localMembers.map((m) => normalizeId(m._id || m.id));
   const setNickname = async (targetId: string, nickname: string) => {
     if (!conversationId) return;
@@ -402,14 +420,12 @@ export default function GroupMembersModal({
     if (role === 'OWNER')
       return (
         <span className=" px-3 py-1.5 rounded-full text-[0.5rem] font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md flex items-center gap-1.5">
-          <KeyIcon className="w-3 h-3" />
           Trưởng nhóm
         </span>
       );
     if (role === 'ADMIN')
       return (
-        <span className="ml-2 px-3 py-1.5 rounded-full text-[0.5rem] font-bold bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md flex items-center gap-1.5">
-          <HiShieldCheck className="w-3 h-3" />
+        <span className=" px-3 py-1.5 rounded-full text-[0.5rem] font-bold bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md flex items-center gap-1.5">
           Phó nhóm
         </span>
       );
@@ -424,11 +440,11 @@ export default function GroupMembersModal({
     >
       <div className="bg-white w-full h-full rounded-none overflow-hidden flex flex-col">
         {/* HEADER */}
-        <div className="flex-none bg-gradient-to-b from-sky-500 to-blue-500 text-white">
-          <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex-none bg-blue-400 text-white">
+          <div className="flex items-center justify-between px-4 py-2">
             <div className="flex items-center gap-2">
               <button onClick={onClose} className="p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
@@ -443,20 +459,7 @@ export default function GroupMembersModal({
               >
                 <HiUserPlus className="w-6 h-6" />
               </button>
-              <button
-                onClick={() =>
-                  confirmAlert({
-                    title: 'Rời nhóm',
-                    message: 'Bạn chắc chắn muốn rời nhóm này?',
-                    okText: 'Rời nhóm',
-                    onOk: () => handleLeaveGroup(),
-                  })
-                }
-                className="p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95"
-                title="Rời nhóm"
-              >
-                <HiUserMinus className="w-6 h-6" />
-              </button>
+
               <button
                 onClick={() => setShowSearch((v) => !v)}
                 className="p-2 rounded-full cursor-pointer hover:bg-white/20 active:scale-95"
@@ -483,16 +486,48 @@ export default function GroupMembersModal({
         </div>
 
         {/* BODY */}
-        <div className="flex-1 flex flex-col min-h-0 bg-white sm:bg-gray-50">
+        <div className="flex-1 flex flex-col min-h-0  bg-white sm:bg-gray-50">
           {/* Tabs */}
-          <div className="flex items-center gap-4 px-4 py-2 border-b border-gray-300">
+          <div className="flex items-center gap-6 px-4 border-b border-gray-200 overflow-x-auto custom-scrollbar">
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                activeTab === 'all' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+              className={`py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
+                activeTab === 'all'
+                  ? 'border-gray-900 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
               Tất cả
+            </button>
+            <button
+              onClick={() => setActiveTab('admin')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
+                activeTab === 'admin'
+                  ? 'border-gray-900 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Trưởng và phó nhóm
+            </button>
+            <button
+              onClick={() => setActiveTab('invited')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
+                activeTab === 'invited'
+                  ? 'border-gray-900 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Đã mời
+            </button>
+            <button
+              onClick={() => setActiveTab('blocked')}
+              className={`py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
+                activeTab === 'blocked'
+                  ? 'border-gray-900 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Đã chặn
             </button>
           </div>
           {/* NICKNAME MODAL - style giống Zalo */}
@@ -550,11 +585,11 @@ export default function GroupMembersModal({
           <div className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Danh sách thành viên</h3>
-              <span className="text-xl font-bold text-[#0088ff]">{searchUser.length}</span>
+              <span className="text-xl font-bold text-[#0088ff]">{displayMembers.length}</span>
             </div>
 
             <div className="space-y-1">
-              {(activeTab === 'all' ? searchUser : []).map((member) => {
+              {displayMembers.map((member) => {
                 const memberId = normalizeId(member._id || member.id);
                 const memberRole: GroupRole = member.role;
                 const isMe = compareIds(memberId, myId);
@@ -602,80 +637,123 @@ export default function GroupMembersModal({
                           )}
                         </div>
 
-                        <div className=" gap-3 flex-wrap ">
+                        <div className=" gap-3 flex ">
                           <RoleBadge role={member.role} />
                         </div>
+                        {member.addedBy && (
+                          <div className="text-xs text-gray-500">
+                            {compareIds(member.addedBy, myId) ? (
+                              'Thêm bởi bạn'
+                            ) : (
+                              <>
+                                {'Thêm bởi '}
+                                <span className="font-medium">
+                                  {(() => {
+                                    const adder = userMap.get(normalizeId(member.addedBy));
+                                    if (!adder) console.warn('[ModalMembers] Unknown adder:', member.addedBy);
+                                    return adder?.name || 'Người dùng';
+                                  })()}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Actions - chỉ hiện khi hover */}
                     {!isLoading && (
-                      <div className="flex items-center gap-2  transition-opacity">
+                      <div className="relative">
                         <button
-                          onClick={() => {
-                            const currentRoomNick = String(member.nickname || '');
-                            setEditingNicknameMember({
-                              id: memberId,
-                              name: member.name,
-                              currentVal: currentRoomNick,
-                            });
-                          }}
-                          className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
-                          title="Đặt biệt danh"
+                          onClick={() => setOpenMenuId(openMenuId === memberId ? null : memberId)}
+                          className="p-2 rounded-full cursor-pointer hover:bg-gray-200 active:scale-95"
+                          title="Thêm"
                         >
-                          <HiPencil className="w-5 h-5 text-gray-600" />
+                          <HiEllipsisVertical className="w-5 h-5 text-gray-700" />
                         </button>
-
-                        {!isMe && (
+                        {openMenuId === memberId && (
                           <>
-                            {canPromote(memberRole) && (
+                            <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                            <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-200 z-20 overflow-hidden">
                               <button
-                              onClick={() =>
-                                  confirmAlert({
-                                    title: 'Bổ nhiệm làm Phó nhóm',
-                                    message: `Bổ nhiệm ${member.name} làm Phó nhóm?`,
-                                    okText: 'Bổ nhiệm',
-                                    onOk: () => handleAction('promote', memberId),
-                                  })
-                                }
-                                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
-                                title="Bổ nhiệm làm Phó nhóm"
+                                onClick={() => {
+                                  const currentRoomNick = String(member.nickname || '');
+                                  setEditingNicknameMember({
+                                    id: memberId,
+                                    name: member.name,
+                                    currentVal: currentRoomNick,
+                                  });
+                                  setOpenMenuId(null);
+                                }}
+                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
                               >
-                                <HiCheck className="w-5 h-5 text-green-600" />
+                                Đặt biệt danh
                               </button>
-                            )}
-                            {canDemote(memberRole) && (
-                              <button
-                               onClick={() =>
-                                  confirmAlert({
-                                    title: 'Hủy quyền Phó nhóm',
-                                    message: `Hủy quyền Phó nhóm ${member.name}?`,
-                                    okText: 'Có',
-                                    onOk: () => handleAction('demote', memberId),
-                                  })
-                                }
-                                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
-                                title="Bãi nhiệm"
-                              >
-                                <HiUserMinus className="w-5 h-5 text-yellow-600" />
-                              </button>
-                            )}
-                            {canKick(memberRole) && (
-                              <button
-                                onClick={() =>
-                                  confirmAlert({
-                                    title: 'Xóa thành viên',
-                                    message: `Xóa ${member.name} khỏi nhóm?`,
-                                    okText: 'Xóa',
-                                    onOk: () => handleAction('kick', memberId),
-                                  })
-                                }
-                                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer"
-                                title="Xóa khỏi nhóm"
-                              >
-                                <HiUserMinus className="w-5 h-5 text-red-600" />
-                              </button>
-                            )}
+
+                              {/* {!isMe && canPromote(memberRole) && (
+                                <button
+                                  onClick={() => {
+                                    confirmAlert({
+                                      title: 'Phân làm Phó nhóm',
+                                      message: `Phân ${member.name} làm Phó nhóm?`,
+                                      okText: 'Phân quyền',
+                                      onOk: () => handleAction('promote', memberId),
+                                    });
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                                >
+                                  Phân làm Phó nhóm
+                                </button>
+                              )} */}
+                              {!isMe && canPromote(memberRole) && (
+                                <button
+                                  onClick={() => {
+                                    confirmAlert({
+                                      title: 'Bổ nhiệm làm Phó nhóm',
+                                      message: `Bổ nhiệm ${member.name} làm Phó nhóm?`,
+                                      okText: 'Bổ nhiệm',
+                                      onOk: () => handleAction('promote', memberId),
+                                    });
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                                >
+                                  Bổ nhiệm làm Phó nhóm
+                                </button>
+                              )}
+                              {!isMe && canDemote(memberRole) && (
+                                <button
+                                  onClick={() => {
+                                    confirmAlert({
+                                      title: 'Hủy quyền Phó nhóm',
+                                      message: `Hủy quyền Phó nhóm ${member.name}?`,
+                                      okText: 'Có',
+                                      onOk: () => handleAction('demote', memberId),
+                                    });
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                                >
+                                  Bãi nhiệm
+                                </button>
+                              )}
+                              {!isMe && canKick(memberRole) && (
+                                <button
+                                  onClick={() => {
+                                    confirmAlert({
+                                      title: 'Xóa thành viên',
+                                      message: `Xóa ${member.name} khỏi nhóm?`,
+                                      okText: 'Xóa',
+                                      onOk: () => handleAction('kick', memberId),
+                                    });
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600"
+                                >
+                                  Xóa khỏi nhóm
+                                </button>
+                              )}
+                            </div>
                           </>
                         )}
                       </div>
@@ -691,7 +769,7 @@ export default function GroupMembersModal({
                 );
               })}
 
-              {searchUser.length === 0 && (
+              {displayMembers.length === 0 && (
                 <div className="text-center py-20 text-gray-400">
                   <HiSearch className="w-20 h-20 mx-auto mb-6 opacity-30" />
                   <p className="text-lg font-medium">Không tìm thấy thành viên</p>

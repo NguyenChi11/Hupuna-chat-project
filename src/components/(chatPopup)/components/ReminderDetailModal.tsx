@@ -50,9 +50,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
     return Boolean(content.trim()) && !Number.isNaN(dt);
   }, [content, dateTime]);
   const isDirty = useMemo(() => {
-    return (
-      content.trim() !== originalContent.trim() || dateTime !== originalDateTimeISO || repeat !== originalRepeat
-    );
+    return content.trim() !== originalContent.trim() || dateTime !== originalDateTimeISO || repeat !== originalRepeat;
   }, [content, dateTime, repeat, originalContent, originalDateTimeISO, originalRepeat]);
 
   useEffect(() => {

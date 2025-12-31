@@ -1364,7 +1364,7 @@ export default function ChatInfoPopup({
         <div
           className={`${typeof window !== 'undefined' && window.innerWidth >= 1024 ? 'absolute inset-0' : 'fixed inset-0'} z-50 flex flex-col bg-white`}
         >
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
+          <div className="bg-blue-400 text-white p-3 flex items-center justify-between shadow-lg">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsAssetsModalOpen(false)}

@@ -422,7 +422,7 @@ export default function Sidebar({
       className="relative flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-r border-gray-200 w-full lg:w-[20rem] shadow-2xl overflow-hidden"
     >
       {/* HEADER GRADIENT SIÊU SANG */}
-      <div className="bg-blue-500 shadow-2xl mb-1">
+      <div className="bg-blue-400 shadow-2xl mb-1">
         {/* User Info */}
         {/* <div className="px-4 py-4  items-center gap-4 hidden md:flex text-white">
           <div className="relative">
@@ -458,7 +458,7 @@ export default function Sidebar({
         </div> */}
 
         {/* Search + Create Group */}
-        <div className="px-2 pb-2 pt-2">
+        <div className="px-2 pb-3 pt-3">
           <div className="flex items-center gap-4">
             <div className="relative flex-1 group">
               {/* Icon kính lúp - mặc định trắng mờ, focus chuyển sang xanh Zalo */}

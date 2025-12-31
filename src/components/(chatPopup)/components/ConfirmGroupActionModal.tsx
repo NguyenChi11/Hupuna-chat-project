@@ -37,9 +37,6 @@ export default function ConfirmGroupActionModal({
         {/* Nội dung */}
         <div className="px-4 py-6">
           <div className="flex flex-col items-center text-center">
-            <div className="p-3 rounded-full bg-red-50 text-red-500 mb-4">
-              {isLeave ? <HiOutlineUserMinus className="w-8 h-8" /> : <HiTrash className="w-8 h-8" />}
-            </div>
             <p className="text-gray-600 leading-relaxed">
               {isLeave
                 ? 'Bạn sẽ không còn nhận được tin nhắn từ nhóm này nữa. Bạn vẫn có thể tham gia lại nếu được mời.'

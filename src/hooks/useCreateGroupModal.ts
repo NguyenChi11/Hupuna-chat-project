@@ -154,6 +154,7 @@ export function useCreateGroupModal({
         action: 'addMembers';
         conversationId: string | undefined;
         newMembers: string[];
+        _id: string;
       };
 
       let bodyData: CreateGroupBody | AddMembersBody;
@@ -173,6 +174,7 @@ export function useCreateGroupModal({
           action: 'addMembers',
           conversationId,
           newMembers: newMembersOnly,
+          _id: String(currentUser._id),
         };
       }
 
@@ -193,16 +195,17 @@ export function useCreateGroupModal({
           onMembersAdded(addedUsersFullInfo);
           try {
             const sock = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-            const roomIdStr = String(conversationId || '');
             const prevMembersPayload = (existingMemberIds || []).map((id) => ({ _id: String(id) }));
-            const nextIds = Array.from(new Set([...(existingMemberIds || []).map(String), ...newMembersOnly.map(String)]));
-            const nextMembersPayload = nextIds.map((id) => ({ _id: id }));
+            const nextMembersPayload = newMembersOnly.map((id) => ({
+              _id: id,
+              role: 'MEMBER',
+              joinedAt: Date.now(),
+              addedBy: String(currentUser._id),
+            }));
             sock.emit('group_members_updated', {
-              roomId: roomIdStr,
-              members: nextMembersPayload,
-              prevMembers: prevMembersPayload,
-              sender: String(currentUser._id),
-              senderName: currentUser.name,
+              conversationId,
+              members: [...prevMembersPayload, ...nextMembersPayload],
+              action: 'add',
             });
             setTimeout(() => sock.disconnect(), 500);
           } catch {}

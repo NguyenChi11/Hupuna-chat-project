@@ -462,7 +462,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl z-[100]">
                   {canLock && (
-                    <div className=''>
+                    <div className="">
                       <button
                         onClick={() => {
                           setMenuOpen(false);
@@ -596,7 +596,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                       }}
                       className="px-2 py-2 text-red-600 cursor-pointer bg-red-50 text-gray-700 rounded-2xl"
                     >
-                      <ICTrash className='text-red-600'/>
+                      <ICTrash className="text-red-600" />
                     </button>
                   </div>
                 )}
@@ -631,7 +631,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                   </div>
                 ))}
               </div>
-              
+
               <button
                 onClick={handleAddOptionEditing}
                 disabled={message.isPollLocked}
