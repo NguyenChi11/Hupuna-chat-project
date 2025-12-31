@@ -204,15 +204,17 @@ export default function ProfileByIdPage() {
               <button className="cursor-pointer p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors">
                 <HiClock className="w-6 h-6" />
               </button>
-              <button
-                onClick={() => {
-                  setTabMobile('more_actions');
-                  setIsMobileSheetOpen(true);
-                }}
-                className="cursor-pointer p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
-              >
-                <HiEllipsisHorizontal className="w-6 h-6" />
-              </button>
+              {isOwner && (
+                <button
+                  onClick={() => {
+                    setTabMobile('more_actions');
+                    setIsMobileSheetOpen(true);
+                  }}
+                  className="cursor-pointer p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 transition-colors"
+                >
+                  <HiEllipsisHorizontal className="w-6 h-6" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -221,7 +223,7 @@ export default function ProfileByIdPage() {
             {background ? (
               <Image src={getProxyUrl(background)} alt="Cover" fill className="object-cover" priority sizes="100vw" />
             ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500" />
+              <div className="absolute inset-0 bg-blue-400" />
             )}
 
             {/* Loading Overlay for Background */}
@@ -285,6 +287,7 @@ export default function ProfileByIdPage() {
                   <label className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-10">
                     <HiCamera className="w-8 h-8 text-white" />
                     <input
+                      ref={avatarInputRef}
                       type="file"
                       accept="image/*"
                       className="hidden"
@@ -630,12 +633,12 @@ export default function ProfileByIdPage() {
                 >
                   Quyền riêng tư
                 </button>
-                <button
+                {/* <button
                   onClick={() => setTabMobile('account')}
                   className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
                 >
                   Quản lý tài khoản
-                </button>
+                </button> */}
                 <button
                   onClick={() => setTabMobile('settings')}
                   className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 active:bg-gray-100"

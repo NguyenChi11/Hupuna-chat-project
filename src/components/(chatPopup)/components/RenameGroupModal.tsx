@@ -25,7 +25,7 @@ export default function RenameGroupModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header gradient đẹp như Zalo */}
-        <div className="relative cursor-pointer px-6 pt-8 pb-6 bg-blue-500 text-white text-center">
+        <div className="relative cursor-pointer px-6 pt-8 pb-6 bg-blue-400 text-white text-center">
           <div className="absolute top-4 right-4">
             <button
               onClick={onClose}
@@ -35,9 +35,6 @@ export default function RenameGroupModal({
             </button>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-sm w-fit mx-auto mb-4">
-            <HiPencil className="w-10 h-10" />
-          </div>
           <h3 className="text-2xl font-bold">Đổi tên nhóm</h3>
           <p className="mt-2 text-sm text-white/80">Tất cả thành viên sẽ thấy tên nhóm mới</p>
         </div>
@@ -57,9 +54,9 @@ export default function RenameGroupModal({
               }}
               autoFocus
               placeholder="Nhập tên nhóm mới..."
-              className="w-full px-3 py-2 pr-12 text-lg font-medium bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-indigo-500 focus:bg-white transition-all duration-200 placeholder:text-gray-400"
+              className="w-full pl-3 pr-12 py-2 bg-[#EAEDF0] rounded-md focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#0068ff] transition-all duration-300 text-sm text-gray-900 placeholder-gray-500"
             />
-            {renameInput && <HiCheck className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500" />}
+            {renameInput && <HiCheck className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-600" />}
           </div>
 
           <p className="mt-3 text-xs text-gray-500 text-center">
@@ -71,14 +68,14 @@ export default function RenameGroupModal({
         <div className="flex gap-3 px-6 pb-8">
           <button
             onClick={onClose}
-            className="cursor-pointer flex-1 py-4 text-base font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-200 active:scale-95"
+            className="cursor-pointer flex-1 py-3.5 text-base font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-200 active:scale-95"
           >
             Hủy
           </button>
           <button
             onClick={onSubmit}
             disabled={!renameInput.trim()}
-            className={`flex-1 py-4 cursor-pointer text-base font-bold text-white rounded-2xl shadow-lg transition-all duration-300 active:scale-95 flex items-center justify-center gap-2
+            className={`flex-1 py-3.5 cursor-pointer text-base font-bold text-white rounded-2xl shadow-lg transition-all duration-300 active:scale-95 flex items-center justify-center gap-2
               ${
                 !renameInput.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 shadow-blue-300'
               }`}

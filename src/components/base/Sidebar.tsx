@@ -523,6 +523,10 @@ export default function Sidebar({
             )}
           </div>
         </div>
+        <div>
+          <div></div>
+          <div>Phân loại</div>
+        </div>
       </div>
 
       {onlyGroups && (
