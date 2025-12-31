@@ -161,6 +161,37 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('group_renamed', (data) => {
+    const roomId = String(data.roomId);
+    const groupName = String(data.groupName || '');
+    const members = Array.isArray(data.members) ? data.members : [];
+    const now = Date.now();
+
+    io.in(roomId).emit('group_renamed', { roomId, groupName, timestamp: now });
+
+    const sidebarData = {
+      roomId,
+      lastMessage: `${data.senderName || 'Ai đó'}: [Đổi tên nhóm]`,
+      type: 'notify',
+      timestamp: now,
+      isGroup: true,
+      members,
+      groupName,
+      sender: data.sender,
+      senderName: data.senderName,
+    };
+
+    const recipients = new Set(
+      members.map((m) => (typeof m === 'object' && m?._id ? String(m._id) : String(m))).filter(Boolean),
+    );
+    recipients.forEach((id) => {
+      io.to(id).emit('update_sidebar', sidebarData);
+      io.to(id).emit('group_renamed', { roomId, groupName, timestamp: now });
+    });
+    if (data.sender) {
+      io.to(String(data.sender)).emit('update_sidebar', sidebarData);
+    }
+  });
   socket.on('pin_message', (data) => {
     const roomId = String(data.roomId);
     io.in(roomId).emit('message_pinned', {

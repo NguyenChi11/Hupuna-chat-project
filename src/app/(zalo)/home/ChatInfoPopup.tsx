@@ -331,6 +331,11 @@ export default function ChatInfoPopup({
         if (!updateRes.ok) throw new Error('Update failed');
 
         setGroupAvatar(uploadJson.link);
+        try {
+          const actorName = currentUser.name || 'Một thành viên';
+          const text = `${actorName} đã đổi ảnh đại diện nhóm.`;
+          await sendNotifyMessage?.(text);
+        } catch {}
         reLoad?.();
       } catch {
         alert('Cập nhật ảnh nhóm thất bại. Vui lòng thử lại.');
@@ -367,6 +372,26 @@ export default function ChatInfoPopup({
 
       setGroupName(renameInput.trim());
       setIsRenameModalOpen(false);
+      try {
+        const actorName = currentUser.name || 'Một thành viên';
+        const text = `${actorName} đã đổi tên nhóm thành "${renameInput.trim()}".`;
+        await sendNotifyMessage?.(text);
+      } catch {}
+      try {
+        const sock = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+        const roomIdStr = String((selectedChat as GroupConversation)._id);
+        const membersArr = (members || []).map((m) => ({
+          _id: String((m as MemberInfo)._id ?? (m as { id?: string }).id ?? ''),
+        }));
+        sock.emit('group_renamed', {
+          roomId: roomIdStr,
+          groupName: renameInput.trim(),
+          members: membersArr,
+          sender: String(currentUser._id),
+          senderName: currentUser.name,
+        });
+        setTimeout(() => sock.disconnect(), 500);
+      } catch {}
       reLoad?.();
     } catch {
       alert('Đổi tên nhóm thất bại.');

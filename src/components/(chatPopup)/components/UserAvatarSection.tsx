@@ -119,14 +119,7 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
             <h3 className="text-xl font-bold text-gray-900 tracking-tight truncate max-w-[15.625rem]">
               {userName || 'Người dùng'}
             </h3>
-            {onUpdateNickname && (
-              <button
-                className="cursor-pointer transition-opacity p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-blue-500"
-                title="Đặt biệt danh"
-              >
-                <CiEdit className="w-4 h-4" />
-              </button>
-            )}
+            
           </div>
         )}
       </div>

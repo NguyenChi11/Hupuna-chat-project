@@ -20,6 +20,8 @@ import {
   HiUserGroup,
   HiArrowUturnLeft,
   HiArrowUturnRight,
+  HiPencil,
+  HiPhoto,
 } from 'react-icons/hi2';
 import { HiPhone, HiVideoCamera, HiArrowDown, HiArrowUp } from 'react-icons/hi2';
 import { HiLink, HiOutlineLogout, HiOutlineShare } from 'react-icons/hi';
@@ -1572,6 +1574,11 @@ export default function MessageList({
                         contentLower.includes('hủy quyền phó nhóm') || contentLower.includes('bãi nhiệm');
                       const isKick = contentLower.includes('ra khỏi nhóm') || contentLower.includes('xóa khỏi nhóm');
                       const isCreateGroup = contentLower.includes('tạo nhóm');
+                      const isRenameGroup =
+                        contentLower.includes('đổi tên nhóm') || contentLower.includes('đã đổi tên nhóm');
+                      const isNickname = contentLower.includes('biệt danh');
+                      const isChangeAvatar =
+                        contentLower.includes('ảnh đại diện') || contentLower.includes('đổi ảnh');
                       const icon = isDue ? (
                         <HiOutlineClock className="w-4 h-4 text-red-500" />
                       ) : isCreate ? (
@@ -1580,6 +1587,12 @@ export default function MessageList({
                         <HiChartBar className="w-4 h-4 text-blue-500" />
                       ) : isPin ? (
                         <HiMapPin className="w-4 h-4 text-orange-500" />
+                      ) : isRenameGroup ? (
+                        <HiPencil className="w-4 h-4 text-indigo-600" />
+                      ) : isNickname ? (
+                        <HiPencil className="w-4 h-4 text-blue-600" />
+                      ) : isChangeAvatar ? (
+                        <HiPhoto className="w-4 h-4 text-pink-600" />
                       ) : isInvite ? (
                         <HiUserPlus className="w-4 h-4 text-emerald-600" />
                       ) : isLeave ? (

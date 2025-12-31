@@ -675,6 +675,14 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         }
       }
     });
+    socketRef.current.on('group_renamed', (payload: { roomId: string; groupName: string }) => {
+      setGroups((prev) =>
+        prev.map((g) => (String(g._id) === String(payload.roomId) ? { ...g, name: payload.groupName } : g)),
+      );
+      if (selectedChatRef.current && String(selectedChatRef.current._id) === String(payload.roomId)) {
+        setSelectedChat((prev) => (prev ? { ...prev, name: payload.groupName } : prev));
+      }
+    });
     return () => {
       try {
         clearInterval(hb);
