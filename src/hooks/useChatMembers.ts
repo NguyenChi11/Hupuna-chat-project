@@ -78,10 +78,6 @@ export function useChatMembers({ selectedChat, isGroup, currentUser, sendNotifyM
       setActiveMembers((prev) => [...prev, ...newMembersFormatted]);
       setMemberCount((prev) => prev + newUsers.length);
 
-      const names = newUsers.map((u) => u.name);
-      const myName = currentUser.name || 'Một thành viên';
-      const nameString = names.join(', ');
-      await sendNotifyMessage(`${myName} đã thêm ${nameString} vào nhóm.`);
     },
     [currentUser.name, sendNotifyMessage],
   );

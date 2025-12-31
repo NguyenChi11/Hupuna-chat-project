@@ -1498,7 +1498,7 @@ export default function ChatWindow({
         } else if (message.type === 'image') {
           notificationText = `${senderName} ${action} một hình ảnh.`;
         } else if (message.type === 'file') {
-          notificationText = `${senderName} ${action} tệp tin "${message.fileName || 'file'}" vào nhóm.`;
+          notificationText = `${senderName} ${action} tệp tin "${message.fileName || 'file'}".`;
         } else if (message.type === 'poll') {
           notificationText = `${senderName} ${action} một bình chọn.`;
         } else {

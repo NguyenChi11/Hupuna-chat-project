@@ -9,6 +9,7 @@ export interface GroupMemberSchema {
   role: GroupRole;
   joinedAt: number;
   nickname?: string; // ✅ Nickname in group
+  addedBy?: string; // ✅ Who added this member
 }
 
 export interface MemberInfo extends GroupMemberSchema {

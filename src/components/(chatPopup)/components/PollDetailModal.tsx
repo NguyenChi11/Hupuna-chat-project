@@ -42,7 +42,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const myId = String(currentUser._id);
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
   const votesMap = useMemo(() => (message?.pollVotes || {}) as Record<string, string[]>, [message]);
   const mySelected = useMemo(() => {
     const arr: string[] = [];
@@ -942,16 +942,24 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                     return (
                       <div key={uid} className="flex items-center gap-3 px-2 py-2">
                         {info?.avatar ? (
-                          <Image
-                            width={25}
-                            height={25}
-                            src={getProxyUrl(info.avatar)}
-                            alt={info?.name || String(uid)}
-                            className="rounded-full"
-                          />
+                          <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-sm text-gray-600">
+                            <Image
+                              width={25}
+                              height={25}
+                              src={getProxyUrl(info.avatar)}
+                              alt={info?.name || String(uid)}
+                              className=" w-full h-full object-cover rounded-full"
+                            />
+                          </div>
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm text-gray-600">
-                            {info?.name?.charAt(0).toUpperCase() || 'U'}
+                          <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-sm text-gray-600">
+                            <Image
+                              src="/logo/avata.webp"
+                              alt={info?.name || 'User'}
+                              width={56}
+                              height={56}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                         )}
                         <span className="text-sm">{info?.name || String(uid)}</span>
