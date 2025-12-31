@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
           _id: memberId,
           role: memberId === data.createdBy ? 'OWNER' : 'MEMBER',
           joinedAt: Date.now(),
+          addedBy: data.createdBy as string, // ✅ Set addedBy to creator
         }));
 
         const finalData: GroupConversationCreate = {
@@ -284,6 +285,7 @@ export async function POST(req: NextRequest) {
           _id: memberId,
           role: 'MEMBER',
           joinedAt: Date.now(),
+          addedBy: currentUserId, // ✅ Set addedBy to current user
         }));
 
         const result = await collection.updateOne(filter, {
@@ -298,9 +300,10 @@ export async function POST(req: NextRequest) {
           let actorName = 'Ai đó';
           if (currentUserId) {
             const actorRes = await getAllRows<User>(USERS_COLLECTION_NAME, {
-              filters: createMemberIdFilter(String(currentUserId)).length > 0 
-                ? { $or: createMemberIdFilter(String(currentUserId)) }
-                : {},
+              filters:
+                createMemberIdFilter(String(currentUserId)).length > 0
+                  ? { $or: createMemberIdFilter(String(currentUserId)) }
+                  : {},
               limit: 1,
             });
             const actor = actorRes.data?.[0];
@@ -313,9 +316,7 @@ export async function POST(req: NextRequest) {
           const newMemberNames: string[] = [];
           for (const mid of newMembers) {
             const mRes = await getAllRows<User>(USERS_COLLECTION_NAME, {
-              filters: createMemberIdFilter(String(mid)).length > 0
-                ? { $or: createMemberIdFilter(String(mid)) }
-                : {},
+              filters: createMemberIdFilter(String(mid)).length > 0 ? { $or: createMemberIdFilter(String(mid)) } : {},
               limit: 1,
             });
             const mUser = mRes.data?.[0];
@@ -329,7 +330,7 @@ export async function POST(req: NextRequest) {
           if (newMemberNames.length > 0) {
             const namesStr = newMemberNames.join(', ');
             const notifyContent = `${actorName} đã thêm ${namesStr} vào nhóm.`;
-            
+
             await addRow<Partial<Message>>(MESSAGES_COLLECTION_NAME, {
               roomId: String(conversationId),
               sender: String(currentUserId || 'system'),

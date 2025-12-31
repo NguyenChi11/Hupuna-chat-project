@@ -138,7 +138,7 @@ export default function SidebarMenu({ totalUnread = 0, unreadGroups = 0, unreadC
   return (
     <>
       {/* Sidebar Gradient */}
-      <div className="h-screen w-16 bg-gradient-to-b from-sky-500 via-blue-500 to-blue-500 flex flex-col items-center py-6 text-white shadow-2xl">
+      <div className="h-screen w-16 bg-blue-400 flex flex-col items-center py-6 text-white shadow-2xl">
         {/* Avatar Dropdown */}
         <div ref={avatarRef} className="mb-10 relative">
           <button
