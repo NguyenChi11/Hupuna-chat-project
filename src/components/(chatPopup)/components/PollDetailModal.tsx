@@ -462,7 +462,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl z-[100]">
                   {canLock && (
-                    <div className=''>
+                    <div className="">
                       <button
                         onClick={() => {
                           setMenuOpen(false);
@@ -516,44 +516,59 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                   const arr = Array.isArray(previewVotesMap[opt]) ? (previewVotesMap[opt] as string[]) : [];
                   const lastUid = arr.length ? String(arr[arr.length - 1]) : '';
                   const lastInfo = lastUid ? memberMap.get(lastUid) : undefined;
+                  const percent = totalVotes > 0 ? (votedCount / totalVotes) * 100 : 0;
+
                   return (
                     <button
                       key={idx}
                       onClick={() => toggleSelect(opt)}
                       disabled={message.isPollLocked}
-                      className={`w-full cursor-pointer px-4 py-3 rounded-xl border text-left transition-colors flex items-center gap-3 ${
-                        active
-                          ? 'border-blue-600 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:bg-gray-50 text-gray-800'
-                      } ${message.isPollLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`w-full cursor-pointer relative bg-gray-100 overflow-hidden px-4 py-3 rounded-xl  text-left transition-colors ${message.isPollLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <span
-                        className={`inline-flex items-center justify-center w-5 h-5 rounded-full border ${
-                          active ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-400'
-                        }`}
-                      >
-                        {active && <HiCheck className="w-3 h-3" />}
-                      </span>
-                      <span className="flex-1 block max-w-full break-words whitespace-pre-wrap text-[1rem] mr-1">
-                        {opt}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">{votedCount}</span>
-                        {lastUid ? (
-                          lastInfo?.avatar ? (
-                            <Image
-                              width={20}
-                              height={20}
-                              src={getProxyUrl(lastInfo.avatar)}
-                              alt={lastInfo?.name || lastUid}
-                              className="rounded-full"
-                            />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
-                              {lastInfo?.name?.charAt(0).toUpperCase() || 'U'}
-                            </div>
-                          )
-                        ) : null}
+                      <div
+                        className={`absolute top-0 left-0 bottom-0 transition-all duration-500 ease-out ${active ? 'bg-blue-200' : 'bg-blue-200'}`}
+                        style={{ width: `${percent}%` }}
+                      />
+                      <div className="flex items-center gap-3 relative z-10 w-full">
+                        <span
+                          className={`inline-flex items-center justify-center w-5 h-5 rounded-full border ${
+                            active ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-400'
+                          }`}
+                        >
+                          {active && <HiCheck className="w-3 h-3" />}
+                        </span>
+                        <span className="flex-1 block max-w-full break-words whitespace-pre-wrap text-[1rem] mr-1">
+                          {opt}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">{votedCount}</span>
+                          {lastUid ? (
+                            lastInfo?.avatar ? (
+                              <div
+                                className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200"
+                                title={lastInfo?.name}
+                              >
+                                <Image
+                                  width={20}
+                                  height={20}
+                                  src={getProxyUrl(lastInfo.avatar)}
+                                  alt={lastInfo?.name || lastUid}
+                                  className="rounded-full"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200">
+                                <Image
+                                  src="/logo/avata.webp"
+                                  alt={lastInfo?.name || 'User'}
+                                  width={38}
+                                  height={38}
+                                  className="w-full h-full rounded-full object-cover"
+                                />
+                              </div>
+                            )
+                          ) : null}
+                        </div>
                       </div>
                     </button>
                   );
@@ -596,7 +611,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                       }}
                       className="px-2 py-2 text-red-600 cursor-pointer bg-red-50 text-gray-700 rounded-2xl"
                     >
-                      <ICTrash className='text-red-600'/>
+                      <ICTrash className="text-red-600" />
                     </button>
                   </div>
                 )}
@@ -631,7 +646,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                   </div>
                 ))}
               </div>
-              
+
               <button
                 onClick={handleAddOptionEditing}
                 disabled={message.isPollLocked}

@@ -2,7 +2,6 @@ import React from 'react';
 import { CiLogout, CiTrash } from 'react-icons/ci';
 
 interface GroupDangerZoneProps {
-  isGroup: boolean;
   canLeaveGroup: boolean;
   canDisbandGroup: boolean;
   onLeaveClick: () => void;
@@ -10,14 +9,11 @@ interface GroupDangerZoneProps {
 }
 
 export default function GroupDangerZone({
-  isGroup,
   canLeaveGroup,
   canDisbandGroup,
   onLeaveClick,
   onDisbandClick,
 }: GroupDangerZoneProps) {
-  if (!isGroup) return null;
-
   return (
     <>
       {/* Rời nhóm */}

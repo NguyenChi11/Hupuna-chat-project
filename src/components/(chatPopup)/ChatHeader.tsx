@@ -231,7 +231,7 @@ export default function ChatHeader({
       </div>
 
       <div className="flex items-center gap-1">
-        {!isGroup && (
+        {/* {!isGroup && (
           <>
             {typeof onVoiceCall === 'function' && (
               <button
@@ -252,7 +252,7 @@ export default function ChatHeader({
               </button>
             )}
           </>
-        )}
+        )} */}
 
         {/* Nút tìm kiếm - Mobile: Toggle inline search, Desktop: Toggle sidebar */}
         <button

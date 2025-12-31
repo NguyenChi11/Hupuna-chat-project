@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useToast } from "@/components/base/toast";
+import { useChatNotifications } from "@/hooks/useChatNotifications";
 
 interface NotiState {
   soundEnabled: boolean;
@@ -13,6 +14,7 @@ export default function NotificationSettings() {
   const toast = useToast();
   const [state, setState] = useState<NotiState>({ soundEnabled: true, desktopAlerts: true, showPreview: true });
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
+  const { playMessageSound } = useChatNotifications({});
 
   useEffect(() => {
     try {
@@ -65,6 +67,21 @@ export default function NotificationSettings() {
           className={`px-3 py-1 rounded-lg text-sm ${state.soundEnabled ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-800"}`}
         >
           {loadingKey === "soundEnabled" ? "..." : state.soundEnabled ? "Bật" : "Tắt"}
+        </button>
+      </div>
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl">
+        <span className="text-gray-800 font-medium">Thử âm thanh</span>
+        <button
+          onClick={() => {
+            if (!state.soundEnabled) {
+              toast({ type: "info", message: "Âm thanh đang tắt" });
+              return;
+            }
+            playMessageSound();
+          }}
+          className="px-3 py-1 rounded-lg text-sm bg-indigo-600 text-white"
+        >
+          Phát “ting”
         </button>
       </div>
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl">

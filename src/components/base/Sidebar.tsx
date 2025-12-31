@@ -293,6 +293,17 @@ export default function Sidebar({
   );
 
   const groupedMessages = useMemo(() => {
+    const getRoomAvatar = (roomId: string, isGroupChat: boolean | undefined) => {
+      if (isGroupChat) {
+        const g = groups.find((gr) => String(gr._id) === String(roomId));
+        return g?.avatar;
+      }
+      const parts = String(roomId).split('_');
+      const me = String(currentUserId);
+      const partnerId = parts[0] === me ? parts[1] : parts[1] === me ? parts[0] : parts.find((p) => p !== me);
+      const u = allUsers.find((x) => String(x._id) === String(partnerId));
+      return u?.avatar;
+    };
     const map = new Map();
     regularMessages.forEach((msg) => {
       if (!msg.roomId) return;
@@ -302,6 +313,7 @@ export default function Sidebar({
           roomId: msg.roomId,
           roomName: msg.roomName || 'Cuộc trò chuyện',
           isGroupChat: msg.isGroupChat || false,
+          avatar: getRoomAvatar(msg.roomId, msg.isGroupChat || false),
           messages: [],
           latestTimestamp: msg.timestamp || Date.now(),
         });
@@ -312,6 +324,17 @@ export default function Sidebar({
   }, [regularMessages]);
 
   const groupedFiles = useMemo(() => {
+    const getRoomAvatar = (roomId: string, isGroupChat: boolean | undefined) => {
+      if (isGroupChat) {
+        const g = groups.find((gr) => String(gr._id) === String(roomId));
+        return g?.avatar;
+      }
+      const parts = String(roomId).split('_');
+      const me = String(currentUserId);
+      const partnerId = parts[0] === me ? parts[1] : parts[1] === me ? parts[0] : parts.find((p) => p !== me);
+      const u = allUsers.find((x) => String(x._id) === String(partnerId));
+      return u?.avatar;
+    };
     const map = new Map();
     fileMessages.forEach((msg) => {
       if (!msg.roomId) return;
@@ -321,6 +344,7 @@ export default function Sidebar({
           roomId: msg.roomId,
           roomName: msg.roomName || 'Cuộc trò chuyện',
           isGroupChat: msg.isGroupChat || false,
+          avatar: getRoomAvatar(msg.roomId, msg.isGroupChat || false),
           files: [],
           latestTimestamp: msg.timestamp || Date.now(),
         });
@@ -480,7 +504,7 @@ export default function Sidebar({
                     setSearchTerm('');
                     setGlobalSearchResults({ contacts: [], messages: [] });
                   }}
-                  className="absolute cursor-pointer  right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 group-focus-within:bg-gray-300 group-focus-within:hover:bg-gray-400 transition-all duration-300 flex items-center justify-center active:scale-95"
+                  className="absolute cursor-pointer  right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 group-focus-within:bg-gray-300 group-focus-within:hover:bg-gray-400 transition-all duration-300 flex items-center justify-center active:scale-95"
                 >
                   <HiXMark className="w-4 h-4 text-white group-focus-within:text-gray-600 transition-colors duration-300" />
                 </button>

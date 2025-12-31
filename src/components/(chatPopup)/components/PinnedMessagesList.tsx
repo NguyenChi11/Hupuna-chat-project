@@ -264,7 +264,7 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
       {/* Header */}
       <div className="bg-blue-500 text-white p-3 flex items-center justify-between shadow-sm sticky top-0 z-20">
         <div className="flex items-center gap-3">
-          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+          <button onClick={onClose} className="p-1 cursor-pointer hover:bg-white/20 rounded-full transition-colors">
             <HiChevronLeft className="w-6 h-6" />
           </button>
           <h3 className="font-medium text-lg">Bảng tin nhóm</h3>
@@ -278,6 +278,7 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
           </button>
           {showCreateMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 text-gray-800 z-50 animate-fade-in">
+              {isGroup && (
               <button
                 onClick={() => {
                   setShowCreateMenu(false);
@@ -287,6 +288,7 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
               >
                 Tạo bình chọn
               </button>
+              )}
               <button
                 onClick={() => {
                   setShowCreateMenu(false);
@@ -313,6 +315,8 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
         >
           Tin nhắn đã ghim
         </div>
+       
+       {isGroup && (
         <div
           onClick={() => setActiveTab('poll')}
           className={`flex-1 text-center py-3 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
@@ -321,6 +325,7 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
         >
           Bình chọn
         </div>
+       )}
         <div
           onClick={() => setActiveTab('note')}
           className={`flex-1 text-center py-3 border-b-2 font-medium text-sm cursor-pointer transition-colors ${

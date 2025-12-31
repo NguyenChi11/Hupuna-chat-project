@@ -1,4 +1,5 @@
 import React from 'react';
+// Group members section component
 import { HiOutlineArrowRight, HiUserGroup } from 'react-icons/hi';
 import { HiOutlineUserGroup } from 'react-icons/hi2';
 
@@ -11,7 +12,6 @@ interface GroupMembersSectionProps {
 
 export default function GroupMembersSection({
   isGroup,
-  groupName,
   membersCount,
   onOpenMembers,
 }: GroupMembersSectionProps) {

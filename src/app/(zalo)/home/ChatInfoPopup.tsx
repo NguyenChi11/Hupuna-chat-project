@@ -7,7 +7,6 @@ import { GroupConversation, MemberInfo, GroupRole } from '@/types/Group';
 import { User } from '@/types/User';
 import { useChatInfoPopup } from '@/hooks/useChatInfoPopup';
 import MediaPreviewModal from '@/components/(chatPopup)/MediaPreviewModal';
-import GroupAvatarSection from '@/components/(chatPopup)/components/GroupAvatarSection';
 import UserAvatarSection from '@/components/(chatPopup)/components/UserAvatarSection';
 import ChatQuickActions from '@/components/(chatPopup)/components/ChatQuickActions';
 import GroupDangerZone from '@/components/(chatPopup)/components/GroupDangerZone';
@@ -55,6 +54,7 @@ import CommonGroupsModal from '@/components/(chatPopup)/components/CommonGroupsM
 import { CiBookmarkCheck, CiEdit, CiImageOn, CiStar } from 'react-icons/ci';
 import { AiOutlineUsergroupAdd } from 'react-icons/ai';
 import { PiEyeSlashLight } from 'react-icons/pi';
+import GroupAvatarSection from '@/components/(chatPopup)/components/GroupAvatarSection';
 
 interface ChatInfoPopupProps {
   onClose: () => void;
@@ -1013,7 +1013,6 @@ export default function ChatInfoPopup({
 
               {isGroup && (
                 <GroupDangerZone
-                  isGroup={isGroup}
                   canLeaveGroup={canLeaveGroup}
                   canDisbandGroup={canDisbandGroup}
                   onLeaveClick={() => setConfirmAction('leave')}
@@ -1364,7 +1363,7 @@ export default function ChatInfoPopup({
         <div
           className={`${typeof window !== 'undefined' && window.innerWidth >= 1024 ? 'absolute inset-0' : 'fixed inset-0'} z-50 flex flex-col bg-white`}
         >
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
+          <div className="bg-blue-400 text-white p-3 flex items-center justify-between shadow-lg">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsAssetsModalOpen(false)}

@@ -238,7 +238,7 @@ export default function AddToGroupModal({
                         )}
                       </div>
                       <div className="flex flex-col justify-center items-start min-w-0">
-                        <span className="text-[1.3rem] font-medium text-gray-800 truncate max-w-[15rem]">
+                        <span className="text-[1.3rem]  text-gray-800 truncate max-w-[15rem]">
                           {g.name || 'Nhóm'}
                         </span>
                         <span className="text-[1rem] text-gray-500">

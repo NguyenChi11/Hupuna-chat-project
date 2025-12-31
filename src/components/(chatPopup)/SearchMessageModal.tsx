@@ -64,7 +64,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
               isDeleted: { $ne: true },
               type: { $ne: 'notify' },
             },
-            limit: 100,
+            limit: 500,
             sort: { timestamp: -1 },
           }),
         });
@@ -341,15 +341,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
             >
               <IoReload className="w-5 h-5" />
             </button>
-            {mediaResults.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setPreviewMedia(mediaResults[0])}
-                className="ml-1 px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-100 cursor-pointer"
-              >
-                Xem ảnh/video
-              </button>
-            )}
+            
           </div>
         </div>
       </div>

@@ -274,7 +274,7 @@ export default function ReminderList({ onClose, embedded = false }: ReminderList
     <>
       <div className="relative flex flex-col h-full bg-gray-50 overflow-hidden">
         {!embedded && (
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-3 flex items-center justify-between shadow-lg">
+          <div className="bg-blue-400 text-white p-3 flex items-center justify-between shadow-lg">
             <h2 className="text-lg font-semibold">Danh sách lịch hẹn</h2>
             <div className="flex items-center gap-2">
               <button
@@ -294,7 +294,7 @@ export default function ReminderList({ onClose, embedded = false }: ReminderList
         )}
 
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
-          <div className="space-y-5 p-5 pb-24">
+          <div className="space-y-5 p-5">
             {loading ? (
               <div className="text-center text-gray-500 py-10">
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>

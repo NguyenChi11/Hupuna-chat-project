@@ -50,9 +50,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
     return Boolean(content.trim()) && !Number.isNaN(dt);
   }, [content, dateTime]);
   const isDirty = useMemo(() => {
-    return (
-      content.trim() !== originalContent.trim() || dateTime !== originalDateTimeISO || repeat !== originalRepeat
-    );
+    return content.trim() !== originalContent.trim() || dateTime !== originalDateTimeISO || repeat !== originalRepeat;
   }, [content, dateTime, repeat, originalContent, originalDateTimeISO, originalRepeat]);
 
   useEffect(() => {
@@ -324,7 +322,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
         {!editing ? (
           <div className="flex-1 overflow-y-auto">
             <div className="flex items-center gap-3 px-4 py-4">
-              <div className="w-12 h-12 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
+              <div className="w-10 h-10 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
                 {creatorInfo.avatar ? (
                   <Image
                     width={32}
@@ -335,7 +333,13 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xl flex items-center justify-center">
-                    {(creatorInfo.name || 'N').charAt(0).toUpperCase()}
+                    <Image
+                      src="/logo/avata.webp"
+                      alt={creatorInfo.name || 'User'}
+                      width={38}
+                      height={38}
+                      className="w-full h-full rounded-full object-cover"
+                    />
                   </div>
                 )}
               </div>
@@ -362,7 +366,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
           <div className="flex-1 overflow-y-auto">
             <div className="divide-y divide-gray-200">
               <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-12 h-12 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
+                <div className="w-10 h-10 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl">
                   {creatorInfo.avatar ? (
                     <Image
                       width={32}

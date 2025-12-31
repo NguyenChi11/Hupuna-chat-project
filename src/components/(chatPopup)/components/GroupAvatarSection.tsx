@@ -25,7 +25,7 @@ export default function GroupAvatarSection({
   onChangeGroupAvatar,
   onRenameGroup,
 }: GroupAvatarSectionProps) {
-  if (!isGroup) return null;
+  // if (!isGroup) return null;
 
   return (
     <div className="flex flex-col items-center mb-2 ">

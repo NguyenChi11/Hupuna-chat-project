@@ -409,7 +409,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
       <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
         {!embedded && (
           <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm z-10">
-            <h2 className="text-lg font-bold text-gray-800">Bảng tin nhóm</h2>
+            <h2 className="text-lg font-bold text-gray-800">Bình chọn</h2>
             <div className="flex items-center gap-3">
               {isGroup && (
                 <button
@@ -451,7 +451,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
         )}
 
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 bg-gray-100 p-3">
-          <div className="space-y-4 pb-24 max-w-2xl mx-auto">
+          <div className="space-y-4 max-w-2xl mx-auto">
             {loading ? (
               <div className="text-center text-gray-500 py-10">
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
@@ -489,85 +489,76 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                   >
                     {/* Header Card */}
                     <div className="p-4 pb-2">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden bg-gray-200">
-                          {senderAvatar ? (
-                            <Image
-                              src={getProxyUrl(senderAvatar)}
-                              alt={senderName}
-                              width={40}
-                              height={40}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Image
-                              src="/logo/avata.webp"
-                              alt={senderName}
-                              width={40}
-                              height={40}
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                                <span>
-                                  {senderName} <span className="font-normal text-gray-500">tạo một bình chọn</span>
-                                </span>
-                                {locked && (
-                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                                    <HiLockClosed className="w-3 h-3" />
-                                    Đã khóa
-                                  </span>
+                        <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                                {senderAvatar ? (
+                                    <Image 
+                                        src={getProxyUrl(senderAvatar)} 
+                                        alt={senderName} 
+                                        width={40} 
+                                        height={40} 
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <Image 
+                                        src="/logo/avata.webp" 
+                                        alt={senderName} 
+                                        width={40} 
+                                        height={40} 
+                                        className="w-full h-full object-cover"
+                                    />
                                 )}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-0.5">{formatTime(it.timestamp)}</p>
                             </div>
-                            <div className="relative">
-                              <button
-                                onClick={() => setOpenMenuId(isMenuOpen ? null : itemId)}
-                                className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
-                              >
-                                <HiEllipsisVertical className="w-5 h-5" />
-                              </button>
-
-                              {/* Dropdown Menu */}
-                              {isMenuOpen && (
-                                <div
-                                  ref={(el) => {
-                                    if (el) menuRefs.current.set(itemId, el);
-                                    else menuRefs.current.delete(itemId);
-                                  }}
-                                  className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-20 py-1"
-                                >
-                                  <button
-                                    onClick={() => handleEdit(it)}
-                                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                                  >
-                                    Xem chi tiết
-                                  </button>
-                                  <button
-                                    onClick={() => handleTogglePin(it)}
-                                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                                  >
-                                    {it.isPinned ? 'Bỏ ghim' : 'Ghim bình chọn'}
-                                  </button>
-                                  {canLock(it) && (
-                                    <button
-                                      onClick={() => handleToggleLock(it)}
-                                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600"
-                                    >
-                                      {locked ? 'Mở khóa bình chọn' : 'Khóa bình chọn'}
-                                    </button>
-                                  )}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                            <span>
+                                                {senderName} <span className="font-normal text-gray-500">tạo một bình chọn</span>
+                                            </span>
+                                            {locked && (
+                                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                                                    <HiLockClosed className="w-3 h-3" />
+                                                    Đã khóa
+                                                </span>
+                                            )}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            {formatTime(it.timestamp)}
+                                        </p>
+                                    </div>
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setOpenMenuId(isMenuOpen ? null : itemId)}
+                                            className="p-1 cursor-pointer text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                                        >
+                                            <HiEllipsisVertical className="w-5 h-5" />
+                                        </button>
+                                        
+                                        {/* Dropdown Menu */}
+                                        {isMenuOpen && (
+                                            <div 
+                                                ref={(el) => {
+                                                    if (el) menuRefs.current.set(itemId, el);
+                                                    else menuRefs.current.delete(itemId);
+                                                }}
+                                                className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-20 py-1"
+                                            >
+                                                <button onClick={() => handleEdit(it)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">Xem chi tiết</button>
+                                                <button onClick={() => handleTogglePin(it)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
+                                                    {it.isPinned ? 'Bỏ ghim' : 'Ghim bình chọn'}
+                                                </button>
+                                                {canLock(it) && (
+                                                    <button onClick={() => handleToggleLock(it)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600">
+                                                        {locked ? 'Mở khóa bình chọn' : 'Khóa bình chọn'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                              )}
                             </div>
-                          </div>
                         </div>
-                      </div>
 
                       {/* Content */}
                       <div className="mt-3">
@@ -583,92 +574,79 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                           </svg>
                         </div>
 
-                        {/* Options List */}
-                        <div className="space-y-2">
-                          {(it.pollOptions || []).map((opt, idx) => {
-                            const voters = getVotersForOption(it, opt);
-                            const count = voters.length;
-                            const voted = didIVote(it, opt);
+                            {/* Options List */}
+                            <div className="space-y-2">
+                                {(it.pollOptions || []).map((opt, idx) => {
+                                    const voters = getVotersForOption(it, opt);
+                                    const count = voters.length;
+                                    const voted = didIVote(it, opt);
+                                    const percent = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
+                                    
+                                    // Get avatars of voters (max 3)
+                                    const voterAvatars = voters.slice(0, 3).map(uid => {
+                                        const u = getUserInfo(uid);
+                                        return u ? { id: uid, avatar: u.avatar, name: u.name } : { id: uid, avatar: null, name: 'User' };
+                                    });
 
-                            // Get avatars of voters (max 3)
-                            const voterAvatars = voters.slice(0, 3).map((uid) => {
-                              const u = getUserInfo(uid);
-                              return u
-                                ? { id: uid, avatar: u.avatar, name: u.name }
-                                : { id: uid, avatar: null, name: 'User' };
-                            });
-
-                            return (
-                              <div
-                                key={`${itemId}-${idx}`}
-                                onClick={() => handleEdit(it)}
-                                className={`group relative overflow-hidden rounded-lg border p-3 cursor-pointer transition-all duration-200
-                                                ${voted ? 'bg-blue-100 border-blue-200' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}
+                                    return (
+                                        <div 
+                                            key={`${itemId}-${idx}`}
+                                            onClick={() => handleEdit(it)}
+                                            className={`group relative overflow-hidden bg-gray-100 rounded-lg p-3 cursor-pointer transition-all duration-200
+                                               
+                                             
                                             `}
-                              >
-                                {/* Progress bar effect (optional, not in design but nice) - Skipping for exact match */}
+                                        >
+                                            {/* Progress Bar Background */}
+                                            <div 
+                                                className={`absolute top-0 left-0 bottom-0 transition-all duration-500 ease-out ${voted ? 'bg-blue-200' : 'bg-blue-200'}`}
+                                                style={{ width: `${percent}%` }}
+                                            />
 
-                                <div className="relative flex items-center justify-between gap-3 z-10">
-                                  <span className={`text-sm font-medium ${voted ? 'text-blue-900' : 'text-gray-700'}`}>
-                                    {opt}
-                                  </span>
-
-                                  {/* Voter Avatars */}
-                                  <div className="flex items-center -space-x-2">
-                                    {voterAvatars.map((u, i) => (
-                                      <div
-                                        key={i}
-                                        className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200"
-                                        title={u.name}
-                                      >
-                                        {u.avatar ? (
-                                          <Image
-                                            src={getProxyUrl(u.avatar)}
-                                            alt=""
-                                            width={24}
-                                            height={24}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        ) : (
-                                          <Image
-                                            src="/logo/avata.webp"
-                                            alt=""
-                                            width={24}
-                                            height={24}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        )}
-                                      </div>
-                                    ))}
-                                    {count > 3 && (
-                                      <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-700 text-white text-[10px] flex items-center justify-center font-bold">
-                                        +{count - 3}
-                                      </div>
-                                    )}
-                                    {count > 0 && count <= 3 && voterAvatars.length < count && (
-                                      // Fallback if we can't find users for all votes
-                                      <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-300 text-gray-600 text-[10px] flex items-center justify-center font-bold">
-                                        {count}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                                            <div className="relative flex items-center justify-between gap-3 z-10">
+                                                <span className={`text-sm  `}>
+                                                    {opt}
+                                                </span>
+                                                
+                                                {/* Voter Avatars */}
+                                                <div className="flex items-center -space-x-2">
+                                                    {voterAvatars.map((u, i) => (
+                                                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200" title={u.name}>
+                                                            {u.avatar ? (
+                                                                <Image src={getProxyUrl(u.avatar)} alt="" width={24} height={24} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <Image src="/logo/avata.webp" alt="" width={24} height={24} className="w-full h-full object-cover" />
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                    {count > 3 && (
+                                                        <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-700 text-white text-[10px] flex items-center justify-center font-bold">
+                                                            +{count - 3}
+                                                        </div>
+                                                    )}
+                                                    {count > 0 && count <= 3 && voterAvatars.length < count && (
+                                                        // Fallback if we can't find users for all votes
+                                                         <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-300 text-gray-600 text-[10px] flex items-center justify-center font-bold">
+                                                            {count}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
-                      </div>
                     </div>
 
                     {/* Action Footer */}
                     <div className="p-4 pt-2">
-                      <button
-                        onClick={() => handleEdit(it)}
-                        disabled={false}
-                        className={`w-full py-2.5 rounded-lg font-medium transition-colors text-sm
-                                ${
-                                  locked
-                                    ? 'bg-gray-100 text-gray-500 cursor-default'
+                         <button
+                            onClick={() => handleEdit(it)}
+                            disabled={false}
+                            className={`w-full cursor-pointer py-2.5 rounded-lg font-medium transition-colors text-sm
+                                ${locked 
+                                    ? 'bg-gray-100 text-gray-500 cursor-default' 
                                     : 'bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200'
                                 }`}
                       >
