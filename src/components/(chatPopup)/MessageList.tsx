@@ -350,7 +350,7 @@ export default function MessageList({
                                 </p>
                               )}
                               <div
-                                className={`px-0 py-0 rounded-lg shadow-none max-w-[70vw] sm:max-w-[22rem] mt-1 bg-transparent relative ${hasReactions ? 'mb-4' : ''}`}
+                                className={` px-0 py-0 rounded-lg shadow-none max-w-[70vw] sm:max-w-[22rem] mt-1 bg-transparent relative ${hasReactions ? 'mb-4' : ''}`}
                                 style={
                                   isMobile && swipeState.id === msg._id
                                     ? { transform: `translateX(${Math.max(-100, Math.min(100, swipeState.dx))}px)` }
@@ -512,53 +512,11 @@ export default function MessageList({
                                         }`}
                                       />
                                     )}
-                                    {/* {!isMobile && (
-                                  <FolderButton
-                                    roomId={String(msg.roomId)}
-                                    messageId={String(msg._id)}
-                                    isMine={isMeGroup}
-                                    visible={activeMoreId === msg._id}
-                                    className={`${isMeGroup ? 'right-full mr-26' : 'left-full ml-26'} ${
-                                      activeMoreId === msg._id
-                                        ? 'opacity-100 pointer-events-auto'
-                                        : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                    }`}
-                                    preview={
-                                      msg.type === 'text'
-                                        ? msg.content || ''
-                                        : msg.type === 'file'
-                                          ? msg.fileName
-                                            ? `[File] ${msg.fileName}`
-                                            : '[File]'
-                                          : msg.type === 'image'
-                                            ? '[Ảnh]'
-                                            : msg.type === 'video'
-                                              ? '[Video]'
-                                              : msg.type === 'sticker'
-                                                ? '[Sticker]'
-                                                : msg.type === 'reminder'
-                                                  ? msg.content || '[Nhắc nhở]'
-                                                  : `[${msg.type}]`
-                                    }
-                                    content={msg.content}
-                                    type={msg.type}
-                                    fileUrl={String(msg.fileUrl || msg.previewUrl || '')}
-                                    fileName={msg.fileName}
-                                    batchItems={mediaGroup.map((m) => ({
-                                      id: m._id,
-                                      content: m.content || '',
-                                      type: m.type === 'video' ? 'video' : 'image',
-                                      fileUrl: m.fileUrl,
-                                      fileName: m.fileName,
-                                    }))}
-                                    onSaved={() => {
-                                      setActiveMoreId(null);
-                                    }}
-                                  />
-                                )} */}
                                   </>
                                 )}
-                                <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+                                <div
+                                  className={`inline-grid gap-1 rounded-xl overflow-hidden ${isSidebarOpen ? 'sm:grid-cols-[6rem_6rem]' : 'sm:grid-cols-[10rem_10rem]'} grid-cols-[8rem_8rem]`}
+                                >
                                   {mediaGroup.map((m, idx) => {
                                     const isVid = m.type === 'video' || (m.fileUrl && isVideoFile(m.fileUrl));
                                     const url = String(m.fileUrl || m.previewUrl || '');
@@ -566,14 +524,23 @@ export default function MessageList({
                                     const sendingFallback = !!(m as unknown as { isSending?: boolean }).isSending;
                                     const blobFallback = String(url).startsWith('blob:');
                                     const up = prog !== undefined || sendingFallback || blobFallback;
+
+                                    const isOddTotal = mediaGroup.length % 2 !== 0;
+                                    const isLastItem = idx === mediaGroup.length - 1;
+                                    const shouldSpan = isOddTotal && isLastItem;
+
                                     return isVid ? (
                                       <div
                                         key={`${m._id}-${idx}`}
                                         id={`msg-${m._id}`}
-                                        className={`relative bg-black rounded-[0.25rem] overflow-hidden cursor-pointer h-[8rem] w-[8rem]  ${
+                                        className={`relative bg-black rounded-[0.25rem] overflow-hidden cursor-pointer h-[8rem] ${shouldSpan ? 'col-span-2 w-full' : 'w-[8rem]'}  ${
                                           isSidebarOpen
-                                            ? 'sm:w-[6rem] sm:h-[6rem] aspect-square'
-                                            : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
+                                            ? shouldSpan
+                                              ? 'sm:w-full sm:h-[6rem] aspect-square'
+                                              : 'sm:w-[6rem] sm:h-[6rem] aspect-square'
+                                            : shouldSpan
+                                              ? 'sm:w-full sm:h-[10rem] sm:aspect-video aspect-square'
+                                              : 'sm:aspect-video aspect-square sm:h-[10rem] sm:w-[10rem]'
                                         } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
                                         onClick={() => !up && onOpenMedia(String(m.fileUrl!), 'video')}
                                         onContextMenu={(e) => {
@@ -659,8 +626,14 @@ export default function MessageList({
                                       <div
                                         key={`${m._id}-${idx}`}
                                         id={`msg-${m._id}`}
-                                        className={`relative rounded-[0.25rem] overflow-hidden cursor-pointer hover:bg-gray-100 shadow-sm w-[8rem] h-[8rem] ${
-                                          isSidebarOpen ? 'sm:w-[6rem] sm:h-[6rem]' : 'sm:w-[10rem] sm:h-[10rem]'
+                                        className={`relative rounded-[0.25rem] overflow-hidden cursor-pointer hover:bg-gray-100 shadow-sm h-[8rem] ${shouldSpan ? 'col-span-2 w-full' : 'w-[8rem]'} ${
+                                          isSidebarOpen
+                                            ? shouldSpan
+                                              ? 'sm:w-full sm:h-[6rem]'
+                                              : 'sm:w-[6rem] sm:h-[6rem]'
+                                            : shouldSpan
+                                              ? 'sm:w-full sm:h-[10rem]'
+                                              : 'sm:w-[10rem] sm:h-[10rem]'
                                         } ${highlightedMsgId === m._id ? 'ring-2 ring-yellow-300' : ''} ${longPressActiveId === m._id ? 'ring-2 ring-blue-300 scale-[0.98] transition-transform' : ''}`}
                                         onClick={(e) => {
                                           e.stopPropagation();

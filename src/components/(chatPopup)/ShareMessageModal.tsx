@@ -309,7 +309,7 @@ export default function ShareMessageModal({
     >
       <div
         ref={containerRef}
-        className="w-full h-full sm:w-full sm:h-auto sm:max-w-lg bg-white  shadow-2xl flex flex-col sm:max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 rounded-xl"
+        className="w-full h-full sm:w-full sm:h-auto sm:max-w-lg bg-white shadow-2xl flex flex-col sm:max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 rounded-xl"
       >
         {/* Header - Modern gradient */}
         <div className="relative p-1 bg-gray-200 text-black ">

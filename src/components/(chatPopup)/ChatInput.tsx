@@ -701,16 +701,13 @@ export default function ChatInput({
               updateSlashState();
             }}
             style={{ overscrollBehavior: 'contain' }}
-            className="min-h-10 max-h-40 px-6 py-2 bg-white/90 rounded-3xl shadow-xl border border-gray-200/50 focus:outline-none  transition-all duration-300 text-[0.875rem] md:text-[1rem] text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
+            className="min-h-10 max-h-40 px-2 py-2 bg-white/90   focus:outline-none  transition-all duration-300 text-[0.875rem] md:text-[1rem] text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
             data-placeholder="Nhập tin nhắn..."
           />
 
           {/* Placeholder đẹp hơn */}
-          <div className="pointer-events-none absolute inset-0 flex items-center px-6 py-4 text-gray-400 select-none text-[0.875rem] md:text-[1rem]">
-            <span className="flex items-center gap-2">
-              <HiSparkles className="w-5 h-5 text-indigo-400" />
-              Nhập tin nhắn...
-            </span>
+          <div className="pointer-events-none absolute inset-0 flex items-center px-2 py-4 text-gray-400 select-none text-[0.875rem] md:text-[1rem]">
+            <span className="flex items-center gap-2">Nhập tin nhắn...</span>
           </div>
         </div>
 
