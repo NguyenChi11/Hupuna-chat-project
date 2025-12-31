@@ -152,9 +152,6 @@ export default function ChatWindow({
   const [pendingNewCount, setPendingNewCount] = useState(0);
   const pendingNewCountRef = useRef(0);
   const hasScrolledUpRef = useRef(false);
-  const [unreadBoundaryId, setUnreadBoundaryId] = useState<string | null>(null);
-  const [showJumpToUnread, setShowJumpToUnread] = useState(false);
-  const unreadHideTimerRef = useRef<number | null>(null);
   const syncLocalReadBy = useCallback(() => {
     const myId = String(currentUser._id || '');
     if (!myId) return;
@@ -1703,8 +1700,6 @@ export default function ChatWindow({
     setPinnedTotal(null);
     void fetchPinnedMessages();
     initialScrolledRef.current = false;
-    setUnreadBoundaryId(null);
-    setShowJumpToUnread(false);
   }, [roomId, fetchMessages, fetchPinnedMessages]);
 
   // Đồng bộ tin nhắn khi mở lại cùng phòng (selectedChat thay đổi nhưng roomId giữ nguyên)
@@ -2293,11 +2288,11 @@ export default function ChatWindow({
     }
   }, [roomId, currentUser, reLoad]);
 
-  // Chỉ gọi markAsRead một lần cho mỗi roomId
   useEffect(() => {
     if (!roomId || !currentUser) return;
     if (markedReadRef.current === roomId) return;
-    // Không đánh dấu đã đọc ngay khi vào room
+    void markAsRead();
+    syncLocalReadBy();
   }, [roomId, currentUser, markAsRead]);
 
   useEffect(() => {
@@ -2354,90 +2349,7 @@ export default function ChatWindow({
     };
   }, [roomId, currentUser, messages, isGroup]);
 
-  useEffect(() => {
-    if (!currentUser || messages.length === 0) {
-      setUnreadBoundaryId(null);
-      setShowJumpToUnread(false);
-      return;
-    }
-    const myId = String(currentUser._id || '');
-    const firstUnread = messages.find((m) => {
-      const rb = (m.readBy || []) as string[];
-      const notRead = !rb.some((id) => String(id) === myId);
-      const isIncoming = !compareIds((m as Message).sender, myId);
-      return notRead && isIncoming;
-    });
-    const boundary = firstUnread ? String(firstUnread._id) : null;
-    setUnreadBoundaryId(boundary);
-    if (!boundary) {
-      setShowJumpToUnread(false);
-      return;
-    }
-    const container = messagesContainerRef.current;
-  
-    const computeTop = (ee: HTMLElement, parent: HTMLElement) => {
-      const er = ee.getBoundingClientRect();
-      const pr = parent.getBoundingClientRect();
-      return parent.scrollTop + (er.top - pr.top);
-    };
-    const isFullyVisible = (ee: HTMLElement, parent: HTMLElement) => {
-      const cTop = parent.scrollTop;
-      const cBottom = cTop + parent.clientHeight;
-      const eTop = computeTop(ee, parent);
-      const eBottom = eTop + ee.clientHeight;
-      return eTop >= cTop && eBottom <= cBottom;
-    };
-    const updateVis = () => {
-      const c = messagesContainerRef.current;
-      const target =
-        (c?.querySelector(`#msg-${boundary}`) as HTMLElement | null) ||
-        (document.getElementById(`msg-${boundary}`) as HTMLElement | null);
-      if (c && target) {
-        const reached = isFullyVisible(target, c);
-        setShowJumpToUnread(!reached);
-        if (reached && !unreadHideTimerRef.current) {
-          unreadHideTimerRef.current = window.setTimeout(() => {
-            setUnreadBoundaryId(null);
-            if (roomId && currentUser) {
-              void markAsReadApi(roomId, String(currentUser._id));
-              syncLocalReadBy();
-              try {
-                socketRef.current?.emit('messages_read', { roomId, userId: String(currentUser._id) });
-              } catch {}
-            }
-            if (unreadHideTimerRef.current) {
-              clearTimeout(unreadHideTimerRef.current);
-              unreadHideTimerRef.current = null;
-            }
-          }, 10000);
-        }
-      } else {
-        setShowJumpToUnread(true);
-      }
-    };
-    updateVis();
-    const handler = () => updateVis();
-    container?.addEventListener('scroll', handler);
-    window.addEventListener('resize', handler);
-    return () => {
-      container?.removeEventListener('scroll', handler);
-      window.removeEventListener('resize', handler);
-      if (unreadHideTimerRef.current) {
-        clearTimeout(unreadHideTimerRef.current);
-        unreadHideTimerRef.current = null;
-      }
-    };
-  }, [messages, currentUser]);
-
-  const jumpToUnread = useCallback(() => {
-    if (!unreadBoundaryId) return;
-    const id = String(unreadBoundaryId);
-    try {
-      const evt = new CustomEvent('jumpToMessage', { detail: { messageId: id } });
-      window.dispatchEvent(evt);
-    } catch {}
-    handleJumpToMessage(id);
-  }, [unreadBoundaryId, handleJumpToMessage]);
+  // removed unread divider logic
 
   // Đóng mention menu khi click bên ngoài
   useEffect(() => {
@@ -3230,7 +3142,6 @@ export default function ChatWindow({
               allUsersMap={allUsersMap}
               uploadingFiles={uploadingFiles}
               highlightedMsgId={highlightedMsgId}
-              unreadBoundaryId={unreadBoundaryId}
               isGroup={isGroup}
               onContextMenu={handleContextMenu}
               onMobileLongPress={handleMobileLongPress}
@@ -3262,15 +3173,7 @@ export default function ChatWindow({
             <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>
 
-          <button
-            onClick={jumpToUnread}
-            aria-label="Cuộn lên tin chưa đọc"
-            className={`absolute cursor-pointer md:bottom-[8.5rem] bottom-[9.5rem] right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
-              showJumpToUnread ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
-          >
-            <HiChevronDoubleUp className="w-6 h-6 text-gray-700" />
-          </button>
+          
 
           <button
             onClick={() => scrollToBottom(true)}

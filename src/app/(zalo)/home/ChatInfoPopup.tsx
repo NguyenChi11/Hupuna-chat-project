@@ -961,7 +961,8 @@ export default function ChatInfoPopup({
                   )}
                   {!isGroup && (
                     <button
-                      onClick={() => setShowAutoDeleteModal(true)}
+                    onClick={() => alert('Chức năng đang được hoàn thiện')}
+                      // onClick={() => setShowAutoDeleteModal(true)}
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">

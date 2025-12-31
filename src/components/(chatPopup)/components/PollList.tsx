@@ -440,15 +440,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
         )}
 
         {/* Tabs giả lập (để giống ảnh) */}
-        {!embedded && (
-          <div className="bg-white border-b border-gray-200 flex text-sm font-medium text-gray-500">
-            <div className="flex-1 py-3 text-center cursor-pointer hover:text-gray-700">Tin nhắn đã ghim</div>
-            <div className="flex-1 py-3 text-center text-gray-900 border-b-2 border-gray-900 cursor-pointer">
-              Bình chọn
-            </div>
-            <div className="flex-1 py-3 text-center cursor-pointer hover:text-gray-700">Ghi chú</div>
-          </div>
-        )}
+       
 
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 bg-gray-100 p-3">
           <div className="space-y-4 max-w-2xl mx-auto">

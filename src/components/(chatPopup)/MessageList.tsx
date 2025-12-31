@@ -45,7 +45,6 @@ interface MessageListProps {
   allUsersMap: Map<string, string>;
   uploadingFiles: Record<string, number>;
   highlightedMsgId: string | null;
-  unreadBoundaryId?: string | null;
   isGroup: boolean;
   onContextMenu: (e: React.MouseEvent, msg: Message) => void;
   onReplyMessage?: (msg: Message) => void;
@@ -77,7 +76,6 @@ export default function MessageList({
   allUsersMap,
   uploadingFiles,
   highlightedMsgId,
-  unreadBoundaryId,
   isGroup,
   onContextMenu,
   onMobileLongPress,
@@ -277,22 +275,7 @@ export default function MessageList({
                         </span>
                       </div>
                     ) : null;
-                    const unreadDividerNode =
-                      unreadBoundaryId && String(msg._id) === String(unreadBoundaryId) ? (
-                        <div className="flex items-center my-3">
-                          <div className="flex-1 h-px bg-blue-400/40" />
-
-                          <span
-                            className="mx-3 px-3 py-0.5 text-[11px] font-semibold text-center
-                   text-blue-600 bg-blue-100 
-                   rounded-full whitespace-nowrap"
-                          >
-                            Tin nhắn chưa đọc
-                          </span>
-
-                          <div className="flex-1 h-px bg-blue-400/40" />
-                        </div>
-                      ) : null;
+                    const unreadDividerNode = null;
 
                     const nextMsg = index < msgs.length - 1 ? msgs[index + 1] : null;
                     let isEndOfGroup = true;
@@ -2080,7 +2063,7 @@ export default function MessageList({
                     !isRecalled && msg.type === 'text' && isSidebarOpen && !isMobile
                       ? 'sm:max-w-[26rem] lg:max-w-[32rem]'
                       : 'sm:max-w-[34rem] lg:max-w-[44rem]'
-                  } break-words mt-1 
+                  } break-words mt-1
                   ${
                     !isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image')
                       ? '!bg-transparent shadow-none'
