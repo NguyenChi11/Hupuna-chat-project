@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
     const type = form.get('type') as MessageType;
     const customFolderName = form.get('folderName') as string;
     const batchId = (form.get('batchId') as string) || undefined;
+    const skipSaveMessage = form.get('skipSaveMessage') === 'true';
 
     const finalFolderName = customFolderName || `Chat_${roomId}`;
 
@@ -90,11 +91,13 @@ export async function POST(req: NextRequest) {
     };
 
     let insertedId: string | undefined = undefined;
-    try {
-      insertedId = await addRow(MESSAGES_COLLECTION_NAME, messageData as MessageCreate & Record<string, unknown>);
-    } catch (e) {
-      // Nếu lỗi DB, vẫn trả kết quả upload thành công để client có thể tự lưu fallback
-      insertedId = undefined;
+    if (!skipSaveMessage) {
+      try {
+        insertedId = await addRow(MESSAGES_COLLECTION_NAME, messageData as MessageCreate & Record<string, unknown>);
+      } catch (e) {
+        // Nếu lỗi DB, vẫn trả kết quả upload thành công để client có thể tự lưu fallback
+        insertedId = undefined;
+      }
     }
 
     return NextResponse.json({

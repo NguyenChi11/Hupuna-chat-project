@@ -309,6 +309,7 @@ export default function ChatInfoPopup({
         formData.append('sender', String(currentUser._id));
         formData.append('type', 'image');
         formData.append('folderName', `GroupAvatar_${groupId}`);
+        formData.append('skipSaveMessage', 'true');
 
         const uploadRes = await fetch(`/api/upload?uploadId=group-avatar-${groupId}-${Date.now()}`, {
           method: 'POST',
@@ -1358,16 +1359,6 @@ export default function ChatInfoPopup({
         roomId={roomId}
         onClose={() => setPreviewMedia(null)}
       />
-
-      {/* Loading overlay */}
-      {isGroupAvatarUploading && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-2xl px-6 py-4 flex items-center gap-3 shadow-2xl">
-            <div className="w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <span className="text-gray-700 font-medium">Đang cập nhật ảnh nhóm...</span>
-          </div>
-        </div>
-      )}
 
       {isAssetsModalOpen && (
         <div

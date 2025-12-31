@@ -309,7 +309,7 @@ export default function ShareMessageModal({
     >
       <div
         ref={containerRef}
-        className="w-full h-full sm:w-full sm:h-auto sm:max-w-lg bg-white rounded-none shadow-2xl flex flex-col sm:max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full h-full sm:w-full sm:h-auto sm:max-w-lg bg-white  shadow-2xl flex flex-col sm:max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 rounded-xl"
       >
         {/* Header - Modern gradient */}
         <div className="relative p-1 bg-gray-200 text-black ">
@@ -328,7 +328,6 @@ export default function ShareMessageModal({
         </div>
 
         <div className="py-1.5 px-3 bg-white border-b border-gray-300 pb-3">
-        
           <div className="relative ">
             <IoSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -499,7 +498,10 @@ export default function ShareMessageModal({
           )}
         </div>
 
-        <div className="px-2 pb-3 mb-2 bg-white border-t border-gray-200" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div
+          className="px-2 pb-3 mb-2 bg-white border-t border-gray-200"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
           <div className="py-2 bg-gradient-to-br from-gray-50 to-blue-50/30">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nội dung chia sẻ</p>
             <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm  whitespace-pre-wrap break-words">
