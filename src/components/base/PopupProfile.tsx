@@ -102,188 +102,198 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl h-[50rem] overflow-hidden no-scrollbar relative"
+        className="w-full max-w-[400px] bg-white rounded-lg shadow-2xl h-auto max-h-[90vh] overflow-hidden no-scrollbar relative flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <Header
-          onClose={onClose}
-          displayName={displayName}
-          avatarUrl={user.avatar}
-          backgroundUrl={user.background as string | undefined}
-          isUploading={isUploading}
-          avatarFailed={avatarFailed}
-          setAvatarFailed={setAvatarFailed}
-          onSelectFile={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const f = e.target.files?.[0];
-            if (f) upload(f, () => (e.target.value = ''));
-          }}
-          isUploadingBackground={isUploadingBackground}
-          onSelectBackgroundFile={async (e: React.ChangeEvent<HTMLInputElement>) => {
-            const inputEl = e.currentTarget;
-            const f = inputEl.files?.[0];
-            if (!f) return;
-            try {
-              setIsUploadingBackground(true);
-              const MAX = 1024 * 1024 * 1024; // 1GB
-              if (!f.type.startsWith('image/') || f.size > MAX) {
-                toast({ type: 'error', message: 'Ảnh không hợp lệ hoặc quá lớn (>1GB)' });
-                return;
-              }
-              const formData = new FormData();
-              formData.append('file', f);
-              formData.append('roomId', 'background');
-              formData.append('sender', String(user._id));
-              formData.append('receiver', '');
-              formData.append('type', 'image');
-              formData.append('folderName', 'Backgrounds');
-              const uploadRes = await fetch(`/api/upload?uploadId=background_${user._id}`, {
-                method: 'POST',
-                body: formData,
-              });
-              const uploadJson = await uploadRes.json();
-              if (!uploadRes.ok || !uploadJson.success || !uploadJson.link) {
-                toast({ type: 'error', message: 'Upload thất bại' });
-                return;
-              }
-              const newUrl = String(uploadJson.link);
-              let updateOk = false;
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <h2 className="text-base font-bold text-gray-900">Thông tin tài khoản</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 cursor-pointer">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {/* Header */}
+          <Header
+            displayName={displayName}
+            avatarUrl={user.avatar}
+            backgroundUrl={user.background as string | undefined}
+            isUploading={isUploading}
+            avatarFailed={avatarFailed}
+            setAvatarFailed={setAvatarFailed}
+            onSelectFile={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const f = e.target.files?.[0];
+              if (f) upload(f, () => (e.target.value = ''));
+            }}
+            isUploadingBackground={isUploadingBackground}
+            onSelectBackgroundFile={async (e: React.ChangeEvent<HTMLInputElement>) => {
+              const inputEl = e.currentTarget;
+              const f = inputEl.files?.[0];
+              if (!f) return;
               try {
-                const res1 = await fetch('/api/users', {
+                setIsUploadingBackground(true);
+                const MAX = 1024 * 1024 * 1024; // 1GB
+                if (!f.type.startsWith('image/') || f.size > MAX) {
+                  toast({ type: 'error', message: 'Ảnh không hợp lệ hoặc quá lớn (>1GB)' });
+                  return;
+                }
+                const formData = new FormData();
+                formData.append('file', f);
+                formData.append('roomId', 'background');
+                formData.append('sender', String(user._id));
+                formData.append('receiver', '');
+                formData.append('type', 'image');
+                formData.append('folderName', 'Backgrounds');
+                const uploadRes = await fetch(`/api/upload?uploadId=background_${user._id}`, {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    action: 'update',
-                    field: '_id',
-                    value: String(user._id),
-                    data: { background: newUrl },
-                  }),
+                  body: formData,
                 });
-                const json1 = await res1.json();
-                updateOk = res1.ok && !json1.error;
-              } catch {}
-              if (!updateOk) {
+                const uploadJson = await uploadRes.json();
+                if (!uploadRes.ok || !uploadJson.success || !uploadJson.link) {
+                  toast({ type: 'error', message: 'Upload thất bại' });
+                  return;
+                }
+                const newUrl = String(uploadJson.link);
+                let updateOk = false;
                 try {
-                  const res2 = await fetch('/api/users', {
+                  const res1 = await fetch('/api/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       action: 'update',
-                      field: 'username',
-                      value: String(user.username || ''),
+                      field: '_id',
+                      value: String(user._id),
                       data: { background: newUrl },
                     }),
                   });
-                  const json2 = await res2.json();
-                  updateOk = res2.ok && !json2.error;
+                  const json1 = await res1.json();
+                  updateOk = res1.ok && !json1.error;
                 } catch {}
-              }
-              if (!updateOk) {
-                toast({ type: 'error', message: 'Cập nhật nền thất bại' });
-                return;
-              }
-              try {
-                const raw = localStorage.getItem('info_user');
-                if (raw) {
-                  const parsed = JSON.parse(raw);
-                  localStorage.setItem('info_user', JSON.stringify({ ...parsed, background: newUrl }));
+                if (!updateOk) {
+                  try {
+                    const res2 = await fetch('/api/users', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        action: 'update',
+                        field: 'username',
+                        value: String(user.username || ''),
+                        data: { background: newUrl },
+                      }),
+                    });
+                    const json2 = await res2.json();
+                    updateOk = res2.ok && !json2.error;
+                  } catch {}
                 }
-              } catch {}
-              onUserUpdated?.({ background: newUrl });
-              toast({ type: 'success', message: 'Cập nhật nền thành công!' });
-            } finally {
-              setIsUploadingBackground(false);
-              if (inputEl) inputEl.value = '';
-            }
-          }}
-        />
+                if (!updateOk) {
+                  toast({ type: 'error', message: 'Cập nhật nền thất bại' });
+                  return;
+                }
+                try {
+                  const raw = localStorage.getItem('info_user');
+                  if (raw) {
+                    const parsed = JSON.parse(raw);
+                    localStorage.setItem('info_user', JSON.stringify({ ...parsed, background: newUrl }));
+                  }
+                } catch {}
+                onUserUpdated?.({ background: newUrl });
+                toast({ type: 'success', message: 'Cập nhật nền thành công!' });
+              } finally {
+                setIsUploadingBackground(false);
+                if (inputEl) inputEl.value = '';
+              }
+            }}
+          />
 
-        <div className="pt-10 pb-5 px-8">
-          <div className="text-center mb-2">
-            <h2 className="text-3xl pt-11 font-bold">{displayName}</h2>
-            <p className="text-lg text-gray-500 mt-2">@{displayId}</p>
+          <div className="pb-5 px-4">
+            {/* MODE SWITCH */}
+            {viewMode === 'profile' && (
+              <ProfileView
+                user={user}
+                displayName={displayName}
+                displayId={displayId}
+                departmentOptions={departmentOptions.map((item) => ({
+                  value: String(item.id),
+                  label: item.name,
+                }))}
+                statusOptions={statusOptions.map((item) => ({
+                  value: String(item.value),
+                  label: item.label,
+                }))}
+                onEdit={() => setViewMode('editInfo')}
+                onChangePassword={() => setViewMode('changePassword')}
+              />
+            )}
+
+            {viewMode === 'editInfo' && (
+              <EditInfoView
+                form={form}
+                setForm={(updater) => {
+                  if (typeof updater === 'function') {
+                    setForm((prev) => {
+                      const next = (updater as (prev: typeof form) => Partial<typeof form>)(prev);
+                      return {
+                        name: String(next.name ?? prev.name),
+                        phone: String(next.phone ?? prev.phone),
+                        gender: String(next.gender ?? prev.gender),
+                        birthday: String(next.birthday ?? prev.birthday),
+                        email: String(next.email ?? prev.email),
+                        address: String(next.address ?? prev.address),
+                        title: String(next.title ?? prev.title),
+                        department: String(next.department ?? prev.department),
+                        status: String(next.status ?? prev.status),
+                      };
+                    });
+                  } else {
+                    setForm({
+                      name: String(updater.name ?? form.name),
+                      phone: String(updater.phone ?? form.phone),
+                      gender: String(updater.gender ?? form.gender),
+                      birthday: String(updater.birthday ?? form.birthday),
+                      email: String(updater.email ?? form.email),
+                      address: String(updater.address ?? form.address),
+                      title: String(updater.title ?? form.title),
+                      department: String(updater.department ?? form.department),
+                      status: String(updater.status ?? form.status),
+                    });
+                  }
+                }}
+                loading={loading}
+                departmentOptions={departmentOptions.map((item) => ({
+                  value: String(item.id),
+                  label: item.name,
+                }))}
+                statusOptions={statusOptions.map((item) => ({
+                  value: String(item.value),
+                  label: item.label,
+                }))}
+                onSubmit={() => updateUser(form)}
+                onCancel={() => setViewMode('profile')}
+              />
+            )}
+
+            {viewMode === 'changePassword' && (
+              <ChangePasswordView
+                form={passwordForm}
+                setForm={setPasswordForm}
+                loading={loading}
+                onSubmit={async () => {
+                  await updateUser(passwordForm);
+                  setViewMode('profile');
+                }}
+                onCancel={() => setViewMode('profile')}
+              />
+            )}
           </div>
-
-          {/* MODE SWITCH */}
-          {viewMode === 'profile' && (
-            <ProfileView
-              user={user}
-              displayName={displayName}
-              displayId={displayId}
-              departmentOptions={departmentOptions.map((item) => ({
-                value: String(item.id),
-                label: item.name,
-              }))}
-              statusOptions={statusOptions.map((item) => ({
-                value: String(item.value),
-                label: item.label,
-              }))}
-              profileUrl={profileUrl}
-              onEdit={() => setViewMode('editInfo')}
-              onChangePassword={() => setViewMode('changePassword')}
-              toast={toast}
-            />
-          )}
-
-          {viewMode === 'editInfo' && (
-            <EditInfoView
-              form={form}
-              setForm={(updater) => {
-                if (typeof updater === 'function') {
-                  setForm((prev) => {
-                    const next = (updater as (prev: typeof form) => Partial<typeof form>)(prev);
-                    return {
-                      name: String(next.name ?? prev.name),
-                      phone: String(next.phone ?? prev.phone),
-                      gender: String(next.gender ?? prev.gender),
-                      birthday: String(next.birthday ?? prev.birthday),
-                      email: String(next.email ?? prev.email),
-                      address: String(next.address ?? prev.address),
-                      title: String(next.title ?? prev.title),
-                      department: String(next.department ?? prev.department),
-                      status: String(next.status ?? prev.status),
-                    };
-                  });
-                } else {
-                  setForm({
-                    name: String(updater.name ?? form.name),
-                    phone: String(updater.phone ?? form.phone),
-                    gender: String(updater.gender ?? form.gender),
-                    birthday: String(updater.birthday ?? form.birthday),
-                    email: String(updater.email ?? form.email),
-                    address: String(updater.address ?? form.address),
-                    title: String(updater.title ?? form.title),
-                    department: String(updater.department ?? form.department),
-                    status: String(updater.status ?? form.status),
-                  });
-                }
-              }}
-              loading={loading}
-              departmentOptions={departmentOptions.map((item) => ({
-                value: String(item.id),
-                label: item.name,
-              }))}
-              statusOptions={statusOptions.map((item) => ({
-                value: String(item.value),
-                label: item.label,
-              }))}
-              onSubmit={() => updateUser(form)}
-              onCancel={() => setViewMode('profile')}
-            />
-          )}
-
-          {viewMode === 'changePassword' && (
-            <ChangePasswordView
-              form={passwordForm}
-              setForm={setPasswordForm}
-              loading={loading}
-              onSubmit={async () => {
-                await updateUser(passwordForm);
-                setViewMode('profile');
-              }}
-              onCancel={() => setViewMode('profile')}
-            />
-          )}
         </div>
       </div>
     </div>

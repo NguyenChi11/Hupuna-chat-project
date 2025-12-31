@@ -544,7 +544,10 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                           <span className="text-xs text-gray-500">{votedCount}</span>
                           {lastUid ? (
                             lastInfo?.avatar ? (
-                              <div className='w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200' title={lastInfo?.name}>
+                              <div
+                                className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200"
+                                title={lastInfo?.name}
+                              >
                                 <Image
                                   width={20}
                                   height={20}
@@ -555,7 +558,13 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                               </div>
                             ) : (
                               <div className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-                                {lastInfo?.name?.charAt(0).toUpperCase() || 'U'}
+                                <Image
+                                  src="/logo/avata.webp"
+                                  alt={lastInfo?.name || 'User'}
+                                  width={38}
+                                  height={38}
+                                  className="w-full h-full rounded-full object-cover"
+                                />
                               </div>
                             )
                           ) : null}

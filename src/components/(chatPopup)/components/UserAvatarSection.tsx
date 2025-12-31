@@ -1,6 +1,7 @@
 import { getProxyUrl } from '@/utils/utils';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
+import { CiEdit } from 'react-icons/ci';
 import { HiPencil, HiCheck, HiX } from 'react-icons/hi';
 
 interface UserAvatarSectionProps {
@@ -123,7 +124,7 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
                 className="cursor-pointer transition-opacity p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-blue-500"
                 title="Đặt biệt danh"
               >
-                <HiPencil className="w-4 h-4" />
+                <CiEdit className="w-4 h-4" />
               </button>
             )}
           </div>

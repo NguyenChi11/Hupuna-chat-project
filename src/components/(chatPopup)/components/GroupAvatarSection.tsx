@@ -2,6 +2,7 @@ import React, { ChangeEvent, RefObject } from 'react';
 import { HiPencil } from 'react-icons/hi';
 import { getProxyUrl } from '@/utils/utils';
 import Image from 'next/image';
+import { CiEdit } from 'react-icons/ci';
 
 interface GroupAvatarSectionProps {
   isGroup: boolean;
@@ -24,7 +25,7 @@ export default function GroupAvatarSection({
   onChangeGroupAvatar,
   onRenameGroup,
 }: GroupAvatarSectionProps) {
-  if (!isGroup) return null;
+  // if (!isGroup) return null;
 
   return (
     <div className="flex flex-col items-center mb-2 ">
@@ -114,7 +115,12 @@ export default function GroupAvatarSection({
           title="Đổi ảnh nhóm"
         >
           <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+            />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </button>
@@ -124,16 +130,17 @@ export default function GroupAvatarSection({
 
       {/* Tên nhóm + nút đổi tên */}
       <div className="mt-6 flex items-center gap-3 ">
-        <h3 className="text-xl font-medium text-gray-900 tracking-tight truncate max-w-[10rem]">{groupName || 'Nhóm chat'}</h3>
+        <h3 className="text-xl font-medium text-gray-900 tracking-tight truncate max-w-[10rem]">
+          {groupName || 'Nhóm chat'}
+        </h3>
         <button
           onClick={onRenameGroup}
-          className="cursor-pointer p-2.5 rounded-xl  bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-all duration-200 hover:shadow-md active:scale-95"
+          className="cursor-pointer p-1 rounded-xl  bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-all duration-200 hover:shadow-md active:scale-95"
           title="Đổi tên nhóm"
         >
-          <HiPencil className="w-4 h-4" />
+          <CiEdit className="w-4 h-4" />
         </button>
       </div>
-
     </div>
   );
 }

@@ -398,7 +398,11 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar Desktop */}
       {isAuthed && (
         <div className="hidden md:block">
-          <SidebarMenu />
+          <SidebarMenu
+            totalUnread={totalUnread}
+            unreadGroups={unreadGroups}
+            unreadContacts={unreadContacts}
+          />
         </div>
       )}
 

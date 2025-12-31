@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { HiX, HiChevronLeft, HiBan } from 'react-icons/hi';
+import { HiX, HiChevronLeft, HiBan, HiTrash } from 'react-icons/hi';
 import ModalMembers from '@/components/base/ModalMembers';
 import { GroupConversation, MemberInfo, GroupRole } from '@/types/Group';
 import { User } from '@/types/User';
 import { useChatInfoPopup } from '@/hooks/useChatInfoPopup';
 import MediaPreviewModal from '@/components/(chatPopup)/MediaPreviewModal';
-import GroupAvatarSection from '@/components/(chatPopup)/components/GroupAvatarSection';
 import UserAvatarSection from '@/components/(chatPopup)/components/UserAvatarSection';
 import ChatQuickActions from '@/components/(chatPopup)/components/ChatQuickActions';
 import GroupDangerZone from '@/components/(chatPopup)/components/GroupDangerZone';
@@ -26,30 +25,36 @@ import { getProxyUrl, resolveSocketUrl } from '@/utils/utils';
 import GroupInviteLinkSection from '@/components/(chatPopup)/components/GroupInviteLinkSection';
 import PinnedMessagesSection from '@/components/(chatPopup)/components/PinnedMessagesSection';
 import { HiPencil } from 'react-icons/hi';
+import {
+  CiBellOn,
+  CiCirclePlus,
+  CiMapPin,
+  CiPlay1,
+  CiSettings,
+  CiUnread,
+  CiUser,
+  CiAlarmOn,
+  CiCircleInfo,
+  CiTrash,
+  CiNoWaitingSign,
+} from 'react-icons/ci';
 import Image from 'next/image';
 import ImageIconZalo from '@/components/svg/ICIconImageZalo';
-import {
-  HiEyeSlash,
-  HiChevronRight,
-  HiUser,
-  HiBell,
-  HiStar,
-  HiBookOpen,
-  HiPlus,
-  HiUsers,
-  HiCog,
-  HiClock,
-  HiShieldCheck,
-  HiPlay,
-} from 'react-icons/hi2';
+import { HiEyeSlash, HiChevronRight, HiPlay } from 'react-icons/hi2';
 import ICPin from '@/components/svg/ICPin';
 import PopupProfile from '@/components/base/PopupProfile';
 import { useRouter } from 'next/navigation';
 import SuccessModal from '@/components/modal/SuccessModal';
 import { confirmAlert } from '@/components/base/alert';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useToast } from '@/components/base/toast';
 
 import AddToGroupModal from '@/components/(chatPopup)/components/AddToGroupModal';
 import CommonGroupsModal from '@/components/(chatPopup)/components/CommonGroupsModal';
+import { CiBookmarkCheck, CiEdit, CiImageOn, CiStar } from 'react-icons/ci';
+import { AiOutlineUsergroupAdd } from 'react-icons/ai';
+import { PiEyeSlashLight } from 'react-icons/pi';
+import GroupAvatarSection from '@/components/(chatPopup)/components/GroupAvatarSection';
 
 interface ChatInfoPopupProps {
   onClose: () => void;
@@ -87,6 +92,7 @@ export default function ChatInfoPopup({
   groups = [],
 }: ChatInfoPopupProps) {
   const { messages, currentUser, allUsers, chatName, isGroup, selectedChat } = useChatContext();
+  const showToast = useToast();
   const [openMember, setOpenMember] = useState(false);
   const [groupAvatar, setGroupAvatar] = useState<string | undefined>(
     isGroup ? (selectedChat as GroupConversation).avatar : undefined,
@@ -109,6 +115,8 @@ export default function ChatInfoPopup({
   const [callAlertEnabled, setCallAlertEnabled] = useState(true);
   const [autoDeletePolicy, setAutoDeletePolicy] = useState<'off' | '24h' | '7d'>('off');
   const [showAutoDeleteModal, setShowAutoDeleteModal] = useState(false);
+  const [showConfirmClear, setShowConfirmClear] = useState(false);
+  const [showReportConfirm, setShowReportConfirm] = useState(false);
   const router = useRouter();
   const [showAddToGroupModal, setShowAddToGroupModal] = useState(false);
   const [showCommonGroupsModal, setShowCommonGroupsModal] = useState(false);
@@ -677,9 +685,7 @@ export default function ChatInfoPopup({
                     title="Thêm mô tả nhóm"
                   >
                     <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Thêm mô tả nhóm</span>
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <HiChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>
               )}
@@ -699,16 +705,16 @@ export default function ChatInfoPopup({
                       }}
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
-                      <div className="flex items-center gap-4">
-                        <HiPencil className="w-5 h-5 text-gray-600" />
+                      <div className="flex items-center gap-3">
+                        <CiEdit className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Đổi tên gọi nhớ</span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
+                      <HiChevronRight className="w-4 h-4 text-gray-400" />
                     </button>
 
                     <div className="px-5 py-4 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <HiStar className="w-6 h-6 text-gray-600" />
+                      <div className="flex items-center gap-3">
+                        <CiStar className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Đánh dấu bạn thân</span>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -730,10 +736,10 @@ export default function ChatInfoPopup({
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
-                        <HiBookOpen className="w-6 h-6 text-gray-600" />
+                        <CiBookmarkCheck className="w-6 h-6 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Nhật ký chung</span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
+                      <HiChevronRight className="w-4 h-4 text-gray-400" />
                     </button>
                   </div>
                 </div>
@@ -747,16 +753,14 @@ export default function ChatInfoPopup({
                     void fetchAssets('file', true);
                     void fetchAssets('link', true);
                   }}
-                  className="cursor-pointer w-full py-2 px-1 flex items-center justify-between hover:bg-gray-50 transition-all duration-200 group"
+                  className="cursor-pointer w-full py-4 px-5 flex items-center justify-between hover:bg-gray-50 transition-all duration-200 group"
                 >
                   <div className="flex items-center gap-2">
-                    <ImageIconZalo className="w-10 h-10" />
+                    <CiImageOn className="w-5 h-5" />
                     <span className="text-[1.125rem] md:text-[1rem] text-gray-900">Ảnh, file, link</span>
                   </div>
 
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <HiChevronRight className="w-4 h-4 text-gray-400" />
                 </button>
                 <div className="pl-5 pr-1 pb-2 border-t border-gray-100">
                   {latestImages.length > 0 ? (
@@ -805,9 +809,7 @@ export default function ChatInfoPopup({
                         }}
                         title="Xem tất cả ảnh, file, link"
                       >
-                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
+                        <CiPlay1 className="w-4 h-4 text-gray-400" />
                       </div>
                     </div>
                   ) : (
@@ -836,12 +838,12 @@ export default function ChatInfoPopup({
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
-                        <HiPlus className="w-6 h-6 text-gray-600" />
+                        <CiCirclePlus className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">
                           Tạo nhóm với {(selectedChat as User).name || (selectedChat as User).username || 'Người dùng'}
                         </span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
+                      <HiChevronRight className="w-4 h-4 text-gray-400" />
                     </button>
                     <button
                       onClick={() => {
@@ -850,22 +852,22 @@ export default function ChatInfoPopup({
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between   hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
-                        <HiUsers className="w-6 h-6 text-gray-600" />
+                        <AiOutlineUsergroupAdd className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800 ">
                           Thêm {(selectedChat as User).name || (selectedChat as User).username || 'Người dùng'} vào nhóm
                         </span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
+                      <HiChevronRight className="w-4 h-4 text-gray-400" />
                     </button>
                     <button
                       onClick={() => setShowCommonGroupsModal(true)}
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
-                        <HiUser className="w-6 h-6 text-gray-600" />
+                        <CiUser className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Xem nhóm chung</span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
+                      <HiChevronRight className="w-4 h-4 text-gray-400" />
                     </button>
                   </div>
                 </div>
@@ -893,7 +895,7 @@ export default function ChatInfoPopup({
                 <div className="divide-y divide-gray-100">
                   <div className="px-5 py-4 flex items-center justify-between">
                     <div className="flex gap-4 items-center">
-                      <ICPin className="w-5 h-5 text-gray-600" />
+                      <CiMapPin className="w-5 h-5 text-gray-600" />
                       <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Ghim trò chuyện</span>
                     </div>
 
@@ -910,7 +912,7 @@ export default function ChatInfoPopup({
                   </div>
                   <div className="px-5 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <HiEyeSlash className="w-5 h-5 text-gray-500" />
+                      <CiUnread className="w-5 h-5 text-gray-500" />
                       <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Ẩn trò chuyện</span>
                     </div>
 
@@ -928,7 +930,7 @@ export default function ChatInfoPopup({
                   {!isGroup && (
                     <div className="px-5 py-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <HiBell className="w-6 h-6 text-gray-600" />
+                        <CiBellOn className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Báo cuộc gọi đến</span>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -951,19 +953,19 @@ export default function ChatInfoPopup({
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
-                        <HiCog className="w-6 h-6 text-gray-600" />
+                        <CiSettings className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Cài đặt cá nhân</span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
+                      <HiChevronRight className="w-4 h-4 text-gray-400" />
                     </button>
                   )}
                   {!isGroup && (
                     <button
-                      onClick={() => alert('Chức năng đang được hoàn thiện')}
+                      onClick={() => setShowAutoDeleteModal(true)}
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
-                        <HiClock className="w-6 h-6 text-gray-600" />
+                        <CiAlarmOn className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Tin nhắn tự xóa</span>
                       </div>
                       <span className="text-sm font-semibold text-gray-600">
@@ -973,16 +975,24 @@ export default function ChatInfoPopup({
                   )}
                   {!isGroup && (
                     <button
-                      onClick={() => {
-                        alert('Chức năng đang được hoàn thiện');
-                      }}
+                      onClick={() => setShowReportConfirm(true)}
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
-                        <HiShieldCheck className="w-6 h-6 text-gray-600" />
+                        <CiCircleInfo className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Báo xấu</span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
+                    </button>
+                  )}
+                  {(!isGroup || (isGroup && myRole === 'OWNER')) && (
+                    <button
+                      // onClick={() => setShowConfirmClear(true)}
+                      className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-4">
+                        <CiTrash className="w-5 h-5 text-gray-600" />
+                        <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Xóa lịch sử</span>
+                      </div>
                     </button>
                   )}
                   {!isGroup && (
@@ -991,10 +1001,9 @@ export default function ChatInfoPopup({
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
                       <div className="flex items-center gap-4">
-                        <HiBan className="w-6 h-6 text-gray-600" />
+                        <CiNoWaitingSign className="w-5 h-5 text-gray-600" />
                         <span className="text-[1.125rem] md:text-[1rem] text-gray-800">Quản lý chặn</span>
                       </div>
-                      <HiChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
                   )}
                 </div>
@@ -1003,7 +1012,6 @@ export default function ChatInfoPopup({
 
               {isGroup && (
                 <GroupDangerZone
-                  isGroup={isGroup}
                   canLeaveGroup={canLeaveGroup}
                   canDisbandGroup={canDisbandGroup}
                   onLeaveClick={() => setConfirmAction('leave')}
@@ -1018,15 +1026,21 @@ export default function ChatInfoPopup({
         <PopupProfile isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={selectedChat as User} />
       )}
       {showAutoDeleteModal && !isGroup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-800">Tin nhắn tự xóa</h3>
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+          onClick={() => setShowAutoDeleteModal(false)}
+        >
+          <div
+            className="w-full max-w-[25rem] bg-white rounded-lg shadow-2xl h-auto max-h-[90vh] overflow-hidden no-scrollbar relative flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <h3 className="text-base font-bold text-gray-900">Tin nhắn tự xóa</h3>
               <button
                 onClick={() => setShowAutoDeleteModal(false)}
-                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer transition-colors"
+                className="text-gray-500 hover:text-gray-700 cursor-pointer"
               >
-                <HiX className="w-5 h-5 text-gray-500" />
+                <HiX className="w-5 h-5" />
               </button>
             </div>
             <div className="p-4 space-y-2">
@@ -1089,15 +1103,21 @@ export default function ChatInfoPopup({
       )}
 
       {editingPersonalNickname && !isGroup && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-800">Đặt biệt danh</h3>
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-md px-4"
+          onClick={() => setEditingPersonalNickname(null)}
+        >
+          <div
+            className="w-full max-w-[400px] bg-white rounded-lg shadow-2xl h-auto max-h-[90vh] overflow-hidden no-scrollbar relative flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <h3 className="text-base font-bold text-gray-900">Đặt biệt danh</h3>
               <button
                 onClick={() => setEditingPersonalNickname(null)}
-                className="p-2 hover:bg-gray-200 rounded-full cursor-pointer transition-colors"
+                className="text-gray-500 hover:text-gray-700 cursor-pointer"
               >
-                <HiX className="w-5 h-5 text-gray-500" />
+                <HiX className="w-5 h-5" />
               </button>
             </div>
             <div className="p-4 space-y-4">
@@ -1108,7 +1128,7 @@ export default function ChatInfoPopup({
                 type="text"
                 autoFocus
                 defaultValue={editingPersonalNickname.currentVal || editingPersonalNickname.name}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-[0.5rem] focus:outline-none"
                 placeholder="Nhập biệt danh..."
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -1122,7 +1142,7 @@ export default function ChatInfoPopup({
               <div className="flex gap-2 justify-end pt-2">
                 <button
                   onClick={() => setEditingPersonalNickname(null)}
-                  className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
+                  className="px-4 py-2 cursor-pointer text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
                 >
                   Hủy
                 </button>
@@ -1133,7 +1153,7 @@ export default function ChatInfoPopup({
                     void handleUpdateNicknameForPartner(v);
                     setEditingPersonalNickname(null);
                   }}
-                  className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                  className="px-4 py-2 cursor-pointer bg-blue-500 text-white font-bold rounded-[0.5rem] hover:bg-blue-600 transition-all shadow-lg shadow-blue-200"
                 >
                   Lưu
                 </button>
@@ -1195,6 +1215,68 @@ export default function ChatInfoPopup({
         title="Thành công"
         description="Đã thêm thành viên vào nhóm thành công."
       />
+      {showConfirmClear && (
+        <ConfirmModal
+          title="Xóa lịch sử"
+          message="Bạn có chắc muốn xóa toàn bộ lịch sử trò chuyện?"
+          onCancel={() => setShowConfirmClear(false)}
+          onConfirm={async () => {
+            setShowConfirmClear(false);
+            try {
+              const res = await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'clearHistory', roomId }),
+              });
+              if (res.ok) {
+                showToast({ type: 'success', message: 'Đã xóa lịch sử trò chuyện' });
+                try {
+                  window.dispatchEvent(new CustomEvent('chatHistoryCleared', { detail: { roomId } }));
+                } catch {}
+                try {
+                  onRefresh?.();
+                } catch {}
+              } else {
+                showToast({ type: 'error', message: 'Xóa lịch sử thất bại' });
+              }
+            } catch {
+              showToast({ type: 'error', message: 'Lỗi khi xóa lịch sử' });
+            }
+          }}
+          confirmText="Xóa"
+          variant="danger"
+        />
+      )}
+      {showReportConfirm && (
+        <ConfirmModal
+          title="Báo xấu"
+          message="Bạn có muốn báo cáo cuộc trò chuyện này?"
+          onCancel={() => setShowReportConfirm(false)}
+          onConfirm={async () => {
+            setShowReportConfirm(false);
+            try {
+              await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create',
+                  data: {
+                    roomId,
+                    sender: currentUser._id,
+                    type: 'notify',
+                    content: 'Bạn đã báo xấu cuộc trò chuyện này',
+                  },
+                }),
+              });
+              showToast({ type: 'success', message: 'Đã gửi báo xấu' });
+            } catch {
+              showToast({ type: 'error', message: 'Gửi báo xấu thất bại' });
+            }
+          }}
+          confirmText="Báo xấu"
+          variant="warning"
+        />
+      )}
       {editingSelfNickname && !isGroup && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
@@ -1229,7 +1311,7 @@ export default function ChatInfoPopup({
               <div className="flex gap-2 justify-end pt-2">
                 <button
                   onClick={() => setEditingSelfNickname(null)}
-                  className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors"
+                  className="px-4 py-2 text-gray-600 cursor-pointer font-medium hover:bg-gray-100 rounded-xl transition-colors"
                 >
                   Hủy
                 </button>
@@ -1240,7 +1322,7 @@ export default function ChatInfoPopup({
                     void handleUpdateNicknameForMe(v);
                     setEditingSelfNickname(null);
                   }}
-                  className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                  className="px-4 py-2 cursor-pointer  bg-blue-500 text-white font-bold rounded-[0.5rem] hover:bg-blue-600 transition-all shadow-lg shadow-blue-200"
                 >
                   Lưu
                 </button>

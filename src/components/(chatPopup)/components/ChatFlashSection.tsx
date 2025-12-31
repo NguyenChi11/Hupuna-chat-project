@@ -376,7 +376,7 @@ export default function ChatFlashSection({ isOpen, onToggle }: ChatFlashSectionP
                       ) : (
                         <button
                           onClick={() => handleStartRenameFolder(idx)}
-                          className="text-gray-500 hover:text-gray-700"
+                          className="text-gray-500 hover:text-gray-700 cursor-pointer"
                         >
                           <HiPencil className="w-4 h-4" />
                         </button>

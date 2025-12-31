@@ -50,9 +50,7 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
     return Boolean(content.trim()) && !Number.isNaN(dt);
   }, [content, dateTime]);
   const isDirty = useMemo(() => {
-    return (
-      content.trim() !== originalContent.trim() || dateTime !== originalDateTimeISO || repeat !== originalRepeat
-    );
+    return content.trim() !== originalContent.trim() || dateTime !== originalDateTimeISO || repeat !== originalRepeat;
   }, [content, dateTime, repeat, originalContent, originalDateTimeISO, originalRepeat]);
 
   useEffect(() => {
@@ -335,7 +333,13 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xl flex items-center justify-center">
-                    {(creatorInfo.name || 'N').charAt(0).toUpperCase()}
+                    <Image
+                      src="/logo/avata.webp"
+                      alt={creatorInfo.name || 'User'}
+                      width={38}
+                      height={38}
+                      className="w-full h-full rounded-full object-cover"
+                    />
                   </div>
                 )}
               </div>

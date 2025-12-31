@@ -357,7 +357,10 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
       if (String(userId) === String(currentUser._id)) return currentUser;
       if (isGroup) {
         const members = (selectedChat as GroupConversation).members || [];
-        const member = members.find((m) => String((m as any)._id || (m as any).id) === String(userId));
+        const member = members.find((m) => {
+          const typed = m as MemberInfo;
+          return String(typed._id || typed.id) === String(userId);
+        });
         if (member) return member as unknown as User;
       } else {
         const other = selectedChat as User;
@@ -435,9 +438,17 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
             </div>
           </div>
         )}
-        
+
         {/* Tabs giả lập (để giống ảnh) */}
-      
+        {!embedded && (
+          <div className="bg-white border-b border-gray-200 flex text-sm font-medium text-gray-500">
+            <div className="flex-1 py-3 text-center cursor-pointer hover:text-gray-700">Tin nhắn đã ghim</div>
+            <div className="flex-1 py-3 text-center text-gray-900 border-b-2 border-gray-900 cursor-pointer">
+              Bình chọn
+            </div>
+            <div className="flex-1 py-3 text-center cursor-pointer hover:text-gray-700">Ghi chú</div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 bg-gray-100 p-3">
           <div className="space-y-4 max-w-2xl mx-auto">
@@ -448,10 +459,15 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
               </div>
             ) : items.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                  <svg className="w-16 h-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                  </svg>
-                  <p className="text-sm">Chưa có bình chọn nào</p>
+                <svg className="w-16 h-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+                <p className="text-sm">Chưa có bình chọn nào</p>
               </div>
             ) : (
               items.map((it) => {
@@ -461,7 +477,7 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                 const senderInfo = getUserInfo(senderId) || (typeof sender === 'object' ? sender : null);
                 const senderName = senderInfo?.name || 'Ai đó';
                 const senderAvatar = senderInfo?.avatar;
-                
+
                 const isMenuOpen = openMenuId === itemId;
                 const locked = !!it.isPollLocked;
                 const totalVotes = Object.values(it.pollVotes || {}).flat().length;
@@ -544,19 +560,19 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                             </div>
                         </div>
 
-                        {/* Content */}
-                        <div className="mt-3">
-                            <p className="text-base font-medium text-gray-900 mb-2 leading-snug truncate">
-                                {it.content || it.pollQuestion || 'Bình chọn'}
-                            </p>
-                            <div className="flex items-center gap-1 mb-3 cursor-pointer" onClick={() => handleEdit(it)}>
-                                <span className="text-sm text-blue-500 font-medium hover:underline">
-                                    {totalVotes} người đã bình chọn
-                                </span>
-                                <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
+                      {/* Content */}
+                      <div className="mt-3">
+                        <p className="text-base font-medium text-gray-900 mb-2 leading-snug truncate">
+                          {it.content || it.pollQuestion || 'Bình chọn'}
+                        </p>
+                        <div className="flex items-center gap-1 mb-3 cursor-pointer" onClick={() => handleEdit(it)}>
+                          <span className="text-sm text-blue-500 font-medium hover:underline">
+                            {totalVotes} người đã bình chọn
+                          </span>
+                          <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
 
                             {/* Options List */}
                             <div className="space-y-2">
@@ -633,12 +649,14 @@ export default function PollList({ onClose, onRefresh, embedded = false }: PollL
                                     ? 'bg-gray-100 text-gray-500 cursor-default' 
                                     : 'bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200'
                                 }`}
-                         >
-                            {locked 
-                                ? 'Đã khóa bình chọn' 
-                                : (it.pollVotes && Object.values(it.pollVotes).some(arr => arr.includes(String(currentUser._id))) ? 'Đổi bình chọn' : 'Bình chọn')
-                            }
-                         </button>
+                      >
+                        {locked
+                          ? 'Đã khóa bình chọn'
+                          : it.pollVotes &&
+                              Object.values(it.pollVotes).some((arr) => arr.includes(String(currentUser._id)))
+                            ? 'Đổi bình chọn'
+                            : 'Bình chọn'}
+                      </button>
                     </div>
                   </div>
                 );

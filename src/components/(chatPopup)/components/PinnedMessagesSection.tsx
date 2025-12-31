@@ -3,6 +3,8 @@ import ICPin from '@/components/svg/ICPin';
 import { useChatContext } from '@/context/ChatContext';
 import { readPinnedMessagesApi } from '@/fetch/messages';
 import type { Message } from '@/types/Message';
+import { CiMapPin } from 'react-icons/ci';
+import { HiChevronRight } from 'react-icons/hi2';
 
 interface PinnedMessagesSectionProps {
   onOpen: () => void;
@@ -45,12 +47,12 @@ export default function PinnedMessagesSection({ onOpen }: PinnedMessagesSectionP
   return (
     <div className="bg-white border border-gray-100 overflow-hidden">
       <button
-        className="cursor-pointer w-full p-2 flex items-center gap-5 hover:bg-gray-50 transition-all duration-200 group"
+        className="cursor-pointer w-full px-5 py-4 flex items-center gap-5 hover:bg-gray-50 transition-all duration-200 group"
         onClick={onOpen}
         title="Xem danh sách tin nhắn đã ghim"
       >
-        <div className="py-3 rounded-xl">
-          <ICPin className="w-5 h-5 text-gray-500" />
+        <div className=" rounded-xl">
+          <CiMapPin className="w-5 h-5 text-gray-500" />
         </div>
         <div className="text-left flex-1 min-w-0">
           <p className="text-base text-[1.125rem] md:text-[1rem] text-gray-900 group-hover:text-amber-600 transition-colors">
@@ -61,14 +63,7 @@ export default function PinnedMessagesSection({ onOpen }: PinnedMessagesSectionP
           )}
         </div>
         <div className="ml-auto text-gray-400 group-hover:text-amber-600 transition-colors">
-          <svg
-            className="w-5 h-5 transition-transform duration-200"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          <HiChevronRight className="w-4 h-4 text-gray-400 group-hover:text-amber-600" />
         </div>
       </button>
     </div>
