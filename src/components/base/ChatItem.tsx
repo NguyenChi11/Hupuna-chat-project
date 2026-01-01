@@ -18,6 +18,7 @@ interface ChatItemProps {
   onSelectChat: (item: ChatItemType) => void;
   currentUserId: string;
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroupChat: boolean) => void;
+  categoryTags?: { id: string; label: string; color: string }[];
 }
 
 export default function ChatItem({
@@ -27,10 +28,13 @@ export default function ChatItem({
   onSelectChat,
   onChatAction,
   currentUserId,
+  categoryTags = [],
 }: ChatItemProps) {
+  const CATEGORY_TAGS = categoryTags;
   const isSelected = selectedChat?._id === item._id;
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -43,6 +47,77 @@ export default function ChatItem({
   const unreadCount = item.unreadCount || 0;
   const isPinned = !!item.isPinned;
   const isHidden = !!item.isHidden;
+  const [chatCategories, setChatCategories] = useState<string[]>([]);
+  const storageKey = `chatCategories:${String(currentUserId)}:${String(item._id)}`;
+  useEffect(() => {
+    try {
+      const fromServer =
+        (item as unknown as { categories?: string[] }).categories ||
+        (item as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy?.[String(currentUserId)] ||
+        [];
+      if (Array.isArray(fromServer) && fromServer.length > 0) {
+        setChatCategories(fromServer.filter((x) => typeof x === 'string'));
+      } else {
+        const raw = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+        if (raw) {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr)) setChatCategories(arr.filter((x) => typeof x === 'string'));
+        }
+      }
+    } catch {}
+  }, [storageKey]);
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      try {
+        const anyEv = ev as unknown as { detail?: { userId?: string; roomId?: string; categories?: string[] } };
+        const detail = anyEv.detail || {};
+        if (String(detail.userId) !== String(currentUserId)) return;
+        if (String(detail.roomId) !== String(item._id)) return;
+        const arr = Array.isArray(detail.categories)
+          ? detail.categories.filter((x: unknown) => typeof x === 'string')
+          : [];
+        setChatCategories(arr);
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(arr));
+        } catch {}
+      } catch {}
+    };
+    window.addEventListener('chatCategoriesUpdated', handler as EventListener);
+    return () => {
+      window.removeEventListener('chatCategoriesUpdated', handler as EventListener);
+    };
+  }, [currentUserId, item._id, storageKey]);
+  const toggleCategory = (id: string) => {
+    setChatCategories((prev) => {
+      const next = prev.includes(id) ? [] : [id];
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {}
+      const isGroupChat = isGroup;
+      const apiRoute = isGroupChat ? '/api/groups' : '/api/users';
+      const payload = isGroupChat
+        ? {
+            action: 'updateCategories',
+            _id: String(currentUserId),
+            conversationId: String(item._id),
+            data: { categories: next },
+          }
+        : {
+            action: 'updateCategories',
+            currentUserId: String(currentUserId),
+            roomId: String(item._id),
+            data: { categories: next },
+          };
+      try {
+        fetch(apiRoute, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      } catch {}
+      return next;
+    });
+  };
 
   // Tối ưu: Gộp logic lấy tên + avatar char
   const displayName = React.useMemo(() => {
@@ -259,6 +334,25 @@ export default function ChatItem({
             </div>
           </div>
         </div>
+        {chatCategories.length > 0 && (
+          <div className="px-2 pb-2">
+            <div className="flex flex-wrap gap-1">
+              {chatCategories.map((cat) => {
+                const found = CATEGORY_TAGS.find((c) => c.id === cat);
+                if (!found) return null;
+                return (
+                  <span
+                    key={cat}
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/80 border border-gray-200 text-gray-700 shadow-sm"
+                  >
+                    <span className={`w-2 h-2 rounded-full ${found.color}`} />
+                    <span className="truncate max-w-[100px]">{found.label}</span>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Context Menu – ĐẸP NHƯ ZALO PREMIUM */}
@@ -300,6 +394,25 @@ export default function ChatItem({
               </span>
               {isHidden && <HiCheck className="w-4 h-4 text-green-500" />}
             </button>
+            <div className="border-t border-gray-100">
+              <div className="px-4 py-2 text-xs text-gray-500">Theo thẻ phân loại</div>
+              <div className="max-h-60 overflow-auto custom-scrollbar">
+                {CATEGORY_TAGS.map((cat) => {
+                  const checked = chatCategories.includes(cat.id);
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => toggleCategory(cat.id)}
+                      className="flex cursor-pointer items-center w-full px-4 py-2 hover:bg-gray-50 transition-colors gap-3"
+                    >
+                      <span className={`inline-block w-3.5 h-3.5 rounded-sm ${cat.color} border border-white`} />
+                      <span className="flex-1 text-left text-gray-700 text-sm">{cat.label}</span>
+                      <input type="checkbox" checked={checked} readOnly className="w-4 h-4" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </>
       )}

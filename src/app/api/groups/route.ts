@@ -265,6 +265,11 @@ export async function POST(req: NextRequest) {
               isRecall: lastMsgObj ? lastMsgObj.isRecalled || false : false,
               isPinned,
               isHidden,
+              categories: Array.isArray(
+                (group as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy?.[userIdStr],
+              )
+                ? ((group as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy?.[userIdStr] as string[])
+                : [],
             };
           }),
         );
@@ -660,6 +665,21 @@ export async function POST(req: NextRequest) {
           { $set: updateFields } as unknown as UpdateFilter<GroupConversation>,
         );
 
+        return NextResponse.json({ success: true, result });
+      }
+      case 'updateCategories': {
+        if (!conversationId || !currentUserId || !data) {
+          return NextResponse.json({ error: 'Missing ID/Data' }, { status: 400 });
+        }
+        const categories = Array.isArray((data as Record<string, unknown>).categories)
+          ? ((data as Record<string, unknown>).categories as string[])
+          : [];
+        const updateFields: Record<string, string[]> = {};
+        updateFields[`categoriesBy.${currentUserId}`] = categories;
+        const result = await collection.updateOne(
+          { _id: new ObjectId(conversationId) } as unknown as Filter<GroupConversation>,
+          { $set: updateFields } as unknown as UpdateFilter<GroupConversation>,
+        );
         return NextResponse.json({ success: true, result });
       }
 

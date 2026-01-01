@@ -14,6 +14,9 @@ interface ToggleChatStatusPayload {
   isPinned?: boolean;
   isHidden?: boolean;
 }
+interface UpdateCategoriesPayload {
+  categories?: string[];
+}
 
 interface LoginPayload {
   username?: string;
@@ -30,6 +33,7 @@ interface UsersRequestBody {
     | 'update'
     | 'delete'
     | 'toggleChatStatus'
+    | 'updateCategories'
     | 'login'
     | 'logout'
     | 'changePassword'
@@ -183,6 +187,11 @@ export async function POST(req: NextRequest) {
 
             const isPinned = u.isPinnedBy?.[userIdStr] === true;
             const isHidden = u.isHiddenBy?.[userIdStr] === true;
+            const categories = Array.isArray(
+              (u as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy?.[userIdStr],
+            )
+              ? ((u as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy?.[userIdStr] as string[])
+              : [];
             return {
               ...u,
               unreadCount,
@@ -192,6 +201,7 @@ export async function POST(req: NextRequest) {
               isRecall: lastMsgObj ? lastMsgObj.isRecalled || false : false,
               isPinned,
               isHidden,
+              categories,
             };
           }),
         );
@@ -299,6 +309,19 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, result });
       }
 
+      case 'updateCategories': {
+        if (!currentUserId || !data || !roomId) {
+          return NextResponse.json({ error: 'Missing currentUserId, roomId or data' }, { status: 400 });
+        }
+        const payload = data as UpdateCategoriesPayload;
+        const categories = Array.isArray(payload.categories) ? payload.categories : [];
+        const partnerId = roomId;
+        const updateFields: Record<string, string[]> = {};
+        updateFields[`categoriesBy.${currentUserId}`] = categories;
+        const result = await updateByField<User>(collectionName, '_id', partnerId, updateFields);
+        return NextResponse.json({ success: true, result });
+      }
+
       case 'login': {
         const loginData = (data || {}) as LoginPayload;
         const { username, password } = loginData;
@@ -362,6 +385,7 @@ export async function POST(req: NextRequest) {
             background: found['background'],
             bio: found['bio'],
             nicknames: found.nicknames,
+            categoryTags: Array.isArray(found.categoryTags) ? found.categoryTags : [],
           },
         });
 

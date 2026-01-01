@@ -24,6 +24,7 @@ export interface User {
   isRecall?: boolean;
   onesignalSubs?: string[];
   nicknames?: Record<string, string>;
+  categoryTags?: { id: string; label: string; color: string }[];
 }
 export interface UserCreate {
   [key: string]: unknown;
