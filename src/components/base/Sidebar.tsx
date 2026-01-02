@@ -18,22 +18,19 @@ import {
   HiXMark,
   HiUserCircle,
   HiChatBubbleLeftRight,
-  HiFolder,
   HiEllipsisVertical,
   HiCalendarDays,
   HiClock,
   HiUserGroup,
+  HiChevronDown,
 } from 'react-icons/hi2';
 import { useRouter, usePathname } from 'next/navigation';
-import { useFolderController } from '@/components/controller/useFolderController';
-import DesktopLayout from '@/components/layout/folder/DesktopLayout';
-import MobileLayout from '@/components/layout/folder/MobileLayout';
-import FolderCreateModal from '@/components/modal/folder/FolderCreateModal';
-import RenameModal from '@/components/modal/folder/RenameModal';
-import DeleteModal from '@/components/modal/folder/DeleteModal';
-import ReactDOM from 'react-dom';
+
 import RoomSearchResultsModal from '@/components/(search)/RoomSearchResultsModal';
 import ComingSoonModal from '@/components/modal/ComingSoonModal';
+import CategoryManagerModal from '@/components/modal/CategoryManagerModal';
+import TagManagerModal from '@/components/modal/TagManagerModal';
+import GlobalFolderModal from '@/components/modal/GlobalFolderModal';
 
 interface SidebarProps {
   currentUser: User;
@@ -172,7 +169,6 @@ export default function Sidebar({
   const pathname = usePathname();
   const isWidgetIframe = pathname === '/chat-iframe' || (pathname?.startsWith('/chat-iframe') ?? false);
   const [showGlobalFolder, setShowGlobalFolder] = useState(false);
-  const [showRoomsSharedFolder, setShowRoomsSharedFolder] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const [showComingSoon, setShowComingSoon] = useState<{ isOpen: boolean; title: string; desc: string }>({
@@ -186,6 +182,126 @@ export default function Sidebar({
     roomAvatar?: string;
     isGroupChat: boolean;
   } | null>(null);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [userCategoryTags, setUserCategoryTags] = useState<{ id: string; label: string; color: string }[]>(
+    currentUser?.categoryTags || [],
+  );
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+        setShowFilterDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  useEffect(() => {
+    setUserCategoryTags(currentUser?.categoryTags || []);
+  }, [currentUser]);
+  useEffect(() => {
+    async function loadUserData() {
+      if (!currentUserId) return;
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getById', _id: String(currentUserId) }),
+        });
+        const data = await res.json();
+        const row = (data && data.row) || (Array.isArray(data?.data) ? data.data[0] : null);
+
+        if (row) {
+          const cats = (row.categoryTags as { id: string; label: string; color: string }[]) || [];
+          setUserCategoryTags(Array.isArray(cats) ? cats : []);
+
+          const tags = (row.userTags as { id: string; label: string; color: string }[]) || [];
+          setUserTags(Array.isArray(tags) ? tags : []);
+        }
+      } catch {}
+    }
+    loadUserData();
+  }, [currentUserId]);
+  useEffect(() => {
+    function handleTagsUpdated(e: Event) {
+      const ev = e as CustomEvent<{ userId: string; tags: { id: string; label: string; color: string }[] }>;
+      const detail = ev.detail;
+      if (!detail) return;
+      if (String(detail.userId) !== String(currentUserId)) return;
+      setUserCategoryTags(Array.isArray(detail.tags) ? detail.tags : []);
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('userCategoryTagsUpdated', handleTagsUpdated as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('userCategoryTagsUpdated', handleTagsUpdated as EventListener);
+      }
+    };
+  }, [currentUserId]);
+
+  const [showTagManager, setShowTagManager] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showTagFilterDropdown, setShowTagFilterDropdown] = useState(false);
+  const [userTags, setUserTags] = useState<{ id: string; label: string; color: string }[]>(currentUser?.userTags || []);
+  const tagFilterDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutsideTag(event: MouseEvent) {
+      if (tagFilterDropdownRef.current && !tagFilterDropdownRef.current.contains(event.target as Node)) {
+        setShowTagFilterDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutsideTag);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideTag);
+    };
+  }, []);
+
+  useEffect(() => {
+    setUserTags(currentUser?.userTags || []);
+  }, [currentUser]);
+
+  useEffect(() => {
+    function handleUserTagsUpdated(e: Event) {
+      const ev = e as CustomEvent<{ userId: string; tags: { id: string; label: string; color: string }[] }>;
+      const detail = ev.detail;
+      if (!detail) return;
+      if (String(detail.userId) !== String(currentUserId)) return;
+      setUserTags(Array.isArray(detail.tags) ? detail.tags : []);
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('userTagsUpdated', handleUserTagsUpdated as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('userTagsUpdated', handleUserTagsUpdated as EventListener);
+      }
+    };
+  }, [currentUserId]);
+  const getItemCategories = useCallback(
+    (chat: ChatItemType) => {
+      const serverCats =
+        (chat as unknown as { categories?: string[] }).categories ||
+        (chat as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy?.[String(currentUserId)] ||
+        [];
+      if (Array.isArray(serverCats) && serverCats.length > 0) return serverCats.filter((x) => typeof x === 'string');
+      try {
+        const k = `chatCategories:${String(currentUserId)}:${String(chat._id)}`;
+        const raw = typeof window !== 'undefined' ? localStorage.getItem(k) : null;
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr.filter((x) => typeof x === 'string');
+      } catch {}
+      return [];
+    },
+    [currentUserId],
+  );
 
   useEffect(() => {
     try {
@@ -366,6 +482,13 @@ export default function Sidebar({
     }
     return [...groups, ...allUsers];
   }, [groups, allUsers, onlyGroups, onlyPersonal, currentUserId]);
+  const categoriesMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    mixedChats.forEach((c: ChatItemType) => {
+      map.set(String(c._id), getItemCategories(c));
+    });
+    return map;
+  }, [mixedChats, getItemCategories]);
 
   const filteredAndSortedChats = useMemo(() => {
     let filtered = mixedChats.filter((chat: ChatItemType) => {
@@ -408,8 +531,47 @@ export default function Sidebar({
       return timeB - timeA;
     });
 
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((c) => {
+        const cats = categoriesMap.get(String(c._id)) || [];
+        return cats.some((cat) => selectedCategories.includes(cat));
+      });
+    }
+
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((c) => {
+        const tags =
+          (c as unknown as { tags?: string[] }).tags ||
+          (c as unknown as { tagsBy?: Record<string, string[]> }).tagsBy?.[String(currentUserId)] ||
+          [];
+        // Fallback local storage
+        if (!tags || tags.length === 0) {
+          try {
+            const k = `chatTags:${String(currentUserId)}:${String(c._id)}`;
+            const raw = typeof window !== 'undefined' ? localStorage.getItem(k) : null;
+            if (raw) {
+              const arr = JSON.parse(raw);
+              if (Array.isArray(arr)) {
+                return arr.some((t) => selectedTags.includes(t));
+              }
+            }
+          } catch {}
+        }
+        return tags.some((t) => selectedTags.includes(t));
+      });
+    }
+
     return filtered;
-  }, [mixedChats, searchTerm, filterType, isSearchActive]);
+  }, [
+    mixedChats,
+    searchTerm,
+    filterType,
+    isSearchActive,
+    selectedCategories,
+    categoriesMap,
+    selectedTags,
+    currentUserId,
+  ]);
 
   const filterCounts = useMemo(() => {
     const visible = mixedChats.filter((c) => !c.isHidden);
@@ -437,7 +599,7 @@ export default function Sidebar({
   return (
     <aside
       id="left-sidebar-container"
-      className="relative flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-r border-gray-200 w-full lg:w-[20rem] shadow-2xl overflow-hidden"
+      className="relative flex flex-col h-[100dvh] lg:h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-r border-gray-200 w-full lg:w-[20rem] shadow-2xl overflow-hidden"
     >
       {/* HEADER GRADIENT SIÊU SANG */}
       <div className="bg-blue-400 shadow-2xl lg:bg-white lg:shadow-none mb-1">
@@ -515,6 +677,143 @@ export default function Sidebar({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+        <div className="flex items-center justify-between px-4 bg-white border-b border-gray-200 select-none">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setFilterType('all')}
+              className={`relative py-3 text-sm font-medium transition-colors cursor-pointer ${
+                filterType === 'all' ||
+                (filterType === 'group' && onlyGroups) ||
+                (filterType === 'personal' && onlyPersonal)
+                  ? 'text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Tất cả
+              {(filterType === 'all' ||
+                (filterType === 'group' && onlyGroups) ||
+                (filterType === 'personal' && onlyPersonal)) && (
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full" />
+              )}
+            </button>
+            <button
+              onClick={() => setFilterType('unread')}
+              className={`relative py-3 text-sm font-medium transition-colors cursor-pointer ${
+                filterType === 'unread' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Chưa đọc
+              {filterType === 'unread' && (
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full" />
+              )}
+            </button>
+          </div>
+
+          <div className="flex justify-end items-center gap-3">
+            <div className="relative" ref={tagFilterDropdownRef}>
+              <button
+                onClick={() => setShowTagFilterDropdown(!showTagFilterDropdown)}
+                className={`flex items-center gap-1 text-sm font-medium py-3 transition-colors cursor-pointer ${
+                  selectedTags.length > 0 ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Tags
+                <HiChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${showTagFilterDropdown ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {showTagFilterDropdown && (
+                <div className="absolute right-[-5.7rem] top-full mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                  <div className="px-4 pb-2 text-xs text-gray-500">Theo thẻ tags</div>
+                  <div className="max-h-64 overflow-auto custom-scrollbar">
+                    {userTags.map((tag) => {
+                      const checked = selectedTags.includes(tag.id);
+                      return (
+                        <button
+                          key={tag.id}
+                          onClick={() => {
+                            setSelectedTags((prev) => (checked ? prev.filter((x) => x !== tag.id) : [...prev, tag.id]));
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                        >
+                          <span
+                            className={`inline-block w-3.5 h-3.5 rounded-sm ${tag.color} border border-white shadow-sm`}
+                          />
+                          <span className="flex-1 text-left text-sm text-gray-800">{tag.label}</span>
+                          <input type="checkbox" checked={checked} readOnly className="w-4 h-4" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="border-t mt-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setShowTagManager(true);
+                        setShowTagFilterDropdown(false);
+                      }}
+                      className="w-full p-1 text-sm text-[#0068ff] hover:bg-gray-50 cursor-pointer"
+                    >
+                      Quản lý thẻ tags
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="relative" ref={filterDropdownRef}>
+              <button
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className={`flex items-center gap-1 text-sm font-medium py-3 transition-colors cursor-pointer ${
+                  selectedCategories.length > 0 ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Phân loại
+                <HiChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${showFilterDropdown ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {showFilterDropdown && (
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                  <div className="px-4 pb-2 text-xs text-gray-500">Theo thẻ phân loại</div>
+                  <div className="max-h-64 overflow-auto">
+                    {userCategoryTags.map((cat) => {
+                      const checked = selectedCategories.includes(cat.id);
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            setSelectedCategories((prev) =>
+                              checked ? prev.filter((x) => x !== cat.id) : [...prev, cat.id],
+                            );
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                        >
+                          <span
+                            className={`inline-block w-3.5 h-3.5 rounded-sm ${cat.color} border border-white shadow-sm`}
+                          />
+                          <span className="flex-1 text-left text-sm text-gray-800">{cat.label}</span>
+                          <input type="checkbox" checked={checked} readOnly className="w-4 h-4" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="border-t mt-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setShowCategoryManager(true);
+                        setShowFilterDropdown(false);
+                      }}
+                      className="w-full p-1  text-sm text-[#0068ff] hover:bg-gray-50 cursor-pointer"
+                    >
+                      Quản lý thẻ phân loại
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -625,7 +924,10 @@ export default function Sidebar({
                       selectedChat={selectedChat}
                       onSelectChat={onSelectChat}
                       onChatAction={onChatAction}
-                      currentUserId={currentUserId}
+                      currentUserId={String(currentUserId)}
+                      categoryTags={userCategoryTags}
+                      userTags={userTags}
+                      onOpenTagManager={() => setShowTagManager(true)}
                     />
                   );
                 })}
@@ -639,13 +941,7 @@ export default function Sidebar({
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-100 to-transparent pointer-events-none" />
 
       {showGlobalFolder && (
-        <GlobalFolderModal currentUserId={String(currentUser._id)} onClose={() => setShowGlobalFolder(false)} />
-      )}
-      {showRoomsSharedFolder && (
-        <RoomsSharedFolderModal
-          currentUserId={String(currentUser._id)}
-          onClose={() => setShowRoomsSharedFolder(false)}
-        />
+        <GlobalFolderModal currentUserId={String(currentUserId)} onClose={() => setShowGlobalFolder(false)} />
       )}
       {roomResultsModal && (
         <RoomSearchResultsModal
@@ -672,146 +968,26 @@ export default function Sidebar({
           description={showComingSoon.desc}
         />
       )}
+      {showCategoryManager && (
+        <CategoryManagerModal
+          isOpen={showCategoryManager}
+          onClose={() => setShowCategoryManager(false)}
+          currentUserId={String(currentUserId)}
+          currentUser={currentUser}
+          groups={groups}
+          allUsers={allUsers}
+        />
+      )}
+      {showTagManager && (
+        <TagManagerModal
+          isOpen={showTagManager}
+          onClose={() => setShowTagManager(false)}
+          currentUserId={String(currentUserId)}
+          currentUser={currentUser}
+          groups={groups}
+          allUsers={allUsers}
+        />
+      )}
     </aside>
   );
-}
-
-function GlobalFolderModal({ currentUserId, onClose }: { currentUserId: string; onClose: () => void }) {
-  const controller = useFolderController({
-    roomId: '__global__sidebar__',
-    currentUserId,
-    messages: [],
-  });
-
-  React.useEffect(() => {
-    controller.setSelectedScope('global');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const modal = (
-    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 ">
-        <div className="flex items-center justify-between px-4 py-3  border-b-gray-300 border-b">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-              <HiFolder className="w-4 h-4" />
-            </div>
-            <h3 className="text-lg font-bold">Folder dùng chung</h3>
-          </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-white/20 cursor-pointer">
-            <HiXMark className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-4">
-          {controller.compact ? (
-            <MobileLayout {...controller} onClose={onClose} onlyGlobal />
-          ) : (
-            <DesktopLayout {...controller} onClose={onClose} onlyGlobal />
-          )}
-        </div>
-      </div>
-      {controller.showCreateModal && (
-        <FolderCreateModal
-          isOpen={controller.showCreateModal}
-          folders={controller.foldersGlobal}
-          defaultParentId={controller.createParentId || undefined}
-          lockParent={!!controller.createParentId}
-          onClose={() => {
-            controller.setShowCreateModal(false);
-            controller.setCreateParentId(null);
-          }}
-          onCreate={(name: string, parentId?: string) => {
-            controller.createFolder(name, parentId);
-            controller.setShowCreateModal(false);
-            controller.setCreateParentId(null);
-          }}
-        />
-      )}
-      <RenameModal
-        open={!!controller.renameTarget}
-        name={controller.renameInput}
-        onChangeName={(v) => controller.setRenameInput(v)}
-        onCancel={() => controller.setRenameTarget(null)}
-        onSave={controller.saveRename}
-      />
-      <DeleteModal
-        open={!!controller.deleteTarget}
-        name={controller.deleteTarget?.name || ''}
-        onCancel={() => controller.setDeleteTarget(null)}
-        onConfirm={controller.confirmDeleteFolder}
-      />
-    </div>
-  );
-  if (typeof document === 'undefined') return null;
-  return ReactDOM.createPortal(modal, document.body);
-}
-
-function RoomsSharedFolderModal({ currentUserId, onClose }: { currentUserId: string; onClose: () => void }) {
-  const controller = useFolderController({
-    roomId: '__shared_rooms__sidebar__',
-    currentUserId,
-    messages: [],
-  });
-
-  React.useEffect(() => {
-    controller.setSelectedScope('rooms_shared');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const modal = (
-    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 ">
-        <div className="flex items-center justify-between px-4 py-3  border-b-gray-300 border-b">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
-              <HiFolder className="w-4 h-4" />
-            </div>
-            <h3 className="text-lg font-bold">Folder dùng chung các đoạn chat</h3>
-          </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-white/20 cursor-pointer">
-            <HiXMark className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-4">
-          {controller.compact ? (
-            <MobileLayout {...controller} onClose={onClose} />
-          ) : (
-            <DesktopLayout {...controller} onClose={onClose} />
-          )}
-        </div>
-      </div>
-      {controller.showCreateModal && (
-        <FolderCreateModal
-          isOpen={controller.showCreateModal}
-          folders={controller.folders}
-          defaultParentId={controller.createParentId || undefined}
-          lockParent={!!controller.createParentId}
-          onClose={() => {
-            controller.setShowCreateModal(false);
-            controller.setCreateParentId(null);
-          }}
-          onCreate={(name: string, parentId?: string) => {
-            controller.createFolder(name, parentId);
-            controller.setShowCreateModal(false);
-            controller.setCreateParentId(null);
-          }}
-        />
-      )}
-      <RenameModal
-        open={!!controller.renameTarget}
-        name={controller.renameInput}
-        onChangeName={(v) => controller.setRenameInput(v)}
-        onCancel={() => controller.setRenameTarget(null)}
-        onSave={controller.saveRename}
-      />
-      <DeleteModal
-        open={!!controller.deleteTarget}
-        name={controller.deleteTarget?.name || ''}
-        onCancel={() => controller.setDeleteTarget(null)}
-        onConfirm={controller.confirmDeleteFolder}
-      />
-    </div>
-  );
-  if (typeof document === 'undefined') return null;
-  return ReactDOM.createPortal(modal, document.body);
 }

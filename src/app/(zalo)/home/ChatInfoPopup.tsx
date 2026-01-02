@@ -647,6 +647,7 @@ export default function ChatInfoPopup({
                     avatarInputRef={avatarInputRef}
                     onChangeGroupAvatar={handleChangeGroupAvatar}
                     onRenameGroup={handleRenameGroup}
+                    myRole={myRole}
                   />
                 ) : (
                   <UserAvatarSection

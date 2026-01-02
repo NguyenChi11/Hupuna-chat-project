@@ -3,6 +3,8 @@ import { HiPencil } from 'react-icons/hi';
 import { getProxyUrl } from '@/utils/utils';
 import Image from 'next/image';
 import { CiEdit } from 'react-icons/ci';
+import { GroupRole } from '@/types/Group';
+import RoleBadge from '@/components/base/RoleBadge';
 
 interface GroupAvatarSectionProps {
   isGroup: boolean;
@@ -13,6 +15,7 @@ interface GroupAvatarSectionProps {
   avatarInputRef: RefObject<HTMLInputElement | null>;
   onChangeGroupAvatar: (e: ChangeEvent<HTMLInputElement>) => void;
   onRenameGroup: () => void;
+  myRole?: GroupRole;
 }
 
 export default function GroupAvatarSection({
@@ -24,6 +27,7 @@ export default function GroupAvatarSection({
   avatarInputRef,
   onChangeGroupAvatar,
   onRenameGroup,
+  myRole,
 }: GroupAvatarSectionProps) {
   // if (!isGroup) return null;
 
@@ -141,6 +145,12 @@ export default function GroupAvatarSection({
           <CiEdit className="w-4 h-4" />
         </button>
       </div>
+
+      {isGroup && myRole && myRole !== 'MEMBER' && (
+        <div className="mt-2">
+          <RoleBadge role={myRole} />
+        </div>
+      )}
     </div>
   );
 }

@@ -40,6 +40,8 @@ export interface GroupConversation {
 
   inviteCode?: string; // ✅ THÊM
   description?: string; // ✅ THÊM (optional)
+  categoriesBy?: Record<string, string[]>;
+  tagsBy?: Record<string, string[]>;
 }
 
 export interface GroupConversationCreate {

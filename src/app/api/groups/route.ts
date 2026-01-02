@@ -19,6 +19,7 @@ interface GroupApiRequestBody {
   conversationId?: string;
   newMembers?: string[];
   targetUserId?: string;
+  roomId?: string;
 }
 
 // 🔥 Helper function để normalize member ID
@@ -51,7 +52,7 @@ function createMemberIdFilter(memberId: string): Array<Record<string, unknown>> 
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as GroupApiRequestBody;
-  const { action, data, _id, conversationId, newMembers, targetUserId } = body;
+  const { action, data, _id, conversationId, newMembers, targetUserId, roomId } = body;
   const currentUserId = _id;
 
   try {
@@ -279,6 +280,13 @@ export async function POST(req: NextRequest) {
               isRecall: lastMsgObj ? lastMsgObj.isRecalled || false : false,
               isPinned,
               isHidden,
+              categories: Array.isArray(
+                (group as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy?.[userIdStr],
+              )
+                ? ((group as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy?.[
+                    userIdStr
+                  ] as string[])
+                : [],
             };
           }),
         );
@@ -652,7 +660,8 @@ export async function POST(req: NextRequest) {
       }
 
       case 'toggleChatStatus': {
-        if (!conversationId || !currentUserId || !data) {
+        const targetId = conversationId || roomId;
+        if (!targetId || !currentUserId || !data) {
           return NextResponse.json({ error: 'Missing ID/Data' }, { status: 400 });
         }
 
@@ -670,10 +679,43 @@ export async function POST(req: NextRequest) {
         }
 
         const result = await collection.updateOne(
-          { _id: new ObjectId(conversationId) } as unknown as Filter<GroupConversation>,
+          { _id: new ObjectId(targetId) } as unknown as Filter<GroupConversation>,
           { $set: updateFields } as unknown as UpdateFilter<GroupConversation>,
         );
 
+        return NextResponse.json({ success: true, result });
+      }
+      case 'updateCategories': {
+        const targetId = conversationId || roomId;
+        if (!targetId || !currentUserId || !data) {
+          return NextResponse.json({ error: 'Missing ID/Data' }, { status: 400 });
+        }
+        const categories = Array.isArray((data as Record<string, unknown>).categories)
+          ? ((data as Record<string, unknown>).categories as string[])
+          : [];
+        const updateFields: Record<string, string[]> = {};
+        updateFields[`categoriesBy.${currentUserId}`] = categories;
+        const result = await collection.updateOne(
+          { _id: new ObjectId(targetId) } as unknown as Filter<GroupConversation>,
+          { $set: updateFields } as unknown as UpdateFilter<GroupConversation>,
+        );
+        return NextResponse.json({ success: true, result });
+      }
+
+      case 'updateTags': {
+        const targetId = conversationId || roomId;
+        if (!targetId || !currentUserId || !data) {
+          return NextResponse.json({ error: 'Missing ID/Data' }, { status: 400 });
+        }
+        const tags = Array.isArray((data as Record<string, unknown>).tags)
+          ? ((data as Record<string, unknown>).tags as string[])
+          : [];
+        const updateFields: Record<string, string[]> = {};
+        updateFields[`tagsBy.${currentUserId}`] = tags;
+        const result = await collection.updateOne(
+          { _id: new ObjectId(targetId) } as unknown as Filter<GroupConversation>,
+          { $set: updateFields } as unknown as UpdateFilter<GroupConversation>,
+        );
         return NextResponse.json({ success: true, result });
       }
 
