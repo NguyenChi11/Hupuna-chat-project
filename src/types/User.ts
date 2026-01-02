@@ -25,6 +25,9 @@ export interface User {
   onesignalSubs?: string[];
   nicknames?: Record<string, string>;
   categoryTags?: { id: string; label: string; color: string }[];
+  userTags?: { id: string; label: string; color: string }[];
+  categoriesBy?: Record<string, string[]>;
+  tagsBy?: Record<string, string[]>;
 }
 export interface UserCreate {
   [key: string]: unknown;

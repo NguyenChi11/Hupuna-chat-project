@@ -15,6 +15,7 @@ import { HiUserMinus, HiUserPlus, HiEllipsisVertical } from 'react-icons/hi2';
 import ICPeopleGroup from '@/components/svg/ICPeopleGroup';
 import io from 'socket.io-client';
 import { KeyIcon } from 'lucide-react';
+import RoleBadge from './RoleBadge';
 
 type LocalMemberInfo = MemberInfo & { originalName?: string };
 
@@ -414,22 +415,6 @@ export default function GroupMembersModal({
     } catch {
       toast({ type: 'error', message: 'Cập nhật biệt danh thất bại', duration: 3000 });
     }
-  };
-
-  const RoleBadge = ({ role }: { role: GroupRole }) => {
-    if (role === 'OWNER')
-      return (
-        <span className=" px-3 py-1.5 rounded-full text-[0.5rem] font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md flex items-center gap-1.5">
-          Trưởng nhóm
-        </span>
-      );
-    if (role === 'ADMIN')
-      return (
-        <span className=" px-3 py-1.5 rounded-full text-[0.5rem] font-bold bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md flex items-center gap-1.5">
-          Phó nhóm
-        </span>
-      );
-    return null;
   };
 
   const modalNode = (

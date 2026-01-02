@@ -18,7 +18,6 @@ import {
   HiXMark,
   HiUserCircle,
   HiChatBubbleLeftRight,
-  HiFolder,
   HiEllipsisVertical,
   HiCalendarDays,
   HiClock,
@@ -26,16 +25,12 @@ import {
   HiChevronDown,
 } from 'react-icons/hi2';
 import { useRouter, usePathname } from 'next/navigation';
-import { useFolderController } from '@/components/controller/useFolderController';
-import DesktopLayout from '@/components/layout/folder/DesktopLayout';
-import MobileLayout from '@/components/layout/folder/MobileLayout';
-import FolderCreateModal from '@/components/modal/folder/FolderCreateModal';
-import RenameModal from '@/components/modal/folder/RenameModal';
-import DeleteModal from '@/components/modal/folder/DeleteModal';
-import ReactDOM from 'react-dom';
+
 import RoomSearchResultsModal from '@/components/(search)/RoomSearchResultsModal';
 import ComingSoonModal from '@/components/modal/ComingSoonModal';
 import CategoryManagerModal from '@/components/modal/CategoryManagerModal';
+import TagManagerModal from '@/components/modal/TagManagerModal';
+import GlobalFolderModal from '@/components/modal/GlobalFolderModal';
 
 interface SidebarProps {
   currentUser: User;
@@ -174,7 +169,6 @@ export default function Sidebar({
   const pathname = usePathname();
   const isWidgetIframe = pathname === '/chat-iframe' || (pathname?.startsWith('/chat-iframe') ?? false);
   const [showGlobalFolder, setShowGlobalFolder] = useState(false);
-  const [showRoomsSharedFolder, setShowRoomsSharedFolder] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const [showComingSoon, setShowComingSoon] = useState<{ isOpen: boolean; title: string; desc: string }>({
@@ -211,7 +205,7 @@ export default function Sidebar({
     setUserCategoryTags(currentUser?.categoryTags || []);
   }, [currentUser]);
   useEffect(() => {
-    async function loadUserTags() {
+    async function loadUserData() {
       if (!currentUserId) return;
       try {
         const res = await fetch('/api/users', {
@@ -221,11 +215,17 @@ export default function Sidebar({
         });
         const data = await res.json();
         const row = (data && data.row) || (Array.isArray(data?.data) ? data.data[0] : null);
-        const existing = (row?.categoryTags as { id: string; label: string; color: string }[]) || [];
-        setUserCategoryTags(Array.isArray(existing) ? existing : []);
+
+        if (row) {
+          const cats = (row.categoryTags as { id: string; label: string; color: string }[]) || [];
+          setUserCategoryTags(Array.isArray(cats) ? cats : []);
+
+          const tags = (row.userTags as { id: string; label: string; color: string }[]) || [];
+          setUserTags(Array.isArray(tags) ? tags : []);
+        }
       } catch {}
     }
-    loadUserTags();
+    loadUserData();
   }, [currentUserId]);
   useEffect(() => {
     function handleTagsUpdated(e: Event) {
@@ -241,6 +241,46 @@ export default function Sidebar({
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('userCategoryTagsUpdated', handleTagsUpdated as EventListener);
+      }
+    };
+  }, [currentUserId]);
+
+  const [showTagManager, setShowTagManager] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showTagFilterDropdown, setShowTagFilterDropdown] = useState(false);
+  const [userTags, setUserTags] = useState<{ id: string; label: string; color: string }[]>(currentUser?.userTags || []);
+  const tagFilterDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutsideTag(event: MouseEvent) {
+      if (tagFilterDropdownRef.current && !tagFilterDropdownRef.current.contains(event.target as Node)) {
+        setShowTagFilterDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutsideTag);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideTag);
+    };
+  }, []);
+
+  useEffect(() => {
+    setUserTags(currentUser?.userTags || []);
+  }, [currentUser]);
+
+  useEffect(() => {
+    function handleUserTagsUpdated(e: Event) {
+      const ev = e as CustomEvent<{ userId: string; tags: { id: string; label: string; color: string }[] }>;
+      const detail = ev.detail;
+      if (!detail) return;
+      if (String(detail.userId) !== String(currentUserId)) return;
+      setUserTags(Array.isArray(detail.tags) ? detail.tags : []);
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('userTagsUpdated', handleUserTagsUpdated as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('userTagsUpdated', handleUserTagsUpdated as EventListener);
       }
     };
   }, [currentUserId]);
@@ -533,7 +573,7 @@ export default function Sidebar({
   return (
     <aside
       id="left-sidebar-container"
-      className="relative flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-r border-gray-200 w-full lg:w-[20rem] shadow-2xl overflow-hidden"
+      className="relative flex flex-col h-[100dvh] lg:h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-r border-gray-200 w-full lg:w-[20rem] shadow-2xl overflow-hidden"
     >
       {/* HEADER GRADIENT SIÊU SANG */}
       <div className="bg-blue-400 shadow-2xl lg:bg-white lg:shadow-none mb-1">
@@ -645,57 +685,109 @@ export default function Sidebar({
             </button>
           </div>
 
-          <div className="relative" ref={filterDropdownRef}>
-            <button
-              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-              className={`flex items-center gap-1 text-sm font-medium py-3 transition-colors cursor-pointer ${
-                selectedCategories.length > 0 ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Phân loại
-              <HiChevronDown
-                className={`w-4 h-4 transition-transform duration-200 ${showFilterDropdown ? 'rotate-180' : ''}`}
-              />
-            </button>
+          <div className="flex justify-end items-center gap-3">
+            <div className="relative" ref={tagFilterDropdownRef}>
+              <button
+                onClick={() => setShowTagFilterDropdown(!showTagFilterDropdown)}
+                className={`flex items-center gap-1 text-sm font-medium py-3 transition-colors cursor-pointer ${
+                  selectedTags.length > 0 ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Tags
+                <HiChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${showTagFilterDropdown ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {showTagFilterDropdown && (
+                <div className="absolute right-[-5.7rem] top-full mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                  <div className="px-4 pb-2 text-xs text-gray-500">Theo thẻ tags</div>
+                  <div className="max-h-64 overflow-auto">
+                    {userTags.map((tag) => {
+                      const checked = selectedTags.includes(tag.id);
+                      return (
+                        <button
+                          key={tag.id}
+                          onClick={() => {
+                            setSelectedTags((prev) => (checked ? prev.filter((x) => x !== tag.id) : [...prev, tag.id]));
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50"
+                        >
+                          <span
+                            className={`inline-block w-3.5 h-3.5 rounded-sm ${tag.color} border border-white shadow-sm`}
+                          />
+                          <span className="flex-1 text-left text-sm text-gray-800">{tag.label}</span>
+                          <input type="checkbox" checked={checked} readOnly className="w-4 h-4" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="border-t mt-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setShowTagManager(true);
+                        setShowTagFilterDropdown(false);
+                      }}
+                      className="w-full px-4 py-2 text-sm text-[#0068ff] hover:bg-gray-50"
+                    >
+                      Quản lý thẻ tags
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
-            {showFilterDropdown && (
-              <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
-                <div className="px-4 pb-2 text-xs text-gray-500">Theo thẻ phân loại</div>
-                <div className="max-h-64 overflow-auto">
-                  {userCategoryTags.map((cat) => {
-                    const checked = selectedCategories.includes(cat.id);
-                    return (
-                      <button
-                        key={cat.id}
-                        onClick={() => {
-                          setSelectedCategories((prev) =>
-                            checked ? prev.filter((x) => x !== cat.id) : [...prev, cat.id],
-                          );
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50"
-                      >
-                        <span
-                          className={`inline-block w-3.5 h-3.5 rounded-sm ${cat.color} border border-white shadow-sm`}
-                        />
-                        <span className="flex-1 text-left text-sm text-gray-800">{cat.label}</span>
-                        <input type="checkbox" checked={checked} readOnly className="w-4 h-4" />
-                      </button>
-                    );
-                  })}
+            <div className="relative" ref={filterDropdownRef}>
+              <button
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className={`flex items-center gap-1 text-sm font-medium py-3 transition-colors cursor-pointer ${
+                  selectedCategories.length > 0 ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Phân loại
+                <HiChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${showFilterDropdown ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {showFilterDropdown && (
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                  <div className="px-4 pb-2 text-xs text-gray-500">Theo thẻ phân loại</div>
+                  <div className="max-h-64 overflow-auto">
+                    {userCategoryTags.map((cat) => {
+                      const checked = selectedCategories.includes(cat.id);
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            setSelectedCategories((prev) =>
+                              checked ? prev.filter((x) => x !== cat.id) : [...prev, cat.id],
+                            );
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50"
+                        >
+                          <span
+                            className={`inline-block w-3.5 h-3.5 rounded-sm ${cat.color} border border-white shadow-sm`}
+                          />
+                          <span className="flex-1 text-left text-sm text-gray-800">{cat.label}</span>
+                          <input type="checkbox" checked={checked} readOnly className="w-4 h-4" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="border-t mt-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setShowCategoryManager(true);
+                        setShowFilterDropdown(false);
+                      }}
+                      className="w-full px-4 py-2 text-sm text-[#0068ff] hover:bg-gray-50"
+                    >
+                      Quản lý thẻ phân loại
+                    </button>
+                  </div>
                 </div>
-                <div className="border-t mt-2 pt-2">
-                  <button
-                    onClick={() => {
-                      setShowCategoryManager(true);
-                      setShowFilterDropdown(false);
-                    }}
-                    className="w-full px-4 py-2 text-sm text-[#0068ff] hover:bg-gray-50"
-                  >
-                    Quản lý thẻ phân loại
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -808,6 +900,8 @@ export default function Sidebar({
                       onChatAction={onChatAction}
                       currentUserId={String(currentUserId)}
                       categoryTags={userCategoryTags}
+                      userTags={userTags}
+                      onOpenTagManager={() => setShowTagManager(true)}
                     />
                   );
                 })}
@@ -821,13 +915,7 @@ export default function Sidebar({
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-100 to-transparent pointer-events-none" />
 
       {showGlobalFolder && (
-        <GlobalFolderModal currentUserId={String(currentUser._id)} onClose={() => setShowGlobalFolder(false)} />
-      )}
-      {showRoomsSharedFolder && (
-        <RoomsSharedFolderModal
-          currentUserId={String(currentUser._id)}
-          onClose={() => setShowRoomsSharedFolder(false)}
-        />
+        <GlobalFolderModal currentUserId={String(currentUserId)} onClose={() => setShowGlobalFolder(false)} />
       )}
       {roomResultsModal && (
         <RoomSearchResultsModal
@@ -858,7 +946,17 @@ export default function Sidebar({
         <CategoryManagerModal
           isOpen={showCategoryManager}
           onClose={() => setShowCategoryManager(false)}
-          currentUserId={String(currentUser._id)}
+          currentUserId={String(currentUserId)}
+          currentUser={currentUser}
+          groups={groups}
+          allUsers={allUsers}
+        />
+      )}
+      {showTagManager && (
+        <TagManagerModal
+          isOpen={showTagManager}
+          onClose={() => setShowTagManager(false)}
+          currentUserId={String(currentUserId)}
           currentUser={currentUser}
           groups={groups}
           allUsers={allUsers}
@@ -866,144 +964,4 @@ export default function Sidebar({
       )}
     </aside>
   );
-}
-
-function GlobalFolderModal({ currentUserId, onClose }: { currentUserId: string; onClose: () => void }) {
-  const controller = useFolderController({
-    roomId: '__global__sidebar__',
-    currentUserId,
-    messages: [],
-  });
-
-  React.useEffect(() => {
-    controller.setSelectedScope('global');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const modal = (
-    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 ">
-        <div className="flex items-center justify-between px-4 py-3  border-b-gray-300 border-b">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-              <HiFolder className="w-4 h-4" />
-            </div>
-            <h3 className="text-lg font-bold">Folder dùng chung</h3>
-          </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-white/20 cursor-pointer">
-            <HiXMark className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-4">
-          {controller.compact ? (
-            <MobileLayout {...controller} onClose={onClose} onlyGlobal />
-          ) : (
-            <DesktopLayout {...controller} onClose={onClose} onlyGlobal />
-          )}
-        </div>
-      </div>
-      {controller.showCreateModal && (
-        <FolderCreateModal
-          isOpen={controller.showCreateModal}
-          folders={controller.foldersGlobal}
-          defaultParentId={controller.createParentId || undefined}
-          lockParent={!!controller.createParentId}
-          onClose={() => {
-            controller.setShowCreateModal(false);
-            controller.setCreateParentId(null);
-          }}
-          onCreate={(name: string, parentId?: string) => {
-            controller.createFolder(name, parentId);
-            controller.setShowCreateModal(false);
-            controller.setCreateParentId(null);
-          }}
-        />
-      )}
-      <RenameModal
-        open={!!controller.renameTarget}
-        name={controller.renameInput}
-        onChangeName={(v) => controller.setRenameInput(v)}
-        onCancel={() => controller.setRenameTarget(null)}
-        onSave={controller.saveRename}
-      />
-      <DeleteModal
-        open={!!controller.deleteTarget}
-        name={controller.deleteTarget?.name || ''}
-        onCancel={() => controller.setDeleteTarget(null)}
-        onConfirm={controller.confirmDeleteFolder}
-      />
-    </div>
-  );
-  if (typeof document === 'undefined') return null;
-  return ReactDOM.createPortal(modal, document.body);
-}
-
-function RoomsSharedFolderModal({ currentUserId, onClose }: { currentUserId: string; onClose: () => void }) {
-  const controller = useFolderController({
-    roomId: '__shared_rooms__sidebar__',
-    currentUserId,
-    messages: [],
-  });
-
-  React.useEffect(() => {
-    controller.setSelectedScope('rooms_shared');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const modal = (
-    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 ">
-        <div className="flex items-center justify-between px-4 py-3  border-b-gray-300 border-b">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
-              <HiFolder className="w-4 h-4" />
-            </div>
-            <h3 className="text-lg font-bold">Folder dùng chung các đoạn chat</h3>
-          </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-white/20 cursor-pointer">
-            <HiXMark className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-4">
-          {controller.compact ? (
-            <MobileLayout {...controller} onClose={onClose} />
-          ) : (
-            <DesktopLayout {...controller} onClose={onClose} />
-          )}
-        </div>
-      </div>
-      {controller.showCreateModal && (
-        <FolderCreateModal
-          isOpen={controller.showCreateModal}
-          folders={controller.folders}
-          defaultParentId={controller.createParentId || undefined}
-          lockParent={!!controller.createParentId}
-          onClose={() => {
-            controller.setShowCreateModal(false);
-            controller.setCreateParentId(null);
-          }}
-          onCreate={(name: string, parentId?: string) => {
-            controller.createFolder(name, parentId);
-            controller.setShowCreateModal(false);
-            controller.setCreateParentId(null);
-          }}
-        />
-      )}
-      <RenameModal
-        open={!!controller.renameTarget}
-        name={controller.renameInput}
-        onChangeName={(v) => controller.setRenameInput(v)}
-        onCancel={() => controller.setRenameTarget(null)}
-        onSave={controller.saveRename}
-      />
-      <DeleteModal
-        open={!!controller.deleteTarget}
-        name={controller.deleteTarget?.name || ''}
-        onCancel={() => controller.setDeleteTarget(null)}
-        onConfirm={controller.confirmDeleteFolder}
-      />
-    </div>
-  );
-  if (typeof document === 'undefined') return null;
-  return ReactDOM.createPortal(modal, document.body);
 }

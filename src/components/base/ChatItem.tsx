@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 
 // React Icons – Bộ hiện đại nhất 2025
-import { HiEye, HiEyeSlash, HiUserGroup, HiCheck, HiOutlineMapPin } from 'react-icons/hi2';
+import { HiEye, HiEyeSlash, HiUserGroup, HiCheck, HiOutlineMapPin, HiPlus } from 'react-icons/hi2';
 
 interface ChatItemProps {
   item: ChatItemType;
@@ -19,6 +19,8 @@ interface ChatItemProps {
   currentUserId: string;
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroupChat: boolean) => void;
   categoryTags?: { id: string; label: string; color: string }[];
+  userTags?: { id: string; label: string; color: string }[];
+  onOpenTagManager?: () => void;
 }
 
 export default function ChatItem({
@@ -29,8 +31,11 @@ export default function ChatItem({
   onChatAction,
   currentUserId,
   categoryTags = [],
+  userTags = [],
+  onOpenTagManager,
 }: ChatItemProps) {
   const CATEGORY_TAGS = categoryTags;
+  const USER_TAGS = userTags;
   const isSelected = selectedChat?._id === item._id;
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
@@ -87,6 +92,77 @@ export default function ChatItem({
       window.removeEventListener('chatCategoriesUpdated', handler as EventListener);
     };
   }, [currentUserId, item._id, storageKey]);
+
+  const [chatTags, setChatTags] = useState<string[]>([]);
+  const storageKeyTags = `chatTags:${String(currentUserId)}:${String(item._id)}`;
+  useEffect(() => {
+    try {
+      const fromServer =
+        (item as unknown as { tags?: string[] }).tags ||
+        (item as unknown as { tagsBy?: Record<string, string[]> }).tagsBy?.[String(currentUserId)] ||
+        [];
+      if (Array.isArray(fromServer) && fromServer.length > 0) {
+        setChatTags(fromServer.filter((x) => typeof x === 'string'));
+      } else {
+        const raw = typeof window !== 'undefined' ? localStorage.getItem(storageKeyTags) : null;
+        if (raw) {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr)) setChatTags(arr.filter((x) => typeof x === 'string'));
+        }
+      }
+    } catch {}
+  }, [storageKeyTags]);
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      try {
+        const anyEv = ev as unknown as { detail?: { userId?: string; roomId?: string; tags?: string[] } };
+        const detail = anyEv.detail || {};
+        if (String(detail.userId) !== String(currentUserId)) return;
+        if (String(detail.roomId) !== String(item._id)) return;
+        const arr = Array.isArray(detail.tags) ? detail.tags.filter((x: unknown) => typeof x === 'string') : [];
+        setChatTags(arr);
+        try {
+          localStorage.setItem(storageKeyTags, JSON.stringify(arr));
+        } catch {}
+      } catch {}
+    };
+    window.addEventListener('chatTagsUpdated', handler as EventListener);
+    return () => {
+      window.removeEventListener('chatTagsUpdated', handler as EventListener);
+    };
+  }, [currentUserId, item._id, storageKeyTags]);
+  const toggleTag = (id: string) => {
+    setChatTags((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      try {
+        localStorage.setItem(storageKeyTags, JSON.stringify(next));
+      } catch {}
+      const isGroupChat = isGroup;
+      const apiRoute = isGroupChat ? '/api/groups' : '/api/users';
+      const payload = isGroupChat
+        ? {
+            action: 'updateTags',
+            _id: String(currentUserId),
+            conversationId: String(item._id),
+            data: { tags: next },
+          }
+        : {
+            action: 'updateTags',
+            currentUserId: String(currentUserId),
+            roomId: String(item._id),
+            data: { tags: next },
+          };
+      try {
+        fetch(apiRoute, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      } catch {}
+      return next;
+    });
+  };
+
   const toggleCategory = (id: string) => {
     setChatCategories((prev) => {
       const next = prev.includes(id) ? [] : [id];
@@ -218,6 +294,9 @@ export default function ChatItem({
     return () => document.removeEventListener('mousedown', close);
   }, [showMenu]);
 
+  const [showTagSelector, setShowTagSelector] = useState(false);
+  const [tagMenuPos, setTagMenuPos] = useState<{ x: number; y: number } | null>(null);
+
   return (
     <>
       {/* Chat Item – SIÊU ĐẸP */}
@@ -332,6 +411,42 @@ export default function ChatItem({
                 </div>
               )}
             </div>
+            {(chatTags.length > 0 || showTagSelector) && (
+              <div className="flex items-center gap-1 mt-2 relative z-10 w-full overflow-x-auto custom-scrollbar">
+                {chatTags.map((tagId) => {
+                  const found = USER_TAGS.find((t) => t.id === tagId);
+                  if (!found) return null;
+                  return (
+                    <span
+                      key={tagId}
+                      className={`inline-block px-1.5 py-0.5 text-[10px] font-bold text-white rounded-md shadow-sm ${found.color} whitespace-nowrap`}
+                    >
+                      {found.label}
+                    </span>
+                  );
+                })}
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (showTagSelector) {
+                        setShowTagSelector(false);
+                      } else {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setTagMenuPos({ x: rect.left, y: rect.bottom + 4 });
+                        setShowTagSelector(true);
+                      }
+                    }}
+                    className={`p-0.5 rounded-md hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors ${
+                      chatTags.length > 0 ? 'opacity-0 group-hover:opacity-100' : ''
+                    } ${showTagSelector ? 'opacity-100 bg-gray-200 text-gray-600' : ''}`}
+                    title="Thêm thẻ tag"
+                  >
+                    <HiPlus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         {chatCategories.length > 0 && (
@@ -343,10 +458,10 @@ export default function ChatItem({
                 return (
                   <span
                     key={cat}
-                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/80 border border-gray-200 text-gray-700 shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-1 py-0.5 rounded-full text-[10px] font-medium bg-white/80 border border-gray-200 text-gray-700 shadow-sm"
                   >
                     <span className={`w-2 h-2 rounded-full ${found.color}`} />
-                    <span className="truncate max-w-[100px]">{found.label}</span>
+                    <span className="truncate max-w-[1.75rem]">{found.label}</span>
                   </span>
                 );
               })}
@@ -355,7 +470,6 @@ export default function ChatItem({
         )}
       </div>
 
-      {/* Context Menu – ĐẸP NHƯ ZALO PREMIUM */}
       {showMenu && menuPosition && (
         <>
           <div className="fixed inset-0 z-[9998]" onClick={() => setShowMenu(false)} />
@@ -412,6 +526,78 @@ export default function ChatItem({
                   );
                 })}
               </div>
+            </div>
+            <div className="border-t border-gray-100">
+              <div className="flex items-center justify-between px-4 py-2">
+                <div className="text-xs text-gray-500">Theo thẻ tags</div>
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    setShowTagSelector(true);
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  + Thêm
+                </button>
+              </div>
+              <div className="max-h-60 overflow-auto custom-scrollbar">
+                {USER_TAGS.map((tag) => {
+                  const checked = chatTags.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      onClick={() => toggleTag(tag.id)}
+                      className="flex cursor-pointer items-center w-full px-4 py-2 hover:bg-gray-50 transition-colors gap-3"
+                    >
+                      <span className={`inline-block w-3.5 h-3.5 rounded-sm ${tag.color} border border-white`} />
+                      <span className="flex-1 text-left text-gray-700 text-sm">{tag.label}</span>
+                      <input type="checkbox" checked={checked} readOnly className="w-4 h-4" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      {showTagSelector && tagMenuPos && (
+        <>
+          <div
+            className="fixed inset-0 z-[9998]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowTagSelector(false);
+            }}
+          />
+          <div
+            style={{ top: tagMenuPos.y, left: tagMenuPos.x, position: 'fixed' }}
+            className="z-[9999] w-48 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-1 max-h-48 overflow-y-auto custom-scrollbar">
+              {USER_TAGS.length === 0 && <div className="text-xs text-gray-400 text-center py-2">Chưa có thẻ nào</div>}
+              {USER_TAGS.map((tag) => (
+                <button
+                  key={tag.id}
+                  onClick={() => toggleTag(tag.id)}
+                  className="flex items-center w-full gap-2 px-2 py-1.5 hover:bg-gray-50 rounded text-left transition-colors group/item"
+                >
+                  <div className={`w-3 h-3 rounded-full ${tag.color} shadow-sm`} />
+                  <span className="flex-1 text-xs font-medium text-gray-700 truncate">{tag.label}</span>
+                  {chatTags.includes(tag.id) && <HiCheck className="w-3.5 h-3.5 text-blue-500" />}
+                </button>
+              ))}
+            </div>
+            <div className="border-t border-gray-100 p-1 bg-gray-50">
+              <button
+                onClick={() => {
+                  setShowTagSelector(false);
+                  onOpenTagManager?.();
+                }}
+                className="flex items-center justify-center w-full gap-1 px-2 py-1.5 text-xs text-blue-600 font-bold hover:bg-blue-100 rounded transition-colors"
+              >
+                <HiPlus className="w-3 h-3" /> Quản lý thẻ
+              </button>
             </div>
           </div>
         </>

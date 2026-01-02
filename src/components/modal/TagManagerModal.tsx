@@ -6,7 +6,7 @@ import type { GroupConversation, ChatItem as ChatItemType } from '@/types/Group'
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 
-interface CategoryManagerModalProps {
+interface TagManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUserId?: string;
@@ -15,15 +15,15 @@ interface CategoryManagerModalProps {
   allUsers?: User[];
 }
 
-export default function CategoryManagerModal({
+export default function TagManagerModal({
   isOpen,
   onClose,
   currentUserId,
   currentUser,
   groups = [],
   allUsers = [],
-}: CategoryManagerModalProps) {
-  const [tags, setTags] = useState(currentUser?.categoryTags || []);
+}: TagManagerModalProps) {
+  const [tags, setTags] = useState(currentUser?.userTags || []);
 
   React.useEffect(() => {
     async function loadUserTags() {
@@ -36,7 +36,7 @@ export default function CategoryManagerModal({
         });
         const data = await res.json();
         const row = (data && data.row) || (Array.isArray(data?.data) ? data.data[0] : null);
-        const existing = (row?.categoryTags as typeof tags) || [];
+        const existing = (row?.userTags as typeof tags) || [];
         setTags(Array.isArray(existing) ? existing : []);
       } catch {}
     }
@@ -44,6 +44,7 @@ export default function CategoryManagerModal({
       loadUserTags();
     }
   }, [isOpen, currentUserId]);
+
   React.useEffect(() => {
     function handleTagsUpdated(e: Event) {
       const ev = e as CustomEvent<{ userId: string; tags: { id: string; label: string; color: string }[] }>;
@@ -53,14 +54,15 @@ export default function CategoryManagerModal({
       setTags(Array.isArray(detail.tags) ? detail.tags : []);
     }
     if (typeof window !== 'undefined') {
-      window.addEventListener('userCategoryTagsUpdated', handleTagsUpdated as EventListener);
+      window.addEventListener('userTagsUpdated', handleTagsUpdated as EventListener);
     }
     return () => {
       if (typeof window !== 'undefined') {
-        window.removeEventListener('userCategoryTagsUpdated', handleTagsUpdated as EventListener);
+        window.removeEventListener('userTagsUpdated', handleTagsUpdated as EventListener);
       }
     };
   }, [currentUserId]);
+
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [deletingTagId, setDeletingTagId] = useState<string | null>(null);
   const editingTag = useMemo(() => tags.find((t) => t.id === editingTagId) || null, [tags, editingTagId]);
@@ -76,39 +78,35 @@ export default function CategoryManagerModal({
     return (u.name || u.username || 'Người dùng').trim();
   };
 
-  const [chatCategoriesMap, setChatCategoriesMap] = useState<Record<string, string[]>>({});
+  const [chatTagsMap, setChatTagsMap] = useState<Record<string, string[]>>({});
 
   React.useEffect(() => {
-    function handleChatCategoriesUpdated(e: Event) {
-      const ev = e as CustomEvent<{ userId: string; roomId: string; categories: string[] }>;
+    function handleChatTagsUpdated(e: Event) {
+      const ev = e as CustomEvent<{ userId: string; roomId: string; tags: string[] }>;
       const detail = ev.detail;
       if (!detail) return;
       if (String(detail.userId) !== String(currentUserId)) return;
-      setChatCategoriesMap((prev) => ({
+      setChatTagsMap((prev) => ({
         ...prev,
-        [detail.roomId]: detail.categories,
+        [detail.roomId]: detail.tags,
       }));
     }
     if (typeof window !== 'undefined') {
-      window.addEventListener('chatCategoriesUpdated', handleChatCategoriesUpdated as EventListener);
+      window.addEventListener('chatTagsUpdated', handleChatTagsUpdated as EventListener);
     }
     return () => {
       if (typeof window !== 'undefined') {
-        window.removeEventListener('chatCategoriesUpdated', handleChatCategoriesUpdated as EventListener);
+        window.removeEventListener('chatTagsUpdated', handleChatTagsUpdated as EventListener);
       }
     };
   }, [currentUserId]);
 
-  const getItemCategories = (chat: ChatItemType): string[] => {
-    if (chatCategoriesMap[String(chat._id)]) {
-      return chatCategoriesMap[String(chat._id)];
+  const getItemTags = (chat: ChatItemType): string[] => {
+    if (chatTagsMap[String(chat._id)]) {
+      return chatTagsMap[String(chat._id)];
     }
-    const byField = (chat as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy;
-    const simple = (chat as unknown as { categories?: string[] }).categories;
-    const arr =
-      (simple && Array.isArray(simple) ? simple : undefined) ||
-      (byField && currentUserId ? byField[String(currentUserId)] : undefined) ||
-      [];
+    const byField = (chat as unknown as { tagsBy?: Record<string, string[]> }).tagsBy;
+    const arr = (byField && currentUserId ? byField[String(currentUserId)] : undefined) || [];
     if (Array.isArray(arr)) return arr.filter((x) => typeof x === 'string');
     return [];
   };
@@ -147,7 +145,7 @@ export default function CategoryManagerModal({
           action: 'update',
           field: '_id',
           value: currentUserId,
-          data: { categoryTags: newTags },
+          data: { userTags: newTags },
         }),
       });
     } catch (error) {
@@ -161,7 +159,7 @@ export default function CategoryManagerModal({
     const tag = tags.find((t) => t.id === tagId);
     setLabelDraft(tag?.label || '');
     setColorDraft(tag?.color || availableColors[0]);
-    const assigned = allChats.filter((c) => getItemCategories(c).includes(tagId)).map((c) => String(c._id));
+    const assigned = allChats.filter((c) => getItemTags(c).includes(tagId)).map((c) => String(c._id));
     setSelectedChats(assigned);
     setAddingPanelOpen(false);
     setSearchTerm('');
@@ -187,7 +185,7 @@ export default function CategoryManagerModal({
     setSearchTerm('');
   };
 
-  const requestUpdateCategories = async (chat: ChatItemType, newCats: string[]) => {
+  const requestUpdateTags = async (chat: ChatItemType, newTags: string[]) => {
     try {
       const maybeGroup = chat as GroupConversation;
       const isGroupChat = maybeGroup.isGroup === true || Array.isArray(maybeGroup.members);
@@ -197,17 +195,17 @@ export default function CategoryManagerModal({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'updateCategories',
+          action: 'updateTags',
           currentUserId,
           roomId,
-          data: { categories: newCats },
+          data: { tags: newTags },
         }),
       });
       try {
-        const k = `chatCategories:${String(currentUserId)}:${roomId}`;
-        localStorage.setItem(k, JSON.stringify(newCats));
-        const ev = new CustomEvent('chatCategoriesUpdated', {
-          detail: { userId: String(currentUserId), roomId, categories: newCats },
+        const k = `chatTags:${String(currentUserId)}:${roomId}`;
+        localStorage.setItem(k, JSON.stringify(newTags));
+        const ev = new CustomEvent('chatTagsUpdated', {
+          detail: { userId: String(currentUserId), roomId, tags: newTags },
         });
         window.dispatchEvent(ev as unknown as Event);
       } catch {}
@@ -219,20 +217,20 @@ export default function CategoryManagerModal({
     const tagId = isCreating ? `tag_${Date.now()}` : editingTag!.id;
     const originalAssigned = isCreating
       ? []
-      : allChats.filter((c) => getItemCategories(c).includes(tagId)).map((c) => String(c._id));
+      : allChats.filter((c) => getItemTags(c).includes(tagId)).map((c) => String(c._id));
     const toAdd = selectedChats.filter((id) => !originalAssigned.includes(id));
     const toRemove = originalAssigned.filter((id) => !selectedChats.includes(id));
     setIsUpdating(true);
     const operations: Array<Promise<void>> = [];
     for (const chat of allChats) {
       const id = String(chat._id);
-      const cats = getItemCategories(chat);
+      const currentTags = getItemTags(chat);
       if (toAdd.includes(id)) {
-        const newCats = [tagId];
-        operations.push(requestUpdateCategories(chat, newCats));
+        const nextTags = [...currentTags, tagId].filter((v, i, a) => a.indexOf(v) === i); // unique
+        operations.push(requestUpdateTags(chat, nextTags));
       } else if (toRemove.includes(id)) {
-        const newCats = cats.filter((x) => x !== tagId);
-        operations.push(requestUpdateCategories(chat, newCats));
+        const nextTags = currentTags.filter((x) => x !== tagId);
+        operations.push(requestUpdateTags(chat, nextTags));
       }
     }
     await Promise.all(operations);
@@ -246,7 +244,7 @@ export default function CategoryManagerModal({
     await saveTagsToUser(newTags);
     setTags(newTags);
     try {
-      const ev = new CustomEvent('userCategoryTagsUpdated', {
+      const ev = new CustomEvent('userTagsUpdated', {
         detail: { userId: String(currentUserId), tags: newTags },
       });
       window.dispatchEvent(ev as unknown as Event);
@@ -259,17 +257,15 @@ export default function CategoryManagerModal({
   const handleRemoveChatFromTag = async (chatId: string) => {
     setSelectedChats((prev) => prev.filter((x) => x !== chatId));
 
-    // Nếu đang ở chế độ chỉnh sửa (không phải tạo mới), thực hiện xóa ngay lập tức trên server
     if (editingTag && !isCreating) {
       const chat = allChats.find((c) => String(c._id) === chatId);
       if (!chat) return;
 
       const tagId = editingTag.id;
-      const currentCats = getItemCategories(chat);
-      // Chỉ gọi API nếu tag thực sự đang có trên chat này (đã lưu trước đó)
-      if (currentCats.includes(tagId)) {
-        const newCats = currentCats.filter((x) => x !== tagId);
-        await requestUpdateCategories(chat, newCats);
+      const currentTags = getItemTags(chat);
+      if (currentTags.includes(tagId)) {
+        const newTags = currentTags.filter((x) => x !== tagId);
+        await requestUpdateTags(chat, newTags);
       }
     }
   };
@@ -283,7 +279,7 @@ export default function CategoryManagerModal({
     setTags(newTags);
     saveTagsToUser(newTags);
     try {
-      const ev = new CustomEvent('userCategoryTagsUpdated', {
+      const ev = new CustomEvent('userTagsUpdated', {
         detail: { userId: String(currentUserId), tags: newTags },
       });
       window.dispatchEvent(ev as unknown as Event);
@@ -313,7 +309,7 @@ export default function CategoryManagerModal({
     setTags(newTags);
     saveTagsToUser(newTags);
     try {
-      const ev = new CustomEvent('userCategoryTagsUpdated', {
+      const ev = new CustomEvent('userTagsUpdated', {
         detail: { userId: String(currentUserId), tags: newTags },
       });
       window.dispatchEvent(ev as unknown as Event);
@@ -327,14 +323,14 @@ export default function CategoryManagerModal({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 md:p-4">
       <div className="bg-white w-full h-full md:h-auto md:max-w-md md:rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-none">
-          <h3 className="text-lg font-semibold text-gray-800">Quản lý thẻ phân loại</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Quản lý thẻ tags</h3>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
             <HiXMark className="w-6 h-6" />
           </button>
         </div>
 
         <div className="p-4 flex-1 flex flex-col min-h-0">
-          <div className="mb-3 text-sm text-gray-600 flex-none">Danh sách thẻ phân loại</div>
+          <div className="mb-3 text-sm text-gray-600 flex-none">Danh sách thẻ tags</div>
 
           <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar md:max-h-[60vh]">
             {tags.map((tag, index) => (
@@ -385,7 +381,7 @@ export default function CategoryManagerModal({
             onClick={openCreate}
           >
             <HiPlus className="w-5 h-5" />
-            <span>Thêm phân loại</span>
+            <span>Thêm thẻ mới</span>
           </button>
         </div>
       </div>
@@ -413,167 +409,7 @@ export default function CategoryManagerModal({
           </div>
         </div>
       )}
-      {editingTag && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 md:p-4">
-          <div className="bg-white w-full h-full md:h-auto md:max-w-lg md:rounded-lg shadow-xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-none">
-              <h4 className="text-base font-semibold text-gray-800">Chi tiết thẻ phân loại</h4>
-              <button
-                onClick={closeEdit}
-                className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
-              >
-                <HiXMark className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-4 space-y-4 flex-1 overflow-y-auto">
-              <div className="space-y-2">
-                <div className="text-sm text-gray-600">Tên thẻ phân loại</div>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={labelDraft}
-                    onChange={(e) => setLabelDraft(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <div className="relative">
-                    <button
-                      className={`h-8 w-10 ${colorDraft} rounded-md`}
-                      onClick={() => setShowColorPicker((s) => !s)}
-                      style={{ clipPath: 'polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%)' }}
-                      title="Đổi màu"
-                    />
-                    {showColorPicker && (
-                      <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2 z-[10001]">
-                        <div className="px-1 pb-1 text-xs font-medium text-gray-600">Thay đổi màu thẻ</div>
-                        <div className="flex items-center gap-2">
-                          {availableColors.map((c) => (
-                            <button
-                              key={c}
-                              className={`relative w-6 h-6 rounded-sm ${c} border border-white shadow-sm`}
-                              onClick={() => {
-                                setColorDraft(c);
-                                setShowColorPicker(false);
-                              }}
-                              title={c}
-                            >
-                              {colorDraft === c && (
-                                <span className="absolute inset-0 flex items-center justify-center">
-                                  <HiCheck className="w-3.5 h-3.5 text-yellow-300 drop-shadow" />
-                                </span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm text-gray-600">Hội thoại được gắn thẻ</div>
-                <button className="text-blue-600 text-sm font-medium" onClick={() => setAddingPanelOpen((s) => !s)}>
-                  + Thêm hội thoại
-                </button>
-                {addingPanelOpen && (
-                  <div className="mt-2 border border-gray-200 rounded-md">
-                    <div className="p-2 border-b border-gray-200">
-                      <input
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Tìm hội thoại"
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="max-h-48 overflow-auto custom-scrollbar">
-                      {allChats
-                        .filter((c) => !selectedChats.includes(String(c._id)))
-                        .filter((c) => getChatDisplayName(c).toLowerCase().includes(searchTerm.trim().toLowerCase()))
-                        .slice(0, 50)
-                        .map((c) => (
-                          <button
-                            key={String(c._id)}
-                            onClick={() => setSelectedChats((prev) => [...prev, String(c._id)])}
-                            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50"
-                          >
-                            {(c as GroupConversation).avatar || (c as User).avatar ? (
-                              <Image
-                                src={getProxyUrl(String((c as GroupConversation).avatar || (c as User).avatar))}
-                                alt=""
-                                width={28}
-                                height={28}
-                                className="w-7 h-7 rounded-full object-cover"
-                              />
-                            ) : (
-                              <Image
-                                src="/logo/avata.webp"
-                                alt=""
-                                width={28}
-                                height={28}
-                                className="w-7 h-7 rounded-full object-cover"
-                              />
-                            )}
-                            <span className="text-sm text-gray-800">{getChatDisplayName(c)}</span>
-                          </button>
-                        ))}
-                    </div>
-                  </div>
-                )}
-                <div className="space-y-2 max-h-36 overflow-auto custom-scrollbar">
-                  {selectedChats.map((id) => {
-                    const chat = allChats.find((c) => String(c._id) === id);
-                    if (!chat) return null;
-                    return (
-                      <div key={id} className="flex items-center gap-3">
-                        {(chat as GroupConversation).avatar || (chat as User).avatar ? (
-                          <Image
-                            src={getProxyUrl(String((chat as GroupConversation).avatar || (chat as User).avatar))}
-                            alt=""
-                            width={28}
-                            height={28}
-                            className="w-7 h-7 rounded-full object-cover"
-                          />
-                        ) : (
-                          <Image
-                            src="/logo/avata.webp"
-                            alt=""
-                            width={28}
-                            height={28}
-                            className="w-7 h-7 rounded-full object-cover"
-                          />
-                        )}
-                        <span className="text-sm text-gray-800">{getChatDisplayName(chat)}</span>
-                        <button
-                          className="ml-auto text-gray-500 hover:text-gray-700 text-sm"
-                          onClick={() => handleRemoveChatFromTag(id)}
-                        >
-                          Xóa
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-            <div className="px-4 py-3 flex items-center justify-end gap-2 border-t border-gray-100 flex-none">
-              <button
-                className="px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 text-sm font-medium"
-                onClick={closeEdit}
-              >
-                Hủy
-              </button>
-              <button
-                disabled={isUpdating}
-                className={`px-3 py-2 rounded-md text-white text-sm font-medium ${
-                  isUpdating ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-                onClick={handleApplyEdit}
-              >
-                {isUpdating ? 'Đang cập nhật...' : 'Cập nhật'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {isCreating && (
+      {(editingTag || isCreating) && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 md:p-4">
           <div className="bg-white w-full h-full md:h-auto md:max-w-lg md:rounded-lg shadow-xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-none">
@@ -585,7 +421,9 @@ export default function CategoryManagerModal({
                 >
                   <HiChevronLeft className="w-6 h-6" />
                 </button>
-                <h4 className="text-base font-semibold text-gray-800">Thêm mới thẻ phân loại</h4>
+                <h4 className="text-base font-semibold text-gray-800">
+                  {isCreating ? 'Thêm thẻ mới' : 'Chi tiết thẻ tags'}
+                </h4>
               </div>
               <button
                 onClick={closeEdit}
@@ -596,12 +434,12 @@ export default function CategoryManagerModal({
             </div>
             <div className="p-4 space-y-4 flex-1 overflow-y-auto">
               <div className="space-y-2">
-                <div className="text-sm text-gray-600">Tên thẻ phân loại</div>
+                <div className="text-sm text-gray-600">Tên thẻ tags</div>
                 <div className="flex items-center gap-2">
                   <input
                     value={labelDraft}
                     onChange={(e) => setLabelDraft(e.target.value)}
-                    placeholder="Nhập tên thẻ phân loại"
+                    placeholder="Nhập tên thẻ"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <div className="relative">
@@ -739,7 +577,7 @@ export default function CategoryManagerModal({
                 }`}
                 onClick={handleApplyEdit}
               >
-                {isUpdating ? 'Đang thêm...' : 'Thêm phân loại'}
+                {isUpdating ? 'Đang thêm...' : 'Thêm thẻ'}
               </button>
             </div>
           </div>
