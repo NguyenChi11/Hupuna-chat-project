@@ -38,7 +38,7 @@ export default function ChatItem({
   const USER_TAGS = userTags;
   const isSelected = selectedChat?._id === item._id;
   const [showMenu, setShowMenu] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number; align?: 'top' | 'bottom' } | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<number | null>(null);
@@ -231,11 +231,14 @@ export default function ChatItem({
     const x = e.clientX;
     const y = e.clientY;
     const menuWidth = 240;
-    const menuHeight = 130;
+
+    const finalX = x + menuWidth > window.innerWidth ? window.innerWidth - menuWidth - 16 : x + 12;
+    const isBottomHalf = y > window.innerHeight / 2;
 
     setMenuPosition({
-      x: x + menuWidth > window.innerWidth ? window.innerWidth - menuWidth - 16 : x + 12,
-      y: y + menuHeight > window.innerHeight ? window.innerHeight - menuHeight - 16 : y + 12,
+      x: finalX,
+      y: y,
+      align: isBottomHalf ? 'bottom' : 'top',
     });
     setShowMenu(true);
   };
@@ -255,10 +258,14 @@ export default function ChatItem({
     const y0 = t ? t.clientY : 0;
     longPressTimerRef.current = window.setTimeout(() => {
       const menuWidth = 240;
-      const menuHeight = 130;
-      const x = x0 + menuWidth > window.innerWidth ? window.innerWidth - menuWidth - 16 : x0 + 12;
-      const y = y0 + menuHeight > window.innerHeight ? window.innerHeight - menuHeight - 16 : y0 + 12;
-      setMenuPosition({ x, y });
+      const finalX = x0 + menuWidth > window.innerWidth ? window.innerWidth - menuWidth - 16 : x0 + 12;
+      const isBottomHalf = y0 > window.innerHeight / 2;
+
+      setMenuPosition({
+        x: finalX,
+        y: y0,
+        align: isBottomHalf ? 'bottom' : 'top',
+      });
       setShowMenu(true);
       longPressTriggeredRef.current = true;
     }, 500);
@@ -315,7 +322,6 @@ export default function ChatItem({
               : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 hover:shadow-lg'
           }
           ${isHidden ? 'opacity-60' : ''}
-          active:scale-98
         `}
       >
         <div className="flex items-center gap-1 md:gap-2 py-[0.5rem] md:py-1 px-2 ">
@@ -440,7 +446,7 @@ export default function ChatItem({
                   return (
                     <span
                       key={tagId}
-                      className={`inline-block px-1.5 py-0.5 text-[10px] font-bold text-white rounded-[0.125rem] shadow-sm ${found.color} whitespace-nowrap`}
+                      className={`inline-block px-1.5 py-0.5 mb-[0.25rem] text-[10px] font-bold text-white rounded-[0.125rem] shadow-sm ${found.color} whitespace-nowrap`}
                     >
                       {found.label}
                     </span>
@@ -474,12 +480,19 @@ export default function ChatItem({
 
       {showMenu && menuPosition && (
         <>
-          <div className="fixed inset-0 z-[9998]" onClick={() => setShowMenu(false)} />
+          <div className="fixed inset-0 z-[9998] " onClick={() => setShowMenu(false)} />
 
           <div
             ref={menuRef}
-            style={{ top: menuPosition.y, left: menuPosition.x, position: 'fixed' }}
-            className="z-[9999] w-60 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{
+              top: menuPosition.align === 'bottom' ? 'auto' : menuPosition.y,
+              bottom: menuPosition.align === 'bottom' ? window.innerHeight - menuPosition.y : 'auto',
+              left: menuPosition.x,
+              position: 'fixed',
+            }}
+            className={`z-[9999] w-60 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden animate-in fade-in duration-200 ${
+              menuPosition.align === 'bottom' ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
+            }`}
           >
             {/* Ghim */}
             <button
@@ -512,7 +525,7 @@ export default function ChatItem({
             </button>
             <div className="border-t border-gray-100">
               <div className="px-4 py-2 text-xs text-gray-500">Theo thẻ phân loại</div>
-              <div className="max-h-60 overflow-auto custom-scrollbar">
+              <div className="max-h-30 overflow-auto custom-scrollbar">
                 {CATEGORY_TAGS.map((cat) => {
                   const checked = chatCategories.includes(cat.id);
                   return (
@@ -542,7 +555,7 @@ export default function ChatItem({
                   + Thêm
                 </button>
               </div>
-              <div className="max-h-60 overflow-auto custom-scrollbar">
+              <div className="max-h-30 overflow-auto custom-scrollbar">
                 {USER_TAGS.map((tag) => {
                   const checked = chatTags.includes(tag.id);
                   return (
