@@ -371,6 +371,7 @@ export default function MessageList({
                                         src={getProxyUrl(senderInfo.avatar)}
                                         alt={senderInfo.name}
                                         className="w-full h-full object-cover"
+                                        unoptimized={String(senderInfo.avatar).includes('mega.nz')}
                                       />
                                     </div>
                                   ) : (
@@ -1006,6 +1007,7 @@ export default function MessageList({
                                         src={getProxyUrl(senderInfo.avatar)}
                                         alt={senderInfo.name}
                                         className="w-full h-full object-cover"
+                                        unoptimized={String(senderInfo.avatar).includes('mega.nz')}
                                       />
                                     </div>
                                   ) : (
@@ -1557,8 +1559,7 @@ export default function MessageList({
                       const isRenameGroup =
                         contentLower.includes('đổi tên nhóm') || contentLower.includes('đã đổi tên nhóm');
                       const isNickname = contentLower.includes('biệt danh');
-                      const isChangeAvatar =
-                        contentLower.includes('ảnh đại diện') || contentLower.includes('đổi ảnh');
+                      const isChangeAvatar = contentLower.includes('ảnh đại diện') || contentLower.includes('đổi ảnh');
                       const icon = isDue ? (
                         <HiOutlineClock className="w-4 h-4 text-red-500" />
                       ) : isCreate ? (
@@ -2069,6 +2070,7 @@ export default function MessageList({
                                             width={40}
                                             height={40}
                                             className="w-10 h-10 rounded-md object-cover border border-blue-200"
+                                            unoptimized={String(url).includes('mega.nz')}
                                           />
                                         ) : (
                                           <div className="relative w-10 h-10 bg-black rounded-md overflow-hidden border border-blue-200">
@@ -2532,6 +2534,7 @@ export default function MessageList({
                                       width={600}
                                       height={600}
                                       className="w-full h-full object-cover"
+                                      unoptimized={String(msg.fileUrl).includes('mega.nz')}
                                     />
                                   )}
 

@@ -461,6 +461,7 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
                               width={200}
                               height={200}
                               className="object-cover w-auto h-auto"
+                              unoptimized={String(msg.fileUrl || msg.content).includes('mega.nz')}
                             />
                           </div>
                         </div>

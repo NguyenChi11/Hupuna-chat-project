@@ -3,7 +3,7 @@
 import Image from 'next/image';
 
 function toMegaStream(url: string) {
-  return url.startsWith('https://mega.nz/') ? `/api/mega-stream?url=${encodeURIComponent(url)}` : url;
+  return url;
 }
 
 export default function ImageGrid({ images }: { images?: string[] }) {
@@ -18,6 +18,7 @@ export default function ImageGrid({ images }: { images?: string[] }) {
           key={i}
           src={toMegaStream(src)}
           className="w-full h-64 rounded-2xl object-cover"
+          unoptimized={src.includes('mega.nz')}
         />
       ))}
     </div>

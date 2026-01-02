@@ -3,9 +3,7 @@
 import React from "react";
 
 function toMegaStream(url: string) {
-  return url.startsWith("https://mega.nz/")
-    ? `/api/mega-stream?url=${encodeURIComponent(url)}`
-    : url;
+  return url;
 }
 
 export default function VideoGrid({ videos }: { videos?: string[] }) {

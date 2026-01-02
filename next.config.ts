@@ -6,9 +6,6 @@ const nextConfig: NextConfig = {
   images: {
     localPatterns: [
       {
-        pathname: '/api/mega-stream',
-      },
-      {
         pathname: '/imgs/**',
       },
       {
@@ -21,13 +18,18 @@ const nextConfig: NextConfig = {
     // Cho phép load ảnh từ MEGA (avatar sau khi upload)
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'mega.nz',
-        pathname: '/file/**',
+        protocol: 'http',
+        hostname: '117.4.242.30',
+        port: '8090',
+        pathname: '/api/files/**',
       },
       {
         protocol: 'https',
         hostname: 'cdn.jsdelivr.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'mega.nz',
       },
     ],
   },

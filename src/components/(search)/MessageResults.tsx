@@ -171,6 +171,7 @@ export default function MessageResults({
                       src={group.roomAvatar}
                       className="w-full h-full object-cover"
                       alt=""
+                      unoptimized={String(group.roomAvatar).includes('mega.nz')}
                     />
                   ) : (
                     group.roomName.charAt(0).toUpperCase()

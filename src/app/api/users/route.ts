@@ -37,7 +37,8 @@ interface UsersRequestBody {
     | 'login'
     | 'logout'
     | 'changePassword'
-    | 'updateNickname';
+    | 'updateNickname'
+    | 'updateTags';
   collectionName?: string;
   data?: UsersRequestData;
   field?: keyof User;

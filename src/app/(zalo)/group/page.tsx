@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { io } from 'socket.io-client';
 import { resolveSocketUrl } from '@/utils/utils';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
@@ -22,7 +22,7 @@ import {
 import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
 import { useSearchParams } from 'next/navigation';
 
-export default function GroupPage() {
+function GroupPageContent() {
   const {
     currentUser,
     isLoading,
@@ -74,13 +74,13 @@ export default function GroupPage() {
     roomId: string;
     sdp: RTCSessionDescriptionInit;
   } | null>(null);
-  
+
   const [showAddToGroupModal, setShowAddToGroupModal] = useState(false);
   const partnerUser = useMemo(() => {
     if (!withUserId) return null;
-    return allUsers.find(u => String(u._id) === String(withUserId)) || null;
+    return allUsers.find((u) => String(u._id) === String(withUserId)) || null;
   }, [withUserId, allUsers]);
-  
+
   useEffect(() => {
     const run = async () => {
       if (!currentUser || !currentUser._id) return;
@@ -226,12 +226,12 @@ export default function GroupPage() {
               if (typeof window !== 'undefined') window.history.back();
             }}
             onShowCreateGroup={() => {
-               // Hack to set initial member for create group
-               try {
-                 const w = window as Window & { __createGroupInitialMemberIds?: string[] };
-                 w.__createGroupInitialMemberIds = [String(partnerUser._id)];
-               } catch {}
-               setShowCreateGroupModal(true);
+              // Hack to set initial member for create group
+              try {
+                const w = window as Window & { __createGroupInitialMemberIds?: string[] };
+                w.__createGroupInitialMemberIds = [String(partnerUser._id)];
+              } catch {}
+              setShowCreateGroupModal(true);
             }}
             onShowAddToGroup={() => setShowAddToGroupModal(true)}
           />
@@ -346,5 +346,13 @@ export default function GroupPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function GroupPage() {
+  return (
+    <Suspense fallback={<div className="h-screen w-full flex items-center justify-center">Đang tải...</div>}>
+      <GroupPageContent />
+    </Suspense>
   );
 }

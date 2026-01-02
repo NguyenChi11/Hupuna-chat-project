@@ -1,13 +1,7 @@
 export const getProxyUrl = (url?: string, download?: boolean) => {
   if (!url) return '';
 
-  // Nếu là link Mega -> Chuyển qua API Stream của mình
-  if (url.includes('mega.nz')) {
-    const base = `/api/mega-stream?url=${encodeURIComponent(url)}`;
-    return download ? `${base}&download=1` : base;
-  }
-
-  // Các link khác (S3, Firebase, External...) -> Giữ nguyên
+  // Các link khác (S3, Firebase, External, PocketBase...) -> Giữ nguyên
   return url;
 };
 
@@ -38,23 +32,21 @@ export const isLink = (str: string | undefined): boolean => {
 export const resolveSocketUrl = (): string => {
   const envUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || '').trim();
   const envPort = (process.env.NEXT_PUBLIC_SOCKET_PORT || '').trim();
-  
+
   if (typeof window === 'undefined') return envUrl || '';
-  
+
   const host = window.location.hostname;
   const protocol = window.location.protocol;
-  
+
   if (envUrl) {
     if (
-      envUrl.startsWith('http://') || 
-      envUrl.startsWith('https://') || 
-      envUrl.startsWith('ws://') || 
+      envUrl.startsWith('http://') ||
+      envUrl.startsWith('https://') ||
+      envUrl.startsWith('ws://') ||
       envUrl.startsWith('wss://')
     ) {
       if (envUrl.includes('localhost') || envUrl.includes('127.0.0.1')) {
-        return envUrl
-          .replace('localhost', host)
-          .replace('127.0.0.1', host);
+        return envUrl.replace('localhost', host).replace('127.0.0.1', host);
       }
       return envUrl;
     }

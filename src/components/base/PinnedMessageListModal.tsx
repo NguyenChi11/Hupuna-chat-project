@@ -140,6 +140,7 @@ export default function PinnedMessageListModal({
                             width={320}
                             height={240}
                             className="w-full h-full object-cover"
+                            unoptimized={String(msg.fileUrl).includes('mega.nz')}
                           />
                         </div>
                         {msg.content && (

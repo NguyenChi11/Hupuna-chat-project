@@ -7,7 +7,7 @@ import PostCard from '@/components/(memonts)/PostCard';
 import ComingSoonPage from '@/components/ComingSoonPage';
 
 function toMegaStream(url: string) {
-  return url.startsWith('https://mega.nz/') ? `/api/mega-stream?url=${encodeURIComponent(url)}` : url;
+  return url;
 }
 
 /* ------------------------------ TYPES ------------------------------ */

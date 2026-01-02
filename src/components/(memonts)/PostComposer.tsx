@@ -6,10 +6,10 @@ import { HiDocumentText, HiUpload } from 'react-icons/hi';
 import { HiOutlinePhoto, HiOutlineDocumentText, HiXMark } from 'react-icons/hi2';
 
 function toMegaStream(url: string) {
-  return url.startsWith('https://mega.nz/') ? `/api/mega-stream?url=${encodeURIComponent(url)}` : url;
+  return url;
 }
 
-async function uploadFileMega(file: File): Promise<string | null> {
+async function uploadFile(file: File): Promise<string | null> {
   const uploadId = `up_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const form = new FormData();
   form.append('file', file);
@@ -50,7 +50,7 @@ export default function PostComposer({
     if (!fl) return;
     const arr = Array.from(fl).slice(0, 4);
     for (const file of arr) {
-      const link = await uploadFileMega(file);
+      const link = await uploadFile(file);
       if (!link) continue;
       if (file.type.startsWith('image/')) setImages((p) => [...p, link]);
       else if (file.type.startsWith('video/')) setVideos((p) => [...p, link]);
@@ -61,7 +61,7 @@ export default function PostComposer({
     if (!fl) return;
     const arr = Array.from(fl).slice(0, 4);
     for (const f of arr) {
-      const link = await uploadFileMega(f);
+      const link = await uploadFile(f);
       if (link) setFiles((p) => [...p, link]);
     }
   };
@@ -122,6 +122,7 @@ export default function PostComposer({
                     height={400}
                     alt={`image ${i}`}
                     className="rounded-2xl w-full h-44 object-cover shadow-md transition-transform duration-300 group-hover:scale-105"
+                    unoptimized={src.includes('mega.nz')}
                   />
                   <button
                     onClick={() => setImages((p) => p.filter((_, idx) => idx !== i))}
@@ -189,7 +190,7 @@ export default function PostComposer({
               }`}
             >
               <HiOutlinePhoto className="w-3 h-3" />
-             <p className="text-[13px]">Ảnh / Video</p>
+              <p className="text-[13px]">Ảnh / Video</p>
             </button>
 
             <button
@@ -201,7 +202,7 @@ export default function PostComposer({
               }`}
             >
               <HiOutlineDocumentText className="w-3 h-3" />
-             <p className="text-[13px]">Tập tin</p>
+              <p className="text-[13px]">Tập tin</p>
             </button>
           </div>
 
