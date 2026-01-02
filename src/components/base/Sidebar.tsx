@@ -544,8 +544,40 @@ export default function Sidebar({
       });
     }
 
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((c) => {
+        const tags =
+          (c as unknown as { tags?: string[] }).tags ||
+          (c as unknown as { tagsBy?: Record<string, string[]> }).tagsBy?.[String(currentUserId)] ||
+          [];
+        // Fallback local storage
+        if (!tags || tags.length === 0) {
+          try {
+            const k = `chatTags:${String(currentUserId)}:${String(c._id)}`;
+            const raw = typeof window !== 'undefined' ? localStorage.getItem(k) : null;
+            if (raw) {
+              const arr = JSON.parse(raw);
+              if (Array.isArray(arr)) {
+                return arr.some((t) => selectedTags.includes(t));
+              }
+            }
+          } catch {}
+        }
+        return tags.some((t) => selectedTags.includes(t));
+      });
+    }
+
     return filtered;
-  }, [mixedChats, searchTerm, filterType, isSearchActive, selectedCategories, categoriesMap]);
+  }, [
+    mixedChats,
+    searchTerm,
+    filterType,
+    isSearchActive,
+    selectedCategories,
+    categoriesMap,
+    selectedTags,
+    currentUserId,
+  ]);
 
   const filterCounts = useMemo(() => {
     const visible = mixedChats.filter((c) => !c.isHidden);
@@ -701,7 +733,7 @@ export default function Sidebar({
               {showTagFilterDropdown && (
                 <div className="absolute right-[-5.7rem] top-full mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
                   <div className="px-4 pb-2 text-xs text-gray-500">Theo thẻ tags</div>
-                  <div className="max-h-64 overflow-auto">
+                  <div className="max-h-64 overflow-auto custom-scrollbar">
                     {userTags.map((tag) => {
                       const checked = selectedTags.includes(tag.id);
                       return (
@@ -710,7 +742,7 @@ export default function Sidebar({
                           onClick={() => {
                             setSelectedTags((prev) => (checked ? prev.filter((x) => x !== tag.id) : [...prev, tag.id]));
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50"
+                          className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer"
                         >
                           <span
                             className={`inline-block w-3.5 h-3.5 rounded-sm ${tag.color} border border-white shadow-sm`}
@@ -727,7 +759,7 @@ export default function Sidebar({
                         setShowTagManager(true);
                         setShowTagFilterDropdown(false);
                       }}
-                      className="w-full px-4 py-2 text-sm text-[#0068ff] hover:bg-gray-50"
+                      className="w-full p-1 text-sm text-[#0068ff] hover:bg-gray-50 cursor-pointer"
                     >
                       Quản lý thẻ tags
                     </button>
@@ -763,7 +795,7 @@ export default function Sidebar({
                               checked ? prev.filter((x) => x !== cat.id) : [...prev, cat.id],
                             );
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50"
+                          className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer"
                         >
                           <span
                             className={`inline-block w-3.5 h-3.5 rounded-sm ${cat.color} border border-white shadow-sm`}
@@ -780,7 +812,7 @@ export default function Sidebar({
                         setShowCategoryManager(true);
                         setShowFilterDropdown(false);
                       }}
-                      className="w-full px-4 py-2 text-sm text-[#0068ff] hover:bg-gray-50"
+                      className="w-full p-1  text-sm text-[#0068ff] hover:bg-gray-50 cursor-pointer"
                     >
                       Quản lý thẻ phân loại
                     </button>

@@ -172,7 +172,7 @@ export default function PinnedMessagesSection({
   return (
     <>
       {allPinnedMessages.length > 0 && (
-        <div className="relative group flex items-center justify-between gap-2 px-2 py-1 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-300 select-none m-2 sm:m-3">
+        <div className="relative group flex items-center justify-between gap-2 px-2 py-1 bg-white border border-gray-200 rounded-[0.5rem] shadow-sm hover:shadow-md hover:border-gray-300 select-none m-2 sm:m-3">
           <div
             className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-gray-50 rounded-lg p-1 transition-colors"
             onClick={() => firstMsg && onJumpToMessage(firstMsg._id)}

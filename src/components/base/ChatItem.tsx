@@ -319,10 +319,11 @@ export default function ChatItem({
         `}
       >
         <div className="flex items-center gap-1 md:gap-2 py-[0.5rem] md:py-1 px-2 ">
-          {/* Avatar + Online + Group Icon */}
-          <div className="relative flex-shrink-0">
-            <div
-              className={`
+          <div className="flex flex-col items-center gap-2">
+            {/* Avatar + Online + Group Icon */}
+            <div className="relative flex-shrink-0">
+              <div
+                className={`
                 w-12 h-12  rounded-4xl overflow-hidden ring-2 ring-white shadow-2xl flex items-center justify-center text-white font-bold text-2xl
                 ${
                   isGroup
@@ -330,53 +331,73 @@ export default function ChatItem({
                     : 'bg-gradient-to-br from-indigo-500 to-blue-600'
                 }
               `}
-            >
-              {item.avatar && !imgError ? (
-                <Image
-                  src={getProxyUrl(item.avatar)}
-                  alt={displayName}
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-cover"
-                  onError={() => setImgError(true)}
-                />
-              ) : (
-                <Image
-                  src="/logo/avata.webp"
-                  alt={displayName}
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
+              >
+                {item.avatar && !imgError ? (
+                  <Image
+                    src={getProxyUrl(item.avatar)}
+                    alt={displayName}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                    onError={() => setImgError(true)}
+                  />
+                ) : (
+                  <Image
+                    src="/logo/avata.webp"
+                    alt={displayName}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
 
-            {/* Online indicator (chỉ cá nhân) */}
-            {!isGroup && (
-              <div
-                className={`absolute bottom-0 right-0 w-3 md:w-4
+              {/* Online indicator (chỉ cá nhân) */}
+              {!isGroup && (
+                <div
+                  className={`absolute bottom-0 right-0 w-3 md:w-4
                h-3 md:h-4 rounded-full border-2 md:border-3 border-white shadow-lg
                 ${presenceOnline ? 'bg-green-400' : 'bg-gray-400'}`}
-              />
-            )}
+                />
+              )}
 
-            {/* Group icon */}
-            {isGroup && (
-              <div className="absolute -bottom-1 -right-1 p-1 bg-white rounded-2xl shadow-xl">
-                <HiUserGroup className="w-4 h-4 text-purple-600" />
-              </div>
-            )}
+              {/* Group icon */}
+              {isGroup && (
+                <div className="absolute -bottom-1 -right-1 p-1 bg-white rounded-2xl shadow-xl">
+                  <HiUserGroup className="w-4 h-4 text-purple-600" />
+                </div>
+              )}
 
-            {/* Pin icon – đẹp hơn */}
-            {isPinned && (
-              <div className="absolute -top-2 -left-2 p-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl shadow-xl animate-pulse">
-                <HiOutlineMapPin className="w-4 h-4 text-white rotate-12" />
+              {/* Pin icon – đẹp hơn */}
+              {isPinned && (
+                <div className="absolute -top-2 -left-2 p-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl shadow-xl animate-pulse">
+                  <HiOutlineMapPin className="w-4 h-4 text-white rotate-12" />
+                </div>
+              )}
+            </div>
+            {chatCategories.length > 0 && (
+              <div className="">
+                <div className="flex flex-wrap gap-1">
+                  {chatCategories.map((cat) => {
+                    const found = CATEGORY_TAGS.find((c) => c.id === cat);
+                    if (!found) return null;
+                    return (
+                      <span
+                        key={cat}
+                        className="inline-flex items-center gap-1.5 px-1 py-0.5 rounded-full text-[10px] font-medium bg-white/80 border border-gray-200 text-gray-700 shadow-sm"
+                      >
+                        <span className={`w-2 h-2 rounded-full ${found.color}`} />
+                        <span className="truncate max-w-[1.75rem]">{found.label}</span>
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
 
           {/* Nội dung */}
-          <div className="flex-1 min-w-0 ml-2  transition-colors duration-150 border-b pb-2 border-gray-200 lg:border-b-0">
+          <div className="flex-1 min-w-0 ml-1 transition-colors duration-150 border-b pb-2 border-gray-200 lg:border-b-0">
             <div className="flex items-center justify-between mb-1">
               <h4
                 className={`
@@ -419,7 +440,7 @@ export default function ChatItem({
                   return (
                     <span
                       key={tagId}
-                      className={`inline-block px-1.5 py-0.5 text-[10px] font-bold text-white rounded-md shadow-sm ${found.color} whitespace-nowrap`}
+                      className={`inline-block px-1.5 py-0.5 text-[10px] font-bold text-white rounded-[0.125rem] shadow-sm ${found.color} whitespace-nowrap`}
                     >
                       {found.label}
                     </span>
@@ -437,7 +458,7 @@ export default function ChatItem({
                         setShowTagSelector(true);
                       }
                     }}
-                    className={`p-0.5 rounded-md hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors ${
+                    className={`cursor-pointer p-0.5 rounded-[0.1  25rem] hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors ${
                       chatTags.length > 0 ? 'opacity-0 group-hover:opacity-100' : ''
                     } ${showTagSelector ? 'opacity-100 bg-gray-200 text-gray-600' : ''}`}
                     title="Thêm thẻ tag"
@@ -449,25 +470,6 @@ export default function ChatItem({
             )}
           </div>
         </div>
-        {chatCategories.length > 0 && (
-          <div className="px-2 pb-2">
-            <div className="flex flex-wrap gap-1">
-              {chatCategories.map((cat) => {
-                const found = CATEGORY_TAGS.find((c) => c.id === cat);
-                if (!found) return null;
-                return (
-                  <span
-                    key={cat}
-                    className="inline-flex items-center gap-1.5 px-1 py-0.5 rounded-full text-[10px] font-medium bg-white/80 border border-gray-200 text-gray-700 shadow-sm"
-                  >
-                    <span className={`w-2 h-2 rounded-full ${found.color}`} />
-                    <span className="truncate max-w-[1.75rem]">{found.label}</span>
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       {showMenu && menuPosition && (

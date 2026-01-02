@@ -324,7 +324,10 @@ export default function TagManagerModal({
       <div className="bg-white w-full h-full md:h-auto md:max-w-md md:rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-none">
           <h3 className="text-lg font-semibold text-gray-800">Quản lý thẻ tags</h3>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors cursor-pointer"
+          >
             <HiXMark className="w-6 h-6" />
           </button>
         </div>
@@ -340,7 +343,7 @@ export default function TagManagerModal({
                 onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, index)}
-                className={`flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-md group hover:bg-gray-100 transition-colors cursor-move ${
+                className={`flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-md group hover:bg-gray-100 transition-colors cursor-move mr-1 ${
                   draggedIndex === index ? 'opacity-50 ring-2 ring-blue-500 ring-dashed' : ''
                 }`}
               >
@@ -360,13 +363,13 @@ export default function TagManagerModal({
                 </div>
                 <div className="flex items-center gap-4">
                   <button
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
                     onClick={() => openEdit(tag.id)}
                   >
                     <CiEdit className="w-5 h-5" />
                   </button>
                   <button
-                    className="text-red-600 hover:text-red-700 transition-colors"
+                    className="cursor-pointer text-red-600 hover:text-red-700 transition-colors"
                     onClick={() => confirmDelete(tag.id)}
                   >
                     <CiTrash className="w-5 h-5" />
@@ -416,7 +419,7 @@ export default function TagManagerModal({
               <div className="flex items-center gap-2">
                 <button
                   onClick={closeEdit}
-                  className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+                  className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors cursor-pointer"
                   title="Quay lại"
                 >
                   <HiChevronLeft className="w-6 h-6" />
@@ -427,7 +430,7 @@ export default function TagManagerModal({
               </div>
               <button
                 onClick={closeEdit}
-                className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+                className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors cursor-pointer"
               >
                 <HiXMark className="w-6 h-6" />
               </button>

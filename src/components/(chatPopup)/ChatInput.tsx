@@ -22,6 +22,7 @@ import {
   HiClock,
   HiShieldCheck,
   HiTrash,
+  HiCheck,
 } from 'react-icons/hi2';
 import {
   CiCircleMore,
@@ -316,6 +317,157 @@ export default function ChatInput({
   const [showUpdatingPopup, setShowUpdatingPopup] = useState(false);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
+
+  // --- TAGS LOGIC ---
+  const TAG_COLORS: Record<string, string> = {
+    'bg-red-500': '#ef4444',
+    'bg-pink-500': '#ec4899',
+    'bg-orange-400': '#fb923c',
+    'bg-yellow-400': '#facc15',
+    'bg-green-500': '#22c55e',
+    'bg-teal-500': '#14b8a6',
+    'bg-blue-500': '#3b82f6',
+    'bg-purple-500': '#a855f7',
+  };
+
+  const [userTags, setUserTags] = useState<Array<{ id: string; label: string; color: string }>>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const tagStorageKey = useMemo(() => {
+    if (!selectedChat?._id || !currentUser?._id) return '';
+    return `chatTags:${currentUser._id}:${selectedChat._id}`;
+  }, [selectedChat?._id, currentUser?._id]);
+
+  // Load User Tags
+  useEffect(() => {
+    const loadUserTags = async () => {
+      if (!currentUser?._id) return;
+      // 1. From currentUser prop if available (via context)
+      if (currentUser.userTags && Array.isArray(currentUser.userTags)) {
+        setUserTags(currentUser.userTags);
+      }
+
+      // 2. Or fetch fresh
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getById', _id: String(currentUser._id) }),
+        });
+        const data = await res.json();
+        const row = (data && data.row) || (Array.isArray(data?.data) ? data.data[0] : null);
+        if (row && Array.isArray(row.userTags)) {
+          setUserTags(row.userTags);
+        }
+      } catch {}
+    };
+    loadUserTags();
+
+    const handleUserTagsUpdated = (e: Event) => {
+      const ev = e as CustomEvent<{ userId: string; tags: { id: string; label: string; color: string }[] }>;
+      if (ev.detail && String(ev.detail.userId) === String(currentUser?._id)) {
+        setUserTags(ev.detail.tags || []);
+      }
+    };
+    window.addEventListener('userTagsUpdated', handleUserTagsUpdated as EventListener);
+    return () => window.removeEventListener('userTagsUpdated', handleUserTagsUpdated as EventListener);
+  }, [currentUser?._id]);
+
+  // Load Selected Tags for Chat
+  useEffect(() => {
+    if (!tagStorageKey) return;
+
+    // 1. Try from selectedChat prop
+    const fromServer =
+      (selectedChat as unknown as { tags?: string[] }).tags ||
+      (selectedChat as unknown as { tagsBy?: Record<string, string[]> }).tagsBy?.[String(currentUser._id)] ||
+      [];
+
+    if (Array.isArray(fromServer) && fromServer.length > 0) {
+      setSelectedTagIds(fromServer.filter((x) => typeof x === 'string'));
+    } else {
+      // 2. Local storage
+      try {
+        const raw = localStorage.getItem(tagStorageKey);
+        if (raw) {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr)) setSelectedTagIds(arr);
+        } else {
+          setSelectedTagIds([]);
+        }
+      } catch {
+        setSelectedTagIds([]);
+      }
+    }
+  }, [tagStorageKey, selectedChat]);
+
+  // Listen for chat tag updates (from ChatItem or Sidebar)
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      try {
+        const anyEv = ev as unknown as { detail?: { userId?: string; roomId?: string; tags?: string[] } };
+        const detail = anyEv.detail || {};
+        if (String(detail.userId) !== String(currentUser._id)) return;
+        if (String(detail.roomId) !== String(selectedChat?._id)) return;
+        const arr = Array.isArray(detail.tags) ? detail.tags.filter((x: unknown) => typeof x === 'string') : [];
+        setSelectedTagIds(arr);
+      } catch {}
+    };
+    window.addEventListener('chatTagsUpdated', handler as EventListener);
+    return () => window.removeEventListener('chatTagsUpdated', handler as EventListener);
+  }, [currentUser._id, selectedChat?._id]);
+
+  const handleToggleTag = async (tagId: string) => {
+    if (!tagStorageKey) return;
+
+    const newTags = selectedTagIds.includes(tagId)
+      ? selectedTagIds.filter((id) => id !== tagId)
+      : [...selectedTagIds, tagId];
+
+    setSelectedTagIds(newTags);
+
+    // Update local storage
+    try {
+      localStorage.setItem(tagStorageKey, JSON.stringify(newTags));
+    } catch {}
+
+    // Dispatch event to update other components
+    window.dispatchEvent(
+      new CustomEvent('chatTagsUpdated', {
+        detail: {
+          userId: currentUser._id,
+          roomId: selectedChat?._id,
+          tags: newTags,
+        },
+      }),
+    );
+
+    // API Update
+    try {
+      const isGroupChat = isGroup;
+      const apiRoute = isGroupChat ? '/api/groups' : '/api/users';
+      const payload = isGroupChat
+        ? {
+            action: 'updateTags',
+            _id: String(currentUser._id),
+            conversationId: String(selectedChat?._id),
+            data: { tags: newTags },
+          }
+        : {
+            action: 'updateTags',
+            currentUserId: String(currentUser._id),
+            roomId: String(selectedChat?._id),
+            data: { tags: newTags },
+          };
+      await fetch(apiRoute, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      console.error('Failed to update tags', e);
+    }
+  };
+
   const handleShowUpdatingPopup = () => {
     setShowUpdatingPopup(true);
     window.setTimeout(() => setShowUpdatingPopup(false), 1500);
@@ -759,6 +911,32 @@ export default function ChatInput({
           <CiCircleMore className="w-6 h-6" />
         </button>
       </div>
+      {/* Tags List */}
+      {userTags.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full p-1">
+          {userTags.map((tag) => {
+            const isSelected = selectedTagIds.includes(tag.id);
+            const colorHex = TAG_COLORS[tag.color] || '#9ca3af';
+            return (
+              <button
+                key={tag.id}
+                onClick={() => handleToggleTag(tag.id)}
+                className={`
+                  cursor-pointer flex-none px-2.5 py-1 rounded-[0.25rem] text-xs font-semibold border transition-all duration-200 shadow-sm active:scale-95
+                  ${isSelected ? 'shadow-md' : 'hover:shadow'}
+                `}
+                style={{
+                  backgroundColor: isSelected ? colorHex : 'white',
+                  borderColor: colorHex,
+                  color: isSelected ? '#ffffff' : colorHex,
+                }}
+              >
+                {tag.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Input Area + Send Button */}
       <div className="flex items-end gap-2">
