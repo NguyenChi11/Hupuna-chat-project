@@ -15,6 +15,7 @@ import {
   HiChevronUp,
   HiEllipsisVertical,
   HiTrash,
+  HiMagnifyingGlass,
 } from 'react-icons/hi2';
 import { getProxyUrl } from '@/utils/utils';
 
@@ -70,7 +71,8 @@ export default function PinnedMessagesSection({
       );
     }
     const label =
-      msg.type === 'file'
+      msg.pinnedTitle ||
+      (msg.type === 'file'
         ? msg.fileName || 'File'
         : msg.type === 'sticker'
           ? 'Sticker'
@@ -78,7 +80,7 @@ export default function PinnedMessagesSection({
             ? 'Bình chọn'
             : msg.type === 'reminder'
               ? 'Lịch hẹn'
-              : msg.content || 'Tin nhắn';
+              : msg.content || 'Tin nhắn');
     return <div className="w-24 max-w-[12rem] px-2 py-2 text-xs text-gray-700 line-clamp-2">{label}</div>;
   };
   const renderMiniPreview = (msg: Message) => {
@@ -106,25 +108,32 @@ export default function PinnedMessagesSection({
     }
     return null;
   };
+  const getPinnedLabel = (msg: Message) => {
+    if (msg.pinnedTitle && msg.pinnedTitle.trim()) return msg.pinnedTitle.trim();
+    const content = msg.content?.trim();
+    if (msg.type === 'image') return '[Hình ảnh]';
+    if (msg.type === 'video') return '[Video]';
+    if (msg.type === 'file') return '[Tệp]';
+    if (msg.type === 'sticker') return '[Sticker]';
+    if (msg.type === 'poll') return '[Bình chọn]';
+    if (msg.type === 'reminder') return '[Lịch hẹn]';
+    return content || '[Tin nhắn]';
+  };
+
   const firstMsg = allPinnedMessages[0];
-  const typeLabel =
-    firstMsg?.type === 'image'
-      ? '[Hình ảnh]'
-      : firstMsg?.type === 'video'
-        ? '[Video]'
-        : firstMsg?.type === 'file'
-          ? '[Tệp]'
-          : firstMsg?.type === 'sticker'
-            ? '[Sticker]'
-            : firstMsg?.type === 'poll'
-              ? '[Bình chọn]'
-              : firstMsg?.type === 'reminder'
-                ? '[Lịch hẹn]'
-                : '[Tin nhắn]';
+  const typeLabel = firstMsg ? getPinnedLabel(firstMsg) : '';
   const senderName = firstMsg ? getSenderName(firstMsg.sender) : '';
   const extraCount = allPinnedMessages.length > 1 ? allPinnedMessages.length - 1 : 0;
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openOptions, setOpenOptions] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredPinnedMessages = allPinnedMessages.filter((msg) => {
+    const query = searchQuery.toLowerCase();
+    const content = String(msg.content || '').toLowerCase();
+    const title = String(msg.pinnedTitle || '').toLowerCase();
+    return content.includes(query) || title.includes(query);
+  });
   const [optionsPosition, setOptionsPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const optionsRef = useRef<HTMLDivElement | null>(null);
@@ -249,35 +258,48 @@ export default function PinnedMessagesSection({
                 ref={dropdownRef}
                 className="absolute left-3 right-3 top-full mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl z-50"
               >
-                <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                  <div className="text-sm font-semibold text-gray-900">Danh sách ghim ({allPinnedMessages.length})</div>
-                  <button
-                    className="text-sm font-medium text-blue-700 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenDropdown(false);
-                    }}
-                  >
-                    Thu gọn
-                    <HiChevronUp className="w-4 h-4" />
-                  </button>
+                <div className="px-4 py-3 border-b border-gray-200 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-gray-900">
+                      Danh sách ghim ({allPinnedMessages.length})
+                    </div>
+                    <button
+                      className="text-sm font-medium text-blue-700 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenDropdown(false);
+                      }}
+                    >
+                      Thu gọn
+                      <HiChevronUp className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <HiMagnifyingGlass className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      className="block w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-gray-50 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="Tìm kiếm ghim..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
                 </div>
                 <div className="max-h-[20rem] custom-scrollbar overflow-auto divide-y divide-gray-100">
-                  {allPinnedMessages.map((msg) => {
-                    const label =
-                      msg.type === 'image'
-                        ? '[Hình ảnh]'
-                        : msg.type === 'video'
-                          ? '[Video]'
-                          : msg.type === 'file'
-                            ? '[Link]'
-                            : msg.type === 'sticker'
-                              ? '[Sticker]'
-                              : msg.type === 'poll'
-                                ? '[Bình chọn]'
-                                : msg.type === 'reminder'
-                                  ? '[Lịch hẹn]'
-                                  : '[Tin nhắn]';
+                  {filteredPinnedMessages.length === 0 && (
+                    <div className="px-4 py-8 text-center text-sm text-gray-500">Không tìm thấy tin nhắn ghim nào</div>
+                  )}
+                  {filteredPinnedMessages.map((msg) => {
+                    let label = getPinnedLabel(msg);
+                    // Nếu là tin nhắn text và không có tiêu đề riêng, đặt label là [Tin nhắn]
+                    // để dòng nội dung (msg.content) được hiển thị ở dòng dưới
+                    if (!msg.pinnedTitle && msg.type === 'text' && msg.content) {
+                      label = '[Tin nhắn]';
+                    }
+
                     const name = getSenderName(msg.sender);
                     return (
                       <div
@@ -294,7 +316,10 @@ export default function PinnedMessagesSection({
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-semibold text-gray-900 truncate">{label}</div>
-                          <div className="text-[0.875rem] md:text-[1rem] text-gray-600 truncate">
+                          {msg.content && msg.content !== label && (
+                            <div className="text-sm text-gray-700 truncate">{msg.content}</div>
+                          )}
+                          <div className="text-xs text-gray-500 truncate">
                             {name ? `Tin nhắn của ${name}` : 'Tin nhắn'}
                           </div>
                         </div>
@@ -375,7 +400,7 @@ export default function PinnedMessagesSection({
                 </a>
               );
             if (msg.type === 'sticker') return 'Sticker';
-            return msg.content || '[Tin nhắn]';
+            return msg.content?.trim() || '[Tin nhắn]';
           }}
           onUnpinMessage={onUnpinMessage}
         />

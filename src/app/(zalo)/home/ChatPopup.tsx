@@ -7,6 +7,7 @@ import io, { Socket } from 'socket.io-client';
 import ChatInfoPopup from './ChatInfoPopup';
 
 import ModalMembers from '../../../components/base/ModalMembers';
+import PinMessageTitleModal from '@/components/base/PinMessageTitleModal';
 import { User } from '../../../types/User';
 import { Message, MessageCreate, MessageType } from '../../../types/Message';
 import { ChatItem, GroupConversation, MemberInfo } from '../../../types/Group';
@@ -841,8 +842,8 @@ export default function ChatWindow({
       return Number.isFinite(n) ? n : 0;
     };
     const cmp = (a: Message, b: Message) => {
-      const ta = safeNum((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp);
-      const tb = safeNum((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp);
+      const ta = safeNum(a.serverTimestamp ?? a.timestamp);
+      const tb = safeNum(b.serverTimestamp ?? b.timestamp);
       if (ta !== tb) return ta - tb;
       const ia = String(a._id || '');
       const ib = String(b._id || '');
@@ -880,14 +881,14 @@ export default function ChatWindow({
         pollTimersByIdRef.current.delete(idStr);
         pollScheduledIdsRef.current.delete(idStr);
       }
-      const endAt = (msg as unknown as { pollEndAt?: number | null }).pollEndAt;
-      const locked = !!(msg as unknown as { isPollLocked?: boolean }).isPollLocked;
+      const endAt = msg.pollEndAt;
+      const locked = !!msg.isPollLocked;
       if (typeof endAt !== 'number' || locked) return;
       const now = Date.now();
       const delay = Math.max(0, endAt - now);
       const timerId = window.setTimeout(async () => {
         const latest = messagesRef.current.find((x) => String(x._id) === idStr);
-        if (!latest || (latest as Message).isRecalled || (latest as Message).isPollLocked) {
+        if (!latest || latest.isRecalled || latest.isPollLocked) {
           pollScheduledIdsRef.current.delete(idStr);
           const t = pollTimersByIdRef.current.get(idStr);
           if (t) {
@@ -896,7 +897,7 @@ export default function ChatWindow({
           }
           return;
         }
-        let latestEndAt = (latest as unknown as { pollEndAt?: number | null }).pollEndAt;
+        let latestEndAt = latest.pollEndAt;
         try {
           const r = await fetch('/api/messages', {
             method: 'POST',
@@ -927,7 +928,7 @@ export default function ChatWindow({
             const timeStr2 = new Date(latestEndAt as number).toLocaleString('vi-VN');
             const now3 = Date.now();
             const updateData = {
-              isPollLocked: true as true,
+              isPollLocked: true as const,
               pollLockedAt: now3,
               editedAt: now3,
               timestamp: now3,
@@ -952,7 +953,7 @@ export default function ChatWindow({
         }
         const timeStr = new Date((latestEndAt as number) || now2).toLocaleString('vi-VN');
         const updateData = {
-          isPollLocked: true as true,
+          isPollLocked: true as const,
           pollLockedAt: now2,
           editedAt: now2,
           timestamp: now2,
@@ -1441,11 +1442,19 @@ export default function ChatWindow({
   // 🔥 USEMEMO: Phân loại tin nhắn
   const messagesGrouped = useMemo(() => groupMessagesByDate(messages), [messages]);
 
-  const handlePinMessage = async (message: Message) => {
-    // 1. Cập nhật trạng thái local trước (Optimistic update)
-    setPinnedMessage(message);
+  const [messageToPin, setMessageToPin] = useState<Message | null>(null);
+  const [showPinTitleModal, setShowPinTitleModal] = useState(false);
 
-    const newPinnedStatus = !message.isPinned; // Xác định trạng thái mới
+  const executePinMessage = async (message: Message, newPinnedStatus: boolean, pinnedTitle?: string) => {
+    const cleanTitle = pinnedTitle?.trim();
+    // 1. Cập nhật trạng thái local trước (Optimistic update)
+    const updatedMessage = {
+      ...message,
+      isPinned: newPinnedStatus,
+      pinnedTitle: cleanTitle,
+      pinnedAt: newPinnedStatus ? Date.now() : null,
+    };
+    setPinnedMessage(newPinnedStatus ? updatedMessage : null);
 
     try {
       const res = await fetch('/api/messages', {
@@ -1454,7 +1463,7 @@ export default function ChatWindow({
         body: JSON.stringify({
           action: 'togglePin',
           messageId: message._id,
-          data: { isPinned: newPinnedStatus }, // Sử dụng trạng thái mới
+          data: { isPinned: newPinnedStatus, pinnedTitle: cleanTitle },
         }),
       });
 
@@ -1463,7 +1472,12 @@ export default function ChatWindow({
         setMessages((prev) =>
           prev.map((m) =>
             m._id === message._id
-              ? { ...m, isPinned: newPinnedStatus, pinnedAt: newPinnedStatus ? Date.now() : null }
+              ? {
+                  ...m,
+                  isPinned: newPinnedStatus,
+                  pinnedTitle: cleanTitle,
+                  pinnedAt: newPinnedStatus ? Date.now() : null,
+                }
               : m,
           ),
         );
@@ -1471,6 +1485,7 @@ export default function ChatWindow({
           const updatedMsg = {
             ...message,
             isPinned: newPinnedStatus,
+            pinnedTitle: cleanTitle,
             editedAt: Date.now(),
             pinnedAt: newPinnedStatus ? Date.now() : null,
           } as Message;
@@ -1484,6 +1499,7 @@ export default function ChatWindow({
           _id: message._id,
           roomId,
           isPinned: newPinnedStatus,
+          pinnedTitle: cleanTitle,
           pinnedAt: newPinnedStatus ? Date.now() : null,
         });
 
@@ -1505,6 +1521,10 @@ export default function ChatWindow({
           notificationText = `${senderName} ${action} một tin nhắn.`;
         }
 
+        if (newPinnedStatus && cleanTitle) {
+          notificationText += ` Tiêu đề: "${cleanTitle}"`;
+        }
+
         await sendNotifyMessage(notificationText);
         // 🔥 END BƯỚC MỚI
       } else {
@@ -1517,6 +1537,15 @@ export default function ChatWindow({
 
       // 3. Roll back trạng thái local nếu có lỗi mạng/server
       setPinnedMessage(message.isPinned ? message : null);
+    }
+  };
+
+  const handlePinMessage = async (message: Message) => {
+    if (message.isPinned) {
+      executePinMessage(message, false);
+    } else {
+      setMessageToPin(message);
+      setShowPinTitleModal(true);
     }
   };
 
@@ -1715,8 +1744,8 @@ export default function ChatWindow({
         if (!map.has(id)) map.set(id, m);
       });
       const desc = Array.from(map.values()).sort((a: Message, b: Message) => {
-        const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
-        const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
+        const ta = Number(a.serverTimestamp ?? a.timestamp) || 0;
+        const tb = Number(b.serverTimestamp ?? b.timestamp) || 0;
         if (tb !== ta) return tb - ta;
         const ia = String(a._id || '');
         const ib = String(b._id || '');
@@ -1899,8 +1928,8 @@ export default function ChatWindow({
         const map = new Map<string, Message>();
         [...prev, data].forEach((m) => map.set(String(m._id), m));
         const unique = Array.from(map.values()).sort((a: Message, b: Message) => {
-          const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
-          const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
+          const ta = Number(a.serverTimestamp ?? a.timestamp) || 0;
+          const tb = Number(b.serverTimestamp ?? b.timestamp) || 0;
           if (ta !== tb) return ta - tb;
           const ia = String(a._id || '');
           const ib = String(b._id || '');
@@ -1910,9 +1939,9 @@ export default function ChatWindow({
         });
         return unique;
       });
-      if ((data as unknown as { type?: MessageType }).type === 'poll') {
-        const endAt = (data as unknown as { pollEndAt?: number | null }).pollEndAt;
-        const locked = !!(data as unknown as { isPollLocked?: boolean }).isPollLocked;
+      if (data.type === 'poll') {
+        const endAt = data.pollEndAt;
+        const locked = !!data.isPollLocked;
         if (typeof endAt === 'number' && !locked) {
           schedulePollAutoLock(data);
         }
@@ -2050,8 +2079,14 @@ export default function ChatWindow({
         pollLockedAt?: number;
         timestamp?: number;
         isPinned?: boolean;
+        pinnedTitle?: string;
         pinnedAt?: number | null;
         reactions?: Record<string, string[]>;
+        pollAllowMultiple?: boolean;
+        pollAllowAddOptions?: boolean;
+        pollHideVoters?: boolean;
+        pollHideResultsUntilVote?: boolean;
+        pollEndAt?: number | null;
       }) => {
         if (String(data.roomId) === String(roomId)) {
           setMessages((prevMessages) => {
@@ -2069,11 +2104,11 @@ export default function ChatWindow({
                     pollVotes: data.pollVotes ?? msg.pollVotes,
                     isPollLocked: data.isPollLocked ?? msg.isPollLocked,
                     pollLockedAt: data.pollLockedAt ?? msg.pollLockedAt,
-                    pollAllowMultiple: (data as unknown as { pollAllowMultiple?: boolean }).pollAllowMultiple ?? (msg as unknown as { pollAllowMultiple?: boolean }).pollAllowMultiple,
-                    pollAllowAddOptions: (data as unknown as { pollAllowAddOptions?: boolean }).pollAllowAddOptions ?? (msg as unknown as { pollAllowAddOptions?: boolean }).pollAllowAddOptions,
-                    pollHideVoters: (data as unknown as { pollHideVoters?: boolean }).pollHideVoters ?? (msg as unknown as { pollHideVoters?: boolean }).pollHideVoters,
-                    pollHideResultsUntilVote: (data as unknown as { pollHideResultsUntilVote?: boolean }).pollHideResultsUntilVote ?? (msg as unknown as { pollHideResultsUntilVote?: boolean }).pollHideResultsUntilVote,
-                    pollEndAt: (data as any).pollEndAt !== undefined ? (data as any).pollEndAt : (msg as any).pollEndAt,
+                    pollAllowMultiple: data.pollAllowMultiple ?? msg.pollAllowMultiple,
+                    pollAllowAddOptions: data.pollAllowAddOptions ?? msg.pollAllowAddOptions,
+                    pollHideVoters: data.pollHideVoters ?? msg.pollHideVoters,
+                    pollHideResultsUntilVote: data.pollHideResultsUntilVote ?? msg.pollHideResultsUntilVote,
+                    pollEndAt: data.pollEndAt !== undefined ? data.pollEndAt : msg.pollEndAt,
                     timestamp: data.timestamp ?? msg.timestamp,
                     isPinned: typeof data.isPinned === 'boolean' ? data.isPinned : msg.isPinned,
                     pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : msg.pinnedAt,
@@ -2082,8 +2117,8 @@ export default function ChatWindow({
                 : msg,
             );
             const sorted = [...updated].sort((a: Message, b: Message) => {
-              const ta = Number((a as unknown as { serverTimestamp?: number }).serverTimestamp ?? a.timestamp) || 0;
-              const tb = Number((b as unknown as { serverTimestamp?: number }).serverTimestamp ?? b.timestamp) || 0;
+              const ta = Number(a.serverTimestamp ?? a.timestamp) || 0;
+              const tb = Number(b.serverTimestamp ?? b.timestamp) || 0;
               if (ta !== tb) return ta - tb;
               const ia = String(a._id || '');
               const ib = String(b._id || '');
@@ -2108,6 +2143,7 @@ export default function ChatWindow({
                     timestamp: data.timestamp ?? latest.timestamp,
                     editedAt: data.editedAt ?? latest.editedAt,
                     isPinned: data.isPinned,
+                    pinnedTitle: data.pinnedTitle ?? latest.pinnedTitle,
                     pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : latest.pinnedAt,
                   } as Message)
                 : ({
@@ -2119,6 +2155,7 @@ export default function ChatWindow({
                     timestamp: data.timestamp || Date.now(),
                     editedAt: data.editedAt || Date.now(),
                     isPinned: data.isPinned,
+                    pinnedTitle: data.pinnedTitle,
                     pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : Date.now(),
                   } as Message);
               const withoutDup = prev.filter((m) => String(m._id) !== String(data._id));
@@ -2235,14 +2272,19 @@ export default function ChatWindow({
             pollTimersByIdRef.current.delete(idStr);
             pollScheduledIdsRef.current.delete(idStr);
           }
-          const endAt = (data as any).pollEndAt;
-          const shouldSchedule = typeof endAt === 'number' && !(data as any).isPollLocked;
+          const endAt = data.pollEndAt;
+          const shouldSchedule = typeof endAt === 'number' && !data.isPollLocked;
           if (shouldSchedule) {
             const existingMsg = messagesRef.current.find((m) => String(m._id) === idStr);
             const composed = existingMsg
-              ? { ...(existingMsg as Message), pollEndAt: endAt, isPollLocked: (data as any).isPollLocked }
-              : ({ _id: data._id, roomId: data.roomId, pollEndAt: endAt, isPollLocked: (data as any).isPollLocked } as unknown as Message);
-            schedulePollAutoLock(composed as Message);
+              ? { ...existingMsg, pollEndAt: endAt, isPollLocked: data.isPollLocked }
+              : ({
+                  _id: data._id,
+                  roomId: data.roomId,
+                  pollEndAt: endAt,
+                  isPollLocked: data.isPollLocked,
+                } as unknown as Message);
+            schedulePollAutoLock(composed);
           }
           // Không re-fetch để tránh reload, cập nhật cục bộ qua socket
         }
@@ -2378,8 +2420,8 @@ export default function ChatWindow({
     messages.forEach((m) => {
       const idStr = String(m._id);
       const scheduled = pollScheduledIdsRef.current.has(idStr);
-      const endAt = (m as unknown as { pollEndAt?: number | null }).pollEndAt;
-      const locked = !!(m as unknown as { isPollLocked?: boolean }).isPollLocked;
+      const endAt = m.pollEndAt;
+      const locked = !!m.isPollLocked;
       if (typeof endAt === 'number' && !locked && !scheduled) {
         schedulePollAutoLock(m);
       }
@@ -3345,8 +3387,6 @@ export default function ChatWindow({
             <div ref={messagesEndRef} className="h-8 sm:h-10" />
           </div>
 
-          
-
           <button
             onClick={() => scrollToBottom(true)}
             aria-label="Cuộn xuống cuối"
@@ -3599,6 +3639,20 @@ export default function ChatWindow({
               }}
             />
           </div>
+        )}
+
+        {showPinTitleModal && messageToPin && (
+          <PinMessageTitleModal
+            onClose={() => {
+              setShowPinTitleModal(false);
+              setMessageToPin(null);
+            }}
+            onConfirm={(title) => {
+              executePinMessage(messageToPin, true, title);
+              setShowPinTitleModal(false);
+              setMessageToPin(null);
+            }}
+          />
         )}
 
         {showShareModal && messageToShare && (

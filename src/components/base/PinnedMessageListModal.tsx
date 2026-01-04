@@ -91,19 +91,20 @@ export default function PinnedMessageListModal({
                                     : 'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      {msg.type === 'poll'
-                        ? 'Bình chọn'
-                        : msg.type === 'reminder'
-                          ? 'Lịch hẹn'
-                          : msg.type === 'image'
-                            ? 'Ảnh'
-                            : msg.type === 'video'
-                              ? 'Video'
-                              : msg.type === 'file'
-                                ? 'File'
-                                : msg.type === 'sticker'
-                                  ? 'Sticker'
-                                  : 'Tin nhắn'}
+                      {msg.pinnedTitle ||
+                        (msg.type === 'poll'
+                          ? 'Bình chọn'
+                          : msg.type === 'reminder'
+                            ? 'Lịch hẹn'
+                            : msg.type === 'image'
+                              ? 'Ảnh'
+                              : msg.type === 'video'
+                                ? 'Video'
+                                : msg.type === 'file'
+                                  ? 'File'
+                                  : msg.type === 'sticker'
+                                    ? 'Sticker'
+                                    : 'Tin nhắn')}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

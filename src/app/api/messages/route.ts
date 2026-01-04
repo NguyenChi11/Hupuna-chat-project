@@ -236,7 +236,7 @@ export async function POST(req: NextRequest) {
           const escapedTerm = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const searchRegex = new RegExp(escapedTerm, 'i');
           searchOr = [{ content: { $regex: searchRegex } }, { fileName: { $regex: searchRegex } }];
-          if (!otherFilters || !(Object.keys(otherFilters).includes('type'))) {
+          if (!otherFilters || !Object.keys(otherFilters).includes('type')) {
             (finalFilters as Record<string, unknown>).type = { $ne: 'notify' };
           }
         }
@@ -484,13 +484,22 @@ export async function POST(req: NextRequest) {
         }
 
         const newPinnedStatus = data.isPinned;
+        const pinnedTitle = data.pinnedTitle;
 
         // Tìm tin nhắn theo ID và cập nhật trường isPinned
+        const updatePayload: Partial<Message> = {
+          isPinned: newPinnedStatus,
+          pinnedAt: newPinnedStatus ? Date.now() : null,
+        };
+        if (pinnedTitle !== undefined && pinnedTitle !== null) {
+          updatePayload.pinnedTitle = String(pinnedTitle);
+        }
+
         const result = await updateByField<Message>(
           collectionName,
           '_id', // Tìm theo ID
           messageId,
-          { isPinned: newPinnedStatus, pinnedAt: newPinnedStatus ? Date.now() : null }, // Cập nhật trạng thái mới + thời điểm ghim
+          updatePayload,
         );
 
         return NextResponse.json({ success: true, result });
@@ -879,10 +888,7 @@ export async function POST(req: NextRequest) {
           isDeleted: { $ne: true },
           isRecalled: { $ne: true },
           reminderFired: { $ne: true },
-          $or: [
-            { roomId: { $in: allAccessibleRoomIds } },
-            { sender: String(searchUserId) },
-          ],
+          $or: [{ roomId: { $in: allAccessibleRoomIds } }, { sender: String(searchUserId) }],
         };
         if (typeof fromTs === 'number' || typeof untilTs === 'number') {
           (reminderFilters as MongoFilters).reminderAt = {

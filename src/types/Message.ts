@@ -16,12 +16,14 @@ export interface Message {
   previewUrl?: string;
   type: MessageType;
   timestamp: number;
+  serverTimestamp?: number;
   pinnedAt?: number | null;
   readBy?: string[];
   isRecalled?: boolean;
   replyToMessageId?: string;
   replyToMessageName?: string;
   isPinned?: boolean;
+  pinnedTitle?: string;
   mentions?: string[];
   originalContent?: string;
   editedAt?: number;
@@ -39,7 +41,7 @@ export interface Message {
   pollHideVoters?: boolean;
   pollHideResultsUntilVote?: boolean;
   pollEndAt?: number | null;
-   sharedFrom?: {
+  sharedFrom?: {
     messageId: string;
     originalSender: string;
     originalRoomId: string;
@@ -63,10 +65,12 @@ export interface MessageCreate {
   previewUrl?: string;
   type: MessageType;
   timestamp: number;
+  serverTimestamp?: number;
   isRecalled?: boolean;
   replyToMessageId?: string;
   replyToMessageName?: string;
   isPinned?: boolean;
+  pinnedTitle?: string;
   originalContent?: string;
   editedAt?: number;
   reminderAt?: number;
@@ -83,7 +87,7 @@ export interface MessageCreate {
   pollHideVoters?: boolean;
   pollHideResultsUntilVote?: boolean;
   pollEndAt?: number | null;
-   sharedFrom?: {
+  sharedFrom?: {
     messageId: string;
     originalSender: string;
     originalRoomId: string;

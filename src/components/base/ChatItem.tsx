@@ -9,7 +9,16 @@ import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 
 // React Icons – Bộ hiện đại nhất 2025
-import { HiEye, HiEyeSlash, HiUserGroup, HiCheck, HiOutlineMapPin, HiPlus } from 'react-icons/hi2';
+import {
+  HiEye,
+  HiEyeSlash,
+  HiUserGroup,
+  HiCheck,
+  HiOutlineMapPin,
+  HiPlus,
+  HiEllipsisHorizontal,
+  HiChevronUp,
+} from 'react-icons/hi2';
 
 interface ChatItemProps {
   item: ChatItemType;
@@ -303,6 +312,7 @@ export default function ChatItem({
 
   const [showTagSelector, setShowTagSelector] = useState(false);
   const [tagMenuPos, setTagMenuPos] = useState<{ x: number; y: number } | null>(null);
+  const [isTagExpanded, setIsTagExpanded] = useState(false);
 
   return (
     <>
@@ -439,8 +449,8 @@ export default function ChatItem({
               )}
             </div>
             {(chatTags.length > 0 || showTagSelector) && (
-              <div className="flex items-center gap-1 mt-2 relative z-10 w-full overflow-x-auto custom-scrollbar">
-                {chatTags.map((tagId) => {
+              <div className="flex flex-wrap items-center gap-1 mt-2 relative z-10 w-full">
+                {(isTagExpanded ? chatTags : chatTags.slice(0, 3)).map((tagId) => {
                   const found = USER_TAGS.find((t) => t.id === tagId);
                   if (!found) return null;
                   return (
@@ -452,6 +462,29 @@ export default function ChatItem({
                     </span>
                   );
                 })}
+                {!isTagExpanded && chatTags.length > 3 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsTagExpanded(true);
+                    }}
+                    className="inline-flex items-center justify-center px-1 py-0.5 mb-[0.25rem] text-[10px] bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-[0.125rem] transition-colors"
+                  >
+                    <HiEllipsisHorizontal className="w-3 h-3" />
+                  </button>
+                )}
+                {isTagExpanded && chatTags.length > 3 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsTagExpanded(false);
+                    }}
+                    className="inline-flex items-center justify-center px-1 py-0.5 mb-[0.25rem] text-[10px] bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-[0.125rem] transition-colors"
+                    title="Thu gọn"
+                  >
+                    <HiChevronUp className="w-3 h-3" />
+                  </button>
+                )}
                 <div className="relative">
                   <button
                     onClick={(e) => {
