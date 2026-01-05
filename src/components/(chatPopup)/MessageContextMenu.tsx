@@ -1,18 +1,21 @@
 import React from 'react';
 import { Message } from '@/types/Message';
-import {
-  HiOutlineAcademicCap,
-  HiOutlineClipboardCopy,
-  HiOutlineDownload,
-  HiOutlineShare,
-  HiOutlineTrash,
-  HiPencil,
-} from 'react-icons/hi';
-import { RiReplyLine } from 'react-icons/ri';
+import { HiOutlineDownload, HiOutlineTrash, HiPencil } from 'react-icons/hi';
 import ICReply from '../svg/ICReply';
 import ICShareMessage from '../svg/ICShareMessage';
 import ICCopy from '../svg/ICCopy';
 import ICPin from '../svg/ICPin';
+import {
+  FaCopy,
+  FaDownload,
+  FaPaperclip,
+  FaRegPenToSquare,
+  FaRegShareFromSquare,
+  FaRepeat,
+  FaReply,
+  FaTrashCan,
+} from 'react-icons/fa6';
+import { FaShare } from 'react-icons/fa';
 
 const getId = (u: Message['sender'] | string | undefined | null): string => {
   if (!u) return '';
@@ -51,7 +54,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   href = '#',
   download = '',
 }) => {
-  const className = `cursor-pointer w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-3 ${isRed ? 'text-red-500' : 'text-gray-700'}`;
+  const className = `cursor-pointer w-full text-left px-3 py-1 mb-1 hover:bg-gray-100 flex items-center gap-3 ${isRed ? 'text-red-500' : 'text-gray-700'}`;
 
   if (isAnchor) {
     return (
@@ -170,7 +173,7 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex items-center gap-4">
-            <ICReply size={24} className="w-6 h-6" />
+            <FaRepeat size={24} className="w-5 h-5" />
             <p className="text-[1rem]">Trả lời</p>
           </span>
         </MenuItem>
@@ -185,7 +188,7 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex gap-4 items-center">
-            <ICShareMessage className="w-6 h-6" />
+            <FaRegShareFromSquare className="w-5 h-5" />
             <p className="text-[1rem]">Chia sẻ</p>
           </span>
         </MenuItem>
@@ -203,8 +206,8 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
             onClose();
           }}
         >
-          <span className='flex gap-2 items-center'>
-            <ICCopy className="w-7 h-7 font-bold" />
+          <span className="flex gap-4 items-center">
+            <FaCopy className="w-5 h-5 " />
             <span className="text-[1rem] ">Sao chép</span>
           </span>
         </MenuItem>
@@ -220,13 +223,13 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
         >
           {isCurrentlyPinned ? (
             <p className="text-red-500 flex gap-4 items-center">
-              <ICPin className={`text-red-600 w-5 h-5 `}  />
-              <span className="text-[1rem]">Bỏ ghim tin nhắn</span> 
+              <FaPaperclip className={`text-red-600 w-5 h-5 `} />
+              <span className="text-[1rem]">Bỏ ghim tin nhắn</span>
             </p>
           ) : (
-            <p className="flex gap-4 items-center ">  
-              <ICPin className="w-5 h-5" />
-              <span className="text-[1rem]">Ghim tin nhắn</span> 
+            <p className="flex gap-4 items-center ">
+              <FaPaperclip className="w-5 h-5" />
+              <span className="text-[1rem]">Ghim tin nhắn</span>
             </p>
           )}
         </MenuItem>
@@ -245,8 +248,8 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex gap-4 items-center">
-            <HiPencil className="w-6 h-6" />
-            <span className="text-[1rem]">Chỉnh sửa</span>  
+            <FaRegPenToSquare className="w-5 h-5" />
+            <span className="text-[1rem]">Chỉnh sửa</span>
           </span>
         </MenuItem>
       )}
@@ -262,8 +265,8 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex gap-4 items-center">
-            <HiOutlineDownload className="w-5 h-5" />
-            <span className="text-[1rem]">Tải xuống</span>  
+            <FaDownload className="w-5 h-5" />
+            <span className="text-[1rem]">Tải xuống</span>
           </span>
         </MenuItem>
       )}
@@ -279,8 +282,8 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           }}
         >
           <span className="flex gap-4 items-center">
-            <HiOutlineTrash className="w-5 h-5" />
-            <span className="text-[1rem]">Thu hồi</span>  
+            <FaTrashCan className="w-5 h-5" />
+            <span className="text-[1rem]">Thu hồi</span>
           </span>
         </MenuItem>
       )}

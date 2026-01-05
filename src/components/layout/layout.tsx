@@ -19,7 +19,6 @@ import {
   HiRectangleGroup,
 } from 'react-icons/hi2';
 
-
 import { useChatNotifications } from '@/hooks/useChatNotifications';
 
 const LayoutBase = ({ children }: { children: React.ReactNode }) => {
@@ -170,6 +169,8 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   // Redirect khi chưa đăng nhập hoặc khi API trả về 401
   useEffect(() => {
     const orig: typeof fetch = window.fetch;
+    let refreshPromise: Promise<Response> | null = null;
+
     const wrapped: typeof fetch = async (input, init) => {
       const url =
         typeof input === 'string'
@@ -180,13 +181,26 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
               ? input.url
               : '';
       const res = await orig(input, init);
-      if (res.status !== 401) return res;
-      if (url.includes('/api/auth/refresh')) {
-        if (pathname !== '/login') router.push('/login');
+
+      // Chỉ xử lý refresh token cho các API nội bộ (bắt đầu bằng /api/)
+      // và bỏ qua các request không phải API (ví dụ: socket.io, assets, external links)
+      if (!url.includes('/api/') || url.includes('/api/auth/refresh')) {
+        if (res.status === 401 && url.includes('/api/auth/refresh') && pathname !== '/login') {
+          router.push('/login');
+        }
         return res;
       }
+
+      if (res.status !== 401) return res;
+
+      if (!refreshPromise) {
+        refreshPromise = orig('/api/auth/refresh', { credentials: 'include' }).finally(() => {
+          refreshPromise = null;
+        });
+      }
+
       try {
-        const r = await orig('/api/auth/refresh', { credentials: 'include' });
+        const r = await refreshPromise;
         if (r.ok) {
           return await orig(input, init);
         }
@@ -339,11 +353,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           const parts = String(data.roomId).split('_').filter(Boolean);
           const isOneToOne = parts.length === 2;
           const isGroup = !isOneToOne;
-          const receiver = isOneToOne
-            ? parts[0] === String(currentUser._id)
-              ? parts[1]
-              : parts[0]
-            : null;
+          const receiver = isOneToOne ? (parts[0] === String(currentUser._id) ? parts[1] : parts[0]) : null;
           const members = isGroup ? groupMembersRef.current.get(String(data.roomId)) || [] : [];
           s.emit('send_message', {
             roomId: String(data.roomId),
@@ -398,11 +408,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar Desktop */}
       {isAuthed && (
         <div className="hidden md:block">
-          <SidebarMenu
-            totalUnread={totalUnread}
-            unreadGroups={unreadGroups}
-            unreadContacts={unreadContacts}
-          />
+          <SidebarMenu totalUnread={totalUnread} unreadGroups={unreadGroups} unreadContacts={unreadContacts} />
         </div>
       )}
 
@@ -454,10 +460,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[200] pointer-events-auto">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white shadow-xl animate-pulse">
               <span className="text-sm font-semibold">Bạn có tin nhắn mới</span>
-              <button
-                onClick={() => setShowNewMsgBanner(false)}
-                className="ml-2 text-white/80 hover:text-white"
-              >
+              <button onClick={() => setShowNewMsgBanner(false)} className="ml-2 text-white/80 hover:text-white">
                 ×
               </button>
             </div>
