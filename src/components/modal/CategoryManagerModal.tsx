@@ -384,7 +384,7 @@ export default function CategoryManagerModal({
           </div>
 
           <button
-            className="mt-4 flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors w-full px-2 py-2 rounded-md hover:bg-blue-50"
+            className="cursor-pointer mt-4 flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors w-full px-2 py-2 rounded-md hover:bg-blue-50"
             onClick={openCreate}
           >
             <HiPlus className="w-5 h-5" />
@@ -401,13 +401,13 @@ export default function CategoryManagerModal({
             <div className="px-4 py-3 text-sm text-gray-700">Bạn có chắc muốn xóa thẻ “{deletingTag.label}”?</div>
             <div className="px-4 py-3 flex items-center justify-end gap-2">
               <button
-                className="px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 text-sm font-medium"
+                className="cursor-pointer px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 text-sm font-medium"
                 onClick={cancelDelete}
               >
                 Hủy
               </button>
               <button
-                className="px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-medium"
+                className="cursor-pointer px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-medium"
                 onClick={handleDelete}
               >
                 Xóa
@@ -435,11 +435,11 @@ export default function CategoryManagerModal({
                   <input
                     value={labelDraft}
                     onChange={(e) => setLabelDraft(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className=" flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <div className="relative">
                     <button
-                      className={`h-8 w-10 ${colorDraft} rounded-md`}
+                      className={`cursor-pointer h-6 w-10 ${colorDraft} rounded-md`}
                       onClick={() => setShowColorPicker((s) => !s)}
                       style={{ clipPath: 'polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%)' }}
                       title="Đổi màu"
@@ -473,7 +473,10 @@ export default function CategoryManagerModal({
               </div>
               <div className="space-y-2">
                 <div className="text-sm text-gray-600">Hội thoại được gắn thẻ</div>
-                <button className="text-blue-600 text-sm font-medium" onClick={() => setAddingPanelOpen((s) => !s)}>
+                <button
+                  className="cursor-pointer text-blue-600 text-sm font-medium"
+                  onClick={() => setAddingPanelOpen((s) => !s)}
+                >
                   + Thêm hội thoại
                 </button>
                 {addingPanelOpen && (
@@ -545,7 +548,7 @@ export default function CategoryManagerModal({
                         )}
                         <span className="text-sm text-gray-800">{getChatDisplayName(chat)}</span>
                         <button
-                          className="ml-auto text-gray-500 hover:text-gray-700 text-sm"
+                          className="cursor-pointer ml-auto text-gray-500 hover:text-gray-700 text-sm"
                           onClick={() => handleRemoveChatFromTag(id)}
                         >
                           Xóa
@@ -558,14 +561,14 @@ export default function CategoryManagerModal({
             </div>
             <div className="px-4 py-3 flex items-center justify-end gap-2 border-t border-gray-100 flex-none">
               <button
-                className="px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 text-sm font-medium"
+                className="cursor-pointer px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 text-sm font-medium"
                 onClick={closeEdit}
               >
                 Hủy
               </button>
               <button
                 disabled={isUpdating}
-                className={`px-3 py-2 rounded-md text-white text-sm font-medium ${
+                className={`cursor-pointer px-3 py-2 rounded-md text-white text-sm font-medium ${
                   isUpdating ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
                 }`}
                 onClick={handleApplyEdit}
@@ -609,7 +612,7 @@ export default function CategoryManagerModal({
                   />
                   <div className="relative">
                     <button
-                      className={`h-8 w-10 ${colorDraft} rounded-md`}
+                      className={`cursor-pointer h-6 w-10 ${colorDraft} rounded-md`}
                       onClick={() => setShowColorPicker((s) => !s)}
                       style={{ clipPath: 'polygon(0% 0%, 75% 0%, 100% 50%, 75% 100%, 0% 100%)' }}
                       title="Đổi màu"
@@ -643,7 +646,10 @@ export default function CategoryManagerModal({
               </div>
               <div className="space-y-2">
                 <div className="text-sm text-gray-600">Hội thoại được gắn thẻ</div>
-                <button className="text-blue-600 text-sm font-medium" onClick={() => setAddingPanelOpen((s) => !s)}>
+                <button
+                  className="cursor-pointer text-blue-600 text-sm font-medium"
+                  onClick={() => setAddingPanelOpen((s) => !s)}
+                >
                   + Thêm hội thoại
                 </button>
                 {addingPanelOpen && (
@@ -715,7 +721,7 @@ export default function CategoryManagerModal({
                         )}
                         <span className="text-sm text-gray-800">{getChatDisplayName(chat)}</span>
                         <button
-                          className="ml-auto text-gray-500 hover:text-gray-700 text-sm"
+                          className="cursor-pointer ml-auto text-gray-500 hover:text-gray-700 text-sm"
                           onClick={() => handleRemoveChatFromTag(id)}
                         >
                           Xóa
@@ -728,14 +734,14 @@ export default function CategoryManagerModal({
             </div>
             <div className="px-4 py-3 flex items-center justify-end gap-2 border-t border-gray-100 flex-none">
               <button
-                className="px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 text-sm font-medium"
+                className="cursor-pointer px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 text-sm font-medium"
                 onClick={closeEdit}
               >
                 Hủy
               </button>
               <button
                 disabled={isUpdating || labelDraft.trim().length === 0}
-                className={`px-3 py-2 rounded-md text-white text-sm font-medium ${
+                className={`cursor-pointer px-3 py-2 rounded-md text-white text-sm font-medium ${
                   isUpdating || labelDraft.trim().length === 0
                     ? 'bg-blue-400 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700'

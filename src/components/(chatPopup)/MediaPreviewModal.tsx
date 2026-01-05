@@ -61,7 +61,7 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
 
   return (
     <div
-      className="fixed inset-0 z-[10000] bg-black/95 flex items-center justify-center px-4 overflow-y-auto"
+      className="fixed inset-0 z-[10000] bg-black/95 flex items-center justify-center overflow-y-auto"
       onClick={(e) => {
         if (e.target !== e.currentTarget) return;
         const sinceOpen = Date.now() - openedAtRef.current;
@@ -149,7 +149,7 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
         </div>
 
         {items.length > 0 && (
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-28 sm:bottom-32 flex items-center gap-3 z-20">
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-28 sm:bottom-32 flex items-center gap-3 z-20 my-1">
             <button
               className="p-2 cursor-pointer rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white"
               onClick={() => {

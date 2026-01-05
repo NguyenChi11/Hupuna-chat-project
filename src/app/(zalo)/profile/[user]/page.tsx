@@ -368,7 +368,7 @@ export default function ProfileByIdPage() {
                 setIntroText(displayBio || '');
                 setIsMobileSheetOpen(true);
               }}
-              className="mt-1 flex items-center gap-1 text-blue-600 text-sm font-medium hover:underline pointer-events-auto"
+              className="cursor-pointer mt-1 flex items-center gap-1 text-blue-600 text-sm font-medium hover:underline pointer-events-auto"
             >
               <HiPencilSquare className="w-4 h-4" />
               {displayBio || 'Cập nhật giới thiệu bản thân'}

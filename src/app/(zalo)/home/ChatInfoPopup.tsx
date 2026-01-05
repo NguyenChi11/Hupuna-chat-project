@@ -988,7 +988,7 @@ export default function ChatInfoPopup({
                   )}
                   {!isGroup && (
                     <button
-                    onClick={() => alert('Chức năng đang được hoàn thiện')}
+                      onClick={() => alert('Chức năng đang được hoàn thiện')}
                       // onClick={() => setShowAutoDeleteModal(true)}
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
@@ -1443,12 +1443,12 @@ export default function ChatInfoPopup({
                     {group.dateLabel && (
                       <div className="text-xs font-semibold text-gray-500 mb-2">{group.dateLabel}</div>
                     )}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                       {group.items.map((item) => (
                         <div
                           key={item.id}
                           className={`relative aspect-square rounded-xl cursor-pointer ${
-                            item.type === 'video' ? ' w-[8rem] h-[5rem] flex gap-2' : ''
+                            item.type === 'video' ? ' w-full h-full flex gap-2' : ''
                           }  group bg-gray-100 ${activeMenuId === item.id ? 'z-50' : 'z-0'}`}
                           onClick={() => {
                             const mediaType = item.type === 'video' ? 'video' : 'image';

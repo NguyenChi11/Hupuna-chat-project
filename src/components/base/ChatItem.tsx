@@ -48,7 +48,7 @@ export default function ChatItem({
   const isSelected = selectedChat?._id === item._id;
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number; align?: 'top' | 'bottom' } | null>(null);
-  const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -79,7 +79,7 @@ export default function ChatItem({
         }
       }
     } catch {}
-  }, [storageKey]);
+  }, [currentUserId, item, storageKey]);
   useEffect(() => {
     const handler = (ev: Event) => {
       try {
@@ -120,7 +120,7 @@ export default function ChatItem({
         }
       }
     } catch {}
-  }, [storageKeyTags]);
+  }, [currentUserId, item, storageKeyTags]);
   useEffect(() => {
     const handler = (ev: Event) => {
       try {
