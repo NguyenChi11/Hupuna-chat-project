@@ -257,7 +257,7 @@ export default function HomePage() {
 
       {incomingCallHome && (
         <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-4">
+          <div className=" rounded-xl w-full max-w-md p-4">
             {(() => {
               const caller = allUsers.find((u) => String(u._id) === String(incomingCallHome.from));
               const avatar = caller?.avatar;
@@ -266,6 +266,7 @@ export default function HomePage() {
                 <IncomingCallModal
                   avatar={avatar}
                   name={name}
+                  callType={incomingCallHome.type}
                   onAccept={() => {
                     try {
                       localStorage.setItem('pendingIncomingCall', JSON.stringify(incomingCallHome));

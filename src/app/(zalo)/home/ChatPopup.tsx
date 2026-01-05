@@ -834,6 +834,111 @@ export default function ChatWindow({
     return () => ro.disconnect();
   }, [callActive, callConnecting, incomingCall]);
 
+    const [callWindowPos, setCallWindowPos] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
+  const dragStateRef = useRef<{ startX: number; startY: number; originX: number; originY: number; dragging: boolean } | null>(null);
+  useEffect(() => {
+    const v = callType === 'video';
+    const defaultW = v ? 640 : 320;
+    const defaultH = v ? 420 : 300;
+    try {
+      const raw = localStorage.getItem('callWindowPos');
+      const p = raw ? JSON.parse(raw) : null;
+      const w = callModalSize.w || defaultW;
+      const h = callModalSize.h ?? defaultH;
+      const x = p && typeof p.x === 'number' ? p.x : Math.max(24, window.innerWidth - w - 24);
+      const y = p && typeof p.y === 'number' ? p.y : 24;
+      setCallWindowPos({ x, y });
+    } catch {}
+  }, [callActive, callConnecting, incomingCall, callModalSize, callType]);
+  const clampPos = (x: number, y: number) => {
+    const w = callModalSize.w;
+    const h = callModalSize.h ?? (callType === 'video' ? 420 : 300);
+    const maxX = Math.max(0, window.innerWidth - w - 8);
+    const maxY = Math.max(0, window.innerHeight - h - 8);
+    return { x: Math.min(Math.max(8, x), maxX), y: Math.min(Math.max(8, y), maxY) };
+  };
+  const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    dragStateRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: callWindowPos.x,
+      originY: callWindowPos.y,
+      dragging: true,
+    };
+    const onMove = (ev: MouseEvent) => {
+      const st = dragStateRef.current;
+      if (!st || !st.dragging) return;
+      const dx = ev.clientX - st.startX;
+      const dy = ev.clientY - st.startY;
+      const next = clampPos(st.originX + dx, st.originY + dy);
+      setCallWindowPos(next);
+    };
+    const onUp = () => {
+      const st = dragStateRef.current;
+      dragStateRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      try {
+        localStorage.setItem('callWindowPos', JSON.stringify(callWindowPos));
+      } catch {}
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  const [callWindowMin, setCallWindowMin] = useState(false);
+  const prevSizeRef = useRef<{ w: number; h: number | null } | null>(null);
+  const toggleMinimize = () => {
+    if (!callWindowMin) {
+      prevSizeRef.current = { ...callModalSize };
+      const w = callType === 'video' ? 280 : 260;
+      const h = callType === 'video' ? 160 : 180;
+      setCallModalSize({ w, h });
+      setCallWindowMin(true);
+    } else {
+      const prev = prevSizeRef.current;
+      if (prev) setCallModalSize(prev);
+      setCallWindowMin(false);
+    }
+  };
+
+  const resizeStateRef = useRef<{ startX: number; startY: number; originW: number; originH: number } | null>(null);
+  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    resizeStateRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      originW: callModalSize.w,
+      originH: callModalSize.h ?? (callType === 'video' ? 420 : 300),
+    };
+    const onMove = (ev: MouseEvent) => {
+      const st = resizeStateRef.current;
+      if (!st) return;
+      const dx = ev.clientX - st.startX;
+      const dy = ev.clientY - st.startY;
+      const minW = 240;
+      const minH = 150;
+      const maxW = Math.max(320, window.innerWidth - 32);
+      const maxH = Math.max(200, window.innerHeight - 32);
+      const w = Math.min(Math.max(st.originW + dx, minW), maxW);
+      const h = Math.min(Math.max(st.originH + dy, minH), maxH);
+      setCallModalSize({ w, h });
+    };
+    const onUp = () => {
+      resizeStateRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      try {
+        localStorage.setItem(
+          'callModalSize',
+          JSON.stringify({ w: callModalSize.w, h: callModalSize.h ?? (callType === 'video' ? 420 : 300) }),
+        );
+      } catch {}
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
   // Ring tone handled inside useCallSession
 
   const sortMessagesAsc = useCallback((list: Message[]) => {
@@ -3730,15 +3835,22 @@ export default function ChatWindow({
         />
 
         {(callActive || incomingCall || callConnecting) && (
-          <div className="fixed inset-0 z-30 bg-black/60 flex items-center justify-center">
+          <div className="fixed z-[2000]" style={{ left: callWindowPos.x, top: callWindowPos.y, width: callModalSize.w }}>
+            <div className="cursor-move flex items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none" onMouseDown={handleDragStart}>
+              <span className="text-sm">{callActive ? 'Đang gọi' : incomingCall ? 'Cuộc gọi đến' : 'Đang kết nối...'}</span>
+              <span className="flex items-center gap-3">
+                <button className="text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer" onClick={toggleMinimize}>{callWindowMin ? 'Khôi phục' : 'Thu nhỏ'}</button>
+                <span className="text-xs">{callType === 'video' ? 'Video' : 'Thoại'}</span>
+              </span>
+            </div>
             <div
               ref={callModalRef}
-              className="bg-white rounded-xl shadow-lg p-4 resize overflow-auto"
+              className="rounded-b-xl pt-2 p-4 backdrop-blur-sm relative"
               style={{
                 width: callModalSize.w,
                 height: callModalSize.h ?? undefined,
-                maxWidth: 'calc(100vw - 4rem)',
-                maxHeight: 'calc(100vh - 4rem)',
+                maxWidth: 'calc(100vw - 2rem)',
+                maxHeight: 'calc(100vh - 2rem)',
               }}
             >
               {!callActive &&
@@ -3755,6 +3867,7 @@ export default function ChatWindow({
                     <IncomingCallModal
                       avatar={avatar}
                       name={name}
+                      callType={incomingCall?.type === 'video' ? 'video' : 'voice'}
                       onAccept={async () => {
                         await acceptIncomingCall_s2();
                       }}
@@ -3852,6 +3965,11 @@ export default function ChatWindow({
                     />
                   );
                 })()}
+              <div
+                className="absolute bottom-1 right-1 w-4 h-4 rounded cursor-nwse-resize bg-white/60 hover:bg-white/80"
+                onMouseDown={handleResizeStart}
+                title="Kéo để thay đổi kích thước"
+              />
             </div>
           </div>
         )}
