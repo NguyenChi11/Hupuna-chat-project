@@ -25,6 +25,7 @@ import { HiMagnifyingGlassPlus, HiMagnifyingGlassMinus } from 'react-icons/hi2';
 import { FaReply, FaRegShareFromSquare, FaLink } from 'react-icons/fa6';
 import { getProxyUrl } from '@/utils/utils';
 import { Message } from '@/types/Message';
+import MediaEditor from './MediaEditor';
 
 interface MediaPreviewModalProps {
   media: { id?: string; url: string; type: 'image' | 'video' } | null;
@@ -62,6 +63,7 @@ export default function MediaPreviewModal({
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const [showThumbnails, setShowThumbnails] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     setCurrent(media);
@@ -226,11 +228,23 @@ export default function MediaPreviewModal({
   };
 
   const handleEdit = () => {
-    alert('Chức năng đang phát triển');
+    setIsEditing(true);
     setShowMoreMenu(false);
   };
 
   if (!current) return null;
+
+  if (isEditing && current) {
+    return (
+      <MediaEditor
+        mediaUrl={current.url}
+        mediaType={current.type}
+        chatName={chatName}
+        onClose={() => setIsEditing(false)}
+        onSend={() => setIsEditing(false)}
+      />
+    );
+  }
 
   return (
     <div
@@ -436,28 +450,28 @@ export default function MediaPreviewModal({
                 <div className="absolute right-0 top-full mt-2 w-48 bg-gray-900 border border-white/10 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col py-1">
                   <button
                     onClick={handleEdit}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                    className="cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
                   >
                     <HiPencil className="w-5 h-5" />
                     <span>Chỉnh sửa ảnh</span>
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                    className="cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
                   >
                     <HiSave className="w-5 h-5" />
                     <span>Lưu về máy</span>
                   </button>
                   <button
                     onClick={handleShareFunc}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                    className="cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
                   >
                     <HiShare className="w-5 h-5" />
                     <span>Chia sẻ</span>
                   </button>
                   <button
                     onClick={handleCopyLink}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                    className="cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
                   >
                     <HiDuplicate className="w-5 h-5" />
                     <span>Copy</span>
