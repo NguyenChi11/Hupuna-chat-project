@@ -2,31 +2,114 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
-import { HiX, HiDownload, HiPhotograph, HiVideoCamera, HiChevronLeft, HiChevronRight, HiPlay } from 'react-icons/hi';
+import {
+  HiX,
+  HiDownload,
+  HiPhotograph,
+  HiVideoCamera,
+  HiChevronUp,
+  HiChevronDown,
+  HiPlay,
+  HiExternalLink,
+  HiChevronLeft,
+  HiChevronRight,
+  HiCloud,
+  HiDotsVertical,
+  HiDotsHorizontal,
+  HiPencil,
+  HiShare,
+  HiDuplicate,
+  HiSave,
+} from 'react-icons/hi';
+import { HiMagnifyingGlassPlus, HiMagnifyingGlassMinus } from 'react-icons/hi2';
+import { FaReply, FaRegShareFromSquare, FaLink } from 'react-icons/fa6';
 import { getProxyUrl } from '@/utils/utils';
+import { Message } from '@/types/Message';
 
 interface MediaPreviewModalProps {
-  media: { url: string; type: 'image' | 'video' } | null;
+  media: { id?: string; url: string; type: 'image' | 'video' } | null;
   chatName?: string;
   isGroup?: boolean;
   onClose: () => void;
   roomId?: string;
+  onReply?: (messageId: string) => void;
+  onShare?: (url: string, messageId?: string) => void;
+  onShareMessage?: (message: Message) => void;
+  onJumpToMessage?: (messageId: string) => void;
 }
 
-export default function MediaPreviewModal({ media, chatName, isGroup, onClose, roomId }: MediaPreviewModalProps) {
+export default function MediaPreviewModal({
+  media,
+  chatName,
+  isGroup,
+  onClose,
+  roomId,
+  onReply,
+  onShare,
+  onShareMessage,
+  onJumpToMessage,
+}: MediaPreviewModalProps) {
   const [groups, setGroups] = useState<
     { dateLabel: string; items: { id: string; type: 'image' | 'video'; url: string; timestamp?: number }[] }[]
   >([]);
   const items = useMemo(() => groups.flatMap((g) => g.items), [groups]);
-  const [current, setCurrent] = useState<{ url: string; type: 'image' | 'video' } | null>(media);
+  const [current, setCurrent] = useState<{ id?: string; url: string; type: 'image' | 'video' } | null>(media);
   const listRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const openedAtRef = useRef<number>(0);
+  const [zoom, setZoom] = useState<number>(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [showThumbnails, setShowThumbnails] = useState(true);
 
   useEffect(() => {
     setCurrent(media);
     if (media) openedAtRef.current = Date.now();
+    setZoom(1);
+    setPosition({ x: 0, y: 0 });
   }, [media]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom <= 1) return;
+    setIsDragging(true);
+    dragStartRef.current = { x: e.clientX - position.x, y: e.clientY - position.y };
+    e.preventDefault(); // Prevent text selection or image drag default
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !dragStartRef.current || zoom <= 1) return;
+    setPosition({
+      x: e.clientX - dragStartRef.current.x,
+      y: e.clientY - dragStartRef.current.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    dragStartRef.current = null;
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (zoom <= 1) return;
+    setIsDragging(true);
+    const touch = e.touches[0];
+    dragStartRef.current = { x: touch.clientX - position.x, y: touch.clientY - position.y };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !dragStartRef.current || zoom <= 1) return;
+    const touch = e.touches[0];
+    setPosition({
+      x: touch.clientX - dragStartRef.current.x,
+      y: touch.clientY - dragStartRef.current.y,
+    });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    dragStartRef.current = null;
+  };
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -46,22 +129,112 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
   }, [roomId]);
 
   useEffect(() => {
+    setZoom(1);
+    setPosition({ x: 0, y: 0 });
+  }, [current?.url]);
+
+  useEffect(() => {
     if (!current) return;
     const el = itemRefs.current[current.url];
     const list = listRef.current;
     if (el && list) {
       try {
-        const targetLeft = el.offsetLeft - (list.clientWidth / 2 - el.clientWidth / 2);
-        list.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+        const isMobile = window.innerWidth < 768; // Simple check for mobile/tablet layout
+        if (isMobile) {
+          // Horizontal scroll for mobile/bottom list
+          const targetLeft = el.offsetLeft - (list.clientWidth / 2 - el.clientWidth / 2);
+          list.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+        } else {
+          // Vertical scroll for desktop/sidebar list
+          const targetTop = el.offsetTop - (list.clientHeight / 2 - el.clientHeight / 2);
+          list.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+        }
       } catch {}
     }
-  }, [current, items]);
+  }, [current, items, showThumbnails]);
+
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+        setShowMoreMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleDownload = async () => {
+    if (!current?.url) return;
+    try {
+      const res = await fetch(getProxyUrl(current.url, true));
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = current.url.split('/').pop() || 'download';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      window.open(getProxyUrl(current.url, true), '_blank');
+    }
+    setShowMoreMenu(false);
+  };
+
+  const handleShareFunc = () => {
+    if (!current?.url) return;
+    const url = getProxyUrl(current.url, true);
+
+    if (onShareMessage && roomId) {
+      const msg: Message = {
+        _id: current.id || Date.now().toString(),
+        roomId: roomId,
+        sender: 'unknown',
+        type: current.type,
+        fileUrl: current.url,
+        timestamp: Date.now(),
+      };
+      onShareMessage(msg);
+      setShowMoreMenu(false);
+      return;
+    }
+
+    if (onShare) onShare(url, current?.id);
+    else if (navigator.share) {
+      navigator.share({ title: chatName || 'Media', url }).catch(() => {});
+    } else {
+      try {
+        navigator.clipboard.writeText(url);
+      } catch {}
+    }
+    setShowMoreMenu(false);
+  };
+
+  const handleCopyLink = () => {
+    if (!current?.url) return;
+    try {
+      navigator.clipboard.writeText(getProxyUrl(current.url, true));
+    } catch {}
+    setShowMoreMenu(false);
+  };
+
+  const handleEdit = () => {
+    alert('Chức năng đang phát triển');
+    setShowMoreMenu(false);
+  };
 
   if (!current) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[10000] bg-black/95 flex items-center justify-center overflow-y-auto"
+      className="fixed inset-0 z-[10000] bg-black/95 flex items-center justify-center"
       onClick={(e) => {
         if (e.target !== e.currentTarget) return;
         const sinceOpen = Date.now() - openedAtRef.current;
@@ -70,77 +243,58 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
       }}
     >
       <div className="relative w-full max-w-6xl mx-auto" onClick={(e) => e.stopPropagation()}>
-        {/* Header siêu đẹp */}
-        <div className="absolute top-0 left-0 right-0 z-20 p-4 sm:p-6 flex items-start justify-between text-white">
-          {/* Thông tin chat */}
-          <div className="flex-1 max-w-full">
-            <h3 className="text-lg sm:text-xl font-bold truncate">
-              {chatName || (isGroup ? 'Nhóm chat' : 'Cuộc trò chuyện')}
-            </h3>
-            <p className="text-sm text-white/70 mt-1 flex items-center gap-2">
-              {current.type === 'image' ? (
-                <>
-                  <HiPhotograph className="w-4 h-4" />
-                  Ảnh
-                </>
-              ) : (
-                <>
-                  <HiVideoCamera className="w-4 h-4" />
-                  Video
-                </>
-              )}
-              <span className="hidden sm:inline">• Gửi trong cuộc trò chuyện</span>
-            </p>
-          </div>
-
-          {/* Nút hành động */}
-          <div className="flex items-center gap-3 ml-4">
-            {/* Tải xuống */}
-            <a
-              href={getProxyUrl(current.url, true)}
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/20 transition-all duration-200 active:scale-95 shadow-lg"
-              title="Tải xuống"
-            >
-              <HiDownload className="w-5 h-5 sm:w-6 sm:h-6" />
-            </a>
-
-            {/* Nút đóng */}
-            <button
-              onClick={onClose}
-              className="p-3 rounded-full cursor-pointer bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/20 transition-all duration-200 active:scale-95 shadow-lg"
-              title="Đóng"
-            >
-              <HiX className="w-6 h-6 sm:w-7 sm:h-7" />
-            </button>
-          </div>
+        <div className="absolute top-0 left-0 right-0 z-20 px-4 sm:px-6 py-3 text-white text-center">
+          <h3 className="text-lg sm:text-xl font-semibold truncate">
+            {chatName || (isGroup ? 'Nhóm chat' : 'Cuộc trò chuyện')}
+          </h3>
         </div>
 
-        {/* Media chính – full trải nghiệm */}
-        <div className="flex items-center justify-center min-h-screen py-20 pb-32 sm:pb-36">
-          <div className="relative max-w-full max-h-full">
+        <div className="flex items-center justify-center min-h-screen py-16 overflow-hidden">
+          <div
+            className="relative max-w-full max-h-full overflow-hidden flex items-center justify-center"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+          >
             {current.type === 'image' ? (
-              <div className="animate-in fade-in zoom-in-95 duration-300">
+              <div
+                className="animate-in fade-in zoom-in-95 duration-300"
+                style={{
+                  transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+                  transformOrigin: 'center center',
+                  transition: isDragging ? 'none' : 'transform 0.2s',
+                }}
+              >
                 <Image
                   src={getProxyUrl(current.url)}
                   alt="Xem ảnh lớn"
                   width={1600}
                   height={1200}
-                  className="max-h-[65vh] w-auto max-w-full object-contain rounded-2xl shadow-2xl select-none pointer-events-none"
+                  className="max-h-[70vh] w-auto max-w-full object-contain rounded-md shadow-2xl select-none pointer-events-none"
                   priority
                 />
               </div>
             ) : (
-              <div className="animate-in fade-in duration-500 rounded-2xl overflow-hidden shadow-2xl">
+              <div
+                className="animate-in fade-in duration-300 rounded-md overflow-hidden shadow-2xl"
+                style={{
+                  transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+                  transformOrigin: 'center center',
+                  transition: isDragging ? 'none' : 'transform 0.2s',
+                }}
+              >
                 <video
                   src={getProxyUrl(current.url)}
-                  controls
+                  controls={zoom <= 1} // Hide controls when zooming to prevent interaction conflict or just keep them
                   autoPlay
                   loop
                   muted={false}
-                  className="max-h-[65vh] w-auto max-w-full rounded-2xl select-none"
+                  className="max-h-[70vh] w-auto max-w-full rounded-md select-none"
                   playsInline
                 />
               </div>
@@ -148,76 +302,225 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose, r
           </div>
         </div>
 
-        {items.length > 0 && (
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-28 sm:bottom-32 flex items-center gap-3 z-20 my-1">
-            <button
-              className="p-2 cursor-pointer rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white"
-              onClick={() => {
-                const el = listRef.current;
-                if (el) el.scrollBy({ left: -300, behavior: 'smooth' });
-              }}
-            >
-              <HiChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              className="p-2 cursor-pointer  rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white"
-              onClick={() => {
-                const el = listRef.current;
-                if (el) el.scrollBy({ left: 300, behavior: 'smooth' });
-              }}
-            >
-              <HiChevronRight className="w-5 h-5" />
-            </button>
-          </div>
+        {items.length > 0 && showThumbnails && (
+          <>
+            <div className="hidden md:flex absolute right-36 top-1/2 -translate-y-1/2 flex-col items-center gap-3 z-20">
+              <button
+                className="p-2 cursor-pointer rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg"
+                onClick={() => {
+                  const el = listRef.current;
+                  if (el) el.scrollBy({ top: -300, behavior: 'smooth' });
+                }}
+              >
+                <HiChevronUp className="w-5 h-5" />
+              </button>
+              <button
+                className="p-2 cursor-pointer rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg"
+                onClick={() => {
+                  const el = listRef.current;
+                  if (el) el.scrollBy({ top: 300, behavior: 'smooth' });
+                }}
+              >
+                <HiChevronDown className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-20">
+              <button
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg backdrop-blur-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const currentIndex = items.findIndex((it) => it.url === current?.url);
+                  if (currentIndex > 0) {
+                    const prev = items[currentIndex - 1];
+                    setCurrent({ id: prev.id, url: prev.url, type: prev.type });
+                  }
+                }}
+                style={{ visibility: items.findIndex((it) => it.url === current?.url) > 0 ? 'visible' : 'hidden' }}
+              >
+                <HiChevronLeft className="w-8 h-8" />
+              </button>
+            </div>
+            <div className="md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20">
+              <button
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg backdrop-blur-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const currentIndex = items.findIndex((it) => it.url === current?.url);
+                  if (currentIndex < items.length - 1) {
+                    const next = items[currentIndex + 1];
+                    setCurrent({ id: next.id, url: next.url, type: next.type });
+                  }
+                }}
+                style={{
+                  visibility:
+                    items.findIndex((it) => it.url === current?.url) < items.length - 1 ? 'visible' : 'hidden',
+                }}
+              >
+                <HiChevronRight className="w-8 h-8" />
+              </button>
+            </div>
+          </>
         )}
 
-        {groups.length > 0 && (
+        {groups.length > 0 && showThumbnails && (
           <div
-            className="absolute left-0 right-0 bottom-0 h-28 sm:h-32 bg-black/40 backdrop-blur-sm border-t border-white/10 overflow-x-auto no-scrollbar"
+            className="absolute md:top-0 bottom-6 right-0 w-full h-32 md:w-32 md:h-full bg-black/40 backdrop-blur-sm border-l border-white/10 overflow-y-auto no-scrollbar"
             ref={listRef}
           >
-            <div className="flex items-start gap-4 px-3 py-2">
+            <div className="flex md:flex-col items-stretch gap-3 px-2 py-2">
               {groups.map((g, gi) => (
-                <div key={`${g.dateLabel}-${gi}`} className="flex items-start gap-2">
-                  {g.dateLabel && (
-                    <div className="text-[0,625rem] text-white/70 font-semibold mt-1 mr-1 min-w-max">{g.dateLabel}</div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    {g.items.map((it) => (
-                      <div
-                        key={it.id}
-                        ref={(el) => {
-                          itemRefs.current[it.url] = el;
-                        }}
-                        className={`relative rounded-md overflow-hidden border ${
-                          current && current.url === it.url ? 'border-blue-400' : 'border-transparent'
-                        } cursor-pointer w-24 h-20`}
-                        onClick={() => setCurrent({ url: it.url, type: it.type })}
-                      >
-                        {it.type === 'image' ? (
-                          <Image
-                            src={getProxyUrl(it.url)}
-                            alt="thumb"
-                            width={160}
-                            height={120}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <video src={getProxyUrl(it.url)} className="w-full h-full object-cover" preload="metadata" />
-                        )}
-                        <div className="absolute inset-0  hover:bg-black/30 transition-opacity duration-300 flex items-center justify-center">
-                          {it.type === 'video' && <HiPlay className="w-10 h-10 text-white drop-shadow-lg" />}
-                        </div>
+                <div key={`${g.dateLabel}-${gi}`} className="flex flex-row md:flex-col gap-2">
+                  {g.dateLabel && <div className="text-[0.625rem] text-white/70 font-semibold px-1">{g.dateLabel}</div>}
+                  {g.items.map((it) => (
+                    <div
+                      key={it.id}
+                      ref={(el) => {
+                        itemRefs.current[it.url] = el;
+                      }}
+                      className={`relative rounded-md overflow-hidden border ${
+                        current && current.url === it.url ? 'border-blue-400' : 'border-transparent'
+                      } cursor-pointer md:w-full md:h-20 w-20 h-20`}
+                      onClick={() => setCurrent({ id: it.id, url: it.url, type: it.type })}
+                    >
+                      {it.type === 'image' ? (
+                        <Image
+                          src={getProxyUrl(it.url)}
+                          alt="thumb"
+                          width={160}
+                          height={120}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <video src={getProxyUrl(it.url)} className="w-full h-full object-cover" preload="metadata" />
+                      )}
+                      <div className="absolute inset-0 hover:bg-black/30 transition-opacity duration-300 flex items-center justify-center">
+                        {it.type === 'video' && <HiPlay className="w-8 h-8 text-white drop-shadow-lg" />}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Hướng dẫn chạm (chỉ hiện trên mobile) */}
+        <div className="absolute left-0 right-0 top-0 z-20 px-4 sm:px-6 py-2 bg-black/40 backdrop-blur-sm border-t border-white/10 text-white flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="text-sm font-medium truncate max-w-[40vw]">
+              {chatName || (isGroup ? 'Nhóm chat' : 'Cuộc trò chuyện')}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-white/80">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleDownload();
+              }}
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+              title="Tải xuống"
+            >
+              <HiDownload className="w-5 h-5" />
+            </button>
+
+            <div className="relative" ref={moreMenuRef}>
+              <button
+                onClick={() => setShowMoreMenu(!showMoreMenu)}
+                className="p-2 rounded-full cursor-pointer bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+                title="Thêm"
+              >
+                <HiDotsHorizontal className="w-5 h-5" />
+              </button>
+
+              {showMoreMenu && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-gray-900 border border-white/10 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col py-1">
+                  <button
+                    onClick={handleEdit}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                  >
+                    <HiPencil className="w-5 h-5" />
+                    <span>Chỉnh sửa ảnh</span>
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                  >
+                    <HiSave className="w-5 h-5" />
+                    <span>Lưu về máy</span>
+                  </button>
+                  <button
+                    onClick={handleShareFunc}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                  >
+                    <HiShare className="w-5 h-5" />
+                    <span>Chia sẻ</span>
+                  </button>
+                  <button
+                    onClick={handleCopyLink}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                  >
+                    <HiDuplicate className="w-5 h-5" />
+                    <span>Copy</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full cursor-pointer bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+              title="Đóng"
+            >
+              <HiX className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+        <div className="absolute gap-2 left-0 right-0 bottom-0 z-20 px-4 sm:px-6 py-2 bg-black/40 backdrop-blur-sm border-t border-white/10 text-white flex items-center justify-center">
+          <button
+            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95 "
+            title="Chia sẻ"
+            onClick={handleShareFunc}
+          >
+            <FaRegShareFromSquare className="w-4 h-4" />
+          </button>
+          <button
+            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+            title="Sao chép liên kết"
+            onClick={handleCopyLink}
+          >
+            <FaLink className="w-4 h-4" />
+          </button>
+          <button
+            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+            title="Phóng to"
+            onClick={() => setZoom((z) => Math.min(2.5, +(z + 0.2).toFixed(2)))}
+          >
+            <HiMagnifyingGlassPlus className="w-5 h-5" />
+          </button>
+          <button
+            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+            title="Thu nhỏ"
+            onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.2).toFixed(2)))}
+          >
+            <HiMagnifyingGlassMinus className="w-5 h-5" />
+          </button>
+          <button
+            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+            title="Mở tab mới"
+            onClick={() => window.open(getProxyUrl(current.url, true), '_blank')}
+          >
+            <HiExternalLink className="w-5 h-5" />
+          </button>
+          <button
+            className={`cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95 ${
+              showThumbnails ? 'bg-white/30' : ''
+            }`}
+            title="Hiện/Ẩn danh sách"
+            onClick={() => setShowThumbnails(!showThumbnails)}
+          >
+            <HiPhotograph className="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
   );

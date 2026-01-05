@@ -3727,6 +3727,7 @@ export default function ChatWindow({
           isGroup={isGroup}
           roomId={roomId}
           onClose={() => setPreviewMedia(null)}
+          onShareMessage={handleShareMessage}
         />
 
         {(callActive || incomingCall || callConnecting) && (

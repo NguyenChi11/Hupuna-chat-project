@@ -305,11 +305,11 @@ export default function ShareMessageModal({
   return (
     <div
       ref={viewportRef}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200 ${isMobile ? 'vv-fixed' : ''}`}
+      className={`fixed inset-0 z-[10001] flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200 ${isMobile ? 'vv-fixed' : ''}`}
     >
       <div
         ref={containerRef}
-        className="w-full h-full sm:w-full sm:h-auto sm:max-w-lg bg-white shadow-2xl flex flex-col sm:max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 rounded-xl"
+        className="w-full h-full sm:w-full sm:h-auto sm:max-w-lg bg-white shadow-2xl flex flex-col sm:max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 md:rounded-xl"
       >
         {/* Header - Modern gradient */}
         <div className="relative p-1 bg-gray-200 text-black ">
