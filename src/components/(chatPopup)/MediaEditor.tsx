@@ -71,6 +71,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [videoMeta, setVideoMeta] = useState<{ width: number; height: number } | null>(null);
   const [displayRect, setDisplayRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const maxCropWidth = useMemo(
     () => (displayRect?.width ?? containerRef.current?.clientWidth) || undefined,
@@ -210,6 +211,78 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
       computeRect(container.clientWidth, container.clientHeight, v.videoWidth, v.videoHeight);
     }
   }, [computeRect, mediaType]);
+
+  useEffect(() => {
+    if (!isCropping) return;
+    const container = containerRef.current;
+    if (!container) return;
+    if (mediaType === 'image') {
+      const im = new window.Image();
+      im.onload = () => {
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
+        const ia = (im.naturalWidth || im.width) / (im.naturalHeight || im.height);
+        const ca = cw / ch;
+        let dw = cw;
+        let dh = ch;
+        let dx = 0;
+        let dy = 0;
+        if (ia > ca) {
+          dw = cw;
+          dh = cw / ia;
+          dy = (ch - dh) / 2;
+          dx = 0;
+        } else {
+          dh = ch;
+          dw = ch * ia;
+          dx = (cw - dw) / 2;
+          dy = 0;
+        }
+        const w = Math.max(60, Math.round(dw));
+        const h = Math.max(60, Math.round(dh));
+        const cx = Math.round((dx || 0) + w / 2);
+        const cy = Math.round((dy || 0) + h / 2);
+        setCropSize({ width: w, height: h });
+        setCrop({ x: cx, y: cy });
+      };
+      im.src = getProxyUrl(currentMedia);
+      return;
+    }
+    if (mediaType === 'video') {
+      if (videoMeta && videoMeta.width && videoMeta.height) {
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
+        const ia = videoMeta.width / videoMeta.height;
+        const ca = cw / ch;
+        let dw = cw;
+        let dh = ch;
+        let dx = 0;
+        let dy = 0;
+        if (ia > ca) {
+          dw = cw;
+          dh = cw / ia;
+          dy = (ch - dh) / 2;
+          dx = 0;
+        } else {
+          dh = ch;
+          dw = ch * ia;
+          dx = (cw - dw) / 2;
+          dy = 0;
+        }
+        const w = Math.max(60, Math.round(dw));
+        const h = Math.max(60, Math.round(dh));
+        const cx = Math.round((dx || 0) + w / 2);
+        const cy = Math.round((dy || 0) + h / 2);
+        setCropSize({ width: w, height: h });
+        setCrop({ x: cx, y: cy });
+      } else {
+        const w = Math.max(60, container.clientWidth);
+        const h = Math.max(60, container.clientHeight);
+        setCropSize({ width: w, height: h });
+        setCrop({ x: w / 2, y: h / 2 });
+      }
+    }
+  }, [isCropping, mediaType, currentMedia, videoMeta]);
 
   useEffect(() => {
     if (!isCropping) return;
@@ -522,17 +595,6 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                 className="p-2"
                 onClick={() => {
                   const container = containerRef.current;
-                  const rect = displayRect;
-                  if (rect) {
-                    const w = Math.max(60, Math.round(rect.width));
-                    const h = Math.max(60, Math.round(rect.height));
-                    const cx = Math.round(rect.x + w / 2);
-                    const cy = Math.round(rect.y + h / 2);
-                    setCropSize({ width: w, height: h });
-                    setCrop({ x: cx, y: cy });
-                    setIsCropping(true);
-                    return;
-                  }
                   if (container) {
                     if (mediaType === 'image') {
                       const im = new window.Image();
@@ -930,6 +992,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                     const container = containerRef.current;
                     const v = videoRef.current;
                     if (!container || !v) return;
+                    setVideoMeta({ width: v.videoWidth, height: v.videoHeight });
                     computeRect(container.clientWidth, container.clientHeight, v.videoWidth, v.videoHeight);
                   }}
                   className="max-w-full max-h-full object-contain"
