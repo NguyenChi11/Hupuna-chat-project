@@ -18,7 +18,7 @@ export interface Message {
   timestamp: number;
   serverTimestamp?: number;
   pinnedAt?: number | null;
-  readBy?: string[];
+  readBy?: (string | number)[];
   isRecalled?: boolean;
   replyToMessageId?: string;
   replyToMessageName?: string;

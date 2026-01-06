@@ -225,7 +225,7 @@ export async function POST(req: NextRequest) {
 
         const msgCollection = await getCollection<Message>(MESSAGES_COLLECTION_NAME);
 
-        const finalConversations = await Promise.all(
+        const settled = await Promise.allSettled(
           enrichedConversations.map(async (group) => {
             const unreadCount = await msgCollection.countDocuments({
               roomId: group._id,
@@ -292,9 +292,13 @@ export async function POST(req: NextRequest) {
                     userIdStr
                   ] as string[])
                 : [],
-            };
+            } as Record<string, unknown>;
           }),
         );
+
+        const finalConversations = settled
+          .filter((r) => r.status === 'fulfilled')
+          .map((r) => (r as PromiseFulfilledResult<Record<string, unknown>>).value);
 
         return NextResponse.json({
           total: finalConversations.length,
