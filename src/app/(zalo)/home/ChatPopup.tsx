@@ -2509,61 +2509,7 @@ export default function ChatWindow({
     syncLocalReadBy();
   }, [roomId, currentUser, markAsRead]);
 
-  useEffect(() => {
-    if (!roomId || !currentUser) return;
-    const myId = String(currentUser._id || '');
-    const lastMine = [...messagesRef.current]
-      .slice()
-      .reverse()
-      .find((m) => compareIds((m as Message).sender, myId) && !(m as Message).isRecalled);
-    if (!lastMine) return;
-    const alreadySeen =
-      Array.isArray((lastMine as Message).readBy) &&
-      ((lastMine as Message).readBy || []).some((id) => !compareIds(id, myId));
-    let attempts = 0;
-    let stopped = false;
-    if (alreadySeen && !isGroup) return;
-    const timerId = window.setInterval(async () => {
-      attempts++;
-      if (stopped || attempts > 30) {
-        clearInterval(timerId);
-        return;
-      }
-      try {
-        const res = await readMessagesApi(roomId, {
-          limit: 1,
-          sortOrder: 'desc',
-          extraFilters: { _id: String((lastMine as Message)._id) },
-        });
-        const arr = Array.isArray(res.data) ? (res.data as Message[]) : [];
-        const updated = arr[0];
-        if (updated && Array.isArray(updated.readBy)) {
-          const current = messagesRef.current.find((m) => String(m._id) === String(updated._id));
-          const oldSet = new Set((current?.readBy || []).map((x) => String(x)));
-          const newSet = new Set((updated.readBy || []).map((x) => String(x)));
-          const changed = oldSet.size !== newSet.size || [...newSet].some((x) => !oldSet.has(x));
-          if (changed) {
-            setMessages((prev) =>
-              prev.map((m) => (String(m._id) === String(updated._id) ? { ...m, readBy: updated.readBy } : m)),
-            );
-            if (!isGroup) {
-              const seenByOther = (updated.readBy || []).some((id) => !compareIds(id, myId));
-              if (seenByOther) {
-                stopped = true;
-                clearInterval(timerId);
-              }
-            }
-          }
-        }
-      } catch {}
-    }, 2500);
-    return () => {
-      stopped = true;
-      clearInterval(timerId);
-    };
-  }, [roomId, currentUser, messages, isGroup]);
-
-  // removed unread divider logic
+  // Removed polling for read status - using socket 'messages_read' instead
 
   // Đóng mention menu khi click bên ngoài
   useEffect(() => {
