@@ -520,39 +520,6 @@ export default function ChatInput({
   };
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const res = await fetch('/api/chatflash', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'read', roomId }),
-        });
-        const data = await res.json();
-        const rows = (data?.data?.folders || []) as Array<{ id: string; name: string }>;
-        setFlashFolders(rows);
-        try {
-          localStorage.setItem(`chatFlashFolders:${roomId}`, JSON.stringify(rows));
-        } catch {}
-      } catch {
-        try {
-          const raw = localStorage.getItem(`chatFlashFolders:${roomId}`);
-          const arr = raw ? (JSON.parse(raw) as Array<{ id: string; name: string }>) : [];
-          setFlashFolders(arr);
-        } catch {
-          setFlashFolders([]);
-        }
-      }
-      try {
-        const activeRaw = localStorage.getItem(`chatFlashActiveFolder:${roomId}`);
-        setSelectedFlashFolder(activeRaw ? JSON.parse(activeRaw) : null);
-      } catch {
-        setSelectedFlashFolder(null);
-      }
-    };
-    if (roomId) init();
-  }, [roomId]);
-
-  useEffect(() => {
     if (!showMobileActions) return;
     const onDoc = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node | null;
@@ -633,37 +600,6 @@ export default function ChatInput({
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, []);
-
-  useEffect(() => {
-    const loadKV = async () => {
-      if (!selectedFlashFolder?.id || !roomId) {
-        setKvItems([]);
-        return;
-      }
-      try {
-        const res = await fetch('/api/chatflash', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'listKV', roomId, folderId: selectedFlashFolder.id }),
-        });
-        const json = await res.json();
-        const arr = (json?.items || []) as Array<{ key: string; value: string }>;
-        setKvItems(arr);
-        try {
-          localStorage.setItem(`chatFlashKV:${roomId}:${selectedFlashFolder.id}`, JSON.stringify(arr));
-        } catch {}
-      } catch {
-        try {
-          const raw = localStorage.getItem(`chatFlashKV:${roomId}:${selectedFlashFolder.id}`);
-          const arr = raw ? (JSON.parse(raw) as Array<{ key: string; value: string }>) : [];
-          setKvItems(arr);
-        } catch {
-          setKvItems([]);
-        }
-      }
-    };
-    loadKV();
-  }, [selectedFlashFolder?.id, roomId]);
 
   const handleSelectFlashFolder = (f: { id: string; name: string }) => {
     setSelectedFlashFolder(f);

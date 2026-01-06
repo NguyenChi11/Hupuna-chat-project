@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
@@ -25,7 +26,6 @@ export function useChatMembers({ selectedChat, isGroup, currentUser, sendNotifyM
       setMemberCount(0);
     }
   }, [selectedChat, isGroup]);
-
 
   const handleMemberRemoved = useCallback(
     async (removedMemberId: string, removedMemberName: string) => {
@@ -77,7 +77,6 @@ export function useChatMembers({ selectedChat, isGroup, currentUser, sendNotifyM
 
       setActiveMembers((prev) => [...prev, ...newMembersFormatted]);
       setMemberCount((prev) => prev + newUsers.length);
-
     },
     [currentUser.name, sendNotifyMessage],
   );
@@ -90,5 +89,3 @@ export function useChatMembers({ selectedChat, isGroup, currentUser, sendNotifyM
     handleMembersAdded,
   };
 }
-
-

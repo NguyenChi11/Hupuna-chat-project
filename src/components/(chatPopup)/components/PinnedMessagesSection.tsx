@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState, useMemo } from 'react';
 import ICPin from '@/components/svg/ICPin';
 import { useChatContext } from '@/context/ChatContext';

@@ -1,4 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import ChatItem from './ChatItem';
@@ -16,7 +18,6 @@ import { FaPlus } from 'react-icons/fa6';
 import {
   HiMagnifyingGlass,
   HiXMark,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   HiUserCircle,
   HiChatBubbleLeftRight,
   HiEllipsisVertical,

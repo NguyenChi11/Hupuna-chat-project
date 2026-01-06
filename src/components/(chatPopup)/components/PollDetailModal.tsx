@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HiX } from 'react-icons/hi';
@@ -709,7 +710,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
                           setAdding(false);
                           setNewOption('');
                         }}
-                        className="px-2 py-2 text-red-600 cursor-pointer bg-red-50 text-gray-700 rounded-2xl"
+                        className="px-2 py-2 text-red-600 cursor-pointer bg-red-50 rounded-2xl"
                       >
                         <ICTrash className="text-red-600" />
                       </button>

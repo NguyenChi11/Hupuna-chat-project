@@ -1042,7 +1042,6 @@ export default function ChatInfoPopup({
                   )}
                 </div>
               </div>
-              {/* <ChatFlashSection isOpen={openItems['ChatFlash']} onToggle={() => toggleItem('ChatFlash')} /> */}
 
               {isGroup && (
                 <GroupDangerZone

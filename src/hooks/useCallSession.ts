@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import io, { Socket } from 'socket.io-client';
 import { resolveSocketUrl } from '@/utils/utils';
@@ -416,16 +417,16 @@ export function useCallSession({
     [currentUserId, socketRef, onCallNotify, counterpartId],
   );
 
-const toggleMic = useCallback(async () => {
-  const next = !micEnabled;
-  setMicEnabled(next);
+  const toggleMic = useCallback(async () => {
+    const next = !micEnabled;
+    setMicEnabled(next);
 
-  // Chỉ cần can thiệp vào track của localStream
-  const audioTrack = localStreamRef.current?.getAudioTracks()[0];
-  if (audioTrack) {
-    audioTrack.enabled = next; // Đây là cách an toàn nhất
-  }
-}, [micEnabled]);
+    // Chỉ cần can thiệp vào track của localStream
+    const audioTrack = localStreamRef.current?.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = next; // Đây là cách an toàn nhất
+    }
+  }, [micEnabled]);
   const toggleCamera = useCallback(() => {
     const next = !camEnabled;
     setCamEnabled(next);
@@ -457,14 +458,17 @@ const toggleMic = useCallback(async () => {
         socketRef.current?.emit('join_room', activeRoomIdRef.current);
         if (socketRef.current && !candidateHandlerAttachedRef.current) {
           candidateHandlerAttachedRef.current = true;
-          socketRef.current.on('call_candidate', async (data: { roomId: string; target: string; from: string; candidate: RTCIceCandidateInit }) => {
-            if (String(data.target) !== String(currentUserId)) return;
-            const pc = peerConnectionsRef.current.get(String(data.from));
-            if (!pc) return;
-            try {
-              await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-            } catch {}
-          });
+          socketRef.current.on(
+            'call_candidate',
+            async (data: { roomId: string; target: string; from: string; candidate: RTCIceCandidateInit }) => {
+              if (String(data.target) !== String(currentUserId)) return;
+              const pc = peerConnectionsRef.current.get(String(data.from));
+              if (!pc) return;
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+              } catch {}
+            },
+          );
         }
         setActiveRoomId(activeRoomIdRef.current);
         const parts = String(activeRoomIdRef.current).split('_').filter(Boolean);
