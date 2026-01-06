@@ -29,11 +29,10 @@ import {
   HiLockClosed,
 } from 'react-icons/hi2';
 import { HiPhone, HiVideoCamera, HiArrowDown, HiArrowUp } from 'react-icons/hi2';
-import { HiLink, HiOutlineLogout, HiOutlineShare } from 'react-icons/hi';
+import { HiLink, HiOutlineLogout } from 'react-icons/hi';
 import ReminderDetailModal from './components/ReminderDetailModal';
 import PollDetailModal from './components/PollDetailModal';
 import ReactionButton from './components/ReactionButton';
-import FolderButton from './components/Folder/FolderButton';
 import { ContextMenuState } from './MessageContextMenu';
 import ICShareMessage from '../svg/ICShareMessage';
 import ReadStatus from './components/ReadStatus';

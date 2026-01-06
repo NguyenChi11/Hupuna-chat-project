@@ -48,7 +48,6 @@ export default function ChatItem({
   const isSelected = selectedChat?._id === item._id;
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number; align?: 'top' | 'bottom' } | null>(null);
-  const [] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);

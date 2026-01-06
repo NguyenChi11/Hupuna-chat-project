@@ -1308,24 +1308,7 @@ export default function ChatInput({
             </div>
             <span className="text-sm font-medium text-gray-800">Nhắc hẹn</span>
           </button>
-          {/* <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
-            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
-              <HiFolder className="w-6 h-6 text-orange-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
-              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
-            </div>
-            <span className="text-sm font-medium text-gray-800">Thư Mục</span>
-            <input
-              type="button"
-              className="sr-only"
-              onClick={() => {
-                setShowFolderDashboard(true);
-                setShowMobileActions(false);
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                } catch {}
-              }}
-            />
-          </label> */}
+
           <button
             onClick={() => {
               onVoiceInput();
@@ -1356,11 +1339,6 @@ export default function ChatInput({
           <button
             onClick={() => {
               showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' });
-              // setShowChatFlashDashboard(true);
-              // setShowMobileActions(false);
-              // try {
-              //   window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-              // } catch {}
             }}
             className="group relative cursor-pointer flex flex-col items-center"
             aria-label="Chat nhanh"
@@ -1373,11 +1351,7 @@ export default function ChatInput({
           </button>
           <button
             onClick={() => {
-              setShowReportConfirm(true);
-              setShowMobileActions(false);
-              try {
-                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-              } catch {}
+              showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' });
             }}
             className="group relative cursor-pointer flex flex-col items-center"
             aria-label="Báo xấu"
@@ -1391,11 +1365,7 @@ export default function ChatInput({
           {canClearHistory && (
             <button
               onClick={() => {
-                setShowConfirmClear(true);
-                setShowMobileActions(false);
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                } catch {}
+                showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' });
               }}
               className="group relative cursor-pointer flex flex-col items-center"
               aria-label="Xóa lịch sử"

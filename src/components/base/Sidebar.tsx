@@ -16,6 +16,7 @@ import { FaPlus } from 'react-icons/fa6';
 import {
   HiMagnifyingGlass,
   HiXMark,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   HiUserCircle,
   HiChatBubbleLeftRight,
   HiEllipsisVertical,
@@ -103,40 +104,6 @@ export const parseMentions = (text: string): { mentions: string[]; displayText: 
   }
 
   return { mentions, displayText: text };
-};
-
-export const renderMessageWithMentions = (
-  content: string,
-  currentUserId: string,
-  isMe: boolean = false,
-): React.ReactNode => {
-  if (!content) return null;
-
-  const parts = content.split(/(@\[[^\]]+\]\([^)]+\))/g);
-
-  return parts.map((part, index) => {
-    const mentionMatch = part.match(/@\[([^\]]+)\]\(([^)]+)\)/);
-    if (mentionMatch) {
-      const [, displayName, userId] = mentionMatch;
-      const isMentioningMe = userId === currentUserId;
-
-      return (
-        <span
-          key={index}
-          className={`font-semibold px-1 rounded ${
-            isMentioningMe
-              ? 'bg-yellow-300 text-yellow-900'
-              : isMe
-                ? 'bg-blue-300 text-blue-900'
-                : 'bg-gray-300 text-gray-900'
-          }`}
-        >
-          @{displayName}
-        </span>
-      );
-    }
-    return <span key={index}>{part}</span>;
-  });
 };
 
 export default function Sidebar({
@@ -399,7 +366,7 @@ export default function Sidebar({
     }
   }, [searchTerm, globalSearchResults.contacts.length, globalSearchResults.messages.length, handleGlobalSearch]);
   const regularMessages = useMemo(() => globalSearchResults.messages, [globalSearchResults.messages]);
- 
+
   const fileMessages = useMemo(() => globalSearchResults.messages, [globalSearchResults.messages]);
 
   const groupedMessages = useMemo(() => {
