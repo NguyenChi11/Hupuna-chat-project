@@ -5,6 +5,11 @@ import { ObjectId, Filter, UpdateFilter } from 'mongodb';
 import { User, USERS_COLLECTION_NAME } from '@/types/User';
 import { Message, MESSAGES_COLLECTION_NAME } from '@/types/Message';
 import { MemberInfo, GroupRole } from '@/types/Group';
+import {
+  buildToggleChatStatusFields,
+  buildUpdateCategoriesFields,
+  buildUpdateTagsFields,
+} from '@/lib/chatUpdateFields';
 
 type MemberInput =
   | string
@@ -665,16 +670,11 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing ID/Data' }, { status: 400 });
         }
 
-        const updateFields: Record<string, boolean> = {};
-
-        if (typeof data.isPinned === 'boolean') {
-          updateFields[`isPinnedBy.${currentUserId}`] = data.isPinned;
-        }
-        if (typeof data.isHidden === 'boolean') {
-          updateFields[`isHiddenBy.${currentUserId}`] = data.isHidden;
-        }
-
-        if (Object.keys(updateFields).length === 0) {
+        const updateFields = buildToggleChatStatusFields(String(currentUserId), {
+          isPinned: typeof data.isPinned === 'boolean' ? (data.isPinned as boolean) : undefined,
+          isHidden: typeof data.isHidden === 'boolean' ? (data.isHidden as boolean) : undefined,
+        });
+        if (!updateFields) {
           return NextResponse.json({ error: 'No status provided' }, { status: 400 });
         }
 
@@ -690,11 +690,10 @@ export async function POST(req: NextRequest) {
         if (!targetId || !currentUserId || !data) {
           return NextResponse.json({ error: 'Missing ID/Data' }, { status: 400 });
         }
-        const categories = Array.isArray((data as Record<string, unknown>).categories)
-          ? ((data as Record<string, unknown>).categories as string[])
-          : [];
-        const updateFields: Record<string, string[]> = {};
-        updateFields[`categoriesBy.${currentUserId}`] = categories;
+        const updateFields = buildUpdateCategoriesFields(
+          String(currentUserId),
+          (data as Record<string, unknown>).categories,
+        );
         const result = await collection.updateOne(
           { _id: new ObjectId(targetId) } as unknown as Filter<GroupConversation>,
           { $set: updateFields } as unknown as UpdateFilter<GroupConversation>,
@@ -707,11 +706,7 @@ export async function POST(req: NextRequest) {
         if (!targetId || !currentUserId || !data) {
           return NextResponse.json({ error: 'Missing ID/Data' }, { status: 400 });
         }
-        const tags = Array.isArray((data as Record<string, unknown>).tags)
-          ? ((data as Record<string, unknown>).tags as string[])
-          : [];
-        const updateFields: Record<string, string[]> = {};
-        updateFields[`tagsBy.${currentUserId}`] = tags;
+        const updateFields = buildUpdateTagsFields(String(currentUserId), (data as Record<string, unknown>).tags);
         const result = await collection.updateOne(
           { _id: new ObjectId(targetId) } as unknown as Filter<GroupConversation>,
           { $set: updateFields } as unknown as UpdateFilter<GroupConversation>,

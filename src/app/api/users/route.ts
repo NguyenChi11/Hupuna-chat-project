@@ -5,6 +5,12 @@ import { User, USERS_COLLECTION_NAME } from '@/types/User';
 import { Message, MESSAGES_COLLECTION_NAME } from '@/types/Message';
 import { signJWT, signEphemeralJWT } from '@/lib/auth';
 import { createSession, fingerprintFromHeaders } from '@/lib/session';
+import { setAuthCookies, clearAuthCookies } from '@/lib/authCookies';
+import {
+  buildToggleChatStatusFields,
+  buildUpdateCategoriesFields,
+  buildUpdateTagsFields,
+} from '@/lib/chatUpdateFields';
 
 export const runtime = 'nodejs';
 
@@ -278,17 +284,8 @@ export async function POST(req: NextRequest) {
         }
         const statusData = data as ToggleChatStatusPayload;
         const partnerId = roomId;
-        const updateFields: Record<string, boolean> = {};
-
-        if (typeof statusData.isPinned === 'boolean') {
-          updateFields[`isPinnedBy.${currentUserId}`] = statusData.isPinned;
-        }
-
-        if (typeof statusData.isHidden === 'boolean') {
-          updateFields[`isHiddenBy.${currentUserId}`] = statusData.isHidden;
-        }
-
-        if (Object.keys(updateFields).length === 0) {
+        const updateFields = buildToggleChatStatusFields(String(currentUserId), statusData);
+        if (!updateFields) {
           return NextResponse.json({ error: 'No status provided' }, { status: 400 });
         }
 
@@ -315,10 +312,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing currentUserId, roomId or data' }, { status: 400 });
         }
         const payload = data as UpdateCategoriesPayload;
-        const categories = Array.isArray(payload.categories) ? payload.categories : [];
         const partnerId = roomId;
-        const updateFields: Record<string, string[]> = {};
-        updateFields[`categoriesBy.${currentUserId}`] = categories;
+        const updateFields = buildUpdateCategoriesFields(String(currentUserId), payload.categories);
         const result = await updateByField<User>(collectionName, '_id', partnerId, updateFields);
         return NextResponse.json({ success: true, result });
       }
@@ -328,10 +323,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing currentUserId, roomId or data' }, { status: 400 });
         }
         const payload = data as { tags?: string[] };
-        const tags = Array.isArray(payload.tags) ? payload.tags : [];
         const partnerId = roomId;
-        const updateFields: Record<string, string[]> = {};
-        updateFields[`tagsBy.${currentUserId}`] = tags;
+        const updateFields = buildUpdateTagsFields(String(currentUserId), payload.tags);
         const result = await updateByField<User>(collectionName, '_id', partnerId, updateFields);
         return NextResponse.json({ success: true, result });
       }
@@ -403,21 +396,6 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        res.cookies.set('session_token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          sameSite: 'lax',
-          maxAge: 30 * 24 * 3600,
-        });
-        res.cookies.set('sid', sid, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          sameSite: 'lax',
-          maxAge: 3650 * 24 * 3600,
-        });
-
         const refreshToken = await signEphemeralJWT(
           {
             purpose: 'refresh',
@@ -428,40 +406,14 @@ export async function POST(req: NextRequest) {
           },
           3650 * 24 * 3600,
         );
-        res.cookies.set('refresh_token', refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          sameSite: 'lax',
-          maxAge: 3650 * 24 * 3600,
-        });
+        setAuthCookies(res, { accessToken: token, sid, refreshToken });
 
         return res;
       }
 
       case 'logout': {
         const res = NextResponse.json({ success: true });
-        res.cookies.set('session_token', '', {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 0,
-        });
-        res.cookies.set('sid', '', {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 0,
-        });
-        res.cookies.set('refresh_token', '', {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 0,
-        });
+        clearAuthCookies(res);
         return res;
       }
 

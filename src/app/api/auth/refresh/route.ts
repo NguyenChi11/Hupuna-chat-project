@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJWT, signJWT, signEphemeralJWT } from '@/lib/auth';
 import { fingerprintFromHeaders, getSession } from '@/lib/session';
+import { setAuthCookies } from '@/lib/authCookies';
 
 export const runtime = 'nodejs';
 
@@ -30,22 +31,10 @@ export async function GET(req: NextRequest) {
 
   const accessToken = await signJWT({ _id: userId, username, name, fp });
   const res = NextResponse.json({ success: true });
-  res.cookies.set('session_token', accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    sameSite: 'lax',
-    maxAge: 30 * 24 * 3600,
-  });
+  setAuthCookies(res, { accessToken });
 
   const rotateRefresh = await signEphemeralJWT({ purpose: 'refresh', sub: userId, username, name, fp }, 3650 * 24 * 3600);
-  res.cookies.set('refresh_token', rotateRefresh, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    sameSite: 'lax',
-    maxAge: 3650 * 24 * 3600,
-  });
+  setAuthCookies(res, { refreshToken: rotateRefresh });
 
   return res;
 }
