@@ -382,6 +382,95 @@ io.on('connection', (socket) => {
     }
   });
 
+  // LiveKit signaling for ring/accept/reject/end
+  socket.on('lk_invite', (data) => {
+    const roomId = String(data.roomId);
+    const fromId = String(data.from || connectedUserId || '');
+    const targets = Array.isArray(data.targets) ? data.targets : [];
+    const type = data.type === 'video' ? 'video' : 'voice';
+    const rc = roomCalls.get(roomId) || { type, participants: new Set(), active: false, startAt: null };
+    rc.type = type;
+    rc.participants.add(fromId);
+    roomCalls.set(roomId, rc);
+    targets.forEach((t) => io.to(String(t)).emit('lk_invite', { roomId, from: fromId, type }));
+    io.in(roomId).emit('lk_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+    });
+  });
+  socket.on('lk_accept', (data) => {
+    const roomId = String(data.roomId);
+    const userId = String(data.userId || connectedUserId || '');
+    const rc = roomCalls.get(roomId) || { type: 'voice', participants: new Set(), active: false, startAt: null };
+    rc.active = true;
+    rc.participants.add(userId);
+    if (!rc.startAt) rc.startAt = Date.now();
+    roomCalls.set(roomId, rc);
+    io.in(roomId).emit('lk_accept', { roomId, userId });
+    io.in(roomId).emit('lk_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+    });
+  });
+  socket.on('lk_reject', (data) => {
+    const roomId = String(data.roomId);
+    const userId = String(data.userId || connectedUserId || '');
+    const rc = roomCalls.get(roomId) || { type: 'voice', participants: new Set(), active: false, startAt: null };
+    rc.participants.delete(userId);
+    roomCalls.set(roomId, rc);
+    io.in(roomId).emit('lk_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+    });
+  });
+  socket.on('lk_end', (data) => {
+    const roomId = String(data.roomId);
+    const userId = String(data.userId || connectedUserId || '');
+    const rc = roomCalls.get(roomId) || { type: 'voice', participants: new Set(), active: false, startAt: null };
+    rc.participants.delete(userId);
+    if (rc.participants.size === 0) {
+      const hadStart = typeof rc.startAt === 'number' ? rc.startAt : null;
+      const endedAt = Date.now();
+      const isOneToOne = roomId.includes('_') && roomId.split('_').filter(Boolean).length === 2;
+      if (isOneToOne) {
+        const parts = roomId.split('_').filter(Boolean);
+        const other = parts.find((p) => p !== userId) || parts[0];
+        if (other) {
+          const durSec = hadStart ? Math.max(0, Math.floor((endedAt - hadStart) / 1000)) : 0;
+          void createCallNotify({
+            roomId,
+            sender: userId,
+            callerId: userId,
+            calleeId: String(other),
+            type: rc.type,
+            status: hadStart ? 'answered' : 'timeout',
+            durationSec: durSec,
+          });
+        }
+      }
+      rc.active = false;
+      rc.startAt = null;
+    }
+    roomCalls.set(roomId, rc);
+    io.in(roomId).emit('lk_end', { roomId });
+    io.in(roomId).emit('lk_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+    });
+  });
+
   socket.on('user_online', (payload) => {
     const userId = String(payload?.userId || '');
     if (!userId) return;

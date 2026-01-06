@@ -20,6 +20,8 @@ import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
 import { useCallSession } from '@/hooks/useCallSession';
 import ModalCall from '@/components/(call)/ModalCall';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
+import { useLiveKitCall } from '@/hooks/useLiveKitCall';
+import LiveKitCall from '@/components/(call)/LiveKitCall';
 
 export default function HomePage() {
   const {
@@ -67,6 +69,9 @@ export default function HomePage() {
         ? String(selectedChat._id)
         : getOneToOneRoomId(String(currentUser._id), String(selectedChat._id))
       : '';
+
+  const lk = useLiveKitCall(String(currentUser?._id || ''));
+  const LIVEKIT_PUBLIC_URL = process.env.NEXT_PUBLIC_LIVEKIT_URL || '';
 
   const {
     callActive,
@@ -178,12 +183,23 @@ export default function HomePage() {
       try {
         const d = (e as CustomEvent).detail || {};
         const t = d.type === 'video' ? 'video' : 'voice';
-        void startCall(t);
+        const targets = (() => {
+          if (!selectedChat || !currentUser) return [];
+          if (isGroup) {
+            const g = selectedChat as GroupConversation;
+            return (g.members || [])
+              .map((m) => (typeof m === 'object' && m?._id ? String(m._id) : String(m)))
+              .filter((id) => id && id !== String(currentUser._id));
+          }
+          const parts = roomId.split('_').filter(Boolean);
+          return parts.filter((p) => p !== String(currentUser._id));
+        })();
+        void lk.startCall(roomId, targets, t);
       } catch {}
     };
     window.addEventListener('startCall', handler as EventListener);
     return () => window.removeEventListener('startCall', handler as EventListener);
-  }, [startCall]);
+  }, [lk.startCall, selectedChat, currentUser, isGroup, roomId]);
 
   useEffect(() => {
     try {
@@ -443,7 +459,7 @@ export default function HomePage() {
                 const group = !isOneToOneIncoming ? groups.find((g) => String(g._id) === rid) : null;
                 const caller = allUsers.find((u) => String(u._id) === String(incomingCall?.from));
                 const avatar = isOneToOneIncoming ? caller?.avatar : group?.avatar;
-                const name = isOneToOneIncoming ? caller?.name || (selectedChat as any)?.name : group?.name || (selectedChat as any)?.name;
+                const name = isOneToOneIncoming ? (caller?.name || '') : (group?.name || '');
                 return (
                   <IncomingCallModal
                     avatar={avatar}
@@ -476,8 +492,9 @@ export default function HomePage() {
                   ? null
                   : parts.find((p) => p && p !== String(currentUser._id)) || String(selectedChat?._id || '');
                 const other = !isGroup ? allUsers.find((u) => String(u._id) === String(otherId)) : null;
-                const avatar = isGroup ? (selectedChat as any)?.avatar : other?.avatar;
-                const name = isGroup ? (selectedChat as any)?.name : other?.name || (selectedChat as any)?.name;
+                const gCur = groups.find((g) => String(g._id) === String(roomId));
+                const avatar = isGroup ? gCur?.avatar : other?.avatar;
+                const name = isGroup ? (gCur?.name || '') : (other?.name || '');
                 return (
                   <ModalCall
                     avatar={avatar}
@@ -512,8 +529,8 @@ export default function HomePage() {
                   : remoteIds.length <= 1;
                 const currentCallRoomId = String(activeRoomId || roomId);
                 const currentGroup = groups.find((g) => String(g._id) === currentCallRoomId);
-                const avatar = isOneToOneCall ? other?.avatar : currentGroup?.avatar || (selectedChat as any)?.avatar;
-                const name = isOneToOneCall ? other?.name || (selectedChat as any)?.name : currentGroup?.name || (selectedChat as any)?.name;
+                const avatar = isOneToOneCall ? other?.avatar : currentGroup?.avatar;
+                const name = isOneToOneCall ? (other?.name || '') : (currentGroup?.name || '');
                 const remotePeers = Array.from(remoteStreamsState.entries()).map(([uid, stream]) => {
                   const u = allUsers.find((x) => String(x._id) === String(uid));
                   return { userId: uid, stream, name: u?.name, avatar: u?.avatar };
@@ -551,6 +568,83 @@ export default function HomePage() {
               onMouseDown={handleResizeStart}
               title="Kéo để thay đổi kích thước"
             />
+          </div>
+        </div>
+      )}
+
+      {(lk.token && lk.activeRoomId) && (
+        <div
+          className="fixed z-[2000]"
+          style={{ left: callWindowPos.x, top: callWindowPos.y, width: callModalSize.w }}
+        >
+          <div
+            className="cursor-move flex items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
+            onMouseDown={handleDragStart}
+          >
+            <span className="text-sm">{lk.callStartAt ? 'Đang nói' : 'Đang kết nối...'}</span>
+            <span className="flex items-center gap-3">
+              <button
+                className="text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
+                onClick={toggleMinimize}
+              >
+                {callWindowMin ? 'Khôi phục' : 'Thu nhỏ'}
+              </button>
+              <span className="text-xs">{lk.callType === 'video' ? 'Video' : 'Thoại'}</span>
+            </span>
+          </div>
+          <div
+            ref={callModalRef}
+            className="rounded-b-xl pt-2 p-2 backdrop-blur-sm relative"
+            style={{
+              width: callModalSize.w,
+              height: callModalSize.h ?? undefined,
+              maxWidth: 'calc(100vw - 2rem)',
+              maxHeight: 'calc(100vh - 2rem)',
+            }}
+          >
+            {LIVEKIT_PUBLIC_URL ? (
+              <LiveKitCall
+                serverUrl={LIVEKIT_PUBLIC_URL}
+                token={lk.token}
+                onDisconnected={() => lk.end()}
+                maxParticipants={9}
+                showStatus
+              />
+            ) : (
+              <div className="text-white">Thiếu NEXT_PUBLIC_LIVEKIT_URL</div>
+            )}
+            <div
+              className="absolute bottom-1 right-1 w-4 h-4 rounded cursor-nwse-resize bg-white/60 hover:bg-white/80"
+              onMouseDown={handleResizeStart}
+              title="Kéo để thay đổi kích thước"
+            />
+          </div>
+        </div>
+      )}
+
+      {lk.incomingInvite && !lk.token && (
+        <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center">
+          <div className=" rounded-xl w-full max-w-md p-4">
+            {(() => {
+              const caller = allUsers.find((u) => String(u._id) === String(lk.incomingInvite?.from));
+              const avatar = caller?.avatar;
+              const name = caller?.name || 'Cuộc gọi đến';
+              return (
+                <IncomingCallModal
+                  avatar={avatar}
+                  name={name}
+                  callType={lk.callType}
+                  onAccept={() => {
+                    void lk.accept();
+                    stopGlobalRingTone();
+                  }}
+                  onReject={() => {
+                    lk.reject();
+                    stopGlobalRingTone();
+                  }}
+                />
+              );
+            })()}
           </div>
         </div>
       )}
