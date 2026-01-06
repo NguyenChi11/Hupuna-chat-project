@@ -125,7 +125,7 @@ async function sendPushOnMessage(data: { roomId: string; senderId: string; conte
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Key ${apiKey}`,
+            Authorization: `key ${apiKey}`,
           },
           body: JSON.stringify(p),
         });
@@ -218,15 +218,17 @@ export async function POST(req: NextRequest) {
         if ((newData as Record<string, unknown>)['id']) delete (newData as Record<string, unknown>)['id'];
 
         const newId = await addRow<Record<string, unknown>>(collectionName, newData);
-        try {
-          await sendPushOnMessage({
-            roomId: String(newData.roomId),
-            senderId: String(newData.sender),
-            content: String(newData.content || ''),
+        Promise.resolve()
+          .then(() =>
+            sendPushOnMessage({
+              roomId: String(newData.roomId),
+              senderId: String(newData.sender),
+              content: String(newData.content || ''),
+            }),
+          )
+          .catch((error) => {
+            console.error('messages.create:push', error);
           });
-        } catch (error) {
-          console.error('messages.create:push', error);
-        }
         return NextResponse.json({ success: true, _id: newId });
       }
 
@@ -1025,15 +1027,17 @@ export async function POST(req: NextRequest) {
         }
 
         // Push notification
-        try {
-          await sendPushOnMessage({
-            roomId: String(row.roomId),
-            senderId: String(userId),
-            content: notifyContent,
+        Promise.resolve()
+          .then(() =>
+            sendPushOnMessage({
+              roomId: String(row.roomId),
+              senderId: String(userId),
+              content: notifyContent,
+            }),
+          )
+          .catch((error) => {
+            console.error('messages.fireReminder:push', error);
           });
-        } catch (error) {
-          console.error('messages.fireReminder:push', error);
-        }
 
         return NextResponse.json({ success: true, updated: true, notifyId, nextAt });
       }
