@@ -422,45 +422,6 @@ export default function MessageMobileContextMenu({
 
             {!isRecalled && (
               <button
-                // onClick={() => {
-                //   try {
-                //     const batchItems =
-                //       (
-                //         msg as unknown as {
-                //           batchItems?: Array<{
-                //             id: string;
-                //             type?: 'image' | 'video' | 'file' | 'text';
-                //             fileUrl?: string;
-                //             fileName?: string;
-                //             content?: string;
-                //           }>;
-                //         }
-                //       ).batchItems || [];
-                //     const ev = new CustomEvent('openFolderSaveWizard', {
-                //       detail: {
-                //         roomId: String(msg.roomId || ''),
-                //         messageId: String(msg._id || ''),
-                //         content: msg.type === 'text' ? String(msg.content || '') : String(msg.fileName || ''),
-                //         type: String(msg.type || 'text'),
-                //         fileUrl: msg.fileUrl ? String(msg.fileUrl) : undefined,
-                //         fileName: msg.fileName ? String(msg.fileName) : undefined,
-                //         batch:
-                //           Array.isArray(batchItems) && batchItems.length > 1
-                //             ? batchItems.map((it) => ({
-                //                 roomId: String(msg.roomId || ''),
-                //                 messageId: String(it.id || ''),
-                //                 content: String(it.content || ''),
-                //                 type: String(it.type || 'text'),
-                //                 fileUrl: it.fileUrl ? String(it.fileUrl) : undefined,
-                //                 fileName: it.fileName ? String(it.fileName) : undefined,
-                //               }))
-                //             : undefined,
-                //       },
-                //     });
-                //     window.dispatchEvent(ev);
-                //   } catch {}
-                //   onClose();
-                // }}
                 className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl  hover:bg-orange-50 active:scale-95 transition-all"
                 aria-label="Lưu vào thư mục"
                 title="Lưu vào thư mục"

@@ -31,7 +31,6 @@ import RoomSearchResultsModal from '@/components/(search)/RoomSearchResultsModal
 import ComingSoonModal from '@/components/modal/ComingSoonModal';
 import CategoryManagerModal from '@/components/modal/CategoryManagerModal';
 import TagManagerModal from '@/components/modal/TagManagerModal';
-import GlobalFolderModal from '@/components/modal/GlobalFolderModal';
 
 interface SidebarProps {
   currentUser: User;
@@ -907,9 +906,6 @@ export default function Sidebar({
       {/* Fade Bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-100 to-transparent pointer-events-none" />
 
-      {showGlobalFolder && (
-        <GlobalFolderModal currentUserId={String(currentUserId)} onClose={() => setShowGlobalFolder(false)} />
-      )}
       {roomResultsModal && (
         <RoomSearchResultsModal
           isOpen={!!roomResultsModal}

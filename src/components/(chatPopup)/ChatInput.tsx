@@ -40,8 +40,7 @@ import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
 import { IoIosAttach } from 'react-icons/io';
 import Image from 'next/image';
 import { useChatContext } from '@/context/ChatContext';
-import FolderSaveWizard from '@/components/(chatPopup)/components/Folder/FolderSaveWizard';
-import ChatFlashDashboard from '@/components/(chatPopup)/components/Chat-Flash/ChatFlashDashboard';
+
 import UploadProgressBar from '@/components/(chatPopup)/UploadProgressBar';
 import ICIcon1 from '@/components/svg/ICIcon1';
 import ImageIconZalo from '@/components/svg/ICIconImageZalo';
@@ -324,7 +323,6 @@ export default function ChatInput({
   const [slashQuery, setSlashQuery] = useState('');
   const [slashSelectedIndex, setSlashSelectedIndex] = useState<number>(0);
   const [showFolderDashboard, setShowFolderDashboard] = useState(false);
-  const [showFolderSaveWizard, setShowFolderSaveWizard] = useState(false);
   const [pendingSaveMessage, setPendingSaveMessage] = useState<{
     roomId: string;
     messageId: string;
@@ -333,7 +331,7 @@ export default function ChatInput({
     fileUrl?: string;
     fileName?: string;
   } | null>(null);
-  const [showChatFlashDashboard, setShowChatFlashDashboard] = useState(false);
+
   const [showMobileActions, setShowMobileActions] = useState(false);
   const mobileActionsRef = useRef<HTMLDivElement | null>(null);
   const toggleMobileActionsBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -666,18 +664,6 @@ export default function ChatInput({
     };
     loadKV();
   }, [selectedFlashFolder?.id, roomId]);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const anyE = e as CustomEvent;
-      if (anyE.detail) {
-        setPendingSaveMessage(anyE.detail);
-        setShowFolderSaveWizard(true);
-      }
-    };
-    window.addEventListener('openFolderSaveWizard', handler as EventListener);
-    return () => window.removeEventListener('openFolderSaveWizard', handler as EventListener);
-  }, []);
 
   const handleSelectFlashFolder = (f: { id: string; name: string }) => {
     setSelectedFlashFolder(f);
@@ -1575,59 +1561,6 @@ export default function ChatInput({
         </div>
       )}
 
-      {showFolderSaveWizard &&
-        createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-h-[85vh] flex flex-col">
-              <div className="relative w-full">
-                <button
-                  onClick={() => {
-                    setShowFolderSaveWizard(false);
-                    setPendingSaveMessage(null);
-                  }}
-                  className="absolute right-4 top-3 p-2 rounded-full hover:bg-gray-100 cursor-pointer z-10"
-                >
-                  <HiX className="w-5 h-5 text-gray-500" />
-                </button>
-                {pendingSaveMessage && (
-                  <FolderSaveWizard
-                    roomId={roomId}
-                    pending={pendingSaveMessage}
-                    onClose={() => {
-                      setShowFolderSaveWizard(false);
-                      setPendingSaveMessage(null);
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
-
-      {showChatFlashDashboard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden h-[90vh]">
-            <div className="flex items-center justify-between px-4 py-3  border-b-gray-300 border-b">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                  <HiLightningBolt className="w-4 h-4" />
-                </div>
-                <h3 className="text-lg font-bold">Chat nhanh</h3>
-              </div>
-              <button
-                onClick={() => setShowChatFlashDashboard(false)}
-                className="p-2 rounded-full hover:bg-white/20 cursor-pointer"
-              >
-                <HiX className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4">
-              <ChatFlashDashboard roomId={roomId} onClose={() => setShowChatFlashDashboard(false)} />
-            </div>
-          </div>
-        </div>
-      )}
       {showUpdatingPopup && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowUpdatingPopup(false)} />
