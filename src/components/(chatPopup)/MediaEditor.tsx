@@ -276,28 +276,16 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
     ensureCanvasSize();
     setIsPointerDown(true);
     const p = pointerPos(e);
-    let cp = p;
-    if (displayRect) {
-      const cx = Math.min(Math.max(p.x, displayRect.x), displayRect.x + displayRect.width);
-      const cy = Math.min(Math.max(p.y, displayRect.y), displayRect.y + displayRect.height);
-      cp = { x: cx, y: cy };
-    }
-    setStrokes((prev) => [...prev, { color: brushColor, size: brushSize, points: [cp] }]);
+    setStrokes((prev) => [...prev, { color: brushColor, size: brushSize, points: [p] }]);
   };
 
   const moveDraw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing || !isPointerDown) return;
     const p = pointerPos(e);
-    let cp = p;
-    if (displayRect) {
-      const cx = Math.min(Math.max(p.x, displayRect.x), displayRect.x + displayRect.width);
-      const cy = Math.min(Math.max(p.y, displayRect.y), displayRect.y + displayRect.height);
-      cp = { x: cx, y: cy };
-    }
     setStrokes((prev) => {
       if (!prev.length) return prev;
       const last = prev[prev.length - 1];
-      const updated = { ...last, points: [...last.points, cp] };
+      const updated = { ...last, points: [...last.points, p] };
       const next = [...prev.slice(0, -1), updated];
       return next;
     });
