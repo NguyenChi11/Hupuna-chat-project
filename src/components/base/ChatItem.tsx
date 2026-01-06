@@ -232,6 +232,32 @@ export default function ChatItem({
     return !!u.online;
   })();
 
+  const sanitizeUrl = (u?: string) => {
+    if (!u) return '';
+    const s = String(u).trim();
+    return s.replace(/^[('"]+/, '').replace(/[)'"]+$/, '');
+  };
+  const avatarSrc = React.useMemo(() => sanitizeUrl(getProxyUrl(item.avatar)), [item.avatar]);
+
+  const resolvedAvatarSrc = React.useMemo(() => {
+    const s = avatarSrc;
+    if (!s) return '/logo/avata.webp';
+    try {
+      const u = new URL(s);
+      const ok =
+        (u.protocol === 'https:' && u.hostname === 'files.hupuna.vn' && u.pathname.startsWith('/api/files/')) ||
+        (u.protocol === 'http:' &&
+          u.hostname === '117.4.242.30' &&
+          u.port === '8090' &&
+          u.pathname.startsWith('/api/files/')) ||
+        (u.protocol === 'https:' && u.hostname === 'cdn.jsdelivr.net') ||
+        (u.protocol === 'https:' && u.hostname === 'mega.nz' && u.pathname.startsWith('/file/'));
+      return ok ? s : '/logo/avata.webp';
+    } catch {
+      return '/logo/avata.webp';
+    }
+  }, [avatarSrc]);
+
   // Context menu thông minh
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -350,7 +376,7 @@ export default function ChatItem({
               >
                 {item.avatar && !imgError ? (
                   <Image
-                    src={getProxyUrl(item.avatar)}
+                    src={resolvedAvatarSrc}
                     alt={displayName}
                     width={64}
                     height={64}

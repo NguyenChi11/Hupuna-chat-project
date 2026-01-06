@@ -41,9 +41,9 @@ export async function POST(req: NextRequest) {
     const skipSaveMessage = formData.get('skipSaveMessage') === 'true';
 
     // 2. Lấy cấu hình từ biến môi trường
-    const pbUrl = process.env.POCKETBASE_URL || 'https://files.hupuna.vn/';
-    const identity = process.env.POCKETBASE_USER_ID;
-    const password = process.env.POCKETBASE_PASSWORD;
+    const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || 'https://files.hupuna.vn/';
+    const identity = process.env.NEXT_PUBLIC_POCKETBASE_USER_ID;
+    const password = process.env.NEXT_PUBLIC_POCKETBASE_PASSWORD;
     const collectionName = process.env.NEXT_PUBLIC_POCKETBASE_COLLECTION_FILES || 'files';
 
     if (!identity || !password) {
@@ -60,12 +60,15 @@ export async function POST(req: NextRequest) {
       try {
         await pb.admins.authWithPassword(identity, password);
       } catch {
-         // Fallback user auth
+        // Fallback user auth
         await pb.collection('users').authWithPassword(identity, password);
       }
     } catch (e: unknown) {
       console.error('Lỗi đăng nhập System PB:', e);
-      return NextResponse.json({ success: false, message: 'Không thể đăng nhập vào hệ thống lưu trữ' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: 'Không thể đăng nhập vào hệ thống lưu trữ' },
+        { status: 401 },
+      );
     }
 
     // 4. Chuẩn bị dữ liệu gửi sang PocketBase
@@ -74,10 +77,10 @@ export async function POST(req: NextRequest) {
     // Title là bắt buộc
     const title = (formData.get('title') as string) || file.name;
     pbFormData.append('title', title);
-    
+
     // Các field khác nếu cần
     if (formData.has('folder')) {
-        pbFormData.append('folder', formData.get('folder') as string);
+      pbFormData.append('folder', formData.get('folder') as string);
     }
 
     // Gán owner là ID của tài khoản hệ thống (để file có chủ sở hữu) hoặc sender nếu sender là ID hợp lệ trong hệ thống
@@ -85,12 +88,12 @@ export async function POST(req: NextRequest) {
     if (pb.authStore.model?.id) {
       pbFormData.append('users_id', pb.authStore.model.id);
     }
-    
+
     setProgress(uploadId, 10);
 
     // 5. Thực hiện Upload
     const record = await pb.collection(collectionName).create(pbFormData);
-    
+
     setProgress(uploadId, 100);
 
     // 6. Tạo URL hiển thị
@@ -118,7 +121,7 @@ export async function POST(req: NextRequest) {
         console.error('Lỗi lưu DB:', e);
       }
     }
-    
+
     setTimeout(() => clearProgress(uploadId), 2000);
 
     return NextResponse.json({
@@ -129,12 +132,11 @@ export async function POST(req: NextRequest) {
       saved: !!insertedId,
       // Data format theo yêu cầu mới
       result: {
-         id: record.id,
-         url: fullUrl,
-         filename: record.file
-      }
+        id: record.id,
+        url: fullUrl,
+        filename: record.file,
+      },
     });
-
   } catch (error: unknown) {
     console.error('❌ Lỗi API Upload:', error);
     setProgress(uploadId, -1);
