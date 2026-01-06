@@ -74,6 +74,7 @@ interface ChatWindowProps {
   setRoomSearchKeyword?: (keyword: string | null) => void;
   onBackFromChat?: () => void;
   groups: GroupConversation[];
+  socket?: Socket | null;
 }
 
 declare global {
@@ -133,6 +134,7 @@ export default function ChatWindow({
   setRoomSearchKeyword,
   onBackFromChat,
   groups,
+  socket,
 }: ChatWindowProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -1915,7 +1917,7 @@ export default function ChatWindow({
   useEffect(() => {
     if (!roomId) return;
 
-    socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+    socketRef.current = socket ?? io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
     setSocketInstance(socketRef.current);
 
     socketRef.current.on('receive_message', (data: Message) => {
@@ -2377,10 +2379,22 @@ export default function ChatWindow({
     socketRef.current.emit('join_user', { userId: String(currentUser._id) });
 
     return () => {
-      socketRef.current?.disconnect();
+      try {
+        socketRef.current?.off('receive_message');
+        socketRef.current?.off('room_nickname_updated');
+        socketRef.current?.off('room_nicknames_state');
+        socketRef.current?.off('reaction_updated');
+        socketRef.current?.off('messages_read');
+        socketRef.current?.off('edit_message');
+        socketRef.current?.off('message_recalled');
+        socketRef.current?.off('message_deleted');
+      } catch {}
+      if (!socket) {
+        socketRef.current?.disconnect();
+      }
       setSocketInstance(null);
     };
-  }, [roomId, currentUser._id, playMessageSound, showMessageNotification, fetchMessages, sendNotifyMessage]);
+  }, [roomId, currentUser._id, playMessageSound, showMessageNotification, fetchMessages, sendNotifyMessage, socket]);
 
   const endCallRef = useRef<((source: 'local' | 'remote') => void) | null>(null);
 

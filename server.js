@@ -14,19 +14,6 @@ const callSessions = new Map();
 const roomCalls = new Map();
 const roomNicknames = new Map();
 
-// const formatDuration = (sec) => {
-//   const s = Math.max(0, Math.floor(Number(sec || 0)));
-//   const m = Math.floor(s / 60);
-//   const ss = s % 60;
-//   return `${m} phút ${ss} giây`;
-// };
-// const buildCallContent = ({ type, incoming, status, durationSec }) => {
-//   const kind = type === 'video' ? 'video' : 'thoại';
-//   const dir = incoming ? 'đến' : 'đi';
-//   if (status === 'answered') return `Cuộc gọi ${kind} ${dir} – ${formatDuration(durationSec || 0)}`;
-//   if (status === 'rejected') return `Cuộc gọi ${kind} ${dir} – Bị từ chối`;
-//   return `Cuộc gọi ${kind} ${dir} – Không phản hồi`;
-// };
 const createCallNotify = async ({ roomId, sender, callerId, calleeId, type, status, durationSec }) => {
   try {
     const payload = {
