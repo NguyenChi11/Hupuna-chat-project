@@ -44,8 +44,6 @@ import { groupMessagesByDate } from '@/utils/chatMessages';
 import { ChatProvider } from '@/context/ChatContext';
 import { useRouter } from 'next/navigation';
 import ShareMessageModal from '@/components/(chatPopup)/ShareMessageModal';
-import { stopGlobalRingTone } from '@/utils/callRing';
-import { useCallSession } from '@/hooks/useCallSession';
 import { HiChevronDoubleDown, HiChevronDoubleUp } from 'react-icons/hi2';
 import MessageMobileContextMenu from '@/components/(chatPopup)/MessageMobileContextMenu';
 
@@ -196,6 +194,16 @@ export default function ChatWindow({
   };
   const roomId = isGroup ? getId(selectedChat) : getOneToOneRoomId(getId(currentUser), getId(selectedChat));
   const [roomMuted, setRoomMuted] = useState(false);
+  const [roomCallActiveLocal, setRoomCallActiveLocal] = useState(false);
+  const [roomCallTypeLocal, setRoomCallTypeLocal] = useState<'voice' | 'video'>('voice');
+  const [roomParticipantsLocal, setRoomParticipantsLocal] = useState<string[]>([]);
+
+  // Trạng thái cuộc gọi toàn cục (đọc từ layout thông qua localStorage + event)
+  // Chỉ dùng để ẩn banner khi ĐANG có popup cuộc gọi nổi hoặc đang đổ chuông,
+  // tránh hiển thị "Tham gia lại" đè lên UI cuộc gọi chính.
+  const [globalCallActive, setGlobalCallActive] = useState(false);
+  const [globalCallConnecting, setGlobalCallConnecting] = useState(false);
+  const [globalIncoming, setGlobalIncoming] = useState(false);
   useEffect(() => {
     try {
       const k = `roomMuted:${roomId}:${String(currentUser._id)}`;
@@ -203,6 +211,57 @@ export default function ChatWindow({
       setRoomMuted(v);
     } catch {}
   }, [roomId, currentUser._id]);
+  useEffect(() => {
+    try {
+      localStorage.setItem('CURRENT_ROOM_ID', String(roomId));
+      const ev = new CustomEvent('currentRoomChanged', { detail: { roomId: String(roomId) } });
+      window.dispatchEvent(ev as unknown as Event);
+    } catch {}
+  }, [roomId]);
+  useEffect(() => {
+    try {
+      const a = localStorage.getItem(`livekit_room_${roomId}_active`) === 'true';
+      const tRaw = localStorage.getItem(`livekit_room_${roomId}_type`);
+      const t = (tRaw === 'video' ? 'video' : 'voice') as 'voice' | 'video';
+      const pRaw = localStorage.getItem(`livekit_room_${roomId}_participants`);
+      const p = pRaw ? (JSON.parse(pRaw) as string[]) : [];
+      setRoomCallActiveLocal(!!a);
+      setRoomCallTypeLocal(t);
+      setRoomParticipantsLocal(Array.isArray(p) ? p.map((x) => String(x)) : []);
+    } catch {}
+  }, [roomId]);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const d = (e as unknown as { detail?: { roomId?: string; active?: boolean; type?: 'voice' | 'video'; participants?: string[] } }).detail || {};
+      if (String(d.roomId) !== String(roomId)) return;
+      setRoomCallActiveLocal(!!d.active);
+      setRoomCallTypeLocal((d.type === 'video' ? 'video' : 'voice') as 'voice' | 'video');
+      setRoomParticipantsLocal(Array.isArray(d.participants) ? d.participants.map((x) => String(x)) : []);
+    };
+    window.addEventListener('roomCallStateChanged', handler as EventListener);
+    return () => window.removeEventListener('roomCallStateChanged', handler as EventListener);
+  }, [roomId]);
+  useEffect(() => {
+    try {
+      setGlobalIncoming(localStorage.getItem('GLOBAL_INCOMING_CALL') === '1');
+      setGlobalCallActive(localStorage.getItem('GLOBAL_CALL_ACTIVE') === '1');
+      setGlobalCallConnecting(localStorage.getItem('GLOBAL_CALL_CONNECTING') === '1');
+    } catch {}
+
+    const handler = (e: Event) => {
+      const d =
+        (e as unknown as {
+          detail?: { active?: boolean; connecting?: boolean; incoming?: boolean };
+        }).detail || {};
+
+      setGlobalCallActive(!!d.active);
+      setGlobalCallConnecting(!!d.connecting);
+      setGlobalIncoming(!!d.incoming);
+    };
+
+    window.addEventListener('globalCallStatusChanged', handler as EventListener);
+    return () => window.removeEventListener('globalCallStatusChanged', handler as EventListener);
+  }, []);
   useEffect(() => {
     const handler = (e: Event) => {
       const d = (e as unknown as { detail?: { roomId?: string; muted?: boolean } }).detail;
@@ -393,6 +452,20 @@ export default function ChatWindow({
   const [isMobileSearching, setIsMobileSearching] = useState(false);
   const [mobileCurrentResultIndex, setMobileCurrentResultIndex] = useState<number>(-1);
   const mobileSearchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleRejoinCall = useCallback(() => {
+    try {
+      const ev = new CustomEvent('startCall', {
+        detail: {
+          type: roomCallTypeLocal,
+          roomId,
+          isGroup: isGroup,
+          selectedChat: selectedChat,
+        },
+      });
+      window.dispatchEvent(ev as unknown as Event);
+    } catch {}
+  }, [roomCallTypeLocal, roomId, isGroup, selectedChat]);
   const hasAutoSearchedRef = useRef(false);
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
   const isLgOnly = typeof window !== 'undefined' ? window.innerWidth >= 1024 && window.innerWidth < 1280 : false;
@@ -698,13 +771,21 @@ export default function ChatWindow({
 
   const handleVoiceCall = useCallback(() => {
     try {
-      window.dispatchEvent(new CustomEvent('startCall', { detail: { type: 'voice' } }));
+      window.dispatchEvent(
+        new CustomEvent('startCall', {
+          detail: { type: 'voice', roomId, isGroup, selectedChat },
+        }),
+      );
     } catch {}
   }, []);
 
   const handleVideoCall = useCallback(() => {
     try {
-      window.dispatchEvent(new CustomEvent('startCall', { detail: { type: 'video' } }));
+      window.dispatchEvent(
+        new CustomEvent('startCall', {
+          detail: { type: 'video', roomId, isGroup, selectedChat },
+        }),
+      );
     } catch {}
   }, []);
 
@@ -3198,7 +3279,34 @@ export default function ChatWindow({
             isSidebarOpen={showPopup || (!isMobile && showSearchSidebar)}
           />
 
-          
+          {/* 
+            Banner "Cuộc gọi nhóm đang diễn ra" + nút "Tham gia lại"
+            Hiển thị khi:
+            - Đây là phòng nhóm
+            - Theo trạng thái LiveKit (roomCallActiveLocal) phòng này đang có call
+            - Và hiện tại user KHÔNG ở trong popup cuộc gọi nổi (globalCallActive / connecting / incoming đều false)
+          */}
+          {isGroup && roomCallActiveLocal && !globalIncoming && !globalCallConnecting && !globalCallActive && (
+            <div className="fixed z-[2000] left-6 top-6 w-[90vw] max-w-[560px]">
+              <div className="rounded-xl p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur">
+                <div className="flex items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none">
+                  <span className="text-sm">Cuộc gọi nhóm đang diễn ra</span>
+                  <span className="text-xs">{roomCallTypeLocal === 'video' ? 'Video' : 'Thoại'}</span>
+                </div>
+                <div className="rounded-b-xl pt-2 p-2 relative bg-black/20">
+                  <div className="rounded-lg overflow-hidden bg-black/30 text-white px-3 py-3">
+                    <div className="text-sm mb-2">Cuộc gọi nhóm đang diễn ra</div>
+                    <button
+                      className="cursor-pointer px-3 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 transition"
+                      onClick={handleRejoinCall}
+                    >
+                      Tham gia lại
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Messages Area */}
           <div

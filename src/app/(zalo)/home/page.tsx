@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { io } from 'socket.io-client';
 import { resolveSocketUrl } from '@/utils/utils';
 
@@ -17,9 +18,10 @@ import {
   waitForOneSignalReady,
 } from '@/lib/onesignal';
 import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
-import { useCallSession } from '@/hooks/useCallSession';
-import ModalCall from '@/components/(call)/ModalCall';
+import { useLiveKitSession } from '@/hooks/useLiveKitSession';
+import LiveKitCall from '@/components/(call)/LiveKitCall';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
+import ModalCall from '@/components/(call)/ModalCall';
 
 export default function HomePage() {
   const {
@@ -50,12 +52,7 @@ export default function HomePage() {
   } = useHomePage();
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
-  const [incomingCallHome, setIncomingCallHome] = useState<{
-    from: string;
-    type: 'voice' | 'video';
-    roomId: string;
-    sdp: RTCSessionDescriptionInit;
-  } | null>(null);
+  const [incomingCallHome, setIncomingCallHome] = useState<{ from: string; type: 'voice' | 'video'; roomId: string } | null>(null);
 
   const isGroup = !!(selectedChat && 'isGroup' in selectedChat && selectedChat.isGroup === true);
   const getOneToOneRoomId = (user1Id: string | number, user2Id: string | number) => {
@@ -73,24 +70,19 @@ export default function HomePage() {
     callType,
     callStartAt,
     callConnecting,
-    remoteStreamsState,
     incomingCall,
-    localVideoRef,
     startCall,
     endCall,
-    toggleMic,
-    toggleCamera,
     acceptIncomingCall,
-    acceptIncomingCallWith,
     setIncomingCall,
-    micEnabled,
-    camEnabled,
     roomCallActive,
     roomCallType,
     roomParticipants,
     activeRoomId,
     counterpartId,
-  } = useCallSession({
+    livekitToken,
+    livekitUrl,
+  } = useLiveKitSession({
     socketRef,
     roomId,
     currentUserId: String(currentUser?._id || ''),
@@ -106,7 +98,7 @@ export default function HomePage() {
   }, [callActive]);
 
   const [callWindowMin, setCallWindowMin] = useState(false);
-  const [callModalSize, setCallModalSize] = useState<{ w: number; h: number | null }>({ w: 320, h: null });
+  const [callModalSize, setCallModalSize] = useState<{ w: number; h: number | null }>({ w: 320, h: 150 });
   const prevSizeRef = useRef<{ w: number; h: number | null } | null>(null);
   const callModalRef = useRef<HTMLDivElement | null>(null);
   const [callWindowPos, setCallWindowPos] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
@@ -114,8 +106,8 @@ export default function HomePage() {
   const toggleMinimize = () => {
     if (!callWindowMin) {
       prevSizeRef.current = { ...callModalSize };
-      const w = callType === 'video' ? 280 : 260;
-      const h = callType === 'video' ? 160 : 180;
+      const w = callType === 'video' ? 300 : 280;
+      const h = callType === 'video' ? 180 : 200;
       setCallModalSize({ w, h });
       setCallWindowMin(true);
     } else {
@@ -141,6 +133,27 @@ export default function HomePage() {
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
+  };
+  const handleTouchDragStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    const state = { startX: t.clientX, startY: t.clientY, originX: callWindowPos.x, originY: callWindowPos.y };
+    const onMove = (ev: TouchEvent) => {
+      const tt = ev.touches[0];
+      const dx = tt.clientX - state.startX;
+      const dy = tt.clientY - state.startY;
+      const x = state.originX + dx;
+      const y = state.originY + dy;
+      const maxX = Math.max(8, window.innerWidth - (callModalSize.w + 24));
+      const maxY = Math.max(8, window.innerHeight - ((callModalSize.h ?? 320) + 24));
+      setCallWindowPos({ x: Math.min(Math.max(8, x), maxX), y: Math.min(Math.max(8, y), maxY) });
+    };
+    const onUp = () => {
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp, { passive: false });
   };
   const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -172,6 +185,39 @@ export default function HomePage() {
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   };
+  const handleResizeTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const t = e.touches[0];
+    const startX = t.clientX;
+    const startY = t.clientY;
+    const originW = callModalSize.w;
+    const originH = callModalSize.h ?? (callType === 'video' ? 420 : 300);
+    const onMove = (ev: TouchEvent) => {
+      const tt = ev.touches[0];
+      const dx = tt.clientX - startX;
+      const dy = tt.clientY - startY;
+      const minW = 240;
+      const minH = 150;
+      const maxW = Math.max(320, window.innerWidth - 32);
+      const maxH = Math.max(200, window.innerHeight - 32);
+      const w = Math.min(Math.max(originW + dx, minW), maxW);
+      const h = Math.min(Math.max(originH + dy, minH), maxH);
+      setCallModalSize({ w, h });
+    };
+    const onUp = () => {
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+      try {
+        localStorage.setItem(
+          'callModalSize',
+          JSON.stringify({ w: callModalSize.w, h: callModalSize.h ?? (callType === 'video' ? 420 : 300) }),
+        );
+      } catch {}
+    };
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp, { passive: false });
+  };
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -194,22 +240,16 @@ export default function HomePage() {
         roomId: string;
         from: string;
         type: 'voice' | 'video';
-        sdp: RTCSessionDescriptionInit;
       };
       if (!data || String(data.roomId) !== String(roomId)) return;
       (async () => {
-        await acceptIncomingCallWith({
-          from: String(data.from),
-          type: data.type,
-          roomId: String(data.roomId),
-          sdp: data.sdp,
-        });
+        await acceptIncomingCall();
         try {
           localStorage.removeItem('pendingIncomingCall');
         } catch {}
       })();
     } catch {}
-  }, [roomId, incomingCall, callActive, callConnecting, acceptIncomingCallWith]);
+  }, [roomId, incomingCall, callActive, callConnecting, acceptIncomingCall]);
 
   useEffect(() => {
     const run = async () => {
@@ -253,13 +293,7 @@ export default function HomePage() {
     socket.off('call_reject');
     socket.off('call_answer');
 
-    const handleOffer = (data: {
-      roomId: string;
-      target: string;
-      from: string;
-      type: 'voice' | 'video';
-      sdp: RTCSessionDescriptionInit;
-    }) => {
+    const handleOffer = (data: { roomId: string; target: string; from: string; type: 'voice' | 'video' }) => {
       if (String(data.target) !== String(currentUser._id)) return;
       if (selectedChat) return;
       if (incomingCallHome) return;
@@ -267,7 +301,6 @@ export default function HomePage() {
         from: String(data.from),
         type: data.type,
         roomId: String(data.roomId),
-        sdp: data.sdp,
       });
       playGlobalRingTone();
     };
@@ -412,6 +445,7 @@ export default function HomePage() {
           <div
             className="cursor-move flex items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
             onMouseDown={handleDragStart}
+            onTouchStart={handleTouchDragStart}
           >
             <span className="text-sm">{callActive ? 'Đang gọi' : incomingCall ? 'Cuộc gọi đến' : 'Đang kết nối...'}</span>
             <span className="flex items-center gap-3">
@@ -427,12 +461,6 @@ export default function HomePage() {
           <div
             ref={callModalRef}
             className="rounded-b-xl pt-2 p-4 backdrop-blur-sm relative"
-            style={{
-              width: callModalSize.w,
-              height: callModalSize.h ?? undefined,
-              maxWidth: 'calc(100vw - 2rem)',
-              maxHeight: 'calc(100vh - 2rem)',
-            }}
           >
             {!callActive &&
               incomingCall &&
@@ -443,7 +471,9 @@ export default function HomePage() {
                 const group = !isOneToOneIncoming ? groups.find((g) => String(g._id) === rid) : null;
                 const caller = allUsers.find((u) => String(u._id) === String(incomingCall?.from));
                 const avatar = isOneToOneIncoming ? caller?.avatar : group?.avatar;
-                const name = isOneToOneIncoming ? caller?.name || (selectedChat as any)?.name : group?.name || (selectedChat as any)?.name;
+                const name = isOneToOneIncoming
+                  ? caller?.name || ''
+                  : group?.name || (selectedChat as GroupConversation)?.name || '';
                 return (
                   <IncomingCallModal
                     avatar={avatar}
@@ -476,12 +506,12 @@ export default function HomePage() {
                   ? null
                   : parts.find((p) => p && p !== String(currentUser._id)) || String(selectedChat?._id || '');
                 const other = !isGroup ? allUsers.find((u) => String(u._id) === String(otherId)) : null;
-                const avatar = isGroup ? (selectedChat as any)?.avatar : other?.avatar;
-                const name = isGroup ? (selectedChat as any)?.name : other?.name || (selectedChat as any)?.name;
+                const avatar = isGroup ? (selectedChat as GroupConversation)?.avatar : other?.avatar;
+                const name = isGroup ? (selectedChat as GroupConversation)?.name : other?.name || '';
                 return (
                   <ModalCall
-                    avatar={avatar}
-                    name={name}
+                    avatar={avatar || '/logo/avata.webp'}
+                    name={name || ''}
                     mode="connecting"
                     callType={callType === 'video' ? 'video' : 'voice'}
                     onEndCall={() => endCall('local')}
@@ -490,7 +520,6 @@ export default function HomePage() {
               })()}
             {callActive &&
               (() => {
-                const remoteIds = Array.from(remoteStreamsState.keys());
                 const participantOtherId =
                   roomParticipants && roomParticipants.length > 0
                     ? roomParticipants.find((id) => String(id) !== String(currentUser._id))
@@ -498,7 +527,6 @@ export default function HomePage() {
                 const otherId =
                   counterpartId ||
                   participantOtherId ||
-                  remoteIds[0] ||
                   incomingCall?.from ||
                   String(activeRoomId || roomId)
                     .split('_')
@@ -509,46 +537,36 @@ export default function HomePage() {
                   ? true
                   : roomParticipants && roomParticipants.length > 0
                   ? roomParticipants.length === 2
-                  : remoteIds.length <= 1;
+                  : true;
                 const currentCallRoomId = String(activeRoomId || roomId);
                 const currentGroup = groups.find((g) => String(g._id) === currentCallRoomId);
-                const avatar = isOneToOneCall ? other?.avatar : currentGroup?.avatar || (selectedChat as any)?.avatar;
-                const name = isOneToOneCall ? other?.name || (selectedChat as any)?.name : currentGroup?.name || (selectedChat as any)?.name;
-                const remotePeers = Array.from(remoteStreamsState.entries()).map(([uid, stream]) => {
-                  const u = allUsers.find((x) => String(x._id) === String(uid));
-                  return { userId: uid, stream, name: u?.name, avatar: u?.avatar };
-                });
-                const participantIds = new Set<string>();
-                roomParticipants.forEach((id) => participantIds.add(String(id)));
-                remoteIds.forEach((id) => participantIds.add(String(id)));
-                participantIds.delete(String(currentUser._id));
-                const participantsList = Array.from(participantIds).map((uid) => {
-                  const u = allUsers.find((x) => String(x._id) === String(uid));
-                  return { userId: uid, name: u?.name, avatar: u?.avatar };
-                });
+                const avatar = isOneToOneCall ? other?.avatar : currentGroup?.avatar || (selectedChat as GroupConversation)?.avatar;
+                const name = isOneToOneCall ? other?.name || '' : currentGroup?.name || (selectedChat as GroupConversation)?.name || '';
                 return (
-                  <ModalCall
-                    avatar={avatar}
-                    name={name}
-                    mode="active"
-                    callType={callType === 'video' ? 'video' : 'voice'}
-                    callStartAt={callStartAt}
-                    localVideoRef={localVideoRef}
-                    currentUserName={currentUser.name}
-                    currentUserAvatar={currentUser.avatar}
-                    remotePeers={remotePeers}
-                    participants={participantsList}
-                    micEnabled={micEnabled}
-                    camEnabled={camEnabled}
-                    onToggleMic={toggleMic}
-                    onToggleCamera={toggleCamera}
-                    onEndCall={() => endCall('local')}
-                  />
+                  <div className="relative">
+                    {livekitToken && livekitUrl ? (
+                      <LiveKitCall
+                        serverUrl={livekitUrl}
+                        token={livekitToken}
+                        onDisconnected={() => endCall('local')}
+                        className="rounded-lg overflow-hidden"
+                        titleName={name}
+                        durationSec={callTicker}
+                        avatarUrl={avatar || '/logo/avata.webp'}
+                        myName={currentUser.name}
+                        myAvatarUrl={currentUser.avatar}
+                        localPreviewSize={{ w: 180, h: 110 }}
+                      />
+                    ) : (
+                      <div className="bg-black/60 text-white rounded-xl p-4">Đang chuẩn bị cuộc gọi...</div>
+                    )}
+                  </div>
                 );
               })()}
             <div
               className="absolute bottom-1 right-1 w-4 h-4 rounded cursor-nwse-resize bg-white/60 hover:bg-white/80"
               onMouseDown={handleResizeStart}
+              onTouchStart={handleResizeTouchStart}
               title="Kéo để thay đổi kích thước"
             />
           </div>
@@ -567,10 +585,16 @@ export default function HomePage() {
                   avatar={avatar}
                   name={name}
                   callType={incomingCallHome.type}
-                  onAccept={() => {
+                  onAccept={async () => {
                     try {
                       localStorage.setItem('pendingIncomingCall', JSON.stringify(incomingCallHome));
                     } catch {}
+                    setIncomingCall({
+                      from: String(incomingCallHome.from),
+                      type: incomingCallHome.type === 'video' ? 'video' : 'voice',
+                      roomId: String(incomingCallHome.roomId),
+                    });
+                    await acceptIncomingCall();
                     const group = groups.find((g) => String(g._id) === String(incomingCallHome.roomId));
                     if (group) {
                       setSelectedChat(group as unknown as GroupConversation);

@@ -1,0 +1,423 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import io, { Socket } from 'socket.io-client';
+import { resolveSocketUrl } from '@/utils/utils';
+import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
+
+type CallType = 'voice' | 'video';
+type Member = string | { _id: string };
+
+export function useLiveKitSession({
+  socketRef,
+  roomId,
+  currentUserId,
+  isGroup,
+  selectedChat,
+}: {
+  socketRef: React.MutableRefObject<Socket | null>;
+  roomId: string;
+  currentUserId: string;
+  isGroup: boolean;
+  selectedChat?: { _id?: string; members?: Member[] } | null;
+}) {
+  const [incomingCall, setIncomingCall] = useState<{ from: string; type: CallType; roomId: string } | null>(null);
+  const [callActive, setCallActive] = useState(false);
+  const [callType, setCallType] = useState<CallType | null>(null);
+  const [callStartAt, setCallStartAt] = useState<number | null>(null);
+  const [callConnecting, setCallConnecting] = useState(false);
+  const [roomCallActive, setRoomCallActive] = useState(false);
+  const [roomCallType, setRoomCallType] = useState<CallType | null>(null);
+  const [roomParticipants, setRoomParticipants] = useState<string[]>([]);
+  const [activeRoomId, setActiveRoomId] = useState<string>(roomId);
+  const [counterpartId, setCounterpartId] = useState<string | null>(null);
+  const [livekitToken, setLivekitToken] = useState<string | null>(null);
+  const [livekitUrl, setLivekitUrl] = useState<string | null>(null);
+
+  const receiversRef = useRef<string[]>([]);
+  const ringTimeoutRef = useRef<number | null>(null);
+  const callActiveRef = useRef<boolean>(false);
+  const callConnectingRef = useRef<boolean>(false);
+  const lastJoinedRoomRef = useRef<string>('');
+
+  useEffect(() => {
+    callActiveRef.current = callActive;
+  }, [callActive]);
+  useEffect(() => {
+    callConnectingRef.current = callConnecting;
+  }, [callConnecting]);
+  useEffect(() => {
+    setActiveRoomId(roomId);
+  }, [roomId]);
+  useEffect(() => {
+    const rid = String(roomId || '');
+    if (!rid) return;
+    const ensureJoin = async () => {
+      try {
+        if (!socketRef.current || !socketRef.current.connected) {
+          socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+          await new Promise<void>((resolve) => {
+            socketRef.current!.on('connect', () => resolve());
+          });
+          socketRef.current!.emit('join_user', { userId: String(currentUserId) });
+        }
+        if (lastJoinedRoomRef.current !== rid) {
+          socketRef.current?.emit('join_room', rid);
+          lastJoinedRoomRef.current = rid;
+        }
+      } catch {}
+    };
+    void ensureJoin();
+  }, [roomId, currentUserId, socketRef]);
+
+  useEffect(() => {
+    try {
+      const rid = String(roomId || '');
+      if (!rid) return;
+      localStorage.setItem(`livekit_room_${rid}_active`, roomCallActive ? 'true' : 'false');
+      localStorage.setItem(`livekit_room_${rid}_type`, String(roomCallType || 'voice'));
+      localStorage.setItem(
+        `livekit_room_${rid}_participants`,
+        JSON.stringify(Array.isArray(roomParticipants) ? roomParticipants.map((x) => String(x)) : []),
+      );
+      const ev = new CustomEvent('roomCallStateChanged', {
+        detail: {
+          roomId: rid,
+          active: !!roomCallActive,
+          type: (roomCallType || 'voice') as CallType,
+          participants: Array.isArray(roomParticipants) ? roomParticipants.map((x) => String(x)) : [],
+        },
+      });
+      window.dispatchEvent(ev as unknown as Event);
+    } catch {}
+  }, [roomId, roomCallActive, roomCallType, roomParticipants]);
+
+  useEffect(() => {
+    try {
+      const rid = String(roomId || '');
+      if (!rid) return;
+      const active = localStorage.getItem(`livekit_room_${rid}_active`) === 'true';
+      const typeRaw = localStorage.getItem(`livekit_room_${rid}_type`);
+      const type = (typeRaw === 'video' ? 'video' : 'voice') as CallType;
+      const partsRaw = localStorage.getItem(`livekit_room_${rid}_participants`);
+      const parts = partsRaw ? (JSON.parse(partsRaw) as string[]) : [];
+      if (active) {
+        setRoomCallActive(true);
+        setRoomCallType(type);
+        setRoomParticipants(Array.isArray(parts) ? parts.map((x) => String(x)) : []);
+      }
+    } catch {}
+  }, [roomId]);
+
+  const getReceiverIds = useCallback(() => {
+    if (isGroup) {
+      const members = (selectedChat?.members || []) as Member[];
+      const ids = members
+        .map((m) => (typeof m === 'object' ? String(m._id) : String(m)))
+        .filter((id) => id !== String(currentUserId));
+      return ids;
+    }
+    const id = String(selectedChat?._id || '');
+    return id ? [id] : [];
+  }, [isGroup, selectedChat, currentUserId]);
+
+  const fetchToken = useCallback(
+    async (rid: string) => {
+      const res = await fetch(`/api/livekit/token?room=${encodeURIComponent(rid)}`, { method: 'GET' });
+      if (!res.ok) throw new Error('token failed');
+      const data = await res.json();
+      setLivekitToken(String(data.token || ''));
+      setLivekitUrl(String(data.serverUrl || ''));
+    },
+    [],
+  );
+
+  const startCall = useCallback(
+    async (type: CallType) => {
+      try {
+        if (!socketRef.current || !socketRef.current.connected) {
+          socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+          await new Promise<void>((resolve) => {
+            socketRef.current!.on('connect', () => resolve());
+          });
+          socketRef.current.emit('join_room', roomId);
+          socketRef.current.emit('join_user', { userId: String(currentUserId) });
+        }
+      } catch {}
+      const receivers = (() => {
+        if (isGroup && roomCallActive && roomParticipants && roomParticipants.length > 0) {
+          return roomParticipants.filter((id) => String(id) !== String(currentUserId));
+        }
+        return getReceiverIds();
+      })();
+      receiversRef.current = receivers;
+      if (receivers.length === 0) return;
+      setCallType(type);
+      setCallStartAt(null);
+      setCallConnecting(true);
+      setLivekitToken(null);
+      setLivekitUrl(null);
+      setActiveRoomId(roomId);
+      setCounterpartId(!isGroup && receivers.length > 0 ? String(receivers[0]) : null);
+      if (ringTimeoutRef.current) {
+        window.clearTimeout(ringTimeoutRef.current);
+        ringTimeoutRef.current = null;
+      }
+      playGlobalRingTone();
+      ringTimeoutRef.current = window.setTimeout(() => {
+        if (!callActiveRef.current && callConnectingRef.current) {
+          stopGlobalRingTone();
+          endCall('local');
+        }
+      }, 30000);
+      try {
+        for (const otherId of receivers) {
+          socketRef.current?.emit('call_offer', {
+            roomId,
+            target: otherId,
+            from: String(currentUserId),
+            type,
+            sdp: null,
+          });
+        }
+      } catch {
+        setCallConnecting(false);
+      }
+    },
+    [getReceiverIds, roomId, currentUserId, isGroup, roomCallActive, roomParticipants],
+  );
+
+  const endCall = useCallback(
+    (source: 'local' | 'remote' = 'local') => {
+      stopGlobalRingTone();
+      setCallActive(false);
+      setCallType(null);
+      setCallStartAt(null);
+      setCallConnecting(false);
+      setIncomingCall(null);
+      setCounterpartId(null);
+      setActiveRoomId('');
+      setLivekitToken(null);
+      setLivekitUrl(null);
+      if (ringTimeoutRef.current) {
+        window.clearTimeout(ringTimeoutRef.current);
+        ringTimeoutRef.current = null;
+      }
+      if (source === 'local' && socketRef.current?.connected) {
+        if (isGroup) {
+          socketRef.current.emit('call_leave', {
+            roomId,
+            userId: String(currentUserId),
+          });
+          setRoomParticipants((prev) => {
+            const next = (prev || []).filter((id) => String(id) !== String(currentUserId));
+            if (next.length === 0) {
+              setRoomCallActive(false);
+              setRoomCallType(null);
+            }
+            return next;
+          });
+        } else {
+          let targets = receiversRef.current;
+          if (!targets || targets.length === 0) {
+            const other = counterpartId
+              ? String(counterpartId)
+              : (() => {
+                  const parts = String(roomId).split('_').filter(Boolean);
+                  const me = String(currentUserId);
+                  const t = parts.length === 2 ? parts.find((id) => String(id) !== me) : undefined;
+                  return t ? String(t) : undefined;
+                })();
+            targets = other ? [other] : [];
+          }
+          socketRef.current.emit('call_end', {
+            roomId,
+            from: String(currentUserId),
+            targets,
+          });
+        }
+      }
+      try {
+        if (typeof window !== 'undefined') localStorage.removeItem('pendingIncomingCall');
+      } catch {}
+    },
+    [roomId, currentUserId, counterpartId],
+  );
+
+  const acceptIncomingCall = useCallback(async () => {
+    if (!incomingCall) return;
+    stopGlobalRingTone();
+    setCallType(incomingCall.type);
+    setActiveRoomId(incomingCall.roomId);
+    setCallConnecting(false);
+    try {
+      if (!socketRef.current || !socketRef.current.connected) {
+        socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+        await new Promise<void>((resolve) => {
+          socketRef.current!.on('connect', () => resolve());
+        });
+        socketRef.current!.emit('join_user', { userId: String(currentUserId) });
+      }
+      socketRef.current?.emit('join_room', incomingCall.roomId);
+      socketRef.current?.emit('call_answer', {
+        roomId: incomingCall.roomId,
+        target: String(incomingCall.from),
+        from: String(currentUserId),
+        sdp: null,
+      });
+      const parts = String(incomingCall.roomId).split('_').filter(Boolean);
+      if (parts.length === 2) {
+        setCounterpartId(String(incomingCall.from));
+      } else {
+        setCounterpartId(null);
+      }
+      setCallActive(true);
+      await fetchToken(incomingCall.roomId);
+      setIncomingCall(null);
+      const isDirect = parts.length === 2;
+      if (isDirect) {
+        setCallStartAt(Date.now());
+      }
+    } catch {
+      setCallActive(true);
+    }
+  }, [incomingCall, fetchToken, currentUserId]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket) return;
+    socket.off('call_offer');
+    socket.off('call_answer');
+    socket.off('call_end');
+    socket.off('call_reject');
+    socket.off('call_leave');
+    socket.off('call_state');
+    const handleCallOffer = (data: { roomId: string; target: string; from: string; type: CallType }) => {
+      if (String(data.target) !== String(currentUserId)) return;
+      if (callActiveRef.current || callConnectingRef.current) {
+        return;
+      }
+      setIncomingCall({ from: String(data.from), type: data.type, roomId: data.roomId });
+      playGlobalRingTone();
+    };
+    const handleCallAnswer = async (data: { roomId: string; target: string; from: string }) => {
+      if (String(data.target) !== String(currentUserId)) return;
+      stopGlobalRingTone();
+      setCallConnecting(false);
+      setActiveRoomId(data.roomId);
+      const parts = String(data.roomId).split('_').filter(Boolean);
+      const isDirect = parts.length === 2;
+      if (isDirect) {
+        setCallStartAt(Date.now());
+      }
+      await fetchToken(data.roomId);
+      setCallActive(true);
+    };
+    const handleCallEnd = (data: { roomId: string }) => {
+      stopGlobalRingTone();
+      setIncomingCall(null);
+      endCall('remote');
+      if (String(data.roomId) === String(roomId)) {
+        setRoomCallActive(false);
+        setRoomCallType(null);
+        setRoomParticipants([]);
+      }
+    };
+    const handleCallReject = (data: { roomId: string }) => {
+      stopGlobalRingTone();
+      setIncomingCall(null);
+      if (String(data.roomId).split('_').filter(Boolean).length === 2) {
+        endCall('remote');
+        if (String(data.roomId) === String(roomId)) {
+          setRoomCallActive(false);
+          setRoomCallType(null);
+          setRoomParticipants([]);
+        }
+      }
+    };
+    const handleCallLeave = (data: { roomId: string; userId: string }) => {
+      if (String(data.roomId) !== String(roomId)) return;
+      setRoomParticipants((prev) => {
+        const next = (prev || []).filter((id) => String(id) !== String(data.userId));
+        if (next.length === 0) {
+          setRoomCallActive(false);
+          setRoomCallType(null);
+        }
+        return next;
+      });
+    };
+    const handleCallState = (data: {
+      roomId: string;
+      type: CallType;
+      participants: string[];
+      active: boolean;
+      startAt?: number | null;
+    }) => {
+      if (String(data.roomId) !== String(roomId)) return;
+      const isDirect = String(data.roomId).split('_').filter(Boolean).length === 2;
+      if (isDirect) return;
+      setRoomCallActive(!!data.active);
+      setRoomCallType(data.type);
+      setRoomParticipants(Array.isArray(data.participants) ? data.participants.map((x) => String(x)) : []);
+      setCallStartAt(typeof data.startAt === 'number' ? data.startAt : null);
+      try {
+        const dedupKey = `callEndedNotify:${String(roomId)}`;
+        if (data.active) {
+          localStorage.removeItem(dedupKey);
+        }
+      } catch {}
+    };
+    socket.on('call_offer', handleCallOffer);
+    socket.on('call_answer', handleCallAnswer);
+    socket.on('call_end', handleCallEnd);
+    socket.on('call_reject', handleCallReject);
+    socket.on('call_leave', handleCallLeave);
+    socket.on('call_state', handleCallState);
+    return () => {
+      socket.off('call_offer', handleCallOffer);
+      socket.off('call_answer', handleCallAnswer);
+      socket.off('call_end', handleCallEnd);
+      socket.off('call_reject', handleCallReject);
+      socket.off('call_leave', handleCallLeave);
+      socket.off('call_state', handleCallState);
+    };
+  }, [currentUserId, socketRef, endCall, roomId, fetchToken]);
+
+  useEffect(() => {
+    if (!callConnecting) {
+      stopGlobalRingTone();
+      if (ringTimeoutRef.current) {
+        window.clearTimeout(ringTimeoutRef.current);
+        ringTimeoutRef.current = null;
+      }
+    }
+  }, [callConnecting]);
+  useEffect(() => {
+    if (!incomingCall) {
+      stopGlobalRingTone();
+      if (ringTimeoutRef.current) {
+        window.clearTimeout(ringTimeoutRef.current);
+        ringTimeoutRef.current = null;
+      }
+    }
+  }, [incomingCall]);
+
+  return {
+    callActive,
+    callType,
+    callStartAt,
+    callConnecting,
+    incomingCall,
+    startCall,
+    endCall,
+    acceptIncomingCall,
+    setIncomingCall,
+    roomCallActive,
+    roomCallType,
+    roomParticipants,
+    activeRoomId,
+    counterpartId,
+    livekitToken,
+    livekitUrl,
+  };
+}
