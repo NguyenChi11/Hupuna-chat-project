@@ -474,7 +474,7 @@ export default function ShareMessageModal({
                             e.stopPropagation(); // Ngăn click lan ra toggleSelect toàn bộ item
                             toggleSelect(targetId);
                           }}
-                          className="absolute -top-[2px] cursor-pointer -right-1 w-5 h-5 bg-gray-400 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-all duration-200 opacity-0 opacity-100 hover:scale-110"
+                          className="absolute -top-[2px] cursor-pointer -right-1 w-5 h-5 bg-gray-400 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-all duration-200 opacity-100 hover:scale-110"
                           aria-label="Xóa khỏi danh sách chia sẻ"
                         >
                           <IoClose className="w-4 h-4 text-white" />
