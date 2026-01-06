@@ -2516,7 +2516,7 @@ export default function MessageList({
                               {/* IMAGE – FIX SIZE MOBILE */}
                               {msg.type === 'image' && msg.fileUrl && !isRecalled && (
                                 <div
-                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[40vw] sm:max-w-[10rem]"
+                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[70vw] sm:max-w-[18rem]"
                                   onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
                                 >
                                   {String(msg.fileUrl).startsWith('blob:') ? (

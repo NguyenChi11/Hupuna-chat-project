@@ -2,19 +2,28 @@
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
-import Cropper from 'react-easy-crop';
+import { Cropper, CropperRef } from 'react-advanced-cropper';
 import { HiX, HiCheck } from 'react-icons/hi';
 import { FaCropSimple, FaPen, FaFaceSmile } from 'react-icons/fa6';
 import { IoSend } from 'react-icons/io5';
 import { getProxyUrl } from '@/utils/utils';
-import getCroppedImg from '@/utils/canvasUtils';
 
 interface MediaEditorProps {
   mediaUrl: string;
   mediaType?: 'image' | 'video';
   chatName?: string;
   onClose: () => void;
-  onSend?: (data: { description: string; isHD: boolean; selected: boolean }) => void;
+  onSend?: (data: {
+    description: string;
+    isHD: boolean;
+    selected: boolean;
+    videoCropConfig?: {
+      crop: { x: number; y: number };
+      zoom: number;
+      rotation: number;
+      croppedAreaPixels: { x: number; y: number; width: number; height: number } | null;
+    } | null;
+  }) => void;
 }
 
 export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, onClose, onSend }: MediaEditorProps) {
@@ -33,35 +42,8 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
   } | null>(null);
 
   const [isCropping, setIsCropping] = useState(false);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  } | null>(null);
-
   const [rotation, setRotation] = useState(0);
-  const [cropSize, setCropSize] = useState<{ width: number; height: number } | undefined>(undefined);
-  const [resizing, setResizing] = useState<{
-    edge: 'left' | 'right' | 'top' | 'bottom' | null;
-    startX: number;
-    startY: number;
-    startSize: { width: number; height: number };
-    startRect: { x: number; y: number; width: number; height: number };
-    startCrop: { x: number; y: number };
-  } | null>(null);
-
-  const onCropComplete = useCallback(
-    (
-      croppedArea: { x: number; y: number; width: number; height: number },
-      croppedAreaPixels: { x: number; y: number; width: number; height: number },
-    ) => {
-      setCroppedAreaPixels(croppedAreaPixels);
-    },
-    [],
-  );
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [brushColor, setBrushColor] = useState('#ff3b30');
@@ -71,16 +53,9 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const cropperRef = useRef<CropperRef>(null);
   const [videoMeta, setVideoMeta] = useState<{ width: number; height: number } | null>(null);
   const [displayRect, setDisplayRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
-  const maxCropWidth = useMemo(
-    () => (displayRect?.width ?? containerRef.current?.clientWidth) || undefined,
-    [displayRect],
-  );
-  const maxCropHeight = useMemo(
-    () => (displayRect?.height ?? containerRef.current?.clientHeight) || undefined,
-    [displayRect],
-  );
   const [isTexting, setIsTexting] = useState(false);
   const [textInput, setTextInput] = useState('');
   const [textColor, setTextColor] = useState('#ffffff');
@@ -91,6 +66,71 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
   const [draggingTextId, setDraggingTextId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setContainerSize({
+          width: containerRef.current.clientWidth,
+          height: containerRef.current.clientHeight,
+        });
+      }
+    };
+    window.addEventListener('resize', updateSize);
+    updateSize();
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  const generateVideoPoster = useCallback(async (): Promise<string | null> => {
+    // Helper to capture from a video element
+    const capture = (video: HTMLVideoElement): string | null => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/jpeg', 0.92);
+      } catch (e) {
+        console.warn('Failed to capture video frame (likely CORS):', e);
+        return null;
+      }
+    };
+
+    // Try using the existing video ref first
+    if (videoRef.current && videoRef.current.videoWidth && videoRef.current.videoHeight) {
+      const result = capture(videoRef.current);
+      if (result) return result;
+    }
+
+    // Fallback: create a new video element with crossOrigin
+    try {
+      const v = document.createElement('video');
+      v.crossOrigin = 'anonymous'; // Important for CORS
+      v.muted = true;
+      v.playsInline = true;
+
+      await new Promise<void>((resolve, reject) => {
+        v.addEventListener('loadeddata', () => resolve(), { once: true });
+        v.addEventListener('error', reject, { once: true });
+        v.src = getProxyUrl(currentMedia);
+        v.load();
+      });
+
+      // Ensure we have a frame (sometimes loadeddata is enough, but seek might be safer if black)
+      if (v.currentTime === 0) {
+        v.currentTime = 0.1;
+        await new Promise((r) => v.addEventListener('seeked', r, { once: true }));
+      }
+
+      return capture(v);
+    } catch (e) {
+      console.error('Failed to generate video poster fallback:', e);
+      return null;
+    }
+  }, [currentMedia]);
 
   const ensureCanvasSize = useCallback(() => {
     const c = canvasRef.current;
@@ -125,67 +165,19 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
   }, []);
 
   useEffect(() => {
-    if (!resizing || !cropSize) return;
-    const onMove = (ev: MouseEvent | TouchEvent) => {
-      let clientX: number;
-      let clientY: number;
-      if (ev instanceof TouchEvent) {
-        const t = ev.touches[0];
-        if (!t) return;
-        clientX = t.clientX;
-        clientY = t.clientY;
-      } else {
-        clientX = ev.clientX;
-        clientY = ev.clientY;
-      }
-      const dx = clientX - resizing.startX;
-      const dy = clientY - resizing.startY;
-      const minW = 60;
-      const minH = 60;
-      const mw = maxCropWidth ?? Number.POSITIVE_INFINITY;
-      const mh = maxCropHeight ?? Number.POSITIVE_INFINITY;
-      const startLeft = resizing.startRect.x;
-      const startTop = resizing.startRect.y;
-      const startRight = resizing.startRect.x + resizing.startRect.width;
-      const startBottom = resizing.startRect.y + resizing.startRect.height;
-      let newWidth = resizing.startSize.width;
-      let newHeight = resizing.startSize.height;
-      let newCenterX = startLeft + resizing.startSize.width / 2;
-      let newCenterY = startTop + resizing.startSize.height / 2;
-      if (resizing.edge === 'left') {
-        const newLeft = startLeft + dx;
-        newWidth = Math.min(Math.max(minW, startRight - newLeft), mw);
-        newCenterX = newLeft + newWidth / 2;
-      } else if (resizing.edge === 'right') {
-        const newRight = startRight + dx;
-        newWidth = Math.min(Math.max(minW, newRight - startLeft), mw);
-        newCenterX = startLeft + newWidth / 2;
-      } else if (resizing.edge === 'top') {
-        const newTop = startTop + dy;
-        newHeight = Math.min(Math.max(minH, startBottom - newTop), mh);
-        newCenterY = newTop + newHeight / 2;
-      } else if (resizing.edge === 'bottom') {
-        const newBottom = startBottom + dy;
-        newHeight = Math.min(Math.max(minH, newBottom - startTop), mh);
-        newCenterY = startTop + newHeight / 2;
-      }
-      setCropSize({ width: newWidth, height: newHeight });
-      const deltaX = newCenterX - (startLeft + resizing.startSize.width / 2);
-      const deltaY = newCenterY - (startTop + resizing.startSize.height / 2);
-      setCrop({ x: resizing.startCrop.x + deltaX, y: resizing.startCrop.y + deltaY });
-    };
-    const onUp = () => setResizing(null);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onUp);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onUp);
-    };
-  }, [resizing, cropSize, maxCropWidth, maxCropHeight]);
+    if (!isCropping) return;
+    const ref = cropperRef.current;
+    if (!ref) return;
+    const state = ref.getState();
+    if (!state) return;
+    ref.setState({
+      ...state,
+      transforms: {
+        ...(state.transforms || {}),
+        rotate: rotation,
+      },
+    });
+  }, [zoom, rotation, isCropping]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -212,103 +204,6 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
     }
   }, [computeRect, mediaType]);
 
-  useEffect(() => {
-    if (!isCropping) return;
-    const container = containerRef.current;
-    if (!container) return;
-    if (mediaType === 'image') {
-      const im = new window.Image();
-      im.onload = () => {
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        const ia = (im.naturalWidth || im.width) / (im.naturalHeight || im.height);
-        const ca = cw / ch;
-        let dw = cw;
-        let dh = ch;
-        let dx = 0;
-        let dy = 0;
-        if (ia > ca) {
-          dw = cw;
-          dh = cw / ia;
-          dy = (ch - dh) / 2;
-          dx = 0;
-        } else {
-          dh = ch;
-          dw = ch * ia;
-          dx = (cw - dw) / 2;
-          dy = 0;
-        }
-        const w = Math.max(60, Math.round(dw));
-        const h = Math.max(60, Math.round(dh));
-        const cx = Math.round((dx || 0) + w / 2);
-        const cy = Math.round((dy || 0) + h / 2);
-        setCropSize({ width: w, height: h });
-        setCrop({ x: cx, y: cy });
-      };
-      im.src = getProxyUrl(currentMedia);
-      return;
-    }
-    if (mediaType === 'video') {
-      if (videoMeta && videoMeta.width && videoMeta.height) {
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        const ia = videoMeta.width / videoMeta.height;
-        const ca = cw / ch;
-        let dw = cw;
-        let dh = ch;
-        let dx = 0;
-        let dy = 0;
-        if (ia > ca) {
-          dw = cw;
-          dh = cw / ia;
-          dy = (ch - dh) / 2;
-          dx = 0;
-        } else {
-          dh = ch;
-          dw = ch * ia;
-          dx = (cw - dw) / 2;
-          dy = 0;
-        }
-        const w = Math.max(60, Math.round(dw));
-        const h = Math.max(60, Math.round(dh));
-        const cx = Math.round((dx || 0) + w / 2);
-        const cy = Math.round((dy || 0) + h / 2);
-        setCropSize({ width: w, height: h });
-        setCrop({ x: cx, y: cy });
-      } else {
-        const w = Math.max(60, container.clientWidth);
-        const h = Math.max(60, container.clientHeight);
-        setCropSize({ width: w, height: h });
-        setCrop({ x: w / 2, y: h / 2 });
-      }
-    }
-  }, [isCropping, mediaType, currentMedia, videoMeta]);
-
-  useEffect(() => {
-    if (!isCropping) return;
-    if (!cropSize || croppedAreaPixels) return;
-    const w = cropSize.width;
-    const h = cropSize.height;
-    let x = crop.x - w / 2;
-    let y = crop.y - h / 2;
-    if (displayRect) {
-      const minX = displayRect.x;
-      const minY = displayRect.y;
-      const maxX = displayRect.x + displayRect.width - w;
-      const maxY = displayRect.y + displayRect.height - h;
-      x = Math.min(Math.max(x, minX), maxX);
-      y = Math.min(Math.max(y, minY), maxY);
-    } else {
-      const container = containerRef.current;
-      if (container) {
-        const maxX = container.clientWidth - w;
-        const maxY = container.clientHeight - h;
-        x = Math.min(Math.max(x, 0), maxX);
-        y = Math.min(Math.max(y, 0), maxY);
-      }
-    }
-    setCroppedAreaPixels({ x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h) });
-  }, [isCropping, cropSize, crop, croppedAreaPixels, displayRect]);
   const drawStrokeSegment = useCallback(
     (ctx: CanvasRenderingContext2D, stroke: { color: string; size: number; points: { x: number; y: number }[] }) => {
       if (stroke.points.length < 2) {
@@ -341,6 +236,8 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
     ctx.clearRect(0, 0, c.width, c.height);
     for (const s of strokes) drawStrokeSegment(ctx, s);
   }, [strokes, drawStrokeSegment]);
+
+  const [videoPoster, setVideoPoster] = useState<string | null>(null);
 
   useEffect(() => {
     ensureCanvasSize();
@@ -407,27 +304,39 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
   };
   const handleSaveCrop = async () => {
     try {
-      if (!croppedAreaPixels) return;
+      if (!cropperRef.current) return;
 
       if (mediaType === 'image') {
-        const croppedImage = await getCroppedImg(getProxyUrl(currentMedia), croppedAreaPixels, rotation);
-        if (croppedImage) {
-          setCurrentMedia(croppedImage);
-          setIsCropping(false);
-          // Reset crop state for next time
-          setRotation(0);
-          setZoom(1);
-          setCrop({ x: 0, y: 0 });
+        const canvas = cropperRef.current.getCanvas();
+        if (canvas) {
+          const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg'));
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            setCurrentMedia(url);
+            setIsCropping(false);
+            // Reset crop state for next time
+            setRotation(0);
+            setZoom(1);
+          }
         }
       } else {
         // Video
-        setVideoCropConfig({
-          crop,
-          zoom,
-          rotation,
-          croppedAreaPixels,
-        });
-        setIsCropping(false);
+        const state = cropperRef.current.getState();
+        const coordinates = cropperRef.current.getCoordinates();
+        if (state && coordinates) {
+          setVideoCropConfig({
+            crop: { x: coordinates.left, y: coordinates.top },
+            zoom: 1,
+            rotation: state.transforms.rotate || 0,
+            croppedAreaPixels: {
+              x: coordinates.left,
+              y: coordinates.top,
+              width: coordinates.width,
+              height: coordinates.height,
+            },
+          });
+          setIsCropping(false);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -496,7 +405,6 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
     setVideoCropConfig(null);
     setRotation(0);
     setZoom(1);
-    setCrop({ x: 0, y: 0 });
     setIsDrawing(false);
     setStrokes([]);
     setIsTexting(false);
@@ -593,89 +501,11 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
               ) : null}
               <button
                 className="p-2"
-                onClick={() => {
-                  const container = containerRef.current;
-                  if (container) {
-                    if (mediaType === 'image') {
-                      const im = new window.Image();
-                      im.onload = () => {
-                        const cw = container.clientWidth;
-                        const ch = container.clientHeight;
-                        const ia = (im.naturalWidth || im.width) / (im.naturalHeight || im.height);
-                        const ca = cw / ch;
-                        let dw = cw;
-                        let dh = ch;
-                        let dx = 0;
-                        let dy = 0;
-                        if (ia > ca) {
-                          dw = cw;
-                          dh = cw / ia;
-                          dy = (ch - dh) / 2;
-                          dx = 0;
-                        } else {
-                          dh = ch;
-                          dw = ch * ia;
-                          dx = (cw - dw) / 2;
-                          dy = 0;
-                        }
-                        const w = Math.max(60, Math.round(dw));
-                        const h = Math.max(60, Math.round(dh));
-                        const cx = Math.round((dx || 0) + w / 2);
-                        const cy = Math.round((dy || 0) + h / 2);
-                        setCropSize({ width: w, height: h });
-                        setCrop({ x: cx, y: cy });
-                        setIsCropping(true);
-                      };
-                      im.src = getProxyUrl(currentMedia);
-                      return;
-                    }
-                    if (mediaType === 'video') {
-                      const v = videoRef.current;
-                      if (v && v.videoWidth && v.videoHeight) {
-                        const cw = container.clientWidth;
-                        const ch = container.clientHeight;
-                        const ia = v.videoWidth / v.videoHeight;
-                        const ca = cw / ch;
-                        let dw = cw;
-                        let dh = ch;
-                        let dx = 0;
-                        let dy = 0;
-                        if (ia > ca) {
-                          dw = cw;
-                          dh = cw / ia;
-                          dy = (ch - dh) / 2;
-                          dx = 0;
-                        } else {
-                          dh = ch;
-                          dw = ch * ia;
-                          dx = (cw - dw) / 2;
-                          dy = 0;
-                        }
-                        const w = Math.max(60, Math.round(dw));
-                        const h = Math.max(60, Math.round(dh));
-                        const cx = Math.round((dx || 0) + w / 2);
-                        const cy = Math.round((dy || 0) + h / 2);
-                        setCropSize({ width: w, height: h });
-                        setCrop({ x: cx, y: cy });
-                        setIsCropping(true);
-                        return;
-                      }
-                      const w = Math.max(60, container.clientWidth);
-                      const h = Math.max(60, container.clientHeight);
-                      setCropSize({ width: w, height: h });
-                      setCrop({ x: w / 2, y: h / 2 });
-                      setIsCropping(true);
-                      return;
-                    }
-                    const w = Math.max(60, container.clientWidth);
-                    const h = Math.max(60, container.clientHeight);
-                    setCropSize({ width: w, height: h });
-                    setCrop({ x: w / 2, y: h / 2 });
-                    setIsCropping(true);
-                    return;
+                onClick={async () => {
+                  if (mediaType === 'video') {
+                    const poster = await generateVideoPoster();
+                    if (poster) setVideoPoster(poster);
                   }
-                  setCropSize(undefined);
-                  setCrop({ x: 0, y: 0 });
                   setIsCropping(true);
                 }}
               >
@@ -700,150 +530,13 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
         {isCropping ? (
           <div className="relative w-full h-full">
             <Cropper
-              image={mediaType === 'image' ? getProxyUrl(currentMedia) : undefined}
-              video={mediaType === 'video' ? getProxyUrl(currentMedia) : undefined}
-              crop={crop}
-              zoom={zoom}
-              rotation={rotation}
-              objectFit="contain"
-              minZoom={1}
-              aspect={undefined}
-              cropSize={cropSize}
-              onCropChange={setCrop}
-              onRotationChange={setRotation}
-              onCropComplete={onCropComplete}
-              onZoomChange={setZoom}
+              ref={cropperRef}
+              src={mediaType === 'video' ? videoPoster || '' : getProxyUrl(currentMedia)}
+              className="w-full h-full object-contain"
+              stencilProps={{
+                aspectRatio: undefined,
+              }}
             />
-            <div className="absolute inset-0 z-30" style={{ pointerEvents: 'none' }}>
-              {croppedAreaPixels && cropSize ? (
-                <>
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: croppedAreaPixels.x,
-                      top: croppedAreaPixels.y - 6,
-                      width: croppedAreaPixels.width,
-                      height: 12,
-                    }}
-                    className="bg-white/0 cursor-ns-resize pointer-events-auto"
-                    onMouseDown={(e) => {
-                      setResizing({
-                        edge: 'top',
-                        startX: e.clientX,
-                        startY: e.clientY,
-                        startSize: { width: cropSize.width, height: cropSize.height },
-                        startRect: croppedAreaPixels,
-                        startCrop: crop,
-                      });
-                    }}
-                    onTouchStart={(e) => {
-                      const t = e.touches[0];
-                      setResizing({
-                        edge: 'top',
-                        startX: t.clientX,
-                        startY: t.clientY,
-                        startSize: { width: cropSize.width, height: cropSize.height },
-                        startRect: croppedAreaPixels,
-                        startCrop: crop,
-                      });
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: croppedAreaPixels.x,
-                      top: croppedAreaPixels.y + croppedAreaPixels.height - 6,
-                      width: croppedAreaPixels.width,
-                      height: 12,
-                    }}
-                    className="bg-white/0 cursor-ns-resize pointer-events-auto"
-                    onMouseDown={(e) => {
-                      setResizing({
-                        edge: 'bottom',
-                        startX: e.clientX,
-                        startY: e.clientY,
-                        startSize: { width: cropSize.width, height: cropSize.height },
-                        startRect: croppedAreaPixels,
-                        startCrop: crop,
-                      });
-                    }}
-                    onTouchStart={(e) => {
-                      const t = e.touches[0];
-                      setResizing({
-                        edge: 'bottom',
-                        startX: t.clientX,
-                        startY: t.clientY,
-                        startSize: { width: cropSize.width, height: cropSize.height },
-                        startRect: croppedAreaPixels,
-                        startCrop: crop,
-                      });
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: croppedAreaPixels.x - 6,
-                      top: croppedAreaPixels.y,
-                      width: 12,
-                      height: croppedAreaPixels.height,
-                    }}
-                    className="bg-white/0 cursor-ew-resize pointer-events-auto"
-                    onMouseDown={(e) => {
-                      setResizing({
-                        edge: 'left',
-                        startX: e.clientX,
-                        startY: e.clientY,
-                        startSize: { width: cropSize.width, height: cropSize.height },
-                        startRect: croppedAreaPixels,
-                        startCrop: crop,
-                      });
-                    }}
-                    onTouchStart={(e) => {
-                      const t = e.touches[0];
-                      setResizing({
-                        edge: 'left',
-                        startX: t.clientX,
-                        startY: t.clientY,
-                        startSize: { width: cropSize.width, height: cropSize.height },
-                        startRect: croppedAreaPixels,
-                        startCrop: crop,
-                      });
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: croppedAreaPixels.x + croppedAreaPixels.width - 6,
-                      top: croppedAreaPixels.y,
-                      width: 12,
-                      height: croppedAreaPixels.height,
-                    }}
-                    className="bg-white/0 cursor-ew-resize pointer-events-auto"
-                    onMouseDown={(e) => {
-                      setResizing({
-                        edge: 'right',
-                        startX: e.clientX,
-                        startY: e.clientY,
-                        startSize: { width: cropSize.width, height: cropSize.height },
-                        startRect: croppedAreaPixels,
-                        startCrop: crop,
-                      });
-                    }}
-                    onTouchStart={(e) => {
-                      const t = e.touches[0];
-                      setResizing({
-                        edge: 'right',
-                        startX: t.clientX,
-                        startY: t.clientY,
-                        startSize: { width: cropSize.width, height: cropSize.height },
-                        startRect: croppedAreaPixels,
-                        startCrop: crop,
-                      });
-                    }}
-                  />
-                </>
-              ) : null}
-            </div>
             {/* Crop Controls Overlay */}
             <div className="absolute bottom-8 left-0 right-0 z-30 flex flex-col gap-4 px-8 pb-4">
               <div className="flex items-center gap-4">
@@ -955,34 +648,75 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
               </div>
             ))}
 
-            {mediaType === 'video' && videoCropConfig && (
-              <div className="absolute inset-0 pointer-events-none">
-                <Cropper
-                  video={getProxyUrl(currentMedia)}
-                  crop={videoCropConfig.crop}
-                  zoom={videoCropConfig.zoom}
-                  rotation={videoCropConfig.rotation}
-                  onCropChange={() => {}}
-                  onRotationChange={() => {}}
-                  onZoomChange={() => {}}
-                  onCropComplete={() => {}}
-                  showGrid={false}
-                  classes={{
-                    containerClassName: 'pointer-events-none',
-                    cropAreaClassName: 'border-none shadow-none outline-none ring-0',
-                  }}
-                  style={{
-                    containerStyle: { pointerEvents: 'none' },
-                    mediaStyle: {},
-                    cropAreaStyle: { border: 'none', boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.95)' },
-                  }}
-                />
+            {mediaType === 'video' && videoCropConfig && videoCropConfig.croppedAreaPixels && (
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                {(() => {
+                  const { x, y, width: kw, height: kh } = videoCropConfig.croppedAreaPixels!;
+                  const { width: cw, height: ch } = containerSize;
+                  const rotate = videoCropConfig.rotation || 0;
+
+                  // If not rotated, we can play the video cropped
+                  if (rotate === 0 && videoMeta && cw > 0 && ch > 0) {
+                    const scale = Math.min(cw / kw, ch / kh);
+                    const dw = kw * scale;
+                    const dh = kh * scale;
+                    const vw = videoMeta.width * scale;
+                    const vh = videoMeta.height * scale;
+
+                    return (
+                      <div
+                        style={{
+                          width: dw,
+                          height: dh,
+                          overflow: 'hidden',
+                          position: 'relative',
+                        }}
+                      >
+                        <video
+                          src={getProxyUrl(currentMedia)}
+                          autoPlay
+                          loop
+                          muted={false}
+                          style={{
+                            position: 'absolute',
+                            left: -x * scale,
+                            top: -y * scale,
+                            width: vw,
+                            height: vh,
+                            maxWidth: 'none',
+                            maxHeight: 'none',
+                          }}
+                        />
+                      </div>
+                    );
+                  }
+
+                  // Fallback to static poster for rotated video or missing meta
+                  return (
+                    <Cropper
+                      src={videoPoster || getProxyUrl(currentMedia)}
+                      defaultCoordinates={{
+                        left: videoCropConfig.croppedAreaPixels!.x,
+                        top: videoCropConfig.croppedAreaPixels!.y,
+                        width: videoCropConfig.croppedAreaPixels!.width,
+                        height: videoCropConfig.croppedAreaPixels!.height,
+                      }}
+                      stencilProps={{
+                        movable: false,
+                        resizable: false,
+                      }}
+                      className="w-full h-full object-contain pointer-events-none"
+                      backgroundClassName="bg-black/95"
+                    />
+                  );
+                })()}
               </div>
             )}
             {mediaType === 'video' && !videoCropConfig && (
               <div className="relative w-full h-full flex items-center justify-center">
                 <video
                   src={getProxyUrl(currentMedia)}
+                  crossOrigin="anonymous"
                   autoPlay
                   loop
                   muted={false}
@@ -994,6 +728,9 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                     if (!container || !v) return;
                     setVideoMeta({ width: v.videoWidth, height: v.videoHeight });
                     computeRect(container.clientWidth, container.clientHeight, v.videoWidth, v.videoHeight);
+                    generateVideoPoster().then((p) => {
+                      if (p) setVideoPoster(p);
+                    });
                   }}
                   className="max-w-full max-h-full object-contain"
                 />
@@ -1054,7 +791,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
               </button>
 
               <button
-                onClick={() => onSend?.({ description, isHD, selected })}
+                onClick={() => onSend?.({ description, isHD, selected, videoCropConfig })}
                 className="w-10 h-10 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors"
               >
                 <IoSend className="w-5 h-5 ml-0.5" />
