@@ -631,13 +631,18 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
             let displaySenderName = senderName;
             if (!isMyMsg) {
               const currentGroup = prev[index];
-              const senderMember = currentGroup.members?.find((m: any) => {
+              const senderMember = currentGroup.members?.find((m) => {
                 const mId = typeof m === 'object' && m?._id ? String(m._id) : String(m);
                 return mId === String(data.sender);
               });
               // Kiểm tra nickname trong member
-              if (senderMember && typeof senderMember === 'object' && (senderMember as any).nickname) {
-                displaySenderName = (senderMember as any).nickname;
+              if (
+                senderMember &&
+                typeof senderMember === 'object' &&
+                'nickname' in senderMember &&
+                typeof senderMember.nickname === 'string'
+              ) {
+                displaySenderName = (senderMember as { nickname: string }).nickname;
               }
             }
 

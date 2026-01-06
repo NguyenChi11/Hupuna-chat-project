@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React from 'react';
@@ -298,7 +299,7 @@ const MessagesSection = ({
               )}
             </div>
           </div>
-          <div className='w-full'>
+          <div className="w-full">
             <div className="divide-y divide-gray-200">
               {group.messages.slice(0, 1).map((msg) => (
                 <button
@@ -312,8 +313,8 @@ const MessagesSection = ({
                   <div className="flex-1 min-w-0">
                     <div className=" justify-between mb-2">
                       <div className="flex-1 min-w-0 ">
-                        <div className='flex  justify-between'>
-                          <div className=''>
+                        <div className="flex  justify-between">
+                          <div className="">
                             <p className=" text-gray-900 text-lg w-[14rem] md:w-[10rem] truncate">{group.roomName}</p>
                             <div className="flex items-center justify-between gap-2">
                               <p className="text-sm text-gray-600">{group.isGroupChat ? 'Nhóm' : 'Chat cá nhân'}</p>
@@ -368,8 +369,6 @@ const MessagesSection = ({
     </section>
   );
 };
-
-
 
 // === MAIN COMPONENT ===
 export default function SearchResults({

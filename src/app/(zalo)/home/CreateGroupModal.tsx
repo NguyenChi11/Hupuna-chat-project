@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React from 'react';
@@ -134,7 +135,7 @@ export default function CreateGroupModal({
               <div className="flex items-center gap-4 mb-2">
                 <div className="relative w-12 h-12 flex-shrink-0">
                   <label
-                    className="block w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors overflow-hidden border border-gray-200"
+                    className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors overflow-hidden border border-gray-200"
                     title="Đổi ảnh nhóm"
                   >
                     {avatarPreview && !imgError ? (

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -2555,7 +2557,6 @@ export default function ChatWindow({
     setTimeout(() => setShowEmojiPicker((prev) => !prev), 120);
   }, [editableRef, setShowEmojiPicker]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getSenderName = (sender: User | string): string => {
     const id = normalizeId(sender);
 
@@ -3068,6 +3069,7 @@ export default function ChatWindow({
         throw error;
       }
     },
+
     [currentUser, groups, getSenderName],
   );
   useEffect(() => {
@@ -3336,7 +3338,7 @@ export default function ChatWindow({
           <button
             onClick={() => scrollToBottom(true)}
             aria-label="Cuộn xuống cuối"
-            className={`absolute cursor-pointer hover:bg-gray-100 md:bottom-35 bottom-45   right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
+            className={`absolute cursor-pointer hover:bg-gray-100 md:bottom-35 bottom-45   right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 transition-all ${
               showScrollDown ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
           >

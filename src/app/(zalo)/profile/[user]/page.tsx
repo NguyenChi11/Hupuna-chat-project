@@ -15,6 +15,7 @@ import MobileProfileSheet from '@/components/(profile)/MobileProfileSheet';
 import {
   HiUserCircle,
   HiQrCode,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   HiCog6Tooth,
   HiInformationCircle,
   HiPhone,
@@ -160,6 +161,7 @@ export default function ProfileByIdPage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const tabsMobile = isOwner ? ['profile', 'qr', 'info', 'settings'] : ['profile', 'qr'];
 
   const departmentLabel = useMemo(() => {

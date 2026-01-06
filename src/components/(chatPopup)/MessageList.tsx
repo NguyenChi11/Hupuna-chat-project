@@ -1067,50 +1067,6 @@ export default function MessageList({
                                           }`}
                                         />
                                       )}
-                                      {/* {!isMobile && (
-                                  <FolderButton
-                                    roomId={String(msg.roomId)}
-                                    messageId={String(msg._id)}
-                                    isMine={isMeGroup}
-                                    visible={activeMoreId === msg._id}
-                                    className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
-                                      activeMoreId === msg._id
-                                        ? 'opacity-100 pointer-events-auto'
-                                        : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                    }`}
-                                    preview={
-                                      msg.type === 'text'
-                                        ? msg.content || ''
-                                        : msg.type === 'file'
-                                          ? msg.fileName
-                                            ? `[File] ${msg.fileName}`
-                                            : '[File]'
-                                          : msg.type === 'image'
-                                            ? '[Ảnh]'
-                                            : msg.type === 'video'
-                                              ? '[Video]'
-                                              : msg.type === 'sticker'
-                                                ? '[Sticker]'
-                                                : msg.type === 'reminder'
-                                                  ? msg.content || '[Nhắc nhở]'
-                                                  : `[${msg.type}]`
-                                    }
-                                    content={msg.content}
-                                    type={msg.type}
-                                    fileUrl={String(msg.fileUrl || msg.previewUrl || '')}
-                                    fileName={msg.fileName}
-                                    batchItems={fileGroup.map((m) => ({
-                                      id: m._id,
-                                      content: m.content || '',
-                                      type: 'file',
-                                      fileUrl: m.fileUrl,
-                                      fileName: m.fileName,
-                                    }))}
-                                    onSaved={() => {
-                                      setActiveMoreId(null);
-                                    }}
-                                  />
-                                )} */}
                                     </>
                                   )}
                                   <div className="space-y-2">

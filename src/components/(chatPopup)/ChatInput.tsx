@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { ClipboardEvent, KeyboardEvent, RefObject, useEffect, useRef, useState, useMemo } from 'react';
@@ -38,7 +40,6 @@ import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
 import { IoIosAttach } from 'react-icons/io';
 import Image from 'next/image';
 import { useChatContext } from '@/context/ChatContext';
-import FolderDashboard from '@/components/(chatPopup)/components/Folder/FolderDashboard';
 import FolderSaveWizard from '@/components/(chatPopup)/components/Folder/FolderSaveWizard';
 import ChatFlashDashboard from '@/components/(chatPopup)/components/Chat-Flash/ChatFlashDashboard';
 import UploadProgressBar from '@/components/(chatPopup)/UploadProgressBar';
@@ -1573,52 +1574,6 @@ export default function ChatInput({
           </div>
         </div>
       )}
-
-      {showFolderDashboard &&
-        createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-0 lg:px-4">
-            <div className="bg-white w-full h-full lg:max-w-5xl lg:h-[46rem] rounded-none lg:rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center">
-                    <HiFolder className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-lg font-bold">Folder</h3>
-                </div>
-                <button
-                  onClick={() => setShowFolderDashboard(false)}
-                  className="p-2 rounded-full hover:bg-white/20 cursor-pointer"
-                >
-                  <HiX className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-2 lg:p-4 h-full overflow-y-auto overflow-x-hidden">
-                <FolderDashboard
-                  roomId={roomId}
-                  onClose={() => setShowFolderDashboard(false)}
-                  onInsertToInput={(text) => {
-                    const el = editableRef.current;
-                    if (!el) return;
-                    const cur = String(el.innerText || '');
-                    el.innerText = cur + (cur ? ' ' : '') + String(text || '');
-                    try {
-                      const range = document.createRange();
-                      range.selectNodeContents(el);
-                      range.collapse(false);
-                      const sel = window.getSelection();
-                      sel?.removeAllRanges();
-                      sel?.addRange(range);
-                    } catch {}
-                    el.focus();
-                    onInputEditable();
-                  }}
-                  onAttachFromFolder={(att) => onAttachFromFolder(att)}
-                />
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
 
       {showFolderSaveWizard &&
         createPortal(

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HiX } from 'react-icons/hi';
@@ -140,7 +141,6 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
               Thêm lựa chọn
             </button>
             <p className="text-xs px-4 text-gray-500">Cần tối thiểu 2 lựa chọn. Tối đa {maxOptions} lựa chọn.</p>
-          
           </div>
           {(() => {
             const raw = options.map((o) => o.trim()).filter((o) => o);
@@ -154,7 +154,7 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
               </>
             );
           })()}
-          
+
           <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
             <div className="flex items-center justify-between">
               <div>
@@ -256,19 +256,11 @@ export default function CreatePollModal({ isOpen, onClose, onCreate }: CreatePol
               </div>
               <div className="space-y-3">
                 <label className="cursor-pointer flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    checked={deadlineMode === 'none'}
-                    onChange={() => setDeadlineMode('none')}
-                  />
+                  <input type="radio" checked={deadlineMode === 'none'} onChange={() => setDeadlineMode('none')} />
                   Không giới hạn thời gian
                 </label>
                 <label className="cursor-pointer flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    checked={deadlineMode === 'time'}
-                    onChange={() => setDeadlineMode('time')}
-                  />
+                  <input type="radio" checked={deadlineMode === 'time'} onChange={() => setDeadlineMode('time')} />
                   Chọn thời điểm kết thúc
                 </label>
                 {deadlineMode === 'time' && (

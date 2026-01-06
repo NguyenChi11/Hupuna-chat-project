@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { ChangeEvent, RefObject } from 'react';
 import { HiPencil } from 'react-icons/hi';
 import { getProxyUrl } from '@/utils/utils';

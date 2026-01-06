@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+
 import { HiX, HiChevronLeft, HiBan, HiTrash } from 'react-icons/hi';
 import ModalMembers from '@/components/base/ModalMembers';
 import { GroupConversation, MemberInfo, GroupRole } from '@/types/Group';
@@ -24,6 +26,7 @@ import io from 'socket.io-client';
 import { getProxyUrl, resolveSocketUrl } from '@/utils/utils';
 import GroupInviteLinkSection from '@/components/(chatPopup)/components/GroupInviteLinkSection';
 import PinnedMessagesSection from '@/components/(chatPopup)/components/PinnedMessagesSection';
+
 import { HiPencil } from 'react-icons/hi';
 import {
   CiBellOn,
@@ -39,6 +42,7 @@ import {
   CiNoWaitingSign,
 } from 'react-icons/ci';
 import Image from 'next/image';
+
 import ImageIconZalo from '@/components/svg/ICIconImageZalo';
 import { HiEyeSlash, HiChevronRight, HiPlay } from 'react-icons/hi2';
 import ICPin from '@/components/svg/ICPin';
@@ -173,7 +177,7 @@ export default function ChatInfoPopup({
       if (isGroup) setOpenMember(true);
       else setOpenMember(false);
     }
-  }, [initialSection]);
+  }, [initialSection, isGroup]);
 
   const {
     localIsPinned,
@@ -269,9 +273,11 @@ export default function ChatInfoPopup({
   const handleToggleMediaExpanded = useCallback(() => {
     void fetchAssets('media', !isMediaExpanded);
   }, [fetchAssets, isMediaExpanded]);
+
   const handleToggleFileExpanded = useCallback(() => {
     void fetchAssets('file', !isFileExpanded);
   }, [fetchAssets, isFileExpanded]);
+
   const handleToggleLinkExpanded = useCallback(() => {
     void fetchAssets('link', !isLinkExpanded);
   }, [fetchAssets, isLinkExpanded]);
@@ -344,7 +350,7 @@ export default function ChatInfoPopup({
         setIsGroupAvatarUploading(false);
       }
     },
-    [isGroup, selectedChat, currentUser._id, reLoad],
+    [isGroup, selectedChat, currentUser._id, currentUser.name, reLoad, sendNotifyMessage],
   );
 
   const handleRenameGroup = () => {

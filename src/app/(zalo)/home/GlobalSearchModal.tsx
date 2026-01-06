@@ -65,7 +65,7 @@ export default function GlobalSearchModal({
         localStorage.removeItem('__return_room_results__');
       }
     } catch {}
-  }, []);
+  }, [searchTerm]);
 
   // Keep the useMemo for processing messages
   const { regularMessages, fileMessages } = useMemo(() => {
