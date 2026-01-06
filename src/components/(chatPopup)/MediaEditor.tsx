@@ -50,6 +50,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
   const [brushSize, setBrushSize] = useState(6);
   const [isPointerDown, setIsPointerDown] = useState(false);
   const [strokes, setStrokes] = useState<{ color: string; size: number; points: { x: number; y: number }[] }[]>([]);
+  const [constrainToMedia, setConstrainToMedia] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -210,6 +211,25 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
     }
   }, [computeRect, mediaType]);
 
+  useEffect(() => {
+    if (mediaType !== 'video') return;
+    if (!videoCropConfig || !videoCropConfig.croppedAreaPixels) return;
+    const { width: cw, height: ch } = containerSize;
+    if (cw <= 0 || ch <= 0) return;
+    const { width: kw, height: kh } = videoCropConfig.croppedAreaPixels;
+    const rotate = videoCropConfig.rotation || 0;
+    if (rotate === 0) {
+      const scale = Math.min(cw / kw, ch / kh);
+      const dw = Math.round(kw * scale);
+      const dh = Math.round(kh * scale);
+      const dx = Math.round((cw - dw) / 2);
+      const dy = Math.round((ch - dh) / 2);
+      setDisplayRect({ x: dx, y: dy, width: dw, height: dh });
+    } else {
+      setDisplayRect({ x: 0, y: 0, width: cw, height: ch });
+    }
+  }, [mediaType, videoCropConfig, containerSize]);
+
   const drawStrokeSegment = useCallback(
     (ctx: CanvasRenderingContext2D, stroke: { color: string; size: number; points: { x: number; y: number }[] }) => {
       if (stroke.points.length < 2) {
@@ -240,8 +260,17 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
     const ctx = c.getContext('2d');
     if (!ctx) return;
     ctx.clearRect(0, 0, c.width, c.height);
+    if (displayRect && constrainToMedia) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
+      ctx.clip();
+    }
     for (const s of strokes) drawStrokeSegment(ctx, s);
-  }, [strokes, drawStrokeSegment]);
+    if (displayRect && constrainToMedia) {
+      ctx.restore();
+    }
+  }, [strokes, drawStrokeSegment, displayRect, constrainToMedia]);
 
   const [videoPoster, setVideoPoster] = useState<string | null>(null);
 
@@ -276,16 +305,35 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
     ensureCanvasSize();
     setIsPointerDown(true);
     const p = pointerPos(e);
-    setStrokes((prev) => [...prev, { color: brushColor, size: brushSize, points: [p] }]);
+    if (displayRect && constrainToMedia) {
+      const outsideX = p.x < displayRect.x || p.x > displayRect.x + displayRect.width;
+      const outsideY = p.y < displayRect.y || p.y > displayRect.y + displayRect.height;
+      if (outsideX || outsideY) {
+        return;
+      }
+    }
+    let cp = p;
+    if (displayRect && constrainToMedia) {
+      const cx = Math.min(Math.max(p.x, displayRect.x), displayRect.x + displayRect.width);
+      const cy = Math.min(Math.max(p.y, displayRect.y), displayRect.y + displayRect.height);
+      cp = { x: cx, y: cy };
+    }
+    setStrokes((prev) => [...prev, { color: brushColor, size: brushSize, points: [cp] }]);
   };
 
   const moveDraw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing || !isPointerDown) return;
     const p = pointerPos(e);
+    let cp = p;
+    if (displayRect && constrainToMedia) {
+      const cx = Math.min(Math.max(p.x, displayRect.x), displayRect.x + displayRect.width);
+      const cy = Math.min(Math.max(p.y, displayRect.y), displayRect.y + displayRect.height);
+      cp = { x: cx, y: cy };
+    }
     setStrokes((prev) => {
       if (!prev.length) return prev;
       const last = prev[prev.length - 1];
-      const updated = { ...last, points: [...last.points, p] };
+      const updated = { ...last, points: [...last.points, cp] };
       const next = [...prev.slice(0, -1), updated];
       return next;
     });
@@ -870,6 +918,16 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
       )}
       {isDrawing && (
         <div className="px-4 py-4 pb-8 flex flex-col gap-4 border-t border-white/10 bg-black">
+          <div className="flex items-center justify-center">
+            <button
+              onClick={() => setConstrainToMedia((v) => !v)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium ${
+                constrainToMedia ? 'bg-white text-black' : 'bg-white/10 text-white'
+              }`}
+            >
+              {constrainToMedia ? 'Chỉ vẽ trong ảnh/video' : 'Vẽ toàn khung'}
+            </button>
+          </div>
           <div className="flex items-center justify-center gap-2">
             {[
               '#ff3b30',
