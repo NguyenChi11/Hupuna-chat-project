@@ -140,7 +140,12 @@ export function useCallSession({
 
   const startLocalStream = useCallback(
     async (type: CallType) => {
-      const constraints = { audio: true, video: type === 'video' };
+      const audioConstraints: MediaTrackConstraints = {
+        echoCancellation: { ideal: true },
+        noiseSuppression: { ideal: true },
+        autoGainControl: { ideal: true },
+      };
+      const constraints: MediaStreamConstraints = { audio: audioConstraints, video: type === 'video' };
       const navi =
         typeof navigator !== 'undefined'
           ? (navigator as Navigator & {
@@ -180,14 +185,14 @@ export function useCallSession({
         if (type === 'video') {
           try {
             if (md && typeof md.getUserMedia === 'function') {
-              stream = await md.getUserMedia({ audio: true, video: false });
+              stream = await md.getUserMedia({ audio: audioConstraints, video: false });
             } else if (navi && typeof navi.webkitGetUserMedia === 'function') {
               stream = await new Promise<MediaStream>((resolve, reject) => {
-                navi.webkitGetUserMedia!({ audio: true, video: false }, resolve, reject);
+                navi.webkitGetUserMedia!({ audio: audioConstraints, video: false }, resolve, reject);
               });
             } else if (navi && typeof navi.mozGetUserMedia === 'function') {
               stream = await new Promise<MediaStream>((resolve, reject) => {
-                navi.mozGetUserMedia!({ audio: true, video: false }, resolve, reject);
+                navi.mozGetUserMedia!({ audio: audioConstraints, video: false }, resolve, reject);
               });
             }
           } catch {}
@@ -501,7 +506,6 @@ const toggleMic = useCallback(async () => {
   }, [incomingCall, acceptIncomingCallWith]);
 
   useEffect(() => {
-    if (!roomId) return;
     const socket = socketRef.current;
     if (!socket) return;
     socket.off('call_offer');
@@ -607,7 +611,7 @@ const toggleMic = useCallback(async () => {
       // Nhóm: giữ cuộc gọi tiếp tục, server sẽ gửi 'call_leave' và 'call_state' để cập nhật danh sách tham gia
     };
     const handleCallLeave = (data: { roomId: string; userId: string }) => {
-      if (String(data.roomId) !== String(roomId)) return;
+      if (String(data.roomId) !== String(activeRoomIdRef.current)) return;
       const uid = String(data.userId);
       const pc = peerConnectionsRef.current.get(uid);
       if (pc) {
@@ -636,7 +640,7 @@ const toggleMic = useCallback(async () => {
       active: boolean;
       startAt?: number | null;
     }) => {
-      if (String(data.roomId) !== String(roomId)) return;
+      if (String(data.roomId) !== String(activeRoomIdRef.current)) return;
       setRoomCallActive(!!data.active);
       setRoomCallType(data.type);
       setRoomParticipants(Array.isArray(data.participants) ? data.participants.map((x) => String(x)) : []);
@@ -659,13 +663,12 @@ const toggleMic = useCallback(async () => {
       socket.off('call_leave', handleCallLeave);
       socket.off('call_state', handleCallState);
     };
-  }, [roomId, currentUserId, socketRef.current, endCall, acceptIncomingCallWith, socketRef]);
+  }, [currentUserId, socketRef.current, endCall, acceptIncomingCallWith, socketRef]);
 
   useEffect(() => {
     setRoomCallActive(false);
     setRoomCallType(null);
     setRoomParticipants([]);
-    setCallStartAt(null);
   }, [roomId]);
 
   useEffect(() => {
@@ -677,6 +680,42 @@ const toggleMic = useCallback(async () => {
       }
     }
   }, [remoteStreamsState]);
+  useEffect(() => {
+    if (!roomCallActive || !isGroup) return;
+    const type: CallType = (roomCallType || callTypeRef.current || 'voice') as CallType;
+    (async () => {
+      if (!localStreamRef.current) {
+        try {
+          await startLocalStream(type);
+        } catch {}
+      }
+      const me = String(currentUserId);
+      const ids = Array.isArray(roomParticipants) ? roomParticipants.map((x) => String(x)) : [];
+      for (const otherId of ids) {
+        if (String(otherId) === me) continue;
+        const hasPC = peerConnectionsRef.current.has(String(otherId));
+        if (hasPC) continue;
+        const initiator = me < String(otherId);
+        if (!initiator) continue;
+        try {
+          const pc = createPeerConnection(String(otherId), true);
+          const stream = localStreamRef.current;
+          if (stream) {
+            stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+          }
+          const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: type === 'video' });
+          await pc.setLocalDescription(offer);
+          socketRef.current?.emit('call_offer', {
+            roomId: activeRoomIdRef.current,
+            target: String(otherId),
+            from: me,
+            type,
+            sdp: offer,
+          });
+        } catch {}
+      }
+    })();
+  }, [roomCallActive, roomParticipants, roomCallType, currentUserId, startLocalStream, createPeerConnection, socketRef, isGroup]);
   useEffect(() => {
     if (callActive) {
       stopGlobalRingTone();

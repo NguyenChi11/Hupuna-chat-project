@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 import { HiChevronLeft, HiChevronRight, HiMicrophone, HiPhone, HiVideoCamera } from 'react-icons/hi2';
@@ -53,6 +53,28 @@ export default function ModalCall({
     return `${mm}:${sss}`;
   })();
   const [hiddenCam, setHiddenCam] = useState(false);
+  const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+  useEffect(() => {
+    remotePeers.forEach((peer) => {
+      const a = audioRefs.current.get(peer.userId);
+      if (a) {
+        try {
+          a.muted = false;
+          (a as HTMLAudioElement & { autoplay?: boolean }).autoplay = true;
+          (a as HTMLAudioElement & { srcObject?: MediaStream }).srcObject = peer.stream;
+          void a.play().catch(() => {});
+        } catch {}
+      }
+      const v = videoRefs.current.get(peer.userId);
+      if (v) {
+        try {
+          (v as HTMLVideoElement & { srcObject?: MediaStream }).srcObject = peer.stream;
+          void v.play().catch(() => {});
+        } catch {}
+      }
+    });
+  }, [remotePeers]);
   if (mode === 'connecting') {
     return (
       <div className="relative w-full min-h-[24rem] rounded-xl overflow-hidden bg-black">
@@ -179,6 +201,7 @@ export default function ModalCall({
                     try {
                       a.play();
                     } catch {}
+                    audioRefs.current.set(peer.userId, el);
                   }
                 }}
               />
@@ -342,10 +365,14 @@ export default function ModalCall({
                       ref={(el) => {
                         if (el) {
                           const v = el as HTMLVideoElement & { srcObject?: MediaStream };
+                          try {
+                            v.muted = true;
+                          } catch {}
                           v.srcObject = peer.stream;
                           try {
                             v.play();
                           } catch {}
+                          videoRefs.current.set(peer.userId, el);
                         }
                       }}
                     />
@@ -376,6 +403,24 @@ export default function ModalCall({
                   )}
                 </div>
               ))}
+              <div className="sr-only">
+                {remotePeers.map((peer) => (
+                  <audio
+                    key={`aud-${peer.userId}`}
+                    autoPlay
+                    ref={(el) => {
+                      if (el) {
+                        const a = el as HTMLAudioElement & { srcObject?: MediaStream };
+                        a.srcObject = peer.stream;
+                        try {
+                          a.play();
+                        } catch {}
+                        audioRefs.current.set(peer.userId, el);
+                      }
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           )}
           <div className="flex items-center justify-center gap-4 mt-3">

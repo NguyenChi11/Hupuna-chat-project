@@ -39,7 +39,6 @@ import {
 } from '@/fetch/messages';
 import SearchSidebar from '@/components/(chatPopup)/SearchMessageModal';
 import { isVideoFile, resolveSocketUrl, getProxyUrl } from '@/utils/utils';
-import ModalCall from '@/components/(call)/ModalCall';
 import { insertTextAtCursor } from '@/utils/chatInput';
 import { groupMessagesByDate } from '@/utils/chatMessages';
 import { ChatProvider } from '@/context/ChatContext';
@@ -47,7 +46,6 @@ import { useRouter } from 'next/navigation';
 import ShareMessageModal from '@/components/(chatPopup)/ShareMessageModal';
 import { stopGlobalRingTone } from '@/utils/callRing';
 import { useCallSession } from '@/hooks/useCallSession';
-import IncomingCallModal from '@/components/(call)/IncomingCallModal';
 import { HiChevronDoubleDown, HiChevronDoubleUp } from 'react-icons/hi2';
 import MessageMobileContextMenu from '@/components/(chatPopup)/MessageMobileContextMenu';
 
@@ -191,7 +189,7 @@ export default function ChatWindow({
   const messagesRef = useRef<Message[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
   const [messageToShare, setMessageToShare] = useState<Message | null>(null);
-  const [callTicker, setCallTicker] = useState(0);
+  // call ticker được xử lý ở HomePage
 
   const getOneToOneRoomId = (user1Id: string | number, user2Id: string | number) => {
     return [user1Id, user2Id].sort().join('_');
@@ -215,35 +213,7 @@ export default function ChatWindow({
     window.addEventListener('roomMutedChanged', handler as EventListener);
     return () => window.removeEventListener('roomMutedChanged', handler as EventListener);
   }, [roomId]);
-  const {
-    callActive,
-    callType,
-    callStartAt,
-    callConnecting,
-    remoteStreamsState,
-    incomingCall,
-    localVideoRef,
-    startCall: startCall_s2,
-    endCall: endCall_s2,
-    toggleMic: toggleMic_s2,
-    toggleCamera: toggleCamera_s2,
-    acceptIncomingCall: acceptIncomingCall_s2,
-    acceptIncomingCallWith: acceptIncomingCallWith_s2,
-    setIncomingCall: setIncomingCall_s2,
-    micEnabled,
-    camEnabled,
-    roomCallActive,
-    roomCallType,
-    roomParticipants,
-    activeRoomId,
-    counterpartId,
-  } = useCallSession({
-    socketRef,
-    roomId,
-    currentUserId: String(currentUser._id),
-    isGroup,
-    selectedChat,
-  });
+  // useCallSession được xử lý toàn cục ở HomePage
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -724,47 +694,21 @@ export default function ChatWindow({
     [roomId, currentUser, isGroup, selectedChat, ensureBottom],
   );
 
-  const startCall = useCallback(
-    async (type: 'voice' | 'video') => {
-      await startCall_s2(type);
-    },
-    [startCall_s2],
-  );
-
-  const endCall = useCallback(
-    (source: 'local' | 'remote' = 'local') => {
-      endCall_s2(source);
-    },
-    [endCall_s2],
-  );
-
-  const toggleMic = useCallback(() => {
-    toggleMic_s2();
-  }, [toggleMic_s2]);
-
-  const toggleCamera = useCallback(() => {
-    toggleCamera_s2();
-  }, [toggleCamera_s2]);
+  // điều khiển mic/camera/cuộc gọi xử lý ở HomePage
 
   const handleVoiceCall = useCallback(() => {
-    void startCall('voice');
-  }, [startCall]);
+    try {
+      window.dispatchEvent(new CustomEvent('startCall', { detail: { type: 'voice' } }));
+    } catch {}
+  }, []);
 
   const handleVideoCall = useCallback(() => {
-    void startCall('video');
-  }, [startCall]);
+    try {
+      window.dispatchEvent(new CustomEvent('startCall', { detail: { type: 'video' } }));
+    } catch {}
+  }, []);
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      try {
-        const d = (e as CustomEvent).detail || {};
-        const t = d.type === 'video' ? 'video' : 'voice';
-        void startCall(t);
-      } catch {}
-    };
-    window.addEventListener('startCall', handler as EventListener);
-    return () => window.removeEventListener('startCall', handler as EventListener);
-  }, [startCall]);
+  // Removed local startCall listener. Calls are handled globally in HomePage.
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -788,156 +732,9 @@ export default function ChatWindow({
     return () => window.removeEventListener('openRoomSearch', handler as EventListener);
   }, [isMobile, setShowPopup, setShowSearchSidebar]);
 
-  useEffect(() => {
-    if (!callActive) return;
-    const id = window.setInterval(() => setCallTicker((x) => x + 1), 1000);
-    return () => window.clearInterval(id);
-  }, [callActive]);
+  // timer cuộc gọi xử lý ở HomePage
 
-  const [callModalSize, setCallModalSize] = useState<{ w: number; h: number | null }>({ w: 320, h: null });
-  const callModalRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const v = callType === 'video';
-    let w = 320;
-    let h: number | null = null;
-    try {
-      const raw = localStorage.getItem('callModalSize');
-      const s = raw ? JSON.parse(raw) : null;
-      if (s && typeof s.w === 'number') w = s.w;
-      if (s && typeof s.h === 'number') h = s.h;
-    } catch {}
-    const maxW = Math.max(320, window.innerWidth - 64);
-    const maxH = Math.max(200, window.innerHeight - 64);
-    if (v) {
-      w = Math.max(w, 640);
-      h = h == null ? 420 : h;
-    }
-    w = Math.min(Math.max(w, 320), maxW);
-    h = h == null ? null : Math.min(Math.max(h, 200), maxH);
-    setCallModalSize({ w, h });
-  }, [callActive, callConnecting, incomingCall, callType]);
-  useEffect(() => {
-    const el = callModalRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const r = entries[0]?.contentRect;
-      if (!r) return;
-      const maxW = Math.max(320, window.innerWidth - 64);
-      const maxH = Math.max(200, window.innerHeight - 64);
-      const w = Math.min(Math.max(Math.round(r.width), 320), maxW);
-      const h = Math.min(Math.max(Math.round(r.height), 200), maxH);
-      try {
-        localStorage.setItem('callModalSize', JSON.stringify({ w, h }));
-      } catch {}
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [callActive, callConnecting, incomingCall]);
-
-    const [callWindowPos, setCallWindowPos] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
-  const dragStateRef = useRef<{ startX: number; startY: number; originX: number; originY: number; dragging: boolean } | null>(null);
-  useEffect(() => {
-    const v = callType === 'video';
-    const defaultW = v ? 640 : 320;
-    const defaultH = v ? 420 : 300;
-    try {
-      const raw = localStorage.getItem('callWindowPos');
-      const p = raw ? JSON.parse(raw) : null;
-      const w = callModalSize.w || defaultW;
-      const h = callModalSize.h ?? defaultH;
-      const x = p && typeof p.x === 'number' ? p.x : Math.max(24, window.innerWidth - w - 24);
-      const y = p && typeof p.y === 'number' ? p.y : 24;
-      setCallWindowPos({ x, y });
-    } catch {}
-  }, [callActive, callConnecting, incomingCall, callModalSize, callType]);
-  const clampPos = (x: number, y: number) => {
-    const w = callModalSize.w;
-    const h = callModalSize.h ?? (callType === 'video' ? 420 : 300);
-    const maxX = Math.max(0, window.innerWidth - w - 8);
-    const maxY = Math.max(0, window.innerHeight - h - 8);
-    return { x: Math.min(Math.max(8, x), maxX), y: Math.min(Math.max(8, y), maxY) };
-  };
-  const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
-    dragStateRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      originX: callWindowPos.x,
-      originY: callWindowPos.y,
-      dragging: true,
-    };
-    const onMove = (ev: MouseEvent) => {
-      const st = dragStateRef.current;
-      if (!st || !st.dragging) return;
-      const dx = ev.clientX - st.startX;
-      const dy = ev.clientY - st.startY;
-      const next = clampPos(st.originX + dx, st.originY + dy);
-      setCallWindowPos(next);
-    };
-    const onUp = () => {
-      const st = dragStateRef.current;
-      dragStateRef.current = null;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      try {
-        localStorage.setItem('callWindowPos', JSON.stringify(callWindowPos));
-      } catch {}
-    };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-  };
-
-  const [callWindowMin, setCallWindowMin] = useState(false);
-  const prevSizeRef = useRef<{ w: number; h: number | null } | null>(null);
-  const toggleMinimize = () => {
-    if (!callWindowMin) {
-      prevSizeRef.current = { ...callModalSize };
-      const w = callType === 'video' ? 280 : 260;
-      const h = callType === 'video' ? 160 : 180;
-      setCallModalSize({ w, h });
-      setCallWindowMin(true);
-    } else {
-      const prev = prevSizeRef.current;
-      if (prev) setCallModalSize(prev);
-      setCallWindowMin(false);
-    }
-  };
-
-  const resizeStateRef = useRef<{ startX: number; startY: number; originW: number; originH: number } | null>(null);
-  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    resizeStateRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      originW: callModalSize.w,
-      originH: callModalSize.h ?? (callType === 'video' ? 420 : 300),
-    };
-    const onMove = (ev: MouseEvent) => {
-      const st = resizeStateRef.current;
-      if (!st) return;
-      const dx = ev.clientX - st.startX;
-      const dy = ev.clientY - st.startY;
-      const minW = 240;
-      const minH = 150;
-      const maxW = Math.max(320, window.innerWidth - 32);
-      const maxH = Math.max(200, window.innerHeight - 32);
-      const w = Math.min(Math.max(st.originW + dx, minW), maxW);
-      const h = Math.min(Math.max(st.originH + dy, minH), maxH);
-      setCallModalSize({ w, h });
-    };
-    const onUp = () => {
-      resizeStateRef.current = null;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      try {
-        localStorage.setItem(
-          'callModalSize',
-          JSON.stringify({ w: callModalSize.w, h: callModalSize.h ?? (callType === 'video' ? 420 : 300) }),
-        );
-      } catch {}
-    };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-  };
+ 
 
   // Ring tone handled inside useCallSession
 
@@ -2017,9 +1814,10 @@ export default function ChatWindow({
 
   useEffect(() => {
     if (!roomId) return;
-
-    socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-    setSocketInstance(socketRef.current);
+    if (!socketRef.current || !socketRef.current.connected) {
+      socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+      setSocketInstance(socketRef.current);
+    }
 
     socketRef.current.on('receive_message', (data: Message) => {
       if (String(data.roomId) !== String(roomId)) return;
@@ -2480,46 +2278,18 @@ export default function ChatWindow({
     socketRef.current.emit('join_user', { userId: String(currentUser._id) });
 
     return () => {
-      socketRef.current?.disconnect();
-      setSocketInstance(null);
+      try {
+        socketRef.current?.off('receive_message');
+        socketRef.current?.off('room_nickname_updated');
+        socketRef.current?.off('room_nicknames_state');
+        socketRef.current?.off('reaction_updated');
+      } catch {}
     };
   }, [roomId, currentUser._id, playMessageSound, showMessageNotification, fetchMessages, sendNotifyMessage]);
 
-  const endCallRef = useRef<((source: 'local' | 'remote') => void) | null>(null);
+  // Socket call events và ring tone được xử lý ở HomePage
 
-  // Socket call events handled inside useCallSession
-
-  // Ring tone handled inside useCallSession
-
-  useEffect(() => {
-    endCallRef.current = endCall;
-  }, [endCall]);
-
-  useEffect(() => {
-    try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('pendingIncomingCall') : null;
-      if (!raw) return;
-      if (callActive || callConnecting) return;
-      const data = JSON.parse(raw) as {
-        roomId: string;
-        from: string;
-        type: 'voice' | 'video';
-        sdp: RTCSessionDescriptionInit;
-      };
-      if (!data || String(data.roomId) !== String(roomId)) return;
-      (async () => {
-        await acceptIncomingCallWith_s2({
-          from: String(data.from),
-          type: data.type,
-          roomId: String(data.roomId),
-          sdp: data.sdp,
-        });
-        try {
-          localStorage.removeItem('pendingIncomingCall');
-        } catch {}
-      })();
-    } catch {}
-  }, [roomId, incomingCall, callActive, callConnecting, acceptIncomingCallWith_s2]);
+  // pendingIncomingCall được xử lý ở HomePage
 
   useEffect(() => {
     messages.forEach((m) => {
@@ -3428,17 +3198,7 @@ export default function ChatWindow({
             isSidebarOpen={showPopup || (!isMobile && showSearchSidebar)}
           />
 
-          {isGroup && !callActive && !callConnecting && roomCallActive && (
-            <div className="mx-2 mt-2 mb-0 px-3 py-2 bg-yellow-100 border border-yellow-200 text-yellow-800 rounded flex items-center justify-between">
-              <span>Cuộc gọi đang diễn ra</span>
-              <button
-                className="px-3 py-1 rounded bg-yellow-300 hover:bg-yellow-400 hover:cursor-pointer"
-                onClick={() => void startCall(roomCallType === 'video' ? 'video' : 'voice')}
-              >
-                Tham gia
-              </button>
-            </div>
-          )}
+          
 
           {/* Messages Area */}
           <div
@@ -3834,145 +3594,7 @@ export default function ChatWindow({
           onClose={() => setPreviewMedia(null)}
         />
 
-        {(callActive || incomingCall || callConnecting) && (
-          <div className="fixed z-[2000]" style={{ left: callWindowPos.x, top: callWindowPos.y, width: callModalSize.w }}>
-            <div className="cursor-move flex items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none" onMouseDown={handleDragStart}>
-              <span className="text-sm">{callActive ? 'Đang gọi' : incomingCall ? 'Cuộc gọi đến' : 'Đang kết nối...'}</span>
-              <span className="flex items-center gap-3">
-                <button className="text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer" onClick={toggleMinimize}>{callWindowMin ? 'Khôi phục' : 'Thu nhỏ'}</button>
-                <span className="text-xs">{callType === 'video' ? 'Video' : 'Thoại'}</span>
-              </span>
-            </div>
-            <div
-              ref={callModalRef}
-              className="rounded-b-xl pt-2 p-4 backdrop-blur-sm relative"
-              style={{
-                width: callModalSize.w,
-                height: callModalSize.h ?? undefined,
-                maxWidth: 'calc(100vw - 2rem)',
-                maxHeight: 'calc(100vh - 2rem)',
-              }}
-            >
-              {!callActive &&
-                incomingCall &&
-                (() => {
-                  const rid = String(incomingCall.roomId || '');
-                  const parts = rid.split('_').filter(Boolean);
-                  const isOneToOneIncoming = parts.length === 2;
-                  const group = !isOneToOneIncoming ? groups.find((g) => String(g._id) === rid) : null;
-                  const caller = allUsers.find((u) => String(u._id) === String(incomingCall?.from));
-                  const avatar = isOneToOneIncoming ? caller?.avatar : group?.avatar;
-                  const name = isOneToOneIncoming ? caller?.name || chatName : group?.name || chatName;
-                  return (
-                    <IncomingCallModal
-                      avatar={avatar}
-                      name={name}
-                      callType={incomingCall?.type === 'video' ? 'video' : 'voice'}
-                      onAccept={async () => {
-                        await acceptIncomingCall_s2();
-                      }}
-                      onReject={() => {
-                        const from = incomingCall?.from;
-                        const targetRoom = incomingCall?.roomId || roomId;
-                        socketRef.current?.emit('call_reject', {
-                          roomId: String(targetRoom),
-                          targets: from ? [String(from)] : [],
-                        });
-                        setIncomingCall_s2(null);
-                        stopGlobalRingTone();
-                        try {
-                          localStorage.removeItem('pendingIncomingCall');
-                        } catch {}
-                      }}
-                    />
-                  );
-                })()}
-              {!callActive &&
-                callConnecting &&
-                (() => {
-                  const parts = String(roomId).split('_');
-                  const otherId = isGroup
-                    ? null
-                    : parts.find((p) => p && p !== String(currentUser._id)) || getId(selectedChat);
-                  const other = !isGroup ? allUsers.find((u) => String(u._id) === String(otherId)) : null;
-                  const avatar = isGroup ? chatAvatar : other?.avatar;
-                  const name = isGroup ? chatName : other?.name || chatName;
-                  return (
-                    <ModalCall
-                      avatar={avatar}
-                      name={name}
-                      mode="connecting"
-                      callType={callType === 'video' ? 'video' : 'voice'}
-                      onEndCall={() => endCall('local')}
-                    />
-                  );
-                })()}
-              {callActive &&
-                (() => {
-                  const remoteIds = Array.from(remoteStreamsState.keys());
-                  const participantOtherId =
-                    roomParticipants && roomParticipants.length > 0
-                      ? roomParticipants.find((id) => String(id) !== String(currentUser._id))
-                      : undefined;
-                  const otherId =
-                    counterpartId ||
-                    participantOtherId ||
-                    remoteIds[0] ||
-                    incomingCall?.from ||
-                    String(activeRoomId || roomId)
-                      .split('_')
-                      .find((p) => p && p !== String(currentUser._id)) ||
-                    (!isGroup ? getId(selectedChat) : null);
-                  const other = otherId ? allUsers.find((u) => String(u._id) === String(otherId)) : null;
-                  const isOneToOneCall = counterpartId
-                    ? true
-                    : roomParticipants && roomParticipants.length > 0
-                      ? roomParticipants.length === 2
-                      : remoteIds.length <= 1;
-                  const currentCallRoomId = String(activeRoomId || roomId);
-                  const currentGroup = groups.find((g) => String(g._id) === currentCallRoomId);
-                  const avatar = isOneToOneCall ? other?.avatar : currentGroup?.avatar || chatAvatar;
-                  const name = isOneToOneCall ? other?.name || chatName : currentGroup?.name || chatName;
-                  const remotePeers = Array.from(remoteStreamsState.entries()).map(([uid, stream]) => {
-                    const u = allUsers.find((x) => String(x._id) === String(uid));
-                    return { userId: uid, stream, name: u?.name, avatar: u?.avatar };
-                  });
-                  const participantIds = new Set<string>();
-                  roomParticipants.forEach((id) => participantIds.add(String(id)));
-                  remoteIds.forEach((id) => participantIds.add(String(id)));
-                  participantIds.delete(String(currentUser._id));
-                  const participants = Array.from(participantIds).map((uid) => {
-                    const u = allUsers.find((x) => String(x._id) === String(uid));
-                    return { userId: uid, name: u?.name, avatar: u?.avatar };
-                  });
-                  return (
-                    <ModalCall
-                      avatar={avatar}
-                      name={name}
-                      mode="active"
-                      callType={callType === 'video' ? 'video' : 'voice'}
-                      callStartAt={callStartAt}
-                      localVideoRef={localVideoRef}
-                      currentUserName={currentUser.name}
-                      currentUserAvatar={currentUser.avatar}
-                      remotePeers={remotePeers}
-                      participants={participants}
-                      micEnabled={micEnabled}
-                      camEnabled={camEnabled}
-                      onToggleMic={toggleMic}
-                      onToggleCamera={toggleCamera}
-                      onEndCall={() => endCall('local')}
-                    />
-                  );
-                })()}
-              <div
-                className="absolute bottom-1 right-1 w-4 h-4 rounded cursor-nwse-resize bg-white/60 hover:bg-white/80"
-                onMouseDown={handleResizeStart}
-                title="Kéo để thay đổi kích thước"
-              />
-            </div>
-          </div>
-        )}
+        {/* UI cuộc gọi được hiển thị toàn cục ở HomePage */}
       </main>
     </ChatProvider>
   );
