@@ -67,8 +67,11 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const croppedVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
+    if (!containerRef.current) return;
     const updateSize = () => {
       if (containerRef.current) {
         setContainerSize({
@@ -77,9 +80,12 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
         });
       }
     };
-    window.addEventListener('resize', updateSize);
-    updateSize();
-    return () => window.removeEventListener('resize', updateSize);
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(containerRef.current);
+    updateSize(); // Initial check
+
+    return () => observer.disconnect();
   }, []);
 
   const generateVideoPoster = useCallback(async (): Promise<string | null> => {
@@ -649,7 +655,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
             ))}
 
             {mediaType === 'video' && videoCropConfig && videoCropConfig.croppedAreaPixels && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center">
                 {(() => {
                   const { x, y, width: kw, height: kh } = videoCropConfig.croppedAreaPixels!;
                   const { width: cw, height: ch } = containerSize;
@@ -674,9 +680,18 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                       >
                         <video
                           src={getProxyUrl(currentMedia)}
-                          autoPlay
+                          autoPlay={!isMuted}
                           loop
-                          muted={false}
+                          muted={isMuted}
+                          playsInline
+                          webkit-playsinline="true"
+                          onLoadedMetadata={(e) => {
+                            const v = e.currentTarget;
+                            if (!videoMeta || videoMeta.width !== v.videoWidth || videoMeta.height !== v.videoHeight) {
+                              setVideoMeta({ width: v.videoWidth, height: v.videoHeight });
+                            }
+                          }}
+                          ref={croppedVideoRef}
                           style={{
                             position: 'absolute',
                             left: -x * scale,
@@ -687,6 +702,23 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                             maxHeight: 'none',
                           }}
                         />
+                        <button
+                          onClick={() => {
+                            const v = croppedVideoRef.current;
+                            setIsMuted((prev) => {
+                              const next = !prev;
+                              if (v) {
+                                v.muted = next;
+                                if (!next) v.play().catch(() => {});
+                              }
+                              return next;
+                            });
+                          }}
+                          className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs border border-white/20"
+                          title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+                        >
+                          {isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+                        </button>
                       </div>
                     );
                   }
