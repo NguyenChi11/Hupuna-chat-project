@@ -11,6 +11,7 @@ import {
   buildUpdateCategoriesFields,
   buildUpdateTagsFields,
 } from '@/lib/chatUpdateFields';
+import bcrypt from 'bcryptjs';
 
 export const runtime = 'nodejs';
 
@@ -123,10 +124,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing data or password' }, { status: 400 });
         }
 
-        const newData = {
-          ...data,
-          password: data.password, // Lưu plaintext
-        };
+        const hashed = await bcrypt.hash(String(data.password), 5);
+        const newData = { ...data, password: hashed };
 
         const _id = await addRow<User>(collectionName, newData as User);
         return NextResponse.json({ success: true, _id });
@@ -337,17 +336,31 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, message: 'Thiếu tên người dùng hoặc mật khẩu!' }, { status: 400 });
         }
 
-        const queryResult = await getAllRows<User>(collectionName, {
-          filters: {
-            username,
-            password,
-          },
-          limit: 1,
-        });
+        const queryResult = await getAllRows<User>(collectionName, { filters: { username }, limit: 1 });
 
         const found = queryResult.data?.[0];
 
         if (!found) {
+          return NextResponse.json({ success: false, message: 'Username hoặc Password không đúng!' }, { status: 401 });
+        }
+        let ok = await bcrypt.compare(String(password), String(found.password || ''));
+        if (!ok && String(found.password || '') === String(password)) {
+          try {
+            const userCollection = await getCollection<User>(collectionName);
+            const idStr = String(found._id);
+            const orFilters: Array<Record<string, unknown>> = [{ _id: idStr }];
+            if (!isNaN(Number(idStr))) {
+              orFilters.push({ _id: Number(idStr) });
+            }
+            if (ObjectId.isValid(idStr) && idStr.length === 24) {
+              orFilters.push({ _id: new ObjectId(idStr) });
+            }
+            const hashed = await bcrypt.hash(String(password), 12);
+            await userCollection.updateOne({ $or: orFilters } as Filter<User>, { $set: { password: hashed } });
+            ok = true;
+          } catch {}
+        }
+        if (!ok) {
           return NextResponse.json({ success: false, message: 'Username hoặc Password không đúng!' }, { status: 401 });
         }
 
@@ -438,13 +451,13 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, message: 'Không tìm thấy tài khoản' }, { status: 404 });
         }
 
-        // So sánh plaintext trực tiếp
-        if (currentPassword !== userDoc.password) {
+        const ok = await bcrypt.compare(String(currentPassword), String(userDoc.password || ''));
+        if (!ok) {
           return NextResponse.json({ success: false, message: 'Mật khẩu hiện tại không đúng' }, { status: 401 });
         }
 
-        // Cập nhật password mới (plaintext)
-        await userCollection.updateOne(filter, { $set: { password: newPassword } });
+        const hashed = await bcrypt.hash(String(newPassword), 12);
+        await userCollection.updateOne(filter, { $set: { password: hashed } });
         return NextResponse.json({
           success: true,
           message: 'Đổi mật khẩu thành công',
