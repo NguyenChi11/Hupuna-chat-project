@@ -486,11 +486,12 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     const isChatPage = pathname === '/' || pathname === '/home' || pathname?.startsWith('/chat');
     if (!isChatPage) return;
     if (!currentViewedRoomId) return;
+    if (incomingCall || callActive || callConnecting) return;
     if (String(globalRoomId) === String(currentViewedRoomId)) return;
     setGlobalRoomId(String(currentViewedRoomId));
     const parts = String(currentViewedRoomId).split('_').filter(Boolean);
     setGlobalIsGroup(parts.length !== 2);
-  }, [currentViewedRoomId, pathname, globalRoomId]);
+  }, [currentViewedRoomId, pathname, globalRoomId, incomingCall, callActive, callConnecting]);
   useEffect(() => {
     if (!incomingCall) return;
     const rid = String(incomingCall.roomId || '');
@@ -741,13 +742,14 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     } catch {}
   }, []);
   useEffect(() => {
-    if (globalIsGroup) {
-      const rid =
-        String(activeRoomId || '') ||
-        normalizedRoomId ||
-        String(incomingCall?.roomId || '') ||
-        String(globalRoomId || '');
-      const info = rid ? groupInfoRef.current.get(String(rid)) : undefined;
+    const ridCandidate =
+      String(activeRoomId || '') ||
+      normalizedRoomId ||
+      String(incomingCall?.roomId || '') ||
+      String(globalRoomId || '');
+    const isGroupByRid = ridCandidate.split('_').filter(Boolean).length !== 2;
+    if (isGroupByRid) {
+      const info = ridCandidate ? groupInfoRef.current.get(String(ridCandidate)) : undefined;
       if (info) {
         setRemoteName(String(info.name || ''));
         setRemoteAvatar(info.avatar ? String(info.avatar) : undefined);
@@ -794,7 +796,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       }
     };
     void run();
-  }, [counterpartId, incomingCall, globalSelectedChat, globalIsGroup]);
+  }, [counterpartId, incomingCall, globalSelectedChat, globalIsGroup, activeRoomId, normalizedRoomId, globalRoomId]);
   const callTimerRef = React.useRef<number | null>(null);
   useEffect(() => {
     if (callTimerRef.current) {
