@@ -2057,7 +2057,7 @@ export default function MessageList({
                   px-4 py-2 rounded-lg shadow-md max-w-[70vw] ${
                     !isRecalled && msg.type === 'text' && isSidebarOpen && !isMobile
                       ? 'sm:max-w-[26rem] lg:max-w-[32rem]'
-                      : 'sm:max-w-[34rem] lg:max-w-[44rem]'
+                      : 'sm:max-w-[34rem] lg:max-w-[38rem]'
                   } break-words mt-1
                   ${
                     !isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image')

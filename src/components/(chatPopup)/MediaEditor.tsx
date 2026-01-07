@@ -18,6 +18,7 @@ interface MediaEditorProps {
     description: string;
     isHD: boolean;
     selected: boolean;
+    imageDataUrl?: string;
     videoCropConfig?: {
       crop: { x: number; y: number };
       zoom: number;
@@ -40,6 +41,8 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
     zoom: number;
     rotation: number;
     croppedAreaPixels: { x: number; y: number; width: number; height: number } | null;
+    baseWidth?: number;
+    baseHeight?: number;
   } | null>(null);
 
   const [isCropping, setIsCropping] = useState(false);
@@ -352,21 +355,19 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
       if (mediaType === 'image') {
         const canvas = cropperRef.current.getCanvas();
         if (canvas) {
-          const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg'));
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            setCurrentMedia(url);
-            setIsCropping(false);
-            // Reset crop state for next time
-            setRotation(0);
-            setZoom(1);
-          }
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+          setCurrentMedia(dataUrl);
+          setIsCropping(false);
+          setRotation(0);
+          setZoom(1);
         }
       } else {
         // Video
         const state = cropperRef.current.getState();
         const coordinates = cropperRef.current.getCoordinates();
         if (state && coordinates) {
+          const baseW = containerRef.current?.clientWidth || coordinates.width;
+          const baseH = containerRef.current?.clientHeight || coordinates.height;
           setVideoCropConfig({
             crop: { x: coordinates.left, y: coordinates.top },
             zoom: 1,
@@ -377,6 +378,8 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
               width: coordinates.width,
               height: coordinates.height,
             },
+            baseWidth: baseW,
+            baseHeight: baseH,
           });
           setIsCropping(false);
         }
@@ -441,6 +444,66 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
     } catch (e) {
       setIsDrawing(false);
     }
+  };
+
+  const applyTextToImage = async () => {
+    try {
+      const container = containerRef.current;
+      if (!container || mediaType === 'video' || textEntries.length === 0) return;
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const im = new window.Image();
+        im.crossOrigin = 'anonymous';
+        im.onload = () => resolve(im);
+        im.onerror = reject;
+        im.src = getProxyUrl(currentMedia);
+      });
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      const imgAspect = img.width / img.height;
+      const containerAspect = w / h;
+      const draw = (() => {
+        if (imgAspect > containerAspect) {
+          const dw = w;
+          const dh = w / imgAspect;
+          const dx = 0;
+          const dy = (h - dh) / 2;
+          return { dx, dy, dw, dh };
+        } else {
+          const dh = h;
+          const dw = h * imgAspect;
+          const dx = (w - dw) / 2;
+          const dy = 0;
+          return { dx, dy, dw, dh };
+        }
+      })();
+
+      const out = document.createElement('canvas');
+      out.width = img.width;
+      out.height = img.height;
+      const ctx = out.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, out.width, out.height);
+
+      const overlayCanvas = canvasRef.current;
+      if (overlayCanvas) {
+        const s = out.width / draw.dw;
+        ctx.drawImage(overlayCanvas, draw.dx, draw.dy, draw.dw, draw.dh, 0, 0, out.width, out.height);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (const t of textEntries) {
+          const tx = (t.x - draw.dx) * s;
+          const ty = (t.y - draw.dy) * s;
+          const fontSize = t.size * s;
+          ctx.fillStyle = t.color;
+          ctx.font = `${fontSize}px sans-serif`;
+          ctx.fillText(t.text, tx, ty);
+        }
+      }
+
+      const dataUrl = out.toDataURL('image/jpeg', 0.92);
+      setCurrentMedia(dataUrl);
+      setTextEntries([]);
+      setSelectedTextId(null);
+    } catch {}
   };
 
   const handleRestore = () => {
@@ -560,6 +623,14 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
               <button className="p-2 font-serif text-xl font-bold" onClick={() => setIsTexting(true)}>
                 Aa
               </button>
+              {textEntries.length > 0 && mediaType === 'image' ? (
+                <button
+                  onClick={applyTextToImage}
+                  className="px-3 py-1 rounded-full bg-white/10 text-xs hover:bg-white/20"
+                >
+                  Áp dụng văn bản
+                </button>
+              ) : null}
             </div>
           </div>
         )}
@@ -580,35 +651,6 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                 aspectRatio: undefined,
               }}
             />
-            {/* Crop Controls Overlay */}
-            <div className="absolute bottom-8 left-0 right-0 z-30 flex flex-col gap-4 px-8 pb-4">
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-white w-12">Zoom</span>
-                <input
-                  type="range"
-                  value={zoom}
-                  min={1}
-                  max={3}
-                  step={0.1}
-                  aria-labelledby="Zoom"
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                  className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer range-sm"
-                />
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-white w-12">Xoay</span>
-                <input
-                  type="range"
-                  value={rotation}
-                  min={0}
-                  max={360}
-                  step={1}
-                  aria-labelledby="Rotation"
-                  onChange={(e) => setRotation(Number(e.target.value))}
-                  className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer range-sm"
-                />
-              </div>
-            </div>
           </div>
         ) : (
           <div className="relative w-full h-full flex items-center justify-center">
@@ -860,7 +902,23 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
               </button>
 
               <button
-                onClick={() => onSend?.({ description, isHD, selected, videoCropConfig })}
+                onClick={async () => {
+                  if (mediaType === 'image') {
+                    const hasStrokes = strokes.length > 0;
+                    const hasText = textEntries.length > 0;
+                    if (hasStrokes || hasText) {
+                      await applyTextToImage();
+                    }
+                  }
+                  onSend?.({
+                    description,
+                    isHD,
+                    selected,
+                    imageDataUrl: mediaType === 'image' ? currentMedia : undefined,
+                    videoCropConfig,
+                  });
+                  onClose();
+                }}
                 className="w-10 h-10 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors"
               >
                 <IoSend className="w-5 h-5 ml-0.5" />

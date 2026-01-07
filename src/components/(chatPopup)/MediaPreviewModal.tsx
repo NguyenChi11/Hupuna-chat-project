@@ -242,7 +242,20 @@ export default function MediaPreviewModal({
         mediaType={current.type}
         chatName={chatName}
         onClose={() => setIsEditing(false)}
-        onSend={() => setIsEditing(false)}
+        onSend={(data) => {
+          try {
+            const detail = {
+              type: current.type,
+              imageDataUrl: data?.videoCropConfig ? undefined : data?.imageDataUrl ?? undefined,
+              originalUrl: current.url,
+              videoCropConfig: data?.videoCropConfig ?? undefined,
+            };
+            const ev = new CustomEvent('sendEditedMedia', { detail });
+            window.dispatchEvent(ev);
+          } catch {}
+          setIsEditing(false);
+          onClose();
+        }}
       />
     );
   }

@@ -186,7 +186,20 @@ export default function ChatWindow({
   const [oldestTs, setOldestTs] = useState<number | null>(null);
   const [initialLoading, setInitialLoading] = useState(false);
   const [attachments, setAttachments] = useState<
-    { file: File; type: 'image' | 'video' | 'file'; previewUrl: string; fileName?: string }[]
+    {
+      file: File;
+      type: 'image' | 'video' | 'file';
+      previewUrl: string;
+      fileName?: string;
+      videoCropConfig?: {
+        crop: { x: number; y: number };
+        zoom: number;
+        rotation: number;
+        croppedAreaPixels: { x: number; y: number; width: number; height: number } | null;
+        baseWidth?: number;
+        baseHeight?: number;
+      } | null;
+    }[]
   >([]);
   const reminderScheduledIdsRef = useRef<Set<string>>(new Set());
   const reminderTimersByIdRef = useRef<Map<string, number>>(new Map());
@@ -1893,6 +1906,53 @@ export default function ChatWindow({
 
   useEffect(() => {
     const handler = (e: Event) => {
+      const d = (e as CustomEvent).detail || {};
+      const type: 'image' | 'video' = d.type === 'video' ? 'video' : 'image';
+      const myId = String(currentUser._id);
+      const senderNick = allUsersMap.get(myId) || currentUser.name;
+      if (type === 'image' && typeof d.imageDataUrl === 'string') {
+        try {
+          const dataUrl: string = d.imageDataUrl;
+          const arr = dataUrl.split(',');
+          const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+          const bstr = atob(arr[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) u8arr[n] = bstr.charCodeAt(n);
+          const blob = new Blob([u8arr], { type: mime });
+          const file = new File([blob], 'edited.jpg', { type: mime });
+          const previewUrl = URL.createObjectURL(blob);
+          setAttachments((prev) => [...prev, { file, type: 'image', previewUrl, fileName: 'edited.jpg' }]);
+          dismissKeyboardAndScroll();
+        } catch {}
+      } else if (type === 'video' && typeof d.originalUrl === 'string') {
+        (async () => {
+          try {
+            const res = await fetch(getProxyUrl(d.originalUrl));
+            const blob = await res.blob();
+            const mime = blob.type || 'video/mp4';
+            const file = new File([blob], 'edited.mp4', { type: mime });
+            const previewUrl = URL.createObjectURL(blob);
+            setAttachments((prev) => [
+              ...prev,
+              {
+                file,
+                type: 'video',
+                previewUrl,
+                fileName: 'edited.mp4',
+                videoCropConfig: d.videoCropConfig || null,
+              },
+            ]);
+            dismissKeyboardAndScroll();
+          } catch {}
+        })();
+      }
+    };
+    window.addEventListener('sendEditedMedia', handler as EventListener);
+    return () => window.removeEventListener('sendEditedMedia', handler as EventListener);
+  }, [currentUser._id, allUsersMap, handleUploadAndSend, dismissKeyboardAndScroll]);
+  useEffect(() => {
+    const handler = (e: Event) => {
       const anyE = e as unknown as {
         detail?: { roomId?: string; userId?: string; targetUserId?: string; nickname?: string };
       };
@@ -2673,7 +2733,16 @@ export default function ChatWindow({
       const senderNick = allUsersMap.get(myId) || currentUser.name;
       const batchId = `batch_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       currentAttachments.forEach((att) => {
-        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined, senderNick, batchId).then(() => {
+        handleUploadAndSend(
+          att.file,
+          att.type,
+          undefined,
+          replyingTo?._id,
+          undefined,
+          senderNick,
+          batchId,
+          att.videoCropConfig || null,
+        ).then(() => {
           try {
             URL.revokeObjectURL(att.previewUrl);
           } catch {}
