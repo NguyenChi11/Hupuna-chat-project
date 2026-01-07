@@ -344,6 +344,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     roomCallActive,
     roomCallType,
     roomParticipants,
+    setIncomingCall,
   } = useLiveKitSession({
     socketRef,
     roomId: normalizedRoomId,
@@ -993,6 +994,9 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           roomId: String(incomingCall.roomId),
           targets: [String(incomingCall.from)],
         });
+        try {
+          setIncomingCall(null);
+        } catch {}
         void sendCallNotify('rejected');
       }}
     />
