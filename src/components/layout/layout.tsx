@@ -37,6 +37,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const groupMembersRef = useRef<Map<string, Array<{ _id: string } | string>>>(new Map());
+  const groupInfoRef = useRef<Map<string, { name?: string; avatar?: string }>>(new Map());
   const callNotifySeenRef = useRef<Set<string>>(new Set());
   const [showNewMsgBanner, setShowNewMsgBanner] = useState(false);
   const newMsgBannerTimerRef = useRef<number | null>(null);
@@ -230,6 +231,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           const gid = String(g._id);
           const members = (Array.isArray(g.members) ? g.members : []) as Array<{ _id: string } | string>;
           m.set(gid, members);
+          groupInfoRef.current.set(gid, { name: g.name, avatar: g.avatar });
         });
         groupMembersRef.current = m;
       } catch {}
@@ -325,7 +327,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
 
   const [currentViewedRoomId, setCurrentViewedRoomId] = useState<string>('');
   const normalizedRoomId = String((globalRoomId || currentViewedRoomId || '').trim());
-  const normalizedIsGroup = false;
+  const normalizedIsGroup = !!globalIsGroup;
   const {
     callActive,
     callType,
@@ -387,6 +389,41 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     const isG = parts.length !== 2;
     setGlobalRoomId(rid);
     setGlobalIsGroup(isG);
+    if (isG) {
+      const info = groupInfoRef.current.get(rid);
+      const applyInfo = (inf?: { name?: string; avatar?: string }) => {
+        if (inf) {
+          setRemoteName(String(inf.name || ''));
+          setRemoteAvatar(inf.avatar ? String(inf.avatar) : undefined);
+        }
+      };
+      if (info) {
+        applyInfo(info);
+      } else {
+        (async () => {
+          try {
+            const res = await fetch('/api/groups', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'readGroups', _id: String(currentUser?._id || '') }),
+            });
+            const j = await res.json();
+            const arr = (j?.data || []) as GroupConversation[];
+            const m = new Map<string, Array<{ _id: string } | string>>();
+            arr.forEach((g) => {
+              const gid = String(g._id);
+              const members = (Array.isArray(g.members) ? g.members : []) as Array<{ _id: string } | string>;
+              m.set(gid, members);
+              groupInfoRef.current.set(gid, { name: g.name, avatar: g.avatar });
+            });
+            groupMembersRef.current = m;
+            applyInfo(groupInfoRef.current.get(rid));
+          } catch {
+            // ignore
+          }
+        })();
+      }
+    }
   }, [incomingCall]);
   const liveParticipantsRef = React.useRef<Array<{ id: string; name?: string }>>([]);
   useEffect(() => {
@@ -578,12 +615,36 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     } catch {}
   }, []);
   useEffect(() => {
+    if (globalIsGroup) {
+      const rid =
+        normalizedRoomId ||
+        String(incomingCall?.roomId || '') ||
+        String(globalRoomId || '');
+      const info = rid ? groupInfoRef.current.get(String(rid)) : undefined;
+      if (info) {
+        setRemoteName(String(info.name || ''));
+        setRemoteAvatar(info.avatar ? String(info.avatar) : undefined);
+        return;
+      }
+      const gname = String(globalSelectedChat?.name || '').trim();
+      const gavatar = globalSelectedChat?.avatar ? String(globalSelectedChat.avatar) : undefined;
+      setRemoteName(gname || '');
+      setRemoteAvatar(gavatar);
+      return;
+    }
     const id = (() => {
       if (counterpartId) return String(counterpartId);
       if (incomingCall?.from) return String(incomingCall.from);
-      if (!globalIsGroup && globalSelectedChat?._id) return String(globalSelectedChat._id);
+      if (globalSelectedChat?._id) return String(globalSelectedChat._id);
       return '';
     })();
+    if (globalSelectedChat?._id && String(globalSelectedChat._id) === String(id)) {
+      setRemoteName(String(globalSelectedChat?.name || ''));
+      setRemoteAvatar(globalSelectedChat?.avatar ? String(globalSelectedChat?.avatar) : undefined);
+    } else {
+      setRemoteName('');
+      setRemoteAvatar(undefined);
+    }
     if (!id) {
       setRemoteName('');
       setRemoteAvatar(undefined);
@@ -889,9 +950,14 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                   >
                     <span className="text-sm">
                       {callActive
-                        ? remoteName ? `${remoteName}` : 'Đang gọi'
+                        ? (remoteName || groupInfoRef.current.get(String(normalizedRoomId || globalRoomId || ''))?.name || 'Đang gọi')
                         : incomingCall
-                          ? remoteName ? `Cuộc gọi từ ${remoteName}` : 'Cuộc gọi đến'
+                          ? (() => {
+                              const gname = globalIsGroup
+                                ? groupInfoRef.current.get(String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''))?.name
+                                : undefined;
+                              return `Cuộc gọi từ ${gname || remoteName || 'Cuộc gọi đến'}`;
+                            })()
                           : 'Đang kết nối...'}
                     </span>
                     <span className="text-xs">
@@ -911,8 +977,12 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                 <div className={`${globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : `rounded-none p-0 h-full ${callType === "voice" ? "bg-blue-500" : "bg-black"}`}`}>
   {incomingCall && !callActive && !callConnecting && (
     <IncomingCallModal
-      avatar={remoteAvatar || '/logo/avata.webp'}
-      name={remoteName || 'Cuộc gọi đến'}
+      avatar={(globalIsGroup
+        ? (groupInfoRef.current.get(String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''))?.avatar || remoteAvatar)
+        : remoteAvatar) || '/logo/avata.webp'}
+      name={(globalIsGroup
+        ? (groupInfoRef.current.get(String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''))?.name || remoteName)
+        : remoteName) || 'Cuộc gọi đến'}
       callType={incomingCall.type}
       onAccept={async () => {
         outgoingRef.current = false;

@@ -35,10 +35,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
     "next.config.js",
-    "src/lib/OneSignalSDKWorker.js",
-    ".next/dev/types/**/*.ts"
+    "src/lib/OneSignalSDKWorker.js"
   ],
   "exclude": [
     "node_modules"

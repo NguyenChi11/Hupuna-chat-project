@@ -263,10 +263,7 @@ export function useLiveKitSession({
       setCallActive(true);
       await fetchToken(incomingCall.roomId);
       setIncomingCall(null);
-      const isDirect = parts.length === 2;
-      if (isDirect) {
-        setCallStartAt(Date.now());
-      }
+      setCallStartAt((prev) => (prev && prev > 0 ? prev : Date.now()));
     } catch {
       setCallActive(true);
     }
@@ -294,11 +291,7 @@ export function useLiveKitSession({
       stopGlobalRingTone();
       setCallConnecting(false);
       setActiveRoomId(data.roomId);
-      const parts = String(data.roomId).split('_').filter(Boolean);
-      const isDirect = parts.length === 2;
-      if (isDirect) {
-        setCallStartAt(Date.now());
-      }
+      setCallStartAt((prev) => (prev && prev > 0 ? prev : Date.now()));
       await fetchToken(data.roomId);
       setCallActive(true);
     };

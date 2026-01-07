@@ -39,12 +39,16 @@ function CustomTrackTile({
   avatarUrl,
   offMinHeight,
   cover,
+  contain,
+  callMode
 }: {
   trackRef: TrackReferenceOrPlaceholder;
   title?: string | null;
   avatarUrl?: string;
   offMinHeight?: number;
   cover?: boolean;
+  contain?: boolean;
+  callMode?: "voice" | "video"
 }) {
   const isMuted = useIsMuted(trackRef);
   const [portrait, setPortrait] = React.useState<boolean>(false);
@@ -60,11 +64,17 @@ function CustomTrackTile({
       (trackRef as unknown as { participant?: { identity?: string } })?.participant?.identity ||
       '');
   return (
-    <div className="relative w-full h-full bg-black">
+    <div className={`relative w-full  h-full bg-black`}>
       {!isMuted && (trackRef as TrackReference)?.publication ? (
         <VideoTrack
           trackRef={trackRef as TrackReference}
-          className={(cover || !portrait) ? 'w-full h-full object-cover' : 'w-full h-full object-contain'}
+          className={
+            contain
+              ? 'w-full h-full object-contain'
+              : (cover || !portrait)
+              ? 'w-full  object-cover'
+              : 'w-full  object-contain'
+          }
           onLoadedMetadata={handleMeta}
           muted
           playsInline
@@ -118,7 +128,7 @@ function CallTiles({
       <div className="md:block hidden rounded-lg w-full h-full">
         {callMode === 'voice' ? (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4 mt-10">
+            <div className="flex flex-col items-center gap-4 mt-20">
               {avatarUrl ? (
                 <Image src={avatarUrl} alt={titleName || 'avatar'} width={160} height={160} className="w-32 h-32 rounded-full object-cover" />
               ) : (
@@ -145,37 +155,32 @@ function CallTiles({
           </div>
         )}
       </div>
-      <div className="md:hidden block w-full h-[85vh] flex items-center justify-center">
+      <div className="md:hidden block w-full h-full flex items-center justify-center">
         {callMode === 'voice' ? (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4 mt-10">
+            <div className="flex flex-col items-center gap-4 mt-40">
               {avatarUrl ? (
                 <Image src={avatarUrl} alt={titleName || 'avatar'} width={128} height={128} className="w-28 h-28 rounded-full object-cover" />
               ) : (
                 <div className="w-28 h-28 rounded-full bg-white/10" />
               )}
-              <div className="text-white/90 text-base">{titleName || ''}</div>
+              <div className="text-white/90 text-xl font-bold">{titleName || ''}</div>
             </div>
           </div>
         ) : remoteTracks.length > 0 ? (
-          (() => {
-            const preferred =
-              remoteTracks.find((t) => {
-                const nm =
-                  (t as unknown as { participant?: { name?: string; identity?: string } })?.participant?.name ||
-                  (t as unknown as { participant?: { identity?: string } })?.participant?.identity ||
-                  '';
-                return titleName ? String(nm).trim() === String(titleName).trim() : false;
-              }) || remoteTracks[0];
-            return (
-              <div className="w-full">
-                <CustomTrackTile trackRef={preferred} offMinHeight={offMinHeight} cover />
+          <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+            {remoteTracks.map((tr, i) => (
+              <div
+                key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`}
+                className="relative"
+              >
+                <CustomTrackTile trackRef={tr} offMinHeight={offMinHeight} contain />
               </div>
-            );
-          })()
+            ))}
+          </div>
         ) : localTrack ? (
           <div className="w-full h-[85vh] mt-4">
-            <CustomTrackTile trackRef={localTrack} title={myName} avatarUrl={myAvatarUrl} offMinHeight={offMinHeight} cover />
+            <CustomTrackTile trackRef={localTrack} title={myName} avatarUrl={myAvatarUrl} offMinHeight={offMinHeight} contain />
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
