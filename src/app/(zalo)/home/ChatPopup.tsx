@@ -777,7 +777,7 @@ export default function ChatWindow({
         }),
       );
     } catch {}
-  }, []);
+  }, [roomId, isGroup, selectedChat]);
 
   const handleVideoCall = useCallback(() => {
     try {
@@ -787,7 +787,7 @@ export default function ChatWindow({
         }),
       );
     } catch {}
-  }, []);
+  }, [roomId, isGroup, selectedChat]);
 
   // Removed local startCall listener. Calls are handled globally in HomePage.
 

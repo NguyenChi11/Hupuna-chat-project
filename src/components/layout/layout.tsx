@@ -745,10 +745,14 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         })();
         setGlobalSelectedChat(norm);
         if (sel?.name) setRemoteName(String(sel.name));
+        else setRemoteName('');
         if (sel?.avatar) setRemoteAvatar(String(sel.avatar));
+        else setRemoteAvatar(undefined);
         setCallDurationSec(0);
         outgoingRef.current = true;
-        void startCall(t);
+        const overrideTargetId =
+          !isG && norm && typeof norm._id === 'string' && norm._id ? String(norm._id) : undefined;
+        void startCall(t, overrideTargetId);
       } catch {}
     };
     window.addEventListener('startCall', handler as EventListener);

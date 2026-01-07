@@ -111,7 +111,7 @@ export function useLiveKitSession({
   );
 
   const startCall = useCallback(
-    async (type: CallType) => {
+    async (type: CallType, overrideTargetId?: string) => {
       try {
         if (!socketRef.current || !socketRef.current.connected) {
           socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
@@ -123,6 +123,9 @@ export function useLiveKitSession({
         }
       } catch {}
       const receivers = (() => {
+        if (!isGroup && overrideTargetId) {
+          return [String(overrideTargetId)];
+        }
         if (isGroup && roomCallActive && roomParticipants && roomParticipants.length > 0) {
           return roomParticipants.filter((id) => String(id) !== String(currentUserId));
         }
@@ -136,7 +139,18 @@ export function useLiveKitSession({
       setLivekitToken(null);
       setLivekitUrl(null);
       setActiveRoomId(roomId);
-      setCounterpartId(!isGroup && receivers.length > 0 ? String(receivers[0]) : null);
+      {
+        const otherId = (() => {
+          if (isGroup) return null;
+          if (overrideTargetId) return String(overrideTargetId);
+          if (receivers.length > 0) return String(receivers[0]);
+          const parts = String(roomId).split('_').filter(Boolean);
+          const me = String(currentUserId);
+          const t = parts.length === 2 ? parts.find((id) => String(id) !== me) : undefined;
+          return t ? String(t) : null;
+        })();
+        setCounterpartId(otherId);
+      }
       if (ringTimeoutRef.current) {
         window.clearTimeout(ringTimeoutRef.current);
         ringTimeoutRef.current = null;

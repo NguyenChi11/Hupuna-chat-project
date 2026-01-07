@@ -1510,7 +1510,13 @@ export default function MessageList({
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       const t = callType === 'video' ? 'video' : 'voice';
-                                      const evt = new CustomEvent('startCall', { detail: { type: t } });
+                                      const evt = new CustomEvent('startCall', {
+                                        detail: {
+                                          type: t,
+                                          roomId: String(msg.roomId || ''),
+                                          isGroup: !(String(msg.roomId || '').includes('_') && String(msg.roomId || '').split('_').filter(Boolean).length === 2),
+                                        },
+                                      });
                                       window.dispatchEvent(evt);
                                     }}
                                     className="ml-2  py-1 text-xs font-semibold rounded-lg border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
