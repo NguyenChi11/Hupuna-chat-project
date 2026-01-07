@@ -11,7 +11,7 @@ import type { User } from '@/types/User';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
 import ModalCall from '@/components/(call)/ModalCall';
 import LiveKitCall from '@/components/(call)/LiveKitCall';
-import { useLiveKitSession } from '@/hooks/useLiveKitSession';
+import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
 
 // React Icons – Bộ hiện đại nhất 2025
 import {
@@ -25,6 +25,7 @@ import {
 
 
 import { useChatNotifications } from '@/hooks/useChatNotifications';
+import { useLiveKitSession } from '@/hooks/useLiveKitSession';
 
 const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [isAuthed, setIsAuthed] = useState<boolean>(false);
@@ -384,6 +385,13 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     setGlobalIsGroup(parts.length !== 2);
   }, [currentViewedRoomId, pathname, globalRoomId]);
   useEffect(() => {
+    if (incomingCall && !callActive && !callConnecting) {
+      playGlobalRingTone();
+    } else {
+      stopGlobalRingTone();
+    }
+  }, [incomingCall, callActive, callConnecting]);
+  useEffect(() => {
     if (!incomingCall) return;
     const rid = String(incomingCall.roomId || '');
     if (!rid) return;
@@ -459,6 +467,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [globalIsDesktop, setGlobalIsDesktop] = useState<boolean>(false);
   const [remoteName, setRemoteName] = useState<string>('');
   const [remoteAvatar, setRemoteAvatar] = useState<string | undefined>(undefined);
+  const userInfoCacheRef = useRef<Map<string, { name?: string; avatar?: string }>>(new Map());
   const [callDurationSec, setCallDurationSec] = useState<number>(0);
   useEffect(() => {
     const apply = () => setGlobalIsDesktop(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
@@ -652,6 +661,12 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       setRemoteAvatar(undefined);
       return;
     }
+    const cached = userInfoCacheRef.current.get(String(id));
+    if (cached) {
+      setRemoteName(String(cached.name || ''));
+      setRemoteAvatar(cached.avatar ? String(cached.avatar) : undefined);
+      return;
+    }
     const run = async () => {
       try {
         const res = await fetch('/api/users', {
@@ -663,6 +678,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         const row = json?.row || json?.user || json;
         setRemoteName(String(row?.name || ''));
         setRemoteAvatar(row?.avatar ? String(row.avatar) : undefined);
+        userInfoCacheRef.current.set(String(id), { name: String(row?.name || ''), avatar: row?.avatar ? String(row.avatar) : undefined });
       } catch {
         setRemoteName('');
         setRemoteAvatar(undefined);
@@ -988,7 +1004,10 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       callType={incomingCall.type}
       onAccept={async () => {
         outgoingRef.current = false;
-        await acceptIncomingCall();
+        const ok = await acceptIncomingCall();
+        if (ok) {
+          stopGlobalRingTone();
+        }
       }}
       onReject={() => {
         socketRef.current?.emit('call_reject', {
@@ -999,6 +1018,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           setIncomingCall(null);
         } catch {}
         void sendCallNotify('rejected');
+        stopGlobalRingTone();
       }}
     />
   )}

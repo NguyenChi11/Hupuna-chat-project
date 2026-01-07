@@ -1,12 +1,7 @@
-'use client';
-
-import { useCallback, useEffect, useRef, useState } from 'react';
-import io, { Socket } from 'socket.io-client';
-import { resolveSocketUrl } from '@/utils/utils';
-import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { Socket } from 'socket.io-client';
 
 type CallType = 'voice' | 'video';
-type Member = string | { _id: string };
 
 export function useLiveKitSession({
   socketRef,
@@ -15,17 +10,22 @@ export function useLiveKitSession({
   isGroup,
   selectedChat,
 }: {
-  socketRef: React.MutableRefObject<Socket | null>;
+  socketRef?: React.MutableRefObject<Socket | null>;
   roomId: string;
   currentUserId: string;
   isGroup: boolean;
-  selectedChat?: { _id?: string; members?: Member[] } | null;
+  selectedChat?: { _id?: string; members?: Array<string | { _id: string }> } | null;
 }) {
-  const [incomingCall, setIncomingCall] = useState<{ from: string; type: CallType; roomId: string } | null>(null);
   const [callActive, setCallActive] = useState(false);
   const [callType, setCallType] = useState<CallType | null>(null);
   const [callStartAt, setCallStartAt] = useState<number | null>(null);
   const [callConnecting, setCallConnecting] = useState(false);
+  const [incomingCall, setIncomingCall] = useState<{
+    callId: string;
+    from: string;
+    type: CallType;
+    roomId: string;
+  } | null>(null);
   const [roomCallActive, setRoomCallActive] = useState(false);
   const [roomCallType, setRoomCallType] = useState<CallType | null>(null);
   const [roomParticipants, setRoomParticipants] = useState<string[]>([]);
@@ -33,381 +33,218 @@ export function useLiveKitSession({
   const [counterpartId, setCounterpartId] = useState<string | null>(null);
   const [livekitToken, setLivekitToken] = useState<string | null>(null);
   const [livekitUrl, setLivekitUrl] = useState<string | null>(null);
-
-  const receiversRef = useRef<string[]>([]);
-  const ringTimeoutRef = useRef<number | null>(null);
-  const callActiveRef = useRef<boolean>(false);
-  const callConnectingRef = useRef<boolean>(false);
-  const lastJoinedRoomRef = useRef<string>('');
-
+  const [pendingOutgoingCallId, setPendingOutgoingCallId] = useState<string | null>(null);
+  const [activeCallId, setActiveCallId] = useState<string | null>(null);
+  const [groupActiveCallId, setGroupActiveCallId] = useState<string | null>(null);
+  const currentUserIdRef = useRef<string>(String(currentUserId));
   useEffect(() => {
-    callActiveRef.current = callActive;
-  }, [callActive]);
-  useEffect(() => {
-    callConnectingRef.current = callConnecting;
-  }, [callConnecting]);
-  useEffect(() => {
-    const ensureUserJoin = async () => {
-      try {
-        if (!currentUserId) return;
-        if (!socketRef.current || !socketRef.current.connected) {
-          socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-          await new Promise<void>((resolve) => {
-            socketRef.current!.on('connect', () => resolve());
-          });
-        }
-        socketRef.current!.emit('join_user', { userId: String(currentUserId) });
-      } catch {}
-    };
-    void ensureUserJoin();
+    currentUserIdRef.current = String(currentUserId);
   }, [currentUserId]);
-  useEffect(() => {
-    setActiveRoomId(roomId);
-  }, [roomId]);
-  useEffect(() => {
-    const rid = String(roomId || '');
-    if (!rid) return;
-    const ensureJoin = async () => {
-      try {
-        if (!socketRef.current || !socketRef.current.connected) {
-          socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-          await new Promise<void>((resolve) => {
-            socketRef.current!.on('connect', () => resolve());
-          });
-          socketRef.current!.emit('join_user', { userId: String(currentUserId) });
-        }
-        if (lastJoinedRoomRef.current !== rid) {
-          socketRef.current?.emit('join_room', rid);
-          lastJoinedRoomRef.current = rid;
-        }
-      } catch {}
-    };
-    void ensureJoin();
-  }, [roomId, currentUserId, socketRef]);
-
-  // Bỏ hoàn toàn lưu trạng thái phòng gọi vào localStorage
-
+  useEffect(() => setActiveRoomId(roomId), [roomId]);
   const getReceiverIds = useCallback(() => {
     if (isGroup) {
-      const members = (selectedChat?.members || []) as Member[];
-      const ids = members
-        .map((m) => (typeof m === 'object' ? String(m._id) : String(m)))
-        .filter((id) => id !== String(currentUserId));
-      return ids;
+      const arr = Array.isArray(selectedChat?.members) ? selectedChat!.members : [];
+      return arr
+        .map((m) => (typeof m === 'object' && m?._id ? String(m._id) : String(m)))
+        .filter((id) => id && id !== String(currentUserIdRef.current));
     }
-    const id = String(selectedChat?._id || '');
-    return id ? [id] : [];
-  }, [isGroup, selectedChat, currentUserId]);
-
-  const fetchToken = useCallback(
-    async (rid: string) => {
-      const res = await fetch(`/api/livekit/token?room=${encodeURIComponent(rid)}`, { method: 'GET' });
-      if (!res.ok) throw new Error('token failed');
-      const data = await res.json();
-      setLivekitToken(String(data.token || ''));
-      setLivekitUrl(String(data.serverUrl || ''));
-    },
-    [],
-  );
-
-  const joinActiveGroupCall = useCallback(async () => {
-    try {
-      if (!isGroup || !roomCallActive) return;
-      const rid = String(roomId);
-      if (!socketRef.current || !socketRef.current.connected) {
-        socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-        await new Promise<void>((resolve) => {
-          socketRef.current!.on('connect', () => resolve());
-        });
-        socketRef.current!.emit('join_user', { userId: String(currentUserId) });
-      }
-      socketRef.current?.emit('join_room', rid);
-      const target = (Array.isArray(roomParticipants) ? roomParticipants : []).find((id) => String(id) !== String(currentUserId));
-      if (target) {
-        socketRef.current?.emit('call_answer', {
-          roomId: rid,
-          target: String(target),
-          from: String(currentUserId),
-          sdp: null,
-        });
-      }
-      setActiveRoomId(rid);
-      setCallType(roomCallType || 'voice');
-      setCallConnecting(false);
-      await fetchToken(rid);
-      setCallActive(true);
-    } catch {
-      // ignore
-    }
-  }, [isGroup, roomCallActive, roomParticipants, roomId, currentUserId, roomCallType, fetchToken]);
+    const otherId = String(selectedChat?._id || '');
+    return otherId ? [otherId] : [];
+  }, [isGroup, selectedChat]);
 
   const startCall = useCallback(
-    async (type: CallType, overrideTargetId?: string) => {
-      try {
-        if (!socketRef.current || !socketRef.current.connected) {
-          socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-          await new Promise<void>((resolve) => {
-            socketRef.current!.on('connect', () => resolve());
-          });
-          socketRef.current.emit('join_room', roomId);
-          socketRef.current.emit('join_user', { userId: String(currentUserId) });
-        }
-      } catch {}
-      const receivers = (() => {
-        if (!isGroup && overrideTargetId) {
-          return [String(overrideTargetId)];
-        }
-        if (isGroup && roomCallActive && roomParticipants && roomParticipants.length > 0) {
-          return roomParticipants.filter((id) => String(id) !== String(currentUserId));
-        }
-        return getReceiverIds();
-      })();
-      receiversRef.current = receivers;
-      if (receivers.length === 0) return;
-      setCallType(type);
-      setCallStartAt(null);
+    async (_type: CallType, overrideTargetId?: string) => {
+      setCallType(_type);
       setCallConnecting(true);
-      setLivekitToken(null);
-      setLivekitUrl(null);
-      setActiveRoomId(roomId);
-      {
-        const otherId = (() => {
-          if (isGroup) return null;
-          if (overrideTargetId) return String(overrideTargetId);
-          if (receivers.length > 0) return String(receivers[0]);
-          const parts = String(roomId).split('_').filter(Boolean);
-          const me = String(currentUserId);
-          const t = parts.length === 2 ? parts.find((id) => String(id) !== me) : undefined;
-          return t ? String(t) : null;
-        })();
-        setCounterpartId(otherId);
-      }
-      if (ringTimeoutRef.current) {
-        window.clearTimeout(ringTimeoutRef.current);
-        ringTimeoutRef.current = null;
-      }
-      playGlobalRingTone();
-      ringTimeoutRef.current = window.setTimeout(() => {
-        if (!callActiveRef.current && callConnectingRef.current) {
-          stopGlobalRingTone();
-          endCall('local');
-        }
-      }, 30000);
-      try {
-        for (const otherId of receivers) {
-          socketRef.current?.emit('call_offer', {
-            roomId,
-            target: otherId,
-            from: String(currentUserId),
-            type,
-            sdp: null,
-          });
-        }
-      } catch {
+      const targets = overrideTargetId ? [String(overrideTargetId)] : getReceiverIds();
+      if (targets.length === 0) {
         setCallConnecting(false);
+        return;
+      }
+      const type = isGroup ? 'group' : 'one_to_one';
+      const conversationId = isGroup
+        ? String(roomId)
+        : String(roomId || [String(currentUserIdRef.current), String(targets[0])].sort().join('_'));
+      const res = await fetch('/api/calls/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          type,
+          media: _type,
+          created_by: currentUserIdRef.current,
+          target_user_ids: targets,
+        }),
+      });
+      const json = await res.json();
+      if (!json || !json.ok) {
+        setCallConnecting(false);
+        return;
+      }
+      if (isGroup) {
+        const res2 = await fetch('/api/calls/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ call_id: String(json.call_id), user_id: currentUserIdRef.current }),
+        });
+        const joined = await res2.json();
+        if (joined && joined.ok) {
+          setLivekitToken(String(joined.token || ''));
+          setLivekitUrl(String(joined.url || ''));
+          setCallActive(true);
+          setCallConnecting(false);
+          setCallStartAt(Date.now());
+          setActiveCallId(String(json.call_id));
+        } else {
+          setCallConnecting(false);
+        }
+      } else {
+        setPendingOutgoingCallId(String(json.call_id));
+        // 1-1: Chờ phía B accept rồi mới join
       }
     },
-    [getReceiverIds, roomId, currentUserId, isGroup, roomCallActive, roomParticipants],
+    [getReceiverIds, isGroup, roomId],
   );
-
   const endCall = useCallback(
-    (source: 'local' | 'remote' = 'local') => {
-      stopGlobalRingTone();
+    async (_source: 'local' | 'remote' = 'local') => {
+      try {
+        if (_source === 'local' && callActive) {
+          await fetch('/api/calls/end', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ call_id: String(activeCallId || incomingCall?.callId || ''), user_id: currentUserIdRef.current }),
+          });
+        }
+      } catch {}
       setCallActive(false);
       setCallType(null);
       setCallStartAt(null);
       setCallConnecting(false);
-      setIncomingCall(null);
-      setCounterpartId(null);
-      setActiveRoomId('');
       setLivekitToken(null);
       setLivekitUrl(null);
-      if (ringTimeoutRef.current) {
-        window.clearTimeout(ringTimeoutRef.current);
-        ringTimeoutRef.current = null;
-      }
-      if (source === 'local' && socketRef.current?.connected) {
-        if (isGroup) {
-          socketRef.current.emit('call_leave', {
-            roomId,
-            userId: String(currentUserId),
-          });
-          setRoomParticipants((prev) => {
-            const next = (prev || []).filter((id) => String(id) !== String(currentUserId));
-            if (next.length === 0) {
-              setRoomCallActive(false);
-              setRoomCallType(null);
-            }
-            return next;
-          });
-        } else {
-          let targets = receiversRef.current;
-          if (!targets || targets.length === 0) {
-            const other = counterpartId
-              ? String(counterpartId)
-              : (() => {
-                  const parts = String(roomId).split('_').filter(Boolean);
-                  const me = String(currentUserId);
-                  const t = parts.length === 2 ? parts.find((id) => String(id) !== me) : undefined;
-                  return t ? String(t) : undefined;
-                })();
-            targets = other ? [other] : [];
-          }
-          socketRef.current.emit('call_end', {
-            roomId,
-            from: String(currentUserId),
-            targets,
-          });
-        }
-      }
+      setRoomCallActive(false);
+      setRoomParticipants([]);
+      setIncomingCall(null);
+      setActiveCallId(null);
+      setGroupActiveCallId(null);
     },
-    [roomId, currentUserId, counterpartId],
+    [callActive, incomingCall, activeCallId],
   );
-
-  const acceptIncomingCall = useCallback(async () => {
-    if (!incomingCall) return;
-    stopGlobalRingTone();
-    setCallType(incomingCall.type);
-    setActiveRoomId(incomingCall.roomId);
-    setCallConnecting(false);
-    try {
-      if (!socketRef.current || !socketRef.current.connected) {
-        socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-        await new Promise<void>((resolve) => {
-          socketRef.current!.on('connect', () => resolve());
-        });
-        socketRef.current!.emit('join_user', { userId: String(currentUserId) });
-      }
-      socketRef.current?.emit('join_room', incomingCall.roomId);
-      socketRef.current?.emit('call_answer', {
-        roomId: incomingCall.roomId,
-        target: String(incomingCall.from),
-        from: String(currentUserId),
-        sdp: null,
-      });
-      const parts = String(incomingCall.roomId).split('_').filter(Boolean);
-      if (parts.length === 2) {
-        setCounterpartId(String(incomingCall.from));
-      } else {
-        setCounterpartId(null);
-      }
+  const acceptIncomingCall = useCallback(async (): Promise<boolean> => {
+    if (!incomingCall) return false;
+    const res = await fetch('/api/calls/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ call_id: String(incomingCall.callId), user_id: currentUserIdRef.current }),
+    });
+    const json = await res.json();
+    if (json && json.ok) {
+      setLivekitToken(String(json.token || ''));
+      setLivekitUrl(String(json.url || ''));
       setCallActive(true);
-      await fetchToken(incomingCall.roomId);
+      setCallStartAt(Date.now());
       setIncomingCall(null);
-      setCallStartAt((prev) => (prev && prev > 0 ? prev : Date.now()));
-    } catch {
-      setCallActive(true);
+      setActiveCallId(String(incomingCall.callId));
+      return true;
     }
-  }, [incomingCall, fetchToken, currentUserId]);
-
-  useEffect(() => {
-    const socket = socketRef.current;
-    if (!socket) return;
-    socket.off('call_offer');
-    socket.off('call_answer');
-    socket.off('call_end');
-    socket.off('call_reject');
-    socket.off('call_leave');
-    socket.off('call_state');
-    const handleCallOffer = (data: { roomId: string; target: string; from: string; type: CallType }) => {
-      if (String(data.target) !== String(currentUserId)) return;
-      if (callActiveRef.current || callConnectingRef.current) {
-        return;
-      }
-      setIncomingCall({ from: String(data.from), type: data.type, roomId: data.roomId });
-      playGlobalRingTone();
-    };
-    const handleCallAnswer = async (data: { roomId: string; target: string; from: string }) => {
-      if (String(data.target) !== String(currentUserId)) return;
-      stopGlobalRingTone();
-      setCallConnecting(false);
-      setActiveRoomId(data.roomId);
-      setCallStartAt((prev) => (prev && prev > 0 ? prev : Date.now()));
-      await fetchToken(data.roomId);
-      setCallActive(true);
-    };
-    const handleCallEnd = (data: { roomId: string }) => {
-      stopGlobalRingTone();
-      setIncomingCall(null);
-      endCall('remote');
-      if (String(data.roomId) === String(roomId)) {
-        setRoomCallActive(false);
-        setRoomCallType(null);
-        setRoomParticipants([]);
-      }
-    };
-    const handleCallReject = (data: { roomId: string }) => {
-      stopGlobalRingTone();
-      setIncomingCall(null);
-      if (String(data.roomId).split('_').filter(Boolean).length === 2) {
-        endCall('remote');
-        if (String(data.roomId) === String(roomId)) {
-          setRoomCallActive(false);
-          setRoomCallType(null);
-          setRoomParticipants([]);
-        }
-      }
-    };
-    const handleCallLeave = (data: { roomId: string; userId: string }) => {
-      if (String(data.roomId) !== String(roomId)) return;
-      setRoomParticipants((prev) => {
-        const next = (prev || []).filter((id) => String(id) !== String(data.userId));
-        if (next.length === 0) {
-          setRoomCallActive(false);
-          setRoomCallType(null);
-        }
-        return next;
-      });
-    };
-    const handleCallState = (data: {
-      roomId: string;
-      type: CallType;
-      participants: string[];
-      active: boolean;
-      startAt?: number | null;
-    }) => {
-      if (String(data.roomId) !== String(roomId)) return;
-      const isDirect = String(data.roomId).split('_').filter(Boolean).length === 2;
-      if (isDirect) return;
-      setRoomCallActive(!!data.active);
-      setRoomCallType(data.type);
-      setRoomParticipants(Array.isArray(data.participants) ? data.participants.map((x) => String(x)) : []);
-      setCallStartAt(typeof data.startAt === 'number' ? data.startAt : null);
-    };
-    socket.on('call_offer', handleCallOffer);
-    socket.on('call_answer', handleCallAnswer);
-    socket.on('call_end', handleCallEnd);
-    socket.on('call_reject', handleCallReject);
-    socket.on('call_leave', handleCallLeave);
-    socket.on('call_state', handleCallState);
-    return () => {
-      socket.off('call_offer', handleCallOffer);
-      socket.off('call_answer', handleCallAnswer);
-      socket.off('call_end', handleCallEnd);
-      socket.off('call_reject', handleCallReject);
-      socket.off('call_leave', handleCallLeave);
-      socket.off('call_state', handleCallState);
-    };
-  }, [currentUserId, socketRef, endCall, roomId, fetchToken]);
-
-  useEffect(() => {
-    if (!callConnecting) {
-      stopGlobalRingTone();
-      if (ringTimeoutRef.current) {
-        window.clearTimeout(ringTimeoutRef.current);
-        ringTimeoutRef.current = null;
-      }
-    }
-  }, [callConnecting]);
-  useEffect(() => {
-    if (!incomingCall) {
-      stopGlobalRingTone();
-      if (ringTimeoutRef.current) {
-        window.clearTimeout(ringTimeoutRef.current);
-        ringTimeoutRef.current = null;
-      }
-    }
+    return false;
   }, [incomingCall]);
+  const joinActiveGroupCall = useCallback(async () => {
+    const cid = String(groupActiveCallId || '');
+    if (!cid) return;
+    setCallConnecting(true);
+    try {
+      const res = await fetch('/api/calls/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ call_id: cid, user_id: currentUserIdRef.current }),
+      });
+      const json = await res.json();
+      if (json && json.ok) {
+        setLivekitToken(String(json.token || ''));
+        setLivekitUrl(String(json.url || ''));
+        setCallActive(true);
+        setCallConnecting(false);
+        setCallStartAt(Date.now());
+        setActiveCallId(cid);
+      } else {
+        setCallConnecting(false);
+      }
+    } catch {
+      setCallConnecting(false);
+    }
+  }, [groupActiveCallId]);
+
+  useEffect(() => {
+    const s = socketRef?.current;
+    if (!s) return;
+    const handleAccepted = async (data: { call_id: string }) => {
+      if (!pendingOutgoingCallId) return;
+      if (String(data.call_id) !== String(pendingOutgoingCallId)) return;
+      try {
+        const res = await fetch('/api/calls/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ call_id: String(data.call_id), user_id: currentUserIdRef.current }),
+        });
+        const json = await res.json();
+        if (json && json.ok) {
+          setLivekitToken(String(json.token || ''));
+          setLivekitUrl(String(json.url || ''));
+          setCallActive(true);
+          setCallConnecting(false);
+          setCallStartAt(Date.now());
+          setPendingOutgoingCallId(null);
+          setActiveCallId(String(data.call_id));
+        }
+      } catch {
+        setCallConnecting(false);
+        setPendingOutgoingCallId(null);
+      }
+    };
+    const handleIncoming = (data: { call_id: string; conversation_id: string; type: string; media: string; from: string }) => {
+      setIncomingCall({
+        callId: String(data.call_id),
+        from: String(data.from),
+        type: (data.media === 'video' ? 'video' : 'voice') as CallType,
+        roomId: String(data.conversation_id),
+      });
+      setCallType((data.media === 'video' ? 'video' : 'voice') as CallType);
+      setActiveRoomId(String(data.conversation_id));
+      const parts = String(data.conversation_id).split('_').filter(Boolean);
+      const me = String(currentUserIdRef.current);
+      const other = parts.length === 2 ? parts.find((x) => String(x) !== me) : null;
+      setCounterpartId(other ? String(other) : null);
+    };
+    const handleEnded = (data: { call_id: string }) => {
+      endCall('remote');
+    };
+    const handleJoined = (data: { call_id: string; user_id: string }) => {
+      setRoomParticipants((prev) => {
+        const set = new Set(prev);
+        set.add(String(data.user_id));
+        return Array.from(set);
+      });
+      setRoomCallActive(true);
+      setRoomCallType((callType || 'video') as CallType);
+      setGroupActiveCallId(String(data.call_id));
+    };
+    const handleLeft = (data: { call_id: string; user_id: string }) => {
+      setRoomParticipants((prev) => prev.filter((x) => String(x) !== String(data.user_id)));
+    };
+    s.on('call-accepted', handleAccepted);
+    s.on('incoming-call', handleIncoming);
+    s.on('call-ended', handleEnded);
+    s.on('participant-joined', handleJoined);
+    s.on('participant-left', handleLeft);
+    return () => {
+      s.off('call-accepted', handleAccepted);
+      s.off('incoming-call', handleIncoming);
+      s.off('call-ended', handleEnded);
+      s.off('participant-joined', handleJoined);
+      s.off('participant-left', handleLeft);
+    };
+  }, [socketRef, endCall, callType, pendingOutgoingCallId]);
 
   return {
     callActive,
