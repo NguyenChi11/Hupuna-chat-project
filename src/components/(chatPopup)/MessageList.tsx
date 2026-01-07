@@ -2372,7 +2372,7 @@ export default function MessageList({
                                 <div
                                   className={`relative text-[0.875rem] ${
                                     isSidebarOpen && !isMobile ? 'md:text-[0.875rem]' : 'md:text-[1rem]'
-                                  } leading-relaxed text-black whitespace-pre-wrap`}
+                                  } leading-relaxed text-black whitespace-pre-wrap select-none lg:select-text`}
                                   style={
                                     isMobile &&
                                     contextMenu?.visible &&
@@ -2471,8 +2471,9 @@ export default function MessageList({
                               {/* IMAGE – FIX SIZE MOBILE */}
                               {msg.type === 'image' && msg.fileUrl && !isRecalled && (
                                 <div
-                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[70vw] sm:max-w-[18rem]"
+                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[70vw] sm:max-w-[18rem] select-none lg:select-auto"
                                   onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
+                                  style={{ WebkitTouchCallout: 'none' }}
                                 >
                                   {String(msg.fileUrl).startsWith('blob:') ? (
                                     <Image
@@ -2481,6 +2482,7 @@ export default function MessageList({
                                       src={String(msg.fileUrl)}
                                       alt="Ảnh"
                                       className="w-full h-full object-cover"
+                                      draggable={false}
                                     />
                                   ) : (
                                     <Image
@@ -2490,6 +2492,7 @@ export default function MessageList({
                                       height={600}
                                       className="w-full h-full object-cover"
                                       unoptimized={String(msg.fileUrl).includes('mega.nz')}
+                                      draggable={false}
                                     />
                                   )}
 
@@ -2542,8 +2545,9 @@ export default function MessageList({
                               {/* VIDEO – FIX SIZE MOBILE */}
                               {isVideo && msg.fileUrl && !isRecalled && (
                                 <div
-                                  className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black"
+                                  className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black select-none lg:select-auto"
                                   onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl!), 'video')}
+                                  style={{ WebkitTouchCallout: 'none' }}
                                 >
                                   <video
                                     src={getProxyUrl(msg.fileUrl)}
@@ -2584,11 +2588,13 @@ export default function MessageList({
                                   download={msg.fileName || 'download'}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="relative flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl max-w-[70vw] sm:max-w-[18rem] shadow-sm hover:bg-gray-50"
+                                  className="relative flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl max-w-[70vw] sm:max-w-[18rem] shadow-sm hover:bg-gray-50 select-none lg:select-text"
                                   onClick={(e) => {
                                     if (isUploading) e.preventDefault();
                                   }}
                                   aria-disabled={isUploading ? true : undefined}
+                                  draggable={false}
+                                  style={{ WebkitTouchCallout: 'none' }}
                                 >
                                   <div className="p-2 bg-blue-600 rounded-xl">
                                     <HiOutlineDocumentText className="w-6 h-6 text-white" />

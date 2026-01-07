@@ -647,7 +647,7 @@ export default function Sidebar({
           </div>
         </div>
         <div className="flex items-center justify-between px-4 bg-white border-b border-gray-200 select-none">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setFilterType('all')}
               className={`relative py-3 text-sm font-medium transition-colors cursor-pointer ${
@@ -678,7 +678,7 @@ export default function Sidebar({
             </button>
           </div>
 
-          <div className="flex justify-end items-center gap-2">
+          <div className="flex justify-end items-center gap-">
             <div className="relative" ref={tagFilterDropdownRef}>
               <button
                 onClick={() => setShowTagFilterDropdown(!showTagFilterDropdown)}

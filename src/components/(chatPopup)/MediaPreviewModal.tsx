@@ -246,7 +246,7 @@ export default function MediaPreviewModal({
           try {
             const detail = {
               type: current.type,
-              imageDataUrl: data?.videoCropConfig ? undefined : data?.imageDataUrl ?? undefined,
+              imageDataUrl: data?.videoCropConfig ? undefined : (data?.imageDataUrl ?? undefined),
               originalUrl: current.url,
               videoCropConfig: data?.videoCropConfig ?? undefined,
             };
@@ -271,13 +271,13 @@ export default function MediaPreviewModal({
       }}
     >
       <div className="relative w-full max-w-6xl mx-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="absolute top-0 left-0 right-0 z-20 px-4 sm:px-6 py-3 text-white text-center">
+        <div className="hidden md:block absolute top-0 left-0 right-0 z-20 px-4 sm:px-6 py-3 text-white text-center">
           <h3 className="text-lg sm:text-xl font-semibold truncate">
             {chatName || (isGroup ? 'Nhóm chat' : 'Cuộc trò chuyện')}
           </h3>
         </div>
 
-        <div className="flex items-center justify-center min-h-screen py-16 overflow-hidden">
+        <div className="flex items-center justify-center min-h-screen md:py-16 py-12 overflow-hidden">
           <div
             className="relative max-w-full max-h-full overflow-hidden flex items-center justify-center"
             onMouseDown={handleMouseDown}
@@ -391,61 +391,28 @@ export default function MediaPreviewModal({
           </>
         )}
 
-        {groups.length > 0 && showThumbnails && (
-          <div
-            className="absolute md:top-0 bottom-6 right-0 w-full h-32 md:w-32 md:h-full bg-black/40 backdrop-blur-sm border-l border-white/10 overflow-y-auto no-scrollbar"
-            ref={listRef}
-          >
-            <div className="flex md:flex-col items-stretch gap-3 px-2 py-2">
-              {groups.map((g, gi) => (
-                <div key={`${g.dateLabel}-${gi}`} className="flex flex-row md:flex-col gap-2">
-                  {g.dateLabel && <div className="text-[0.625rem] text-white/70 font-semibold px-1">{g.dateLabel}</div>}
-                  {g.items.map((it) => (
-                    <div
-                      key={it.id}
-                      ref={(el) => {
-                        itemRefs.current[it.url] = el;
-                      }}
-                      className={`relative rounded-md overflow-hidden border ${
-                        current && current.url === it.url ? 'border-blue-400' : 'border-transparent'
-                      } cursor-pointer md:w-full md:h-20 w-20 h-20`}
-                      onClick={() => setCurrent({ id: it.id, url: it.url, type: it.type })}
-                    >
-                      {it.type === 'image' ? (
-                        <Image
-                          src={getProxyUrl(it.url)}
-                          alt="thumb"
-                          width={160}
-                          height={120}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <video src={getProxyUrl(it.url)} className="w-full h-full object-cover" preload="metadata" />
-                      )}
-                      <div className="absolute inset-0 hover:bg-black/30 transition-opacity duration-300 flex items-center justify-center">
-                        {it.type === 'video' && <HiPlay className="w-8 h-8 text-white drop-shadow-lg" />}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Thumbnails moved to bottom bar */}
 
         <div className="absolute left-0 right-0 top-0 z-20 px-4 sm:px-6 py-2 bg-black/40 backdrop-blur-sm border-t border-white/10 text-white flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="text-sm font-medium truncate max-w-[40vw]">
+            <button
+              onClick={onClose}
+              className="md:hidden p-2 rounded-full cursor-pointer bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+              title="Đóng"
+            >
+              <HiChevronLeft className="w-6 h-6" />
+            </button>
+            <div className="text-sm font-medium truncate md:max-w-[40vw] max-w-[50vw] text-center md:text-left">
               {chatName || (isGroup ? 'Nhóm chat' : 'Cuộc trò chuyện')}
             </div>
           </div>
           <div className="flex items-center gap-1.5 text-white/80">
             <button
+              className="inline-flex p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
               onClick={(e) => {
                 e.preventDefault();
                 handleDownload();
               }}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
               title="Tải xuống"
             >
               <HiDownload className="w-5 h-5" />
@@ -462,6 +429,20 @@ export default function MediaPreviewModal({
 
               {showMoreMenu && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-gray-900 border border-white/10 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col py-1">
+                  <button
+                    onClick={() => setZoom((z) => Math.min(2.5, +(z + 0.2).toFixed(2)))}
+                    className="cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                  >
+                    <HiMagnifyingGlassPlus className="w-5 h-5" />
+                    <span>Phóng to</span>
+                  </button>
+                  <button
+                    onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.2).toFixed(2)))}
+                    className="cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
+                  >
+                    <HiMagnifyingGlassMinus className="w-5 h-5" />
+                    <span>Thu nhỏ</span>
+                  </button>
                   <button
                     onClick={handleEdit}
                     className="cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-left text-sm text-white transition-colors"
@@ -496,58 +477,72 @@ export default function MediaPreviewModal({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-full cursor-pointer bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+              className="hidden md:inline-flex p-2 rounded-full cursor-pointer bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
               title="Đóng"
             >
               <HiX className="w-6 h-6" />
             </button>
           </div>
         </div>
-        <div className="absolute gap-2 left-0 right-0 bottom-0 z-20 px-4 sm:px-6 py-2 bg-black/40 backdrop-blur-sm border-t border-white/10 text-white flex items-center justify-center">
-          <button
-            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95 "
-            title="Chia sẻ"
-            onClick={handleShareFunc}
-          >
-            <FaRegShareFromSquare className="w-4 h-4" />
-          </button>
-          <button
-            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
-            title="Sao chép liên kết"
-            onClick={handleCopyLink}
-          >
-            <FaLink className="w-4 h-4" />
-          </button>
-          <button
-            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
-            title="Phóng to"
-            onClick={() => setZoom((z) => Math.min(2.5, +(z + 0.2).toFixed(2)))}
-          >
-            <HiMagnifyingGlassPlus className="w-5 h-5" />
-          </button>
-          <button
-            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
-            title="Thu nhỏ"
-            onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.2).toFixed(2)))}
-          >
-            <HiMagnifyingGlassMinus className="w-5 h-5" />
-          </button>
-          <button
-            className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
-            title="Mở tab mới"
-            onClick={() => window.open(getProxyUrl(current.url, true), '_blank')}
-          >
-            <HiExternalLink className="w-5 h-5" />
-          </button>
-          <button
-            className={`cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95 ${
-              showThumbnails ? 'bg-white/30' : ''
-            }`}
-            title="Hiện/Ẩn danh sách"
-            onClick={() => setShowThumbnails(!showThumbnails)}
-          >
-            <HiPhotograph className="w-5 h-5" />
-          </button>
+        <div className="absolute left-0 right-0 bottom-0 z-20 flex flex-col items-center justify-end bg-black/60 backdrop-blur-sm border-t border-white/10 pb-2">
+          {groups.length > 0 && showThumbnails && (
+            <div className="w-full overflow-x-auto no-scrollbar py-2" ref={listRef}>
+              <div className="flex flex-row items-center justify-center gap-2 px-2 min-w-max mx-auto">
+                {groups.map((g, gi) => (
+                  <div key={`${g.dateLabel}-${gi}`} className="flex flex-row gap-2">
+                    {g.items.map((it) => (
+                      <div
+                        key={it.id}
+                        ref={(el) => {
+                          itemRefs.current[it.url] = el;
+                        }}
+                        className={`relative rounded-md overflow-hidden border ${
+                          current && current.url === it.url ? 'border-blue-400' : 'border-transparent'
+                        } cursor-pointer w-16 h-16 shrink-0`}
+                        onClick={() => setCurrent({ id: it.id, url: it.url, type: it.type })}
+                      >
+                        {it.type === 'image' ? (
+                          <Image
+                            src={getProxyUrl(it.url)}
+                            alt="thumb"
+                            width={120}
+                            height={120}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <video src={getProxyUrl(it.url)} className="w-full h-full object-cover" preload="metadata" />
+                        )}
+                        <div className="absolute inset-0 hover:bg-black/30 transition-opacity duration-300 flex items-center justify-center">
+                          {it.type === 'video' && <HiPlay className="w-6 h-6 text-white drop-shadow-lg" />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="flex items-center justify-between w-full gap-4 px-5 sm:px-6 py-2 text-white">
+            <div className="flex items-center justify-center gap-4">
+              <button
+                className={`cursor-pointer p-3 md:p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95 ${
+                  showThumbnails ? 'bg-white/30' : ''
+                }`}
+                title="Hiện/Ẩn danh sách"
+                onClick={() => setShowThumbnails(!showThumbnails)}
+              >
+                <HiPhotograph className="w-6 h-6 md:w-5 md:h-5" />
+              </button>
+            </div>
+
+            <button
+              className="cursor-pointer p-3 md:p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95 "
+              title="Chia sẻ"
+              onClick={handleShareFunc}
+            >
+              <FaRegShareFromSquare className="w-6 h-6 md:w-4 md:h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
