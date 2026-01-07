@@ -133,6 +133,38 @@ export default function ChatInput({
   const [showCreatePoll, setShowCreatePoll] = useState(false);
   const [showCreateNote, setShowCreateNote] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const tagsContainerRef = useRef<HTMLDivElement | null>(null);
+  const tagsDragRef = useRef<{ active: boolean; startX: number; startScroll: number; pid?: number }>({
+    active: false,
+    startX: 0,
+    startScroll: 0,
+  });
+  const onTagsPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = tagsContainerRef.current;
+    if (!el) return;
+    tagsDragRef.current.active = true;
+    tagsDragRef.current.startX = e.clientX;
+    tagsDragRef.current.startScroll = el.scrollLeft;
+    tagsDragRef.current.pid = e.pointerId;
+    el.setPointerCapture(e.pointerId);
+  };
+  const onTagsPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!tagsDragRef.current.active) return;
+    const el = tagsContainerRef.current;
+    if (!el) return;
+    const dx = e.clientX - tagsDragRef.current.startX;
+    el.scrollLeft = tagsDragRef.current.startScroll - dx;
+    e.preventDefault();
+  };
+  const onTagsPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = tagsContainerRef.current;
+    tagsDragRef.current.active = false;
+    if (el && typeof tagsDragRef.current.pid === 'number') {
+      try {
+        el.releasePointerCapture(tagsDragRef.current.pid);
+      } catch {}
+    }
+  };
 
   const handleCreatePoll = async ({
     question,
@@ -862,12 +894,19 @@ export default function ChatInput({
       </div>
       {/* Tags List */}
       {userTags.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full p-1">
+        <div
+          ref={tagsContainerRef}
+          onPointerDown={onTagsPointerDown}
+          onPointerMove={onTagsPointerMove}
+          onPointerUp={onTagsPointerUp}
+          onPointerCancel={onTagsPointerUp}
+          className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full p-1 whitespace-nowrap overscroll-x-contain x-scroll-touch select-none cursor-grab active:cursor-grabbing"
+        >
           {userTags.map((tag) => {
             const isSelected = selectedTagIds.includes(tag.id);
             const colorHex = TAG_COLORS[tag.color] || '#9ca3af';
             return (
-              <button
+              <div
                 key={tag.id}
                 onClick={() => handleToggleTag(tag.id)}
                 className={`
@@ -881,7 +920,7 @@ export default function ChatInput({
                 }}
               >
                 {tag.label}
-              </button>
+              </div>
             );
           })}
         </div>

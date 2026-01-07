@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Patrick_Hand, Be_Vietnam_Pro } from 'next/font/google';
+import { Geist, Geist_Mono, Patrick_Hand, Be_Vietnam_Pro, Source_Sans_3 } from 'next/font/google';
 // import Script from 'next/script';
 import './globals.css';
 import 'react-advanced-cropper/dist/style.css';
@@ -31,6 +31,14 @@ const beVietnamPro = Be_Vietnam_Pro({
   display: 'swap',
 });
 
+const sourceSans3 = Source_Sans_3({
+  variable: '--font-source-sans-3',
+  weight: ['200', '300', '400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
+  subsets: ['latin', 'vietnamese', 'latin-ext'],
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Hupuna chat Web',
   description: 'Developer Hupuna create a chat web app',
@@ -57,7 +65,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="robots" content="noindex, nofollow" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${beVietnamPro.variable} ${patrickHand.variable} antialiased`} suppressHydrationWarning={true}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${beVietnamPro.variable} ${patrickHand.variable} ${sourceSans3.variable} antialiased`}
+        suppressHydrationWarning={true}
+      >
         <ToastProvider>{children}</ToastProvider>
         <OneSignalScript />
         {/* <Script src="/chat-widget.js" strategy="afterInteractive" /> */}
