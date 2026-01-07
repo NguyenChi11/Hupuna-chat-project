@@ -726,9 +726,9 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     const handler = (e: Event) => {
       try {
         const d = (e as CustomEvent).detail || {};
-        const t = d?.type === 'video' ? 'video' : 'voice';
-        const rid = String(d?.roomId || '');
         const isG = !!d?.isGroup;
+        const t = isG ? 'video' : d?.type === 'video' ? 'video' : 'voice';
+        const rid = String(d?.roomId || '');
         const sel = d?.selectedChat as { _id?: string; members?: Array<string | { _id: string }>; name?: string; avatar?: string } | undefined;
         setGlobalRoomId(rid);
         setGlobalIsGroup(isG);
@@ -953,6 +953,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                         avatarUrl={remoteAvatar || '/logo/avata.webp'}
                         myName={currentUser.name}
                         myAvatarUrl={currentUser.avatar}
+                        callMode={callType === 'video' ? 'video' : 'voice'}
                         localPreviewSize={
                           globalCallMin
                             ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }

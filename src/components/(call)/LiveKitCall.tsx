@@ -30,6 +30,7 @@ type Props = {
   localPreviewSize?: { w: number; h: number };
   offMinHeight?: number;
   onParticipantsChanged?: (participants: Array<{ id: string; name?: string }>) => void;
+  callMode?: 'voice' | 'video';
 };
 
 function CustomTrackTile({
@@ -99,12 +100,14 @@ function CallTiles({
   offMinHeight,
   myName,
   myAvatarUrl,
+  callMode,
 }: {
   titleName?: string | null;
   avatarUrl?: string;
   offMinHeight?: number;
   myName?: string;
   myAvatarUrl?: string;
+  callMode?: 'voice' | 'video';
 }) {
   const cameraTracks = useTracks([Track.Source.Camera]);
   const remoteTracks = cameraTracks.filter((t) => !t.participant?.isLocal);
@@ -113,7 +116,18 @@ function CallTiles({
   return (
     <div className="relative w-full h-full overflow-hidden bg-black" style={{ minHeight: offMinHeight ?? 240 }}>
       <div className="md:block hidden rounded-lg w-full h-full">
-        {remoteTracks.length > 0 ? (
+        {callMode === 'voice' ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4 mt-10">
+              {avatarUrl ? (
+                <Image src={avatarUrl} alt={titleName || 'avatar'} width={160} height={160} className="w-32 h-32 rounded-full object-cover" />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-white/10" />
+              )}
+              <div className="text-white/90 text-lg">{titleName || ''}</div>
+            </div>
+          </div>
+        ) : remoteTracks.length > 0 ? (
           <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
             {remoteTracks.map((tr, i) => (
               <div key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`} className="relative">
@@ -132,7 +146,18 @@ function CallTiles({
         )}
       </div>
       <div className="md:hidden block w-full h-[85vh] flex items-center justify-center">
-        {remoteTracks.length > 0 ? (
+        {callMode === 'voice' ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4 mt-10">
+              {avatarUrl ? (
+                <Image src={avatarUrl} alt={titleName || 'avatar'} width={128} height={128} className="w-28 h-28 rounded-full object-cover" />
+              ) : (
+                <div className="w-28 h-28 rounded-full bg-white/10" />
+              )}
+              <div className="text-white/90 text-base">{titleName || ''}</div>
+            </div>
+          </div>
+        ) : remoteTracks.length > 0 ? (
           (() => {
             const preferred =
               remoteTracks.find((t) => {
@@ -186,6 +211,7 @@ export default function LiveKitCall({
   localPreviewSize,
   offMinHeight,
   onParticipantsChanged,
+  callMode = 'video',
 }: Props) {
   const [showLocalPreview, setShowLocalPreview] = React.useState(true);
   const [showControls, setShowControls] = React.useState(false);
@@ -247,10 +273,10 @@ export default function LiveKitCall({
 
   return (
     <div className={className ? className : ''}>
-      <LiveKitRoom serverUrl={serverUrl} token={token} connect video={true} audio={true} onDisconnected={onDisconnected}>
+      <LiveKitRoom serverUrl={serverUrl} token={token} connect video={callMode === 'video'} audio={true} onDisconnected={onDisconnected}>
         <RoomAudioRenderer />
         <div className="relative w-full h-full group" onClick={toggleControls}>
-          <CallTiles titleName={titleName} avatarUrl={avatarUrl} offMinHeight={offMinHeight} myName={myName} myAvatarUrl={myAvatarUrl} />
+          <CallTiles titleName={titleName} avatarUrl={avatarUrl} offMinHeight={offMinHeight} myName={myName} myAvatarUrl={myAvatarUrl} callMode={callMode} />
           
           {/* Timer */}
           <div className="absolute md:block hidden top-3 left-3 text-xs font-semibold bg-green-600 text-white px-2 py-1 rounded">{formatTime(callStartAt)}</div>
@@ -282,20 +308,24 @@ export default function LiveKitCall({
           <ParticipantsWatcher onChanged={onParticipantsChanged} />
           
           {/* Local preview (toggleable) */}
-          {showLocalPreview && (
+          {showLocalPreview && callMode === 'video' && (
             <LocalPreview myName={myName} myAvatarUrl={myAvatarUrl} size={initialPreview} />
           )}
 
           <div className="absolute left-0 right-0 bottom-4 md:flex hidden justify-center">
             <div className="flex items-center gap-3 bg-black/40 text-white px-4 py-2 rounded-full backdrop-blur-md transition-opacity duration-300 opacity-0 group-hover:opacity-100">
-              <TrackToggle
-                source={Track.Source.ScreenShare}
-                className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
-              />
-              <TrackToggle
-                source={Track.Source.Camera}
-                className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
-              />
+              {callMode === 'video' && (
+                <>
+                  <TrackToggle
+                    source={Track.Source.ScreenShare}
+                    className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                  />
+                  <TrackToggle
+                    source={Track.Source.Camera}
+                    className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                  />
+                </>
+              )}
               <button
                 className="cursor-pointer p-2 rounded-full bg-red-600 hover:bg-red-700 transition text-white"
                 onClick={() => {
@@ -309,23 +339,29 @@ export default function LiveKitCall({
                 source={Track.Source.Microphone}
                 className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
               />
-              <button
-                className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
-                onClick={() => setShowLocalPreview((v) => !v)}
-                title={showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi'}
-              >
-                {showLocalPreview ? <HiEyeSlash className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
-              </button>
+              {callMode === 'video' && (
+                <button
+                  className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                  onClick={() => setShowLocalPreview((v) => !v)}
+                  title={showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi'}
+                >
+                  {showLocalPreview ? <HiEyeSlash className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
+                </button>
+              )}
             </div>
           </div>
           {/* Mobile controls – ẩn mặc định, hiện khi chạm */}
           <div className={`fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-6 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex flex-col items-center gap-2">
-              <TrackToggle
-                source={Track.Source.Camera}
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-              />
-              <span className="text-white text-xs">Camera</span>
+              {callMode === 'video' && (
+                <>
+                  <TrackToggle
+                    source={Track.Source.Camera}
+                    className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                  />
+                  <span className="text-white text-xs">Camera</span>
+                </>
+              )}
             </div>
             <div className="flex flex-col items-center gap-2">
               <TrackToggle
@@ -347,14 +383,18 @@ export default function LiveKitCall({
               <span className="text-white text-xs">Kết thúc</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <button
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-                onClick={() => setShowLocalPreview((v) => !v)}
-                title={showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi'}
-              >
-                {showLocalPreview ? <HiEyeSlash className="w-6 h-6" /> : <HiEye className="w-6 h-6" />}
-              </button>
-              <span className="text-white text-xs">{showLocalPreview ? 'Ẩn cam tôi' : 'Hiện cam tôi'}</span>
+              {callMode === 'video' && (
+                <>
+                  <button
+                    className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                    onClick={() => setShowLocalPreview((v) => !v)}
+                    title={showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi'}
+                  >
+                    {showLocalPreview ? <HiEyeSlash className="w-6 h-6" /> : <HiEye className="w-6 h-6" />}
+                  </button>
+                  <span className="text-white text-xs">{showLocalPreview ? 'Ẩn cam tôi' : 'Hiện cam tôi'}</span>
+                </>
+              )}
             </div>
           
           </div>
