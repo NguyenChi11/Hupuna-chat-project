@@ -110,6 +110,37 @@ export function useLiveKitSession({
     [],
   );
 
+  const joinActiveGroupCall = useCallback(async () => {
+    try {
+      if (!isGroup || !roomCallActive) return;
+      const rid = String(roomId);
+      if (!socketRef.current || !socketRef.current.connected) {
+        socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+        await new Promise<void>((resolve) => {
+          socketRef.current!.on('connect', () => resolve());
+        });
+        socketRef.current!.emit('join_user', { userId: String(currentUserId) });
+      }
+      socketRef.current?.emit('join_room', rid);
+      const target = (Array.isArray(roomParticipants) ? roomParticipants : []).find((id) => String(id) !== String(currentUserId));
+      if (target) {
+        socketRef.current?.emit('call_answer', {
+          roomId: rid,
+          target: String(target),
+          from: String(currentUserId),
+          sdp: null,
+        });
+      }
+      setActiveRoomId(rid);
+      setCallType(roomCallType || 'voice');
+      setCallConnecting(false);
+      await fetchToken(rid);
+      setCallActive(true);
+    } catch {
+      // ignore
+    }
+  }, [isGroup, roomCallActive, roomParticipants, roomId, currentUserId, roomCallType, fetchToken]);
+
   const startCall = useCallback(
     async (type: CallType, overrideTargetId?: string) => {
       try {
@@ -395,5 +426,6 @@ export function useLiveKitSession({
     counterpartId,
     livekitToken,
     livekitUrl,
+    joinActiveGroupCall,
   };
 }

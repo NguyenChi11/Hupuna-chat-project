@@ -51,7 +51,47 @@ io.on('connection', (socket) => {
     try {
       const current = roomNicknames.get(roomId) || {};
       socket.emit('room_nicknames_state', { roomId, map: current });
+      const rc = roomCalls.get(roomId);
+      if (rc) {
+        socket.emit('call_state', {
+          roomId,
+          type: rc.type,
+          participants: Array.from(rc.participants),
+          active: rc.active,
+          startAt: rc.startAt || null,
+        });
+      } else {
+        socket.emit('call_state', {
+          roomId,
+          type: 'voice',
+          participants: [],
+          active: false,
+          startAt: null,
+        });
+      }
     } catch {}
+  });
+  socket.on('call_leave', (data) => {
+    const roomId = String(data.roomId);
+    const userId = String(data?.userId || connectedUserId || '');
+    const rc = roomCalls.get(roomId) || { type: 'voice', participants: new Set(), active: false, startAt: null };
+    rc.participants.delete(userId);
+    if (rc.participants.size === 0) {
+      io.in(roomId).emit('call_end', { roomId });
+      rc.active = false;
+      rc.startAt = null;
+      roomCalls.set(roomId, rc);
+    } else {
+      roomCalls.set(roomId, rc);
+      io.in(roomId).emit('call_leave', { roomId, userId });
+    }
+    io.in(roomId).emit('call_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+    });
   });
 
   socket.on('join_user', (payload) => {

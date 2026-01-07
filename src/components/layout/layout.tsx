@@ -345,6 +345,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     roomCallType,
     roomParticipants,
     setIncomingCall,
+    joinActiveGroupCall,
   } = useLiveKitSession({
     socketRef,
     roomId: normalizedRoomId,
@@ -1013,29 +1014,47 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       }}
     />
   )}
-  {callActive && livekitToken && livekitUrl && (
-    <LiveKitCall
-      serverUrl={livekitUrl}
-      token={livekitToken}
-      onDisconnected={() => {}}
-      onRequestEnd={() => {
-        endCall('local');
-      }}
-      className={`${globalCallMin ? '' : globalIsDesktop ? 'rounded-lg overflow-hidden' : 'rounded-none overflow-hidden h-full'}`}
-      titleName={remoteName || ''}
-      callStartAt={callStartAt}
-      avatarUrl={remoteAvatar || '/logo/avata.webp'}
-      myName={currentUser.name}
-      myAvatarUrl={currentUser.avatar}
-      callMode={callType === 'video' ? 'video' : 'voice'}
-      localPreviewSize={
-        globalCallMin
-          ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
-          : { w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }
-      }
-      offMinHeight={320}
-    />
-  )}
+        {callActive && livekitToken && livekitUrl && (
+          <LiveKitCall
+            serverUrl={livekitUrl}
+            token={livekitToken}
+            onDisconnected={() => {}}
+            onRequestEnd={() => {
+              endCall('local');
+            }}
+            className={`${globalCallMin ? '' : globalIsDesktop ? 'rounded-lg overflow-hidden' : 'rounded-none overflow-hidden h-full'}`}
+            titleName={remoteName || ''}
+            callStartAt={callStartAt}
+            avatarUrl={remoteAvatar || '/logo/avata.webp'}
+            myName={currentUser.name}
+            myAvatarUrl={currentUser.avatar}
+            callMode={callType === 'video' ? 'video' : 'voice'}
+            localPreviewSize={
+              globalCallMin
+                ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
+                : { w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }
+            }
+            offMinHeight={320}
+          />
+        )}
+        {!incomingCall &&
+          !callActive &&
+          !callConnecting &&
+          normalizedIsGroup &&
+          roomCallActive &&
+          !(roomParticipants || []).includes(String(currentUser?._id || '')) && (
+            <div className="absolute top-3 right-3 z-50">
+              <button
+                className="px-3 py-1 rounded-full bg-green-600 text-white text-xs shadow cursor-pointer hover:bg-green-700"
+                onClick={() => {
+                  void joinActiveGroupCall();
+                }}
+                title="Tham gia cuộc gọi nhóm"
+              >
+                Tham gia
+              </button>
+            </div>
+          )}
   <div
     className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize bg-white/30 hover:bg-white/50 rounded-sm"
     onMouseDown={handleResizeStart}
@@ -1068,7 +1087,25 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           </>
         )}
 
-      
+        
+        {/* Tham gia lại – hiển thị cả khi overlay không mở */}
+        {!callActive &&
+          !callConnecting &&
+          normalizedIsGroup &&
+          roomCallActive &&
+          !(roomParticipants || []).includes(String(currentUser?._id || '')) && (
+            <div className="fixed z-[1200] bottom-20 right-4 md:bottom-6 md:right-6">
+              <button
+                className="px-4 py-2 rounded-full bg-green-600 text-white shadow cursor-pointer hover:bg-green-700"
+                onClick={() => {
+                  void joinActiveGroupCall();
+                }}
+                title="Tham gia lại cuộc gọi nhóm"
+              >
+                Tham gia lại
+              </button>
+            </div>
+          )}
 
       {/* Mobile Bottom Navigation – ĐẸP NHƯ ZALO PRO 2025 */}
       {isAuthed && !(hideMobileFooter || isWidgetIframe) && (
