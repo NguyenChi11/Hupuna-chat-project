@@ -92,7 +92,7 @@ export default function ModalCall({
             <HiChevronLeft className="w-5 h-5" />
           </button>
         </div>
-      
+
         <div className="relative z-10 h-full flex flex-col items-center justify-center gap-4">
           <div className="flex flex-col items-center gap-3 pt-10">
             {avatar ? (
@@ -143,16 +143,19 @@ export default function ModalCall({
           </div>
           {/* Mobile bottom controls */}
           <div className="fixed bottom-8 left-0 right-0 md:hidden flex justify-center gap-6">
-            <div className="flex flex-col items-center gap-2">
-              <button
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-                onClick={() => onToggleCamera && onToggleCamera()}
-                title={camEnabled ? 'Tắt camera' : 'Bật camera'}
-              >
-                {camEnabled ? <HiVideoCamera className="w-6 h-6" /> : <ICVideoOff className="w-6 h-6" />}
-              </button>
-              <span className="text-white text-xs">Camera</span>
-            </div>
+            {callType === 'video' && (
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                  onClick={() => onToggleCamera && onToggleCamera()}
+                  title={camEnabled ? 'Tắt camera' : 'Bật camera'}
+                >
+                  {camEnabled ? <HiVideoCamera className="w-6 h-6" /> : <ICVideoOff className="w-6 h-6" />}
+                </button>
+                <span className="text-white text-xs">Camera</span>
+              </div>
+            )}
+
             <div className="flex flex-col items-center gap-2">
               <button
                 className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
@@ -173,7 +176,6 @@ export default function ModalCall({
               </button>
               <span className="text-white text-xs">Kết thúc</span>
             </div>
-           
           </div>
         </div>
       </div>

@@ -908,66 +908,66 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                       </button>
                     </span>
                   </div>
-                  <div className={`${globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : 'rounded-none p-0 h-full bg-black'}`}>
-                    {incomingCall && !callActive && !callConnecting && (
-                      <IncomingCallModal
-                        avatar={remoteAvatar || '/logo/avata.webp'}
-                        name={remoteName || 'Cuộc gọi đến'}
-                        callType={incomingCall.type}
-                        onAccept={async () => {
-                          outgoingRef.current = false;
-                          await acceptIncomingCall();
-                        }}
-                        onReject={() => {
-                          socketRef.current?.emit('call_reject', {
-                            roomId: String(incomingCall.roomId),
-                            targets: [String(incomingCall.from)],
-                          });
-                          void sendCallNotify('rejected');
-                        }}
-                      />
-                    )}
-                    {!incomingCall && callConnecting && (
-                      <ModalCall
-                        avatar={remoteAvatar || '/logo/avata.webp'}
-                        name={remoteName || 'Đang kết nối...'}
-                        mode="connecting"
-                        callType={callType === 'video' ? 'video' : 'voice'}
-                        onEndCall={() => {
-                          endCall('local');
-                          void sendCallNotify('timeout');
-                        }}
-                      />
-                    )}
-                    {callActive && livekitToken && livekitUrl && (
-                      <LiveKitCall
-                        serverUrl={livekitUrl}
-                        token={livekitToken}
-                        onDisconnected={() => {}}
-                        onRequestEnd={() => {
-                          endCall('local');
-                        }}
-                        className={`${globalCallMin ? '' : globalIsDesktop ? 'rounded-lg overflow-hidden' : 'rounded-none overflow-hidden h-full'}`}
-                        titleName={remoteName || ''}
-                        callStartAt={callStartAt}
-                        avatarUrl={remoteAvatar || '/logo/avata.webp'}
-                        myName={currentUser.name}
-                        myAvatarUrl={currentUser.avatar}
-                        callMode={callType === 'video' ? 'video' : 'voice'}
-                        localPreviewSize={
-                          globalCallMin
-                            ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
-                            : { w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }
-                        }
-                        offMinHeight={320}
-                      />
-                    )}
-                    <div
-                      className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize bg-white/30 hover:bg-white/50 rounded-sm"
-                      onMouseDown={handleResizeStart}
-                      onTouchStart={handleResizeStart}
-                    />
-                  </div>
+                <div className={`${globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : `rounded-none p-0 h-full ${callType === "voice" ? "bg-blue-500" : "bg-black"}`}`}>
+  {incomingCall && !callActive && !callConnecting && (
+    <IncomingCallModal
+      avatar={remoteAvatar || '/logo/avata.webp'}
+      name={remoteName || 'Cuộc gọi đến'}
+      callType={incomingCall.type}
+      onAccept={async () => {
+        outgoingRef.current = false;
+        await acceptIncomingCall();
+      }}
+      onReject={() => {
+        socketRef.current?.emit('call_reject', {
+          roomId: String(incomingCall.roomId),
+          targets: [String(incomingCall.from)],
+        });
+        void sendCallNotify('rejected');
+      }}
+    />
+  )}
+  {!incomingCall && callConnecting && (
+    <ModalCall
+      avatar={remoteAvatar || '/logo/avata.webp'}
+      name={remoteName || 'Đang kết nối...'}
+      mode="connecting"
+      callType={callType === 'video' ? 'video' : 'voice'}
+      onEndCall={() => {
+        endCall('local');
+        void sendCallNotify('timeout');
+      }}
+    />
+  )}
+  {callActive && livekitToken && livekitUrl && (
+    <LiveKitCall
+      serverUrl={livekitUrl}
+      token={livekitToken}
+      onDisconnected={() => {}}
+      onRequestEnd={() => {
+        endCall('local');
+      }}
+      className={`${globalCallMin ? '' : globalIsDesktop ? 'rounded-lg overflow-hidden' : 'rounded-none overflow-hidden h-full'}`}
+      titleName={remoteName || ''}
+      callStartAt={callStartAt}
+      avatarUrl={remoteAvatar || '/logo/avata.webp'}
+      myName={currentUser.name}
+      myAvatarUrl={currentUser.avatar}
+      callMode={callType === 'video' ? 'video' : 'voice'}
+      localPreviewSize={
+        globalCallMin
+          ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
+          : { w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }
+      }
+      offMinHeight={320}
+    />
+  )}
+  <div
+    className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize bg-white/30 hover:bg-white/50 rounded-sm"
+    onMouseDown={handleResizeStart}
+    onTouchStart={handleResizeStart}
+  />
+</div>
                 </div>
               </div>
             )}

@@ -114,7 +114,7 @@ function CallTiles({
   const localTrack = cameraTracks.find((t) => t.participant?.isLocal);
   const cols = remoteTracks.length <= 1 ? 1 : remoteTracks.length === 2 ? 2 : remoteTracks.length <= 4 ? 2 : remoteTracks.length <= 9 ? 3 : 4;
   return (
-    <div className="relative w-full h-full overflow-hidden bg-black" style={{ minHeight: offMinHeight ?? 240 }}>
+    <div className={`relative w-full h-full overflow-hidden ${callMode === 'voice' ? 'bg-blue-500' : "bg-black"}`} style={{ minHeight: offMinHeight ?? 240 }}>
       <div className="md:block hidden rounded-lg w-full h-full">
         {callMode === 'voice' ? (
           <div className="w-full h-full flex items-center justify-center">
