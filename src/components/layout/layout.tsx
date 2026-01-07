@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import SidebarMenu from '../(menu)/menu';
 import { useRouter, usePathname } from 'next/navigation';
 import io, { type Socket } from 'socket.io-client';
@@ -22,7 +22,6 @@ import {
   HiSparkles,
   HiRectangleGroup,
 } from 'react-icons/hi2';
-
 
 import { useChatNotifications } from '@/hooks/useChatNotifications';
 
@@ -120,47 +119,44 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   }, [isAuthed, checked]);
 
   // Tính tổng tin nhắn chưa đọc
-  useEffect(() => {
-    let timer: number | null = null;
-    const fetchUnreadTotal = async () => {
-      if (!currentUserId) return;
-      try {
-        const [usersRes, groupsRes] = await Promise.all([
-          fetch('/api/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'read', currentUserId }),
-          }),
-          fetch('/api/groups', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'readGroups', _id: currentUserId }),
-          }),
-        ]);
-        const usersJson = await usersRes.json();
-        const groupsJson = await groupsRes.json();
-        const users = (Array.isArray(usersJson) ? usersJson : usersJson.data || []) as Array<Partial<User>>;
-        const groups = (Array.isArray(groupsJson) ? groupsJson : groupsJson.data || []) as Array<
-          Partial<GroupConversation>
-        >;
-        const sumUsers = users.reduce((acc: number, u: Partial<User>) => acc + Number(u?.unreadCount || 0), 0);
-        const sumGroups = groups.reduce(
-          (acc: number, g: Partial<GroupConversation>) => acc + Number(g?.unreadCount || 0),
-          0,
-        );
-        setTotalUnread(sumUsers + sumGroups);
-        setUnreadContacts(sumUsers);
-        setUnreadGroups(sumGroups);
-      } catch {
-        // bỏ qua lỗi
-      }
-    };
-    fetchUnreadTotal();
-    timer = window.setInterval(fetchUnreadTotal, 15000);
-    return () => {
-      if (timer) window.clearInterval(timer);
-    };
+  const fetchUnreadTotal = useCallback(async () => {
+    if (!currentUserId) return;
+    try {
+      const [usersRes, groupsRes] = await Promise.all([
+        fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'read', currentUserId }),
+        }),
+        fetch('/api/groups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'readGroups', _id: currentUserId }),
+        }),
+      ]);
+      const usersJson = await usersRes.json();
+      const groupsJson = await groupsRes.json();
+      const users = (Array.isArray(usersJson) ? usersJson : usersJson.data || []) as Array<Partial<User>>;
+      const groups = (Array.isArray(groupsJson) ? groupsJson : groupsJson.data || []) as Array<
+        Partial<GroupConversation>
+      >;
+      const sumUsers = users.reduce((acc: number, u: Partial<User>) => acc + Number(u?.unreadCount || 0), 0);
+      const sumGroups = groups.reduce(
+        (acc: number, g: Partial<GroupConversation>) => acc + Number(g?.unreadCount || 0),
+        0,
+      );
+      setTotalUnread(sumUsers + sumGroups);
+      setUnreadContacts(sumUsers);
+      setUnreadGroups(sumGroups);
+    } catch {
+      // bỏ qua lỗi
+    }
   }, [currentUserId]);
+
+  useEffect(() => {
+    fetchUnreadTotal();
+    // Polling removed in favor of socket events
+  }, [fetchUnreadTotal]);
 
   // Ẩn/hiện mobile footer
   useEffect(() => {
@@ -175,6 +171,8 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   // Redirect khi chưa đăng nhập hoặc khi API trả về 401
   useEffect(() => {
     const orig: typeof fetch = window.fetch;
+    let refreshPromise: Promise<Response> | null = null;
+
     const wrapped: typeof fetch = async (input, init) => {
       const url =
         typeof input === 'string'
@@ -185,13 +183,26 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
               ? input.url
               : '';
       const res = await orig(input, init);
-      if (res.status !== 401) return res;
-      if (url.includes('/api/auth/refresh')) {
-        if (pathname !== '/login') router.push('/login');
+
+      // Chỉ xử lý refresh token cho các API nội bộ (bắt đầu bằng /api/)
+      // và bỏ qua các request không phải API (ví dụ: socket.io, assets, external links)
+      if (!url.includes('/api/') || url.includes('/api/auth/refresh')) {
+        if (res.status === 401 && url.includes('/api/auth/refresh') && pathname !== '/login') {
+          router.push('/login');
+        }
         return res;
       }
+
+      if (res.status !== 401) return res;
+
+      if (!refreshPromise) {
+        refreshPromise = orig('/api/auth/refresh', { credentials: 'include' }).finally(() => {
+          refreshPromise = null;
+        });
+      }
+
       try {
-        const r = await orig('/api/auth/refresh', { credentials: 'include' });
+        const r = await refreshPromise;
         if (r.ok) {
           return await orig(input, init);
         }
@@ -279,6 +290,9 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           data.type === 'video' ||
           data.type === 'notify';
         if (isMsgType) {
+          // Update unread count when new message arrives
+          fetchUnreadTotal();
+
           setShowNewMsgBanner(true);
           if (newMsgBannerTimerRef.current) {
             window.clearTimeout(newMsgBannerTimerRef.current);
@@ -402,7 +416,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       } catch {}
       socketRef.current = null;
     };
-  }, [checked, isAuthed, currentUser, playMessageSound, flashTabTitle]);
+  }, [checked, isAuthed, currentUser, playMessageSound, flashTabTitle, fetchUnreadTotal]);
 
   // Xác định tab active
   const isActive = (paths: string[]) => {
@@ -970,11 +984,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar Desktop */}
       {isAuthed && (
         <div className="hidden md:block">
-          <SidebarMenu
-            totalUnread={totalUnread}
-            unreadGroups={unreadGroups}
-            unreadContacts={unreadContacts}
-          />
+          <SidebarMenu totalUnread={totalUnread} unreadGroups={unreadGroups} unreadContacts={unreadContacts} />
         </div>
       )}
 
@@ -1026,10 +1036,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[200] pointer-events-auto">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white shadow-xl animate-pulse">
               <span className="text-sm font-semibold">Bạn có tin nhắn mới</span>
-              <button
-                onClick={() => setShowNewMsgBanner(false)}
-                className="ml-2 text-white/80 hover:text-white"
-              >
+              <button onClick={() => setShowNewMsgBanner(false)} className="ml-2 text-white/80 hover:text-white">
                 ×
               </button>
             </div>

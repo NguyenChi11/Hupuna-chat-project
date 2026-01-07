@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ICCalendar } from '@/components/svg/ICCalendar';
 import React from 'react';
 import { CiCalendarDate } from 'react-icons/ci';

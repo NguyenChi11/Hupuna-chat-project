@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -135,6 +136,7 @@ export function useChatUpload({
       mentions?: string[],
       senderName?: string,
       batchId?: string,
+      videoCropConfig?: Message['videoCropConfig'] | null,
     ) => {
       const sanitizeName = (name: string) => {
         return name
@@ -273,6 +275,7 @@ export function useChatUpload({
                 replyToMessageId,
                 mentions,
                 batchId,
+                videoCropConfig: type === 'video' ? (videoCropConfig ?? null) : null,
               } as unknown as MessageCreate;
               await sendMessageProcess(socketData);
             } else {
@@ -318,6 +321,7 @@ export function useChatUpload({
                 replyToMessageId,
                 mentions,
                 batchId,
+                videoCropConfig: type === 'video' ? (videoCropConfig ?? null) : null,
               } as unknown as MessageCreate;
               await sendMessageProcess(socketData);
             } else {

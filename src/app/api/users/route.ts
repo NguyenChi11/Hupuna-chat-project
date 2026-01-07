@@ -5,6 +5,13 @@ import { User, USERS_COLLECTION_NAME } from '@/types/User';
 import { Message, MESSAGES_COLLECTION_NAME } from '@/types/Message';
 import { signJWT, signEphemeralJWT } from '@/lib/auth';
 import { createSession, fingerprintFromHeaders } from '@/lib/session';
+import { setAuthCookies, clearAuthCookies } from '@/lib/authCookies';
+import {
+  buildToggleChatStatusFields,
+  buildUpdateCategoriesFields,
+  buildUpdateTagsFields,
+} from '@/lib/chatUpdateFields';
+import bcrypt from 'bcryptjs';
 
 export const runtime = 'nodejs';
 
@@ -117,10 +124,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing data or password' }, { status: 400 });
         }
 
-        const newData = {
-          ...data,
-          password: data.password, // Lưu plaintext
-        };
+        const hashed = await bcrypt.hash(String(data.password), 5);
+        const newData = { ...data, password: hashed };
 
         const _id = await addRow<User>(collectionName, newData as User);
         return NextResponse.json({ success: true, _id });
@@ -278,17 +283,8 @@ export async function POST(req: NextRequest) {
         }
         const statusData = data as ToggleChatStatusPayload;
         const partnerId = roomId;
-        const updateFields: Record<string, boolean> = {};
-
-        if (typeof statusData.isPinned === 'boolean') {
-          updateFields[`isPinnedBy.${currentUserId}`] = statusData.isPinned;
-        }
-
-        if (typeof statusData.isHidden === 'boolean') {
-          updateFields[`isHiddenBy.${currentUserId}`] = statusData.isHidden;
-        }
-
-        if (Object.keys(updateFields).length === 0) {
+        const updateFields = buildToggleChatStatusFields(String(currentUserId), statusData);
+        if (!updateFields) {
           return NextResponse.json({ error: 'No status provided' }, { status: 400 });
         }
 
@@ -315,10 +311,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing currentUserId, roomId or data' }, { status: 400 });
         }
         const payload = data as UpdateCategoriesPayload;
-        const categories = Array.isArray(payload.categories) ? payload.categories : [];
         const partnerId = roomId;
-        const updateFields: Record<string, string[]> = {};
-        updateFields[`categoriesBy.${currentUserId}`] = categories;
+        const updateFields = buildUpdateCategoriesFields(String(currentUserId), payload.categories);
         const result = await updateByField<User>(collectionName, '_id', partnerId, updateFields);
         return NextResponse.json({ success: true, result });
       }
@@ -328,10 +322,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing currentUserId, roomId or data' }, { status: 400 });
         }
         const payload = data as { tags?: string[] };
-        const tags = Array.isArray(payload.tags) ? payload.tags : [];
         const partnerId = roomId;
-        const updateFields: Record<string, string[]> = {};
-        updateFields[`tagsBy.${currentUserId}`] = tags;
+        const updateFields = buildUpdateTagsFields(String(currentUserId), payload.tags);
         const result = await updateByField<User>(collectionName, '_id', partnerId, updateFields);
         return NextResponse.json({ success: true, result });
       }
@@ -344,17 +336,31 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, message: 'Thiếu tên người dùng hoặc mật khẩu!' }, { status: 400 });
         }
 
-        const queryResult = await getAllRows<User>(collectionName, {
-          filters: {
-            username,
-            password,
-          },
-          limit: 1,
-        });
+        const queryResult = await getAllRows<User>(collectionName, { filters: { username }, limit: 1 });
 
         const found = queryResult.data?.[0];
 
         if (!found) {
+          return NextResponse.json({ success: false, message: 'Username hoặc Password không đúng!' }, { status: 401 });
+        }
+        let ok = await bcrypt.compare(String(password), String(found.password || ''));
+        if (!ok && String(found.password || '') === String(password)) {
+          try {
+            const userCollection = await getCollection<User>(collectionName);
+            const idStr = String(found._id);
+            const orFilters: Array<Record<string, unknown>> = [{ _id: idStr }];
+            if (!isNaN(Number(idStr))) {
+              orFilters.push({ _id: Number(idStr) });
+            }
+            if (ObjectId.isValid(idStr) && idStr.length === 24) {
+              orFilters.push({ _id: new ObjectId(idStr) });
+            }
+            const hashed = await bcrypt.hash(String(password), 12);
+            await userCollection.updateOne({ $or: orFilters } as Filter<User>, { $set: { password: hashed } });
+            ok = true;
+          } catch {}
+        }
+        if (!ok) {
           return NextResponse.json({ success: false, message: 'Username hoặc Password không đúng!' }, { status: 401 });
         }
 
@@ -403,21 +409,6 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        res.cookies.set('session_token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          sameSite: 'lax',
-          maxAge: 30 * 24 * 3600,
-        });
-        res.cookies.set('sid', sid, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          sameSite: 'lax',
-          maxAge: 3650 * 24 * 3600,
-        });
-
         const refreshToken = await signEphemeralJWT(
           {
             purpose: 'refresh',
@@ -428,40 +419,14 @@ export async function POST(req: NextRequest) {
           },
           3650 * 24 * 3600,
         );
-        res.cookies.set('refresh_token', refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          sameSite: 'lax',
-          maxAge: 3650 * 24 * 3600,
-        });
+        setAuthCookies(res, { accessToken: token, sid, refreshToken });
 
         return res;
       }
 
       case 'logout': {
         const res = NextResponse.json({ success: true });
-        res.cookies.set('session_token', '', {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 0,
-        });
-        res.cookies.set('sid', '', {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 0,
-        });
-        res.cookies.set('refresh_token', '', {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 0,
-        });
+        clearAuthCookies(res);
         return res;
       }
 
@@ -486,13 +451,13 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, message: 'Không tìm thấy tài khoản' }, { status: 404 });
         }
 
-        // So sánh plaintext trực tiếp
-        if (currentPassword !== userDoc.password) {
+        const ok = await bcrypt.compare(String(currentPassword), String(userDoc.password || ''));
+        if (!ok) {
           return NextResponse.json({ success: false, message: 'Mật khẩu hiện tại không đúng' }, { status: 401 });
         }
 
-        // Cập nhật password mới (plaintext)
-        await userCollection.updateOne(filter, { $set: { password: newPassword } });
+        const hashed = await bcrypt.hash(String(newPassword), 12);
+        await userCollection.updateOne(filter, { $set: { password: hashed } });
         return NextResponse.json({
           success: true,
           message: 'Đổi mật khẩu thành công',

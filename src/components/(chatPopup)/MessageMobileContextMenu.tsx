@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Message } from '@/types/Message';
 import { RiReplyLine } from 'react-icons/ri';
@@ -16,6 +17,16 @@ import ICDownload from '../svg/ICDownload';
 import ICFolder2 from '../svg/ICFolder2';
 import { HiPlay } from 'react-icons/hi2';
 import { HiPencil } from 'react-icons/hi';
+import {
+  FaCopy,
+  FaDownload,
+  FaFolderOpen,
+  FaPaperclip,
+  FaRegPenToSquare,
+  FaRegShareFromSquare,
+  FaRepeat,
+  FaTrashCan,
+} from 'react-icons/fa6';
 
 interface MessageMobileContextMenuProps {
   contextMenu: ContextMenuState | null;
@@ -328,11 +339,11 @@ export default function MessageMobileContextMenu({
                 aria-label="Trả lời tin nhắn"
                 title="Trả lời tin nhắn"
               >
-                <ICReply size={24} color="#2563eb" className="w-10 h-10" />
+                <FaRepeat size={24} color="#2563eb" className="w-7 h-7" />
                 <span className="text-[0.75rem] text-gray-800">Trả lời</span>
               </button>
             )}
-            
+
             {!isRecalled && (
               <button
                 onClick={() => {
@@ -343,7 +354,7 @@ export default function MessageMobileContextMenu({
                 aria-label="Chia sẻ tin nhắn"
                 title="Chia sẻ tin nhắn"
               >
-                <ICShareMessage className="w-9 h-9 text-blue-500" />
+                <FaRegShareFromSquare className="w-7 h-7 text-blue-500" />
                 <span className="text-[0.75rem] text-gray-800">Chia sẻ</span>
               </button>
             )}
@@ -360,7 +371,7 @@ export default function MessageMobileContextMenu({
                 aria-label="Chỉnh sửa tin nhắn"
                 title="Chỉnh sửa tin nhắn"
               >
-                <HiPencil className="w-9 h-9  " />
+                <FaRegPenToSquare className="w-7 h-7  " />
                 <span className="text-[0.75rem] text-gray-800">Chỉnh sửa</span>
               </button>
             )}
@@ -372,7 +383,7 @@ export default function MessageMobileContextMenu({
                 aria-label="Sao chép nội dung"
                 title="Sao chép nội dung"
               >
-                <ICCopy className="w-12 h-12 text-blue-500" />
+                <FaCopy className="w-7 h-7 text-blue-500" />
                 {/* <HiOutlineClipboardCopy className="text-green-600" style={{ width: iconSize, height: iconSize }} /> */}
                 <span className="text-[0.75rem] text-gray-800">Sao chép</span>
               </button>
@@ -389,7 +400,7 @@ export default function MessageMobileContextMenu({
                 aria-label={isPinned ? 'Bỏ ghim' : 'Ghim'}
                 title={isPinned ? 'Bỏ ghim' : 'Ghim'}
               >
-                <ICPin className={`${isPinned ? 'text-amber-600' : 'text-red-600'}`} size={24} />
+                <FaPaperclip className={`${isPinned ? 'text-amber-600' : 'text-red-600'}`} size={24} />
                 <span className="text-[0.75rem] text-gray-800">{isPinned ? 'Bỏ ghim' : 'Ghim'}</span>
               </button>
             )}
@@ -403,13 +414,24 @@ export default function MessageMobileContextMenu({
                 aria-label="Tải xuống"
                 title="Tải xuống"
               >
-                <ICDownload className="w-10 h-10 text-blue-500 hover:text-blue-500 cursor-pointer" />
+                <FaDownload className="w-7 h-7 text-blue-500 hover:text-blue-500 cursor-pointer" />
 
                 <span className="text-[0.75rem] text-gray-800">Tải xuống</span>
               </a>
             )}
 
-            
+            {!isRecalled && (
+              <button
+                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl  hover:bg-orange-50 active:scale-95 transition-all"
+                aria-label="Lưu vào thư mục"
+                title="Lưu vào thư mục"
+              >
+                <FaFolderOpen className="w-7 h-7 text-orange-300 hover:text-orange-500 cursor-pointer" />
+
+                <span className="text-[0.75rem] text-gray-800">Thư mục</span>
+              </button>
+            )}
+
             {canRecall && (
               <button
                 onClick={() => {
@@ -420,58 +442,8 @@ export default function MessageMobileContextMenu({
                 aria-label="Thu hồi tin nhắn"
                 title="Thu hồi tin nhắn"
               >
-                <ICTrash className="w-10 h-10 text-red-600" />
+                <FaTrashCan className="w-7 h-7 text-red-600" />
                 <span className="text-[0.75rem] text-gray-800">Thu hồi</span>
-              </button>
-            )}
-            {!isRecalled && (
-              <button
-                // onClick={() => {
-                //   try {
-                //     const batchItems =
-                //       (
-                //         msg as unknown as {
-                //           batchItems?: Array<{
-                //             id: string;
-                //             type?: 'image' | 'video' | 'file' | 'text';
-                //             fileUrl?: string;
-                //             fileName?: string;
-                //             content?: string;
-                //           }>;
-                //         }
-                //       ).batchItems || [];
-                //     const ev = new CustomEvent('openFolderSaveWizard', {
-                //       detail: {
-                //         roomId: String(msg.roomId || ''),
-                //         messageId: String(msg._id || ''),
-                //         content: msg.type === 'text' ? String(msg.content || '') : String(msg.fileName || ''),
-                //         type: String(msg.type || 'text'),
-                //         fileUrl: msg.fileUrl ? String(msg.fileUrl) : undefined,
-                //         fileName: msg.fileName ? String(msg.fileName) : undefined,
-                //         batch:
-                //           Array.isArray(batchItems) && batchItems.length > 1
-                //             ? batchItems.map((it) => ({
-                //                 roomId: String(msg.roomId || ''),
-                //                 messageId: String(it.id || ''),
-                //                 content: String(it.content || ''),
-                //                 type: String(it.type || 'text'),
-                //                 fileUrl: it.fileUrl ? String(it.fileUrl) : undefined,
-                //                 fileName: it.fileName ? String(it.fileName) : undefined,
-                //               }))
-                //             : undefined,
-                //       },
-                //     });
-                //     window.dispatchEvent(ev);
-                //   } catch {}
-                //   onClose();
-                // }}
-                className="flex flex-col items-center justify-center gap-1 p-1 rounded-xl  hover:bg-orange-50 active:scale-95 transition-all"
-                aria-label="Lưu vào thư mục"
-                title="Lưu vào thư mục"
-              >
-                <ICFolder2 className="w-8 h-8 text-orange-300 hover:text-orange-500 cursor-pointer" />
-
-                <span className="text-[0.75rem] text-gray-800">Thư mục</span>
               </button>
             )}
           </div>

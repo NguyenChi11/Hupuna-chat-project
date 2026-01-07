@@ -1,5 +1,4 @@
-// components/(profile)/ProfileInfoEdit.tsx
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import DepartmentDropdown from '@/components/(profile)/DepartmentDropdown';
 import GenderSelector from '@/components/(profile)/GenderSelector';
 import InputField from '@/components/(profile)/InputField';

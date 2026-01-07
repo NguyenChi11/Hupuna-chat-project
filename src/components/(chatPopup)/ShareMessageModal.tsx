@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
@@ -305,11 +306,11 @@ export default function ShareMessageModal({
   return (
     <div
       ref={viewportRef}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200 ${isMobile ? 'vv-fixed' : ''}`}
+      className={`fixed inset-0 z-[10001] flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200 ${isMobile ? 'vv-fixed' : ''}`}
     >
       <div
         ref={containerRef}
-        className="w-full h-full sm:w-full sm:h-auto sm:max-w-lg bg-white shadow-2xl flex flex-col sm:max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 rounded-xl"
+        className="w-full h-full sm:w-full sm:h-auto sm:max-w-lg bg-white shadow-2xl flex flex-col sm:max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 md:rounded-xl"
       >
         {/* Header - Modern gradient */}
         <div className="relative p-1 bg-gray-200 text-black ">
@@ -473,7 +474,7 @@ export default function ShareMessageModal({
                             e.stopPropagation(); // Ngăn click lan ra toggleSelect toàn bộ item
                             toggleSelect(targetId);
                           }}
-                          className="absolute -top-[2px] cursor-pointer -right-1 w-5 h-5 bg-gray-400 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-all duration-200 opacity-0 opacity-100 hover:scale-110"
+                          className="absolute -top-[2px] cursor-pointer -right-1 w-5 h-5 bg-gray-400 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-all duration-200 opacity-100 hover:scale-110"
                           aria-label="Xóa khỏi danh sách chia sẻ"
                         >
                           <IoClose className="w-4 h-4 text-white" />

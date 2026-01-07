@@ -15,6 +15,7 @@ import MobileProfileSheet from '@/components/(profile)/MobileProfileSheet';
 import {
   HiUserCircle,
   HiQrCode,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   HiCog6Tooth,
   HiInformationCircle,
   HiPhone,
@@ -160,6 +161,7 @@ export default function ProfileByIdPage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const tabsMobile = isOwner ? ['profile', 'qr', 'info', 'settings'] : ['profile', 'qr'];
 
   const departmentLabel = useMemo(() => {
@@ -368,7 +370,7 @@ export default function ProfileByIdPage() {
                 setIntroText(displayBio || '');
                 setIsMobileSheetOpen(true);
               }}
-              className="mt-1 flex items-center gap-1 text-blue-600 text-sm font-medium hover:underline pointer-events-auto"
+              className="cursor-pointer mt-1 flex items-center gap-1 text-blue-600 text-sm font-medium hover:underline pointer-events-auto"
             >
               <HiPencilSquare className="w-4 h-4" />
               {displayBio || 'Cập nhật giới thiệu bản thân'}
@@ -582,19 +584,19 @@ export default function ProfileByIdPage() {
               <div className="bg-white">
                 <button
                   onClick={() => setTabMobile('info')}
-                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                  className="cursor-pointer w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
                 >
                   Thông tin
                 </button>
                 <button
                   onClick={() => avatarInputRef.current?.click()}
-                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                  className="cursor-pointer w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
                 >
                   Đổi ảnh đại diện
                 </button>
                 <button
                   onClick={() => backgroundInputRef.current?.click()}
-                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                  className="cursor-pointer w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
                 >
                   Đổi ảnh bìa
                 </button>
@@ -603,7 +605,7 @@ export default function ProfileByIdPage() {
                     setTabMobile('edit_intro');
                     setIntroText(displayBio || '');
                   }}
-                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                  className="cursor-pointer w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
                 >
                   Cập nhật giới thiệu bản thân
                 </button>
@@ -623,25 +625,19 @@ export default function ProfileByIdPage() {
                 <div className="px-4 py-3 text-blue-500 font-medium text-sm border-b border-gray-100">Cài đặt</div>
                 <button
                   onClick={() => setTabMobile('qr')}
-                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                  className="cursor-pointer w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
                 >
                   Mã QR của tôi
                 </button>
                 <button
                   onClick={() => setTabMobile('privacy')}
-                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
+                  className="cursor-pointer w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
                 >
                   Quyền riêng tư
                 </button>
-                {/* <button
-                  onClick={() => setTabMobile('account')}
-                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 border-b border-gray-100 active:bg-gray-100"
-                >
-                  Quản lý tài khoản
-                </button> */}
                 <button
                   onClick={() => setTabMobile('settings')}
-                  className="w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 active:bg-gray-100"
+                  className="cursor-pointer w-full text-left px-4 py-3.5 text-base text-gray-800 hover:bg-gray-50 active:bg-gray-100"
                 >
                   Cài đặt chung
                 </button>

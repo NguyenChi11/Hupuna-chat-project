@@ -15,8 +15,13 @@ const nextConfig: NextConfig = {
         pathname: '/logo/**',
       },
     ],
-    // Cho phép load ảnh từ MEGA (avatar sau khi upload)
+    // Cho phép load ảnh từ các nguồn bên ngoài
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'files.hupuna.vn',
+        pathname: '/api/files/**',
+      },
       {
         protocol: 'http',
         hostname: '117.4.242.30',
@@ -30,6 +35,7 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'mega.nz',
+        pathname: '/file/**',
       },
     ],
   },

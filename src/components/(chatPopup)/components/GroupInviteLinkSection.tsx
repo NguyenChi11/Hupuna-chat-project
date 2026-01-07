@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { CiFloppyDisk, CiLink } from 'react-icons/ci';
 import { HiLink, HiClipboardCopy, HiRefresh, HiCheck, HiX, HiExclamationCircle, HiCheckCircle } from 'react-icons/hi';

@@ -48,7 +48,6 @@ export default function ChatItem({
   const isSelected = selectedChat?._id === item._id;
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number; align?: 'top' | 'bottom' } | null>(null);
-  const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -79,7 +78,7 @@ export default function ChatItem({
         }
       }
     } catch {}
-  }, [storageKey]);
+  }, [currentUserId, item, storageKey]);
   useEffect(() => {
     const handler = (ev: Event) => {
       try {
@@ -120,7 +119,7 @@ export default function ChatItem({
         }
       }
     } catch {}
-  }, [storageKeyTags]);
+  }, [currentUserId, item, storageKeyTags]);
   useEffect(() => {
     const handler = (ev: Event) => {
       try {
@@ -232,6 +231,32 @@ export default function ChatItem({
     return !!u.online;
   })();
 
+  const sanitizeUrl = (u?: string) => {
+    if (!u) return '';
+    const s = String(u).trim();
+    return s.replace(/^[('"]+/, '').replace(/[)'"]+$/, '');
+  };
+  const avatarSrc = React.useMemo(() => sanitizeUrl(getProxyUrl(item.avatar)), [item.avatar]);
+
+  const resolvedAvatarSrc = React.useMemo(() => {
+    const s = avatarSrc;
+    if (!s) return '/logo/avata.webp';
+    try {
+      const u = new URL(s);
+      const ok =
+        (u.protocol === 'https:' && u.hostname === 'files.hupuna.vn' && u.pathname.startsWith('/api/files/')) ||
+        (u.protocol === 'http:' &&
+          u.hostname === '117.4.242.30' &&
+          u.port === '8090' &&
+          u.pathname.startsWith('/api/files/')) ||
+        (u.protocol === 'https:' && u.hostname === 'cdn.jsdelivr.net') ||
+        (u.protocol === 'https:' && u.hostname === 'mega.nz' && u.pathname.startsWith('/file/'));
+      return ok ? s : '/logo/avata.webp';
+    } catch {
+      return '/logo/avata.webp';
+    }
+  }, [avatarSrc]);
+
   // Context menu thông minh
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -311,7 +336,7 @@ export default function ChatItem({
   }, [showMenu]);
 
   const [showTagSelector, setShowTagSelector] = useState(false);
-  const [tagMenuPos, setTagMenuPos] = useState<{ x: number; y: number } | null>(null);
+  const [tagMenuPos, setTagMenuPos] = useState<{ x: number; y: number; align?: 'top' | 'bottom' } | null>(null);
   const [isTagExpanded, setIsTagExpanded] = useState(false);
 
   return (
@@ -350,7 +375,7 @@ export default function ChatItem({
               >
                 {item.avatar && !imgError ? (
                   <Image
-                    src={getProxyUrl(item.avatar)}
+                    src={resolvedAvatarSrc}
                     alt={displayName}
                     width={64}
                     height={64}
@@ -417,7 +442,7 @@ export default function ChatItem({
             <div className="flex items-center justify-between mb-1">
               <h4
                 className={`
-                 text-[1.25rem] md:text-[1.125rem] font-medium truncate max-w-[11rem]
+                 text-[1rem] md:text-[1.125rem] font-medium truncate max-w-[11rem]
                   ${unreadCount > 0 ? 'text-gray-900' : 'text-gray-500'}
                 `}
               >
@@ -432,7 +457,7 @@ export default function ChatItem({
             <div className="flex items-center justify-between">
               <p
                 className={`
-                  text-[1rem] md:text-[1rem] truncate max-w-[14rem]
+                  text-[0.875rem] md:text-[1rem] truncate max-w-[14rem]
                   ${unreadCount > 0 ? 'font-semibold text-gray-800' : 'text-gray-600'}
                 `}
               >
@@ -494,7 +519,12 @@ export default function ChatItem({
                         setShowTagSelector(false);
                       } else {
                         const rect = e.currentTarget.getBoundingClientRect();
-                        setTagMenuPos({ x: rect.left, y: rect.bottom + 4 });
+                        const isBottomHalf = rect.bottom > window.innerHeight / 2;
+                        setTagMenuPos({
+                          x: rect.left,
+                          y: isBottomHalf ? rect.top - 4 : rect.bottom + 4,
+                          align: isBottomHalf ? 'bottom' : 'top',
+                        });
                         setShowTagSelector(true);
                       }
                     }}
@@ -619,7 +649,12 @@ export default function ChatItem({
             }}
           />
           <div
-            style={{ top: tagMenuPos.y, left: tagMenuPos.x, position: 'fixed' }}
+            style={{
+              top: tagMenuPos.align === 'bottom' ? 'auto' : tagMenuPos.y,
+              bottom: tagMenuPos.align === 'bottom' ? window.innerHeight - tagMenuPos.y : 'auto',
+              left: tagMenuPos.x,
+              position: 'fixed',
+            }}
             className="z-[9999] w-48 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >

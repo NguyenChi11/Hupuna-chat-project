@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { ClipboardEvent, KeyboardEvent, RefObject, useEffect, useRef, useState, useMemo } from 'react';
@@ -38,9 +40,7 @@ import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
 import { IoIosAttach } from 'react-icons/io';
 import Image from 'next/image';
 import { useChatContext } from '@/context/ChatContext';
-import FolderDashboard from '@/components/(chatPopup)/components/Folder/FolderDashboard';
-import FolderSaveWizard from '@/components/(chatPopup)/components/Folder/FolderSaveWizard';
-import ChatFlashDashboard from '@/components/(chatPopup)/components/Chat-Flash/ChatFlashDashboard';
+
 import UploadProgressBar from '@/components/(chatPopup)/UploadProgressBar';
 import ICIcon1 from '@/components/svg/ICIcon1';
 import ImageIconZalo from '@/components/svg/ICIconImageZalo';
@@ -133,6 +133,38 @@ export default function ChatInput({
   const [showCreatePoll, setShowCreatePoll] = useState(false);
   const [showCreateNote, setShowCreateNote] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const tagsContainerRef = useRef<HTMLDivElement | null>(null);
+  const tagsDragRef = useRef<{ active: boolean; startX: number; startScroll: number; pid?: number }>({
+    active: false,
+    startX: 0,
+    startScroll: 0,
+  });
+  const onTagsPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = tagsContainerRef.current;
+    if (!el) return;
+    tagsDragRef.current.active = true;
+    tagsDragRef.current.startX = e.clientX;
+    tagsDragRef.current.startScroll = el.scrollLeft;
+    tagsDragRef.current.pid = e.pointerId;
+    el.setPointerCapture(e.pointerId);
+  };
+  const onTagsPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!tagsDragRef.current.active) return;
+    const el = tagsContainerRef.current;
+    if (!el) return;
+    const dx = e.clientX - tagsDragRef.current.startX;
+    el.scrollLeft = tagsDragRef.current.startScroll - dx;
+    e.preventDefault();
+  };
+  const onTagsPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = tagsContainerRef.current;
+    tagsDragRef.current.active = false;
+    if (el && typeof tagsDragRef.current.pid === 'number') {
+      try {
+        el.releasePointerCapture(tagsDragRef.current.pid);
+      } catch {}
+    }
+  };
 
   const handleCreatePoll = async ({
     question,
@@ -323,7 +355,6 @@ export default function ChatInput({
   const [slashQuery, setSlashQuery] = useState('');
   const [slashSelectedIndex, setSlashSelectedIndex] = useState<number>(0);
   const [showFolderDashboard, setShowFolderDashboard] = useState(false);
-  const [showFolderSaveWizard, setShowFolderSaveWizard] = useState(false);
   const [pendingSaveMessage, setPendingSaveMessage] = useState<{
     roomId: string;
     messageId: string;
@@ -332,7 +363,7 @@ export default function ChatInput({
     fileUrl?: string;
     fileName?: string;
   } | null>(null);
-  const [showChatFlashDashboard, setShowChatFlashDashboard] = useState(false);
+
   const [showMobileActions, setShowMobileActions] = useState(false);
   const mobileActionsRef = useRef<HTMLDivElement | null>(null);
   const toggleMobileActionsBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -521,71 +552,15 @@ export default function ChatInput({
   };
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const res = await fetch('/api/chatflash', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'read', roomId }),
-        });
-        const data = await res.json();
-        const rows = (data?.data?.folders || []) as Array<{ id: string; name: string }>;
-        setFlashFolders(rows);
-        try {
-          localStorage.setItem(`chatFlashFolders:${roomId}`, JSON.stringify(rows));
-        } catch {}
-      } catch {
-        try {
-          const raw = localStorage.getItem(`chatFlashFolders:${roomId}`);
-          const arr = raw ? (JSON.parse(raw) as Array<{ id: string; name: string }>) : [];
-          setFlashFolders(arr);
-        } catch {
-          setFlashFolders([]);
-        }
-      }
-      try {
-        const activeRaw = localStorage.getItem(`chatFlashActiveFolder:${roomId}`);
-        setSelectedFlashFolder(activeRaw ? JSON.parse(activeRaw) : null);
-      } catch {
-        setSelectedFlashFolder(null);
-      }
-    };
-    if (roomId) init();
-  }, [roomId]);
-
-  useEffect(() => {
     if (!showMobileActions) return;
     const onDoc = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node | null;
       if (mobileActionsRef.current && target && mobileActionsRef.current.contains(target)) return;
       if (toggleMobileActionsBtnRef.current && target && toggleMobileActionsBtnRef.current.contains(target)) return;
-      if (editableRef.current && target && editableRef.current.contains(target)) return;
-      const el = editableRef.current;
       setShowMobileActions(false);
       try {
         window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
       } catch {}
-      if (el) {
-        try {
-          el.focus();
-          const range = document.createRange();
-          range.selectNodeContents(el);
-          range.collapse(false);
-          const sel = window.getSelection();
-          sel?.removeAllRanges();
-          sel?.addRange(range);
-        } catch {}
-        setTimeout(() => {
-          try {
-            el.focus();
-          } catch {}
-        }, 80);
-        setTimeout(() => {
-          try {
-            el.focus();
-          } catch {}
-        }, 160);
-      }
     };
     document.addEventListener('mousedown', onDoc, true);
     document.addEventListener('touchstart', onDoc, true);
@@ -633,49 +608,6 @@ export default function ChatInput({
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
-  }, []);
-
-  useEffect(() => {
-    const loadKV = async () => {
-      if (!selectedFlashFolder?.id || !roomId) {
-        setKvItems([]);
-        return;
-      }
-      try {
-        const res = await fetch('/api/chatflash', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'listKV', roomId, folderId: selectedFlashFolder.id }),
-        });
-        const json = await res.json();
-        const arr = (json?.items || []) as Array<{ key: string; value: string }>;
-        setKvItems(arr);
-        try {
-          localStorage.setItem(`chatFlashKV:${roomId}:${selectedFlashFolder.id}`, JSON.stringify(arr));
-        } catch {}
-      } catch {
-        try {
-          const raw = localStorage.getItem(`chatFlashKV:${roomId}:${selectedFlashFolder.id}`);
-          const arr = raw ? (JSON.parse(raw) as Array<{ key: string; value: string }>) : [];
-          setKvItems(arr);
-        } catch {
-          setKvItems([]);
-        }
-      }
-    };
-    loadKV();
-  }, [selectedFlashFolder?.id, roomId]);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const anyE = e as CustomEvent;
-      if (anyE.detail) {
-        setPendingSaveMessage(anyE.detail);
-        setShowFolderSaveWizard(true);
-      }
-    };
-    window.addEventListener('openFolderSaveWizard', handler as EventListener);
-    return () => window.removeEventListener('openFolderSaveWizard', handler as EventListener);
   }, []);
 
   const handleSelectFlashFolder = (f: { id: string; name: string }) => {
@@ -939,12 +871,19 @@ export default function ChatInput({
       </div>
       {/* Tags List */}
       {userTags.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full p-1">
+        <div
+          ref={tagsContainerRef}
+          onPointerDown={onTagsPointerDown}
+          onPointerMove={onTagsPointerMove}
+          onPointerUp={onTagsPointerUp}
+          onPointerCancel={onTagsPointerUp}
+          className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full p-1 whitespace-nowrap overscroll-x-contain x-scroll-touch select-none cursor-grab active:cursor-grabbing"
+        >
           {userTags.map((tag) => {
             const isSelected = selectedTagIds.includes(tag.id);
             const colorHex = TAG_COLORS[tag.color] || '#9ca3af';
             return (
-              <button
+              <div
                 key={tag.id}
                 onClick={() => handleToggleTag(tag.id)}
                 className={`
@@ -958,7 +897,7 @@ export default function ChatInput({
                 }}
               >
                 {tag.label}
-              </button>
+              </div>
             );
           })}
         </div>
@@ -1308,24 +1247,7 @@ export default function ChatInput({
             </div>
             <span className="text-sm font-medium text-gray-800">Nhắc hẹn</span>
           </button>
-          {/* <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Mở dashboard Folder">
-            <div className="relative w-12 h-12 mb-3 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 shadow-2xl group-hover:shadow-3xl group-active:scale-95 transition-all duration-300 flex items-center justify-center">
-              <HiFolder className="w-6 h-6 text-orange-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200" />
-              <div className="absolute inset-0 rounded-full shadow-inner shadow-white/50"></div>
-            </div>
-            <span className="text-sm font-medium text-gray-800">Thư Mục</span>
-            <input
-              type="button"
-              className="sr-only"
-              onClick={() => {
-                setShowFolderDashboard(true);
-                setShowMobileActions(false);
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                } catch {}
-              }}
-            />
-          </label> */}
+
           <button
             onClick={() => {
               onVoiceInput();
@@ -1356,11 +1278,6 @@ export default function ChatInput({
           <button
             onClick={() => {
               showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' });
-              // setShowChatFlashDashboard(true);
-              // setShowMobileActions(false);
-              // try {
-              //   window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-              // } catch {}
             }}
             className="group relative cursor-pointer flex flex-col items-center"
             aria-label="Chat nhanh"
@@ -1373,11 +1290,7 @@ export default function ChatInput({
           </button>
           <button
             onClick={() => {
-              setShowReportConfirm(true);
-              setShowMobileActions(false);
-              try {
-                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-              } catch {}
+              showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' });
             }}
             className="group relative cursor-pointer flex flex-col items-center"
             aria-label="Báo xấu"
@@ -1391,11 +1304,7 @@ export default function ChatInput({
           {canClearHistory && (
             <button
               onClick={() => {
-                setShowConfirmClear(true);
-                setShowMobileActions(false);
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                } catch {}
+                showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' });
               }}
               className="group relative cursor-pointer flex flex-col items-center"
               aria-label="Xóa lịch sử"
@@ -1604,105 +1513,6 @@ export default function ChatInput({
         </div>
       )}
 
-      {showFolderDashboard &&
-        createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-0 lg:px-4">
-            <div className="bg-white w-full h-full lg:max-w-5xl lg:h-[46rem] rounded-none lg:rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center">
-                    <HiFolder className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-lg font-bold">Folder</h3>
-                </div>
-                <button
-                  onClick={() => setShowFolderDashboard(false)}
-                  className="p-2 rounded-full hover:bg-white/20 cursor-pointer"
-                >
-                  <HiX className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-2 lg:p-4 h-full overflow-y-auto overflow-x-hidden">
-                <FolderDashboard
-                  roomId={roomId}
-                  onClose={() => setShowFolderDashboard(false)}
-                  onInsertToInput={(text) => {
-                    const el = editableRef.current;
-                    if (!el) return;
-                    const cur = String(el.innerText || '');
-                    el.innerText = cur + (cur ? ' ' : '') + String(text || '');
-                    try {
-                      const range = document.createRange();
-                      range.selectNodeContents(el);
-                      range.collapse(false);
-                      const sel = window.getSelection();
-                      sel?.removeAllRanges();
-                      sel?.addRange(range);
-                    } catch {}
-                    el.focus();
-                    onInputEditable();
-                  }}
-                  onAttachFromFolder={(att) => onAttachFromFolder(att)}
-                />
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
-
-      {showFolderSaveWizard &&
-        createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-h-[85vh] flex flex-col">
-              <div className="relative w-full">
-                <button
-                  onClick={() => {
-                    setShowFolderSaveWizard(false);
-                    setPendingSaveMessage(null);
-                  }}
-                  className="absolute right-4 top-3 p-2 rounded-full hover:bg-gray-100 cursor-pointer z-10"
-                >
-                  <HiX className="w-5 h-5 text-gray-500" />
-                </button>
-                {pendingSaveMessage && (
-                  <FolderSaveWizard
-                    roomId={roomId}
-                    pending={pendingSaveMessage}
-                    onClose={() => {
-                      setShowFolderSaveWizard(false);
-                      setPendingSaveMessage(null);
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
-
-      {showChatFlashDashboard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden h-[90vh]">
-            <div className="flex items-center justify-between px-4 py-3  border-b-gray-300 border-b">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                  <HiLightningBolt className="w-4 h-4" />
-                </div>
-                <h3 className="text-lg font-bold">Chat nhanh</h3>
-              </div>
-              <button
-                onClick={() => setShowChatFlashDashboard(false)}
-                className="p-2 rounded-full hover:bg-white/20 cursor-pointer"
-              >
-                <HiX className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4">
-              <ChatFlashDashboard roomId={roomId} onClose={() => setShowChatFlashDashboard(false)} />
-            </div>
-          </div>
-        </div>
-      )}
       {showUpdatingPopup && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowUpdatingPopup(false)} />

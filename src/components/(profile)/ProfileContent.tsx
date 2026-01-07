@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import ProfileQR from '@/components/(profile)/PorfileQR';
 import ProfileSettings from '@/components/(profile)/ProfileSettings';

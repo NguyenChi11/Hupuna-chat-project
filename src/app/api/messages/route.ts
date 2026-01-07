@@ -38,7 +38,9 @@ async function sendPushOnMessage(data: { roomId: string; senderId: string; conte
     });
     const sender = senderRes.data?.[0];
     if (sender && sender.name) heading = sender.name;
-  } catch {}
+  } catch (error) {
+    console.warn('sendPushOnMessage:getSender', error);
+  }
 
   if (roomId.includes('_')) {
     const parts = roomId.split('_');
@@ -63,7 +65,9 @@ async function sendPushOnMessage(data: { roomId: string; senderId: string; conte
           .filter((id) => id && id !== senderId);
         recipients = Array.from(new Set(ids));
       }
-    } catch {}
+    } catch (error) {
+      console.warn('sendPushOnMessage:getGroup', error);
+    }
   }
 
   const targets = Array.from(new Set([...recipients, senderId])).filter(Boolean);
@@ -88,7 +92,9 @@ async function sendPushOnMessage(data: { roomId: string; senderId: string; conte
           .filter((x) => typeof x === 'string' && x.trim().length > 0),
       ),
     );
-  } catch {}
+  } catch (error) {
+    console.warn('sendPushOnMessage:getSubscriptions', error);
+  }
 
   const useSubs = subscriptionIds.length > 0;
   const payload = useSubs
@@ -110,16 +116,30 @@ async function sendPushOnMessage(data: { roomId: string; senderId: string; conte
       };
 
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Key ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    const postWithRetry = async (p: Record<string, unknown>) => {
+      const max = 3;
+      let i = 0;
+      let last: Response | null = null;
+      while (i < max) {
+        last = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `key ${apiKey}`,
+          },
+          body: JSON.stringify(p),
+        });
+        if (last.ok) return last;
+        i++;
+        if (i < max) {
+          await new Promise((r) => setTimeout(r, 300 * Math.pow(2, i - 1)));
+        }
+      }
+      return last as Response;
+    };
+
+    const res = await postWithRetry(payload);
     if (!res.ok) {
-      // const txt = await res.text();
       const filtersPayload = {
         app_id: appId,
         target_channel: 'push',
@@ -130,16 +150,15 @@ async function sendPushOnMessage(data: { roomId: string; senderId: string; conte
         contents: { en: body, vi: body },
         headings: { en: heading, vi: heading },
       };
-      await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Key ${apiKey}`,
-        },
-        body: JSON.stringify(filtersPayload),
-      });
+      const fallbackRes = await postWithRetry(filtersPayload);
+      if (!fallbackRes.ok) {
+        const txt = await fallbackRes.text().catch(() => '');
+        console.error('sendPushOnMessage:onesignal', fallbackRes.status, txt);
+      }
     }
-  } catch {}
+  } catch (error) {
+    console.error('sendPushOnMessage:send', error);
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -199,13 +218,17 @@ export async function POST(req: NextRequest) {
         if ((newData as Record<string, unknown>)['id']) delete (newData as Record<string, unknown>)['id'];
 
         const newId = await addRow<Record<string, unknown>>(collectionName, newData);
-        try {
-          await sendPushOnMessage({
-            roomId: String(newData.roomId),
-            senderId: String(newData.sender),
-            content: String(newData.content || ''),
+        Promise.resolve()
+          .then(() =>
+            sendPushOnMessage({
+              roomId: String(newData.roomId),
+              senderId: String(newData.sender),
+              content: String(newData.content || ''),
+            }),
+          )
+          .catch((error) => {
+            console.error('messages.create:push', error);
           });
-        } catch {}
         return NextResponse.json({ success: true, _id: newId });
       }
 
@@ -455,15 +478,15 @@ export async function POST(req: NextRequest) {
         }
 
         const userIdStr = String(userId);
-        const variants: (string | number)[] = [userIdStr];
-        if (!isNaN(Number(userIdStr))) {
-          variants.push(Number(userIdStr));
-        }
+        const variants: (string | number)[] = [
+          userIdStr,
+          Number.isNaN(Number(userIdStr)) ? undefined : Number(userIdStr),
+        ].filter((v): v is string | number => v !== undefined);
 
         // 1. Filter: Tìm các tin nhắn trong roomId có userId CHƯA đọc
-        const filter = {
-          roomId,
-          readBy: { $nin: variants as unknown as string[] },
+        const filter: Filter<Message> = {
+          roomId: String(roomId),
+          readBy: { $nin: variants },
         };
 
         // 2. Update: Thêm userId vào mảng readBy của các tin nhắn tìm được ($addToSet)
@@ -865,7 +888,9 @@ export async function POST(req: NextRequest) {
           });
 
           userGroups.forEach((g) => groupRoomIds.push(String(g._id)));
-        } catch {}
+        } catch (error) {
+          console.error('messages.searchReminders:getGroups', error);
+        }
 
         const oneToOneRoomIds: string[] = [];
         try {
@@ -879,7 +904,9 @@ export async function POST(req: NextRequest) {
             const roomId = `${ids[0]}_${ids[1]}`;
             oneToOneRoomIds.push(roomId);
           });
-        } catch {}
+        } catch (error) {
+          console.error('messages.searchReminders:getUsers', error);
+        }
 
         const allAccessibleRoomIds = [...groupRoomIds, ...oneToOneRoomIds];
 
@@ -1000,13 +1027,17 @@ export async function POST(req: NextRequest) {
         }
 
         // Push notification
-        try {
-          await sendPushOnMessage({
-            roomId: String(row.roomId),
-            senderId: String(userId),
-            content: notifyContent,
+        Promise.resolve()
+          .then(() =>
+            sendPushOnMessage({
+              roomId: String(row.roomId),
+              senderId: String(userId),
+              content: notifyContent,
+            }),
+          )
+          .catch((error) => {
+            console.error('messages.fireReminder:push', error);
           });
-        } catch {}
 
         return NextResponse.json({ success: true, updated: true, notifyId, nextAt });
       }

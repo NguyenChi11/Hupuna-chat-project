@@ -104,7 +104,9 @@ export default function AddToGroupModal({
           setAddToGroupError('Một số nhóm thêm thất bại');
         } else {
           const g = myGroupsQuick.find((x) => String(x._id) === String(gid)) || null;
-          const prevRaw = Array.isArray(g?.members) ? (g!.members as Array<{ _id?: string; id?: string } | string>) : [];
+          const prevRaw = Array.isArray(g?.members)
+            ? (g!.members as Array<{ _id?: string; id?: string } | string>)
+            : [];
           const prevIds = prevRaw
             .map((m) => (typeof m === 'string' ? String(m) : String(m._id || m.id || '')))
             .filter((v) => !!v);
@@ -130,7 +132,7 @@ export default function AddToGroupModal({
     } finally {
       setAddToGroupLoading(false);
     }
-  }, [selectedGroupIds, selectedChat, reLoad, currentUser._id, onClose]);
+  }, [selectedGroupIds, selectedChat, reLoad, onClose, currentUser._id, currentUser.name, myGroupsQuick]);
 
   if (!isOpen) return null;
 
@@ -238,9 +240,7 @@ export default function AddToGroupModal({
                         )}
                       </div>
                       <div className="flex flex-col justify-center items-start min-w-0">
-                        <span className="text-[1.3rem]  text-gray-800 truncate max-w-[15rem]">
-                          {g.name || 'Nhóm'}
-                        </span>
+                        <span className="text-[1.3rem]  text-gray-800 truncate max-w-[15rem]">{g.name || 'Nhóm'}</span>
                         <span className="text-[1rem] text-gray-500">
                           {isAlreadyMember
                             ? 'Đã tham gia'

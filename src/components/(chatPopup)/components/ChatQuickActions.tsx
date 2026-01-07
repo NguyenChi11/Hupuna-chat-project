@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { CiBellOn, CiSearch, CiUser } from 'react-icons/ci';
 import { HiEye, HiUserGroup } from 'react-icons/hi';

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 (() => {
   const init = async () => {
     // Tránh chạy 2 lần hoặc trong iframe chat
@@ -33,7 +34,6 @@
     const defaultSrc = `${origin}/chat-iframe`;
 
     const iframeSrc = scriptEl?.dataset.src || scriptEl?.getAttribute('data-src') || defaultSrc;
-    const title = scriptEl?.dataset.title || scriptEl?.getAttribute('data-title') || 'Chat';
 
     // Container chính
     const container = document.createElement('div');

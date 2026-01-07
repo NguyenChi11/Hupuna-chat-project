@@ -52,7 +52,6 @@ export default function MediaSection({
             <HiPlay className="w-5 h-5" />
           </div>
           <span className="font-semibold text-gray-900">Ảnh & Video</span>
-         
         </div>
 
         <HiChevronRight
@@ -69,17 +68,20 @@ export default function MediaSection({
             <>
               {(groups && groups.length > 0
                 ? groups
-                : [{ dateLabel: '', items: mediaList as { id: string; type: 'image' | 'video'; url: string; fileName?: string }[] }]
+                : [
+                    {
+                      dateLabel: '',
+                      items: mediaList as { id: string; type: 'image' | 'video'; url: string; fileName?: string }[],
+                    },
+                  ]
               ).map((group, gi) => (
                 <div key={`${group.dateLabel}-${gi}`} className="mt-4">
-                  {group.dateLabel && (
-                    <div className="text-xs font-semibold text-gray-500 mb-2">{group.dateLabel}</div>
-                  )}
-                  <div className="grid grid-cols-3 gap-3">
+                  {group.dateLabel && <div className="text-xs font-semibold text-gray-500 mb-2">{group.dateLabel}</div>}
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {group.items.map((item) => (
                       <div
                         key={item.id}
-                        className={`relative aspect-square rounded-xl cursor-pointer ${item.type === 'video' ? " w-[5rem] h-[5rem] flex gap-2" : "" }  group bg-gray-100 ${
+                        className={`relative aspect-square rounded-xl cursor-pointer ${item.type === 'video' ? ' w-[5rem] h-[5rem] flex gap-2' : ''}  group bg-gray-100 ${
                           activeMenuId === item.id ? 'z-50' : 'z-0'
                         }`}
                         onClick={() => {
@@ -88,9 +90,19 @@ export default function MediaSection({
                         }}
                       >
                         {item.type === 'video' ? (
-                          <video src={getProxyUrl(item.url)} className="w-full h-full object-cover pointer-events-none" preload="metadata" />
+                          <video
+                            src={getProxyUrl(item.url)}
+                            className="w-full h-full object-cover pointer-events-none"
+                            preload="metadata"
+                          />
                         ) : (
-                          <Image width={200} height={200} src={getProxyUrl(item.url)} alt="Media" className="w-full h-full object-cover" />
+                          <Image
+                            width={200}
+                            height={200}
+                            src={getProxyUrl(item.url)}
+                            alt="Media"
+                            className="w-full h-full object-cover"
+                          />
                         )}
                         <div className="absolute inset-0  hover:bg-black/30 transition-opacity duration-300 flex items-center justify-center">
                           {item.type === 'video' && <HiPlay className="w-10 h-10 text-white drop-shadow-lg" />}
@@ -125,7 +137,10 @@ export default function MediaSection({
               ))}
               {showToggle && (
                 <div className="mt-4">
-                  <button onClick={toggleHandler} className="cursor-pointer w-full py-2.5 rounded-xl border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                  <button
+                    onClick={toggleHandler}
+                    className="cursor-pointer w-full py-2.5 rounded-xl border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
                     {isExpanded ? 'Thu gọn' : 'Xem tất cả'}
                   </button>
                 </div>

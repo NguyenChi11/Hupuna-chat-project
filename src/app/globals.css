@@ -12,6 +12,34 @@ body {
   height: 100%;
   overflow-anchor: none;
 }
+body {
+  font-family: var(--font-be-vietnam-pro), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  /* font-family: var(--font-be-vietnam-pro), sans-serif; */
+  font-family: var(--font-source-sans-3), sans-serif;
+}
+p {
+  font-family: var(--font-source-sans-3), sans-serif;
+}
+span {
+  font-family: var(--font-source-sans-3), sans-serif;
+}
+
+button {
+  font-family: var(--font-source-sans-3), sans-serif;
+}
+
+input,
+textarea {
+  font-family: var(--font-source-sans-3), sans-serif;
+}
 
 /* img,
 video {
@@ -206,4 +234,18 @@ button,
 a,
 [role='button'] {
   touch-action: manipulation;
+}
+
+.x-scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.x-scroll-touch > * {
+  touch-action: pan-x;
+}
+
+.patrick-hand-regular {
+  font-family: var(--font-patrick-hand), cursive;
+  font-weight: 400;
+  font-style: normal;
 }

@@ -29,11 +29,10 @@ import {
   HiLockClosed,
 } from 'react-icons/hi2';
 import { HiPhone, HiVideoCamera, HiArrowDown, HiArrowUp } from 'react-icons/hi2';
-import { HiLink, HiOutlineLogout, HiOutlineShare } from 'react-icons/hi';
+import { HiLink, HiOutlineLogout } from 'react-icons/hi';
 import ReminderDetailModal from './components/ReminderDetailModal';
 import PollDetailModal from './components/PollDetailModal';
 import ReactionButton from './components/ReactionButton';
-import FolderButton from './components/Folder/FolderButton';
 import { ContextMenuState } from './MessageContextMenu';
 import ICShareMessage from '../svg/ICShareMessage';
 import ReadStatus from './components/ReadStatus';
@@ -1068,50 +1067,6 @@ export default function MessageList({
                                           }`}
                                         />
                                       )}
-                                      {/* {!isMobile && (
-                                  <FolderButton
-                                    roomId={String(msg.roomId)}
-                                    messageId={String(msg._id)}
-                                    isMine={isMeGroup}
-                                    visible={activeMoreId === msg._id}
-                                    className={`${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${
-                                      activeMoreId === msg._id
-                                        ? 'opacity-100 pointer-events-auto'
-                                        : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'
-                                    }`}
-                                    preview={
-                                      msg.type === 'text'
-                                        ? msg.content || ''
-                                        : msg.type === 'file'
-                                          ? msg.fileName
-                                            ? `[File] ${msg.fileName}`
-                                            : '[File]'
-                                          : msg.type === 'image'
-                                            ? '[Ảnh]'
-                                            : msg.type === 'video'
-                                              ? '[Video]'
-                                              : msg.type === 'sticker'
-                                                ? '[Sticker]'
-                                                : msg.type === 'reminder'
-                                                  ? msg.content || '[Nhắc nhở]'
-                                                  : `[${msg.type}]`
-                                    }
-                                    content={msg.content}
-                                    type={msg.type}
-                                    fileUrl={String(msg.fileUrl || msg.previewUrl || '')}
-                                    fileName={msg.fileName}
-                                    batchItems={fileGroup.map((m) => ({
-                                      id: m._id,
-                                      content: m.content || '',
-                                      type: 'file',
-                                      fileUrl: m.fileUrl,
-                                      fileName: m.fileName,
-                                    }))}
-                                    onSaved={() => {
-                                      setActiveMoreId(null);
-                                    }}
-                                  />
-                                )} */}
                                     </>
                                   )}
                                   <div className="space-y-2">
@@ -2108,7 +2063,7 @@ export default function MessageList({
                   px-4 py-2 rounded-lg shadow-md max-w-[70vw] ${
                     !isRecalled && msg.type === 'text' && isSidebarOpen && !isMobile
                       ? 'sm:max-w-[26rem] lg:max-w-[32rem]'
-                      : 'sm:max-w-[34rem] lg:max-w-[44rem]'
+                      : 'sm:max-w-[34rem] lg:max-w-[38rem]'
                   } break-words mt-1
                   ${
                     !isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image')
@@ -2423,7 +2378,7 @@ export default function MessageList({
                                 <div
                                   className={`relative text-[0.875rem] ${
                                     isSidebarOpen && !isMobile ? 'md:text-[0.875rem]' : 'md:text-[1rem]'
-                                  } leading-relaxed text-black whitespace-pre-wrap`}
+                                  } leading-relaxed text-black whitespace-pre-wrap select-none lg:select-text`}
                                   style={
                                     isMobile &&
                                     contextMenu?.visible &&
@@ -2522,8 +2477,9 @@ export default function MessageList({
                               {/* IMAGE – FIX SIZE MOBILE */}
                               {msg.type === 'image' && msg.fileUrl && !isRecalled && (
                                 <div
-                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[40vw] sm:max-w-[10rem]"
+                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[70vw] sm:max-w-[18rem] select-none lg:select-auto"
                                   onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
+                                  style={{ WebkitTouchCallout: 'none' }}
                                 >
                                   {String(msg.fileUrl).startsWith('blob:') ? (
                                     <Image
@@ -2532,6 +2488,7 @@ export default function MessageList({
                                       src={String(msg.fileUrl)}
                                       alt="Ảnh"
                                       className="w-full h-full object-cover"
+                                      draggable={false}
                                     />
                                   ) : (
                                     <Image
@@ -2541,6 +2498,7 @@ export default function MessageList({
                                       height={600}
                                       className="w-full h-full object-cover"
                                       unoptimized={String(msg.fileUrl).includes('mega.nz')}
+                                      draggable={false}
                                     />
                                   )}
 
@@ -2593,8 +2551,9 @@ export default function MessageList({
                               {/* VIDEO – FIX SIZE MOBILE */}
                               {isVideo && msg.fileUrl && !isRecalled && (
                                 <div
-                                  className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black"
+                                  className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black select-none lg:select-auto"
                                   onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl!), 'video')}
+                                  style={{ WebkitTouchCallout: 'none' }}
                                 >
                                   <video
                                     src={getProxyUrl(msg.fileUrl)}
@@ -2635,11 +2594,13 @@ export default function MessageList({
                                   download={msg.fileName || 'download'}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="relative flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl max-w-[70vw] sm:max-w-[18rem] shadow-sm hover:bg-gray-50"
+                                  className="relative flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl max-w-[70vw] sm:max-w-[18rem] shadow-sm hover:bg-gray-50 select-none lg:select-text"
                                   onClick={(e) => {
                                     if (isUploading) e.preventDefault();
                                   }}
                                   aria-disabled={isUploading ? true : undefined}
+                                  draggable={false}
+                                  style={{ WebkitTouchCallout: 'none' }}
                                 >
                                   <div className="p-2 bg-blue-600 rounded-xl">
                                     <HiOutlineDocumentText className="w-6 h-6 text-white" />

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { CiWavePulse1 } from 'react-icons/ci';
 import { HiChartBar, HiChevronRight } from 'react-icons/hi2';

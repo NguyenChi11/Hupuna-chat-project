@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Message } from '@/types/Message';
@@ -306,7 +308,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
           <select
             value={senderFilter}
             onChange={(e) => setSenderFilter(e.target.value)}
-            className=" cursor-pointer text-[1rem] border border-gray-300 rounded-lg px-2 py-1 text-sm cursor-pointer flex-1"
+            className=" cursor-pointer text-[1rem] border border-gray-300 rounded-lg px-2 py-1 text-sm flex-1"
           >
             <option value="">Tất cả</option>
             {senderOptions.map((opt) => (
@@ -341,7 +343,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
             >
               <IoReload className="w-5 h-5" />
             </button>
-            
           </div>
         </div>
       </div>

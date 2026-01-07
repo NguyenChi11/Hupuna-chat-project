@@ -14,11 +14,19 @@ export interface Message {
   fileUrl?: string;
   fileName?: string;
   previewUrl?: string;
+  videoCropConfig?: {
+    crop: { x: number; y: number };
+    zoom: number;
+    rotation: number;
+    croppedAreaPixels: { x: number; y: number; width: number; height: number } | null;
+    baseWidth?: number;
+    baseHeight?: number;
+  } | null;
   type: MessageType;
   timestamp: number;
   serverTimestamp?: number;
   pinnedAt?: number | null;
-  readBy?: string[];
+  readBy?: (string | number)[];
   isRecalled?: boolean;
   replyToMessageId?: string;
   replyToMessageName?: string;
@@ -63,6 +71,14 @@ export interface MessageCreate {
   fileUrl?: string;
   fileName?: string;
   previewUrl?: string;
+  videoCropConfig?: {
+    crop: { x: number; y: number };
+    zoom: number;
+    rotation: number;
+    croppedAreaPixels: { x: number; y: number; width: number; height: number } | null;
+    baseWidth?: number;
+    baseHeight?: number;
+  } | null;
   type: MessageType;
   timestamp: number;
   serverTimestamp?: number;

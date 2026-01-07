@@ -42,8 +42,7 @@ export default function ChatIframe() {
 
   useEffect(() => {
     if (!currentUser) return;
-    const total =
-      [...groups, ...allUsers].reduce((acc, c) => acc + (Number(c.unreadCount || 0) || 0), 0) || 0;
+    const total = [...groups, ...allUsers].reduce((acc, c) => acc + (Number(c.unreadCount || 0) || 0), 0) || 0;
     try {
       window.parent?.postMessage({ type: 'HUPUNA_WIDGET_NOTIFY_COUNT', count: total }, window.location.origin);
     } catch {}
@@ -151,6 +150,7 @@ export default function ChatIframe() {
             onScrollComplete={() => setScrollToMessageId(null)}
             onBackFromChat={() => setSelectedChat(null)}
             groups={groups}
+            socket={socketRef.current}
           />
         )}
       </div>
@@ -172,7 +172,7 @@ export default function ChatIframe() {
                       setSelectedChat(group);
                     } else {
                       const c = allUsers.find((u) => String(u._id) === String(incomingCallHome.from));
-                      if (c) setSelectedChat(c as unknown as typeof groups[number]);
+                      if (c) setSelectedChat(c as unknown as (typeof groups)[number]);
                     }
                     setIncomingCallHome(null);
                     stopGlobalRingTone();

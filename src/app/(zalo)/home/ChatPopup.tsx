@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -68,6 +70,7 @@ interface ChatWindowProps {
   setRoomSearchKeyword?: (keyword: string | null) => void;
   onBackFromChat?: () => void;
   groups: GroupConversation[];
+  socket?: Socket | null;
 }
 
 declare global {
@@ -127,6 +130,7 @@ export default function ChatWindow({
   setRoomSearchKeyword,
   onBackFromChat,
   groups,
+  socket,
 }: ChatWindowProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -178,7 +182,20 @@ export default function ChatWindow({
   const [oldestTs, setOldestTs] = useState<number | null>(null);
   const [initialLoading, setInitialLoading] = useState(false);
   const [attachments, setAttachments] = useState<
-    { file: File; type: 'image' | 'video' | 'file'; previewUrl: string; fileName?: string }[]
+    {
+      file: File;
+      type: 'image' | 'video' | 'file';
+      previewUrl: string;
+      fileName?: string;
+      videoCropConfig?: {
+        crop: { x: number; y: number };
+        zoom: number;
+        rotation: number;
+        croppedAreaPixels: { x: number; y: number; width: number; height: number } | null;
+        baseWidth?: number;
+        baseHeight?: number;
+      } | null;
+    }[]
   >([]);
   const reminderScheduledIdsRef = useRef<Set<string>>(new Set());
   const reminderTimersByIdRef = useRef<Map<string, number>>(new Map());
@@ -1872,6 +1889,53 @@ export default function ChatWindow({
 
   useEffect(() => {
     const handler = (e: Event) => {
+      const d = (e as CustomEvent).detail || {};
+      const type: 'image' | 'video' = d.type === 'video' ? 'video' : 'image';
+      const myId = String(currentUser._id);
+      const senderNick = allUsersMap.get(myId) || currentUser.name;
+      if (type === 'image' && typeof d.imageDataUrl === 'string') {
+        try {
+          const dataUrl: string = d.imageDataUrl;
+          const arr = dataUrl.split(',');
+          const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+          const bstr = atob(arr[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) u8arr[n] = bstr.charCodeAt(n);
+          const blob = new Blob([u8arr], { type: mime });
+          const file = new File([blob], 'edited.jpg', { type: mime });
+          const previewUrl = URL.createObjectURL(blob);
+          setAttachments((prev) => [...prev, { file, type: 'image', previewUrl, fileName: 'edited.jpg' }]);
+          dismissKeyboardAndScroll();
+        } catch {}
+      } else if (type === 'video' && typeof d.originalUrl === 'string') {
+        (async () => {
+          try {
+            const res = await fetch(getProxyUrl(d.originalUrl));
+            const blob = await res.blob();
+            const mime = blob.type || 'video/mp4';
+            const file = new File([blob], 'edited.mp4', { type: mime });
+            const previewUrl = URL.createObjectURL(blob);
+            setAttachments((prev) => [
+              ...prev,
+              {
+                file,
+                type: 'video',
+                previewUrl,
+                fileName: 'edited.mp4',
+                videoCropConfig: d.videoCropConfig || null,
+              },
+            ]);
+            dismissKeyboardAndScroll();
+          } catch {}
+        })();
+      }
+    };
+    window.addEventListener('sendEditedMedia', handler as EventListener);
+    return () => window.removeEventListener('sendEditedMedia', handler as EventListener);
+  }, [currentUser._id, allUsersMap, handleUploadAndSend, dismissKeyboardAndScroll]);
+  useEffect(() => {
+    const handler = (e: Event) => {
       const anyE = e as unknown as {
         detail?: { roomId?: string; userId?: string; targetUserId?: string; nickname?: string };
       };
@@ -2364,9 +2428,17 @@ export default function ChatWindow({
         socketRef.current?.off('room_nickname_updated');
         socketRef.current?.off('room_nicknames_state');
         socketRef.current?.off('reaction_updated');
+        socketRef.current?.off('messages_read');
+        socketRef.current?.off('edit_message');
+        socketRef.current?.off('message_recalled');
+        socketRef.current?.off('message_deleted');
       } catch {}
+      if (!socket) {
+        socketRef.current?.disconnect();
+      }
+      setSocketInstance(null);
     };
-  }, [roomId, currentUser._id, playMessageSound, showMessageNotification, fetchMessages, sendNotifyMessage]);
+  }, [roomId, currentUser._id, playMessageSound, showMessageNotification, fetchMessages, sendNotifyMessage, socket]);
 
   // Socket call events và ring tone được xử lý ở HomePage
 
@@ -2465,61 +2537,7 @@ export default function ChatWindow({
     syncLocalReadBy();
   }, [roomId, currentUser, markAsRead]);
 
-  useEffect(() => {
-    if (!roomId || !currentUser) return;
-    const myId = String(currentUser._id || '');
-    const lastMine = [...messagesRef.current]
-      .slice()
-      .reverse()
-      .find((m) => compareIds((m as Message).sender, myId) && !(m as Message).isRecalled);
-    if (!lastMine) return;
-    const alreadySeen =
-      Array.isArray((lastMine as Message).readBy) &&
-      ((lastMine as Message).readBy || []).some((id) => !compareIds(id, myId));
-    let attempts = 0;
-    let stopped = false;
-    if (alreadySeen && !isGroup) return;
-    const timerId = window.setInterval(async () => {
-      attempts++;
-      if (stopped || attempts > 30) {
-        clearInterval(timerId);
-        return;
-      }
-      try {
-        const res = await readMessagesApi(roomId, {
-          limit: 1,
-          sortOrder: 'desc',
-          extraFilters: { _id: String((lastMine as Message)._id) },
-        });
-        const arr = Array.isArray(res.data) ? (res.data as Message[]) : [];
-        const updated = arr[0];
-        if (updated && Array.isArray(updated.readBy)) {
-          const current = messagesRef.current.find((m) => String(m._id) === String(updated._id));
-          const oldSet = new Set((current?.readBy || []).map((x) => String(x)));
-          const newSet = new Set((updated.readBy || []).map((x) => String(x)));
-          const changed = oldSet.size !== newSet.size || [...newSet].some((x) => !oldSet.has(x));
-          if (changed) {
-            setMessages((prev) =>
-              prev.map((m) => (String(m._id) === String(updated._id) ? { ...m, readBy: updated.readBy } : m)),
-            );
-            if (!isGroup) {
-              const seenByOther = (updated.readBy || []).some((id) => !compareIds(id, myId));
-              if (seenByOther) {
-                stopped = true;
-                clearInterval(timerId);
-              }
-            }
-          }
-        }
-      } catch {}
-    }, 2500);
-    return () => {
-      stopped = true;
-      clearInterval(timerId);
-    };
-  }, [roomId, currentUser, messages, isGroup]);
-
-  // removed unread divider logic
+  // Removed polling for read status - using socket 'messages_read' instead
 
   // Đóng mention menu khi click bên ngoài
   useEffect(() => {
@@ -2565,7 +2583,6 @@ export default function ChatWindow({
     setTimeout(() => setShowEmojiPicker((prev) => !prev), 120);
   }, [editableRef, setShowEmojiPicker]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getSenderName = (sender: User | string): string => {
     const id = normalizeId(sender);
 
@@ -2668,7 +2685,16 @@ export default function ChatWindow({
       const senderNick = allUsersMap.get(myId) || currentUser.name;
       const batchId = `batch_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       currentAttachments.forEach((att) => {
-        handleUploadAndSend(att.file, att.type, undefined, replyingTo?._id, undefined, senderNick, batchId).then(() => {
+        handleUploadAndSend(
+          att.file,
+          att.type,
+          undefined,
+          replyingTo?._id,
+          undefined,
+          senderNick,
+          batchId,
+          att.videoCropConfig || null,
+        ).then(() => {
           try {
             URL.revokeObjectURL(att.previewUrl);
           } catch {}
@@ -3078,6 +3104,7 @@ export default function ChatWindow({
         throw error;
       }
     },
+
     [currentUser, groups, getSenderName],
   );
   useEffect(() => {
@@ -3363,7 +3390,7 @@ export default function ChatWindow({
           <button
             onClick={() => scrollToBottom(true)}
             aria-label="Cuộn xuống cuối"
-            className={`absolute cursor-pointer hover:bg-gray-100 md:bottom-35 bottom-45   right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 hover:bg-gray-50 transition-all ${
+            className={`absolute cursor-pointer hover:bg-gray-100 md:bottom-35 bottom-45   right-4 z-5 rounded-full bg-white border border-gray-200 shadow-lg p-3 transition-all ${
               showScrollDown ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
           >
@@ -3700,6 +3727,7 @@ export default function ChatWindow({
           isGroup={isGroup}
           roomId={roomId}
           onClose={() => setPreviewMedia(null)}
+          onShareMessage={handleShareMessage}
         />
 
         {/* UI cuộc gọi được hiển thị toàn cục ở HomePage */}

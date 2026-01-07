@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 // Group members section component
 import { HiOutlineArrowRight, HiUserGroup } from 'react-icons/hi';
@@ -10,11 +11,7 @@ interface GroupMembersSectionProps {
   onOpenMembers: () => void;
 }
 
-export default function GroupMembersSection({
-  isGroup,
-  membersCount,
-  onOpenMembers,
-}: GroupMembersSectionProps) {
+export default function GroupMembersSection({ isGroup, membersCount, onOpenMembers }: GroupMembersSectionProps) {
   if (!isGroup) return null;
 
   return (

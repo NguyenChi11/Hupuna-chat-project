@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { getProxyUrl } from '@/utils/utils';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
@@ -119,7 +121,6 @@ export default function UserAvatarSection({ userName, userAvatar, onUpdateNickna
             <h3 className="text-xl font-bold text-gray-900 tracking-tight truncate max-w-[15.625rem]">
               {userName || 'Người dùng'}
             </h3>
-            
           </div>
         )}
       </div>

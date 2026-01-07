@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Patrick_Hand, Be_Vietnam_Pro, Source_Sans_3 } from 'next/font/google';
 // import Script from 'next/script';
 import './globals.css';
+import 'react-advanced-cropper/dist/style.css';
 import { ToastProvider } from '../components/base/toast';
 import OneSignalScript from '@/components/OneSignalScript';
 
@@ -13,6 +14,29 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+const patrickHand = Patrick_Hand({
+  variable: '--font-patrick-hand',
+  weight: '400',
+  subsets: ['latin', 'vietnamese', 'latin-ext'],
+  display: 'swap',
+});
+
+const beVietnamPro = Be_Vietnam_Pro({
+  variable: '--font-be-vietnam-pro',
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
+  subsets: ['latin', 'vietnamese', 'latin-ext'],
+  display: 'swap',
+});
+
+const sourceSans3 = Source_Sans_3({
+  variable: '--font-source-sans-3',
+  weight: ['200', '300', '400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
+  subsets: ['latin', 'vietnamese', 'latin-ext'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -39,9 +63,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Tên App" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="robots" content="noindex, nofollow"/>
+        <meta name="robots" content="noindex, nofollow" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning={true}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${beVietnamPro.variable} ${patrickHand.variable} ${sourceSans3.variable} antialiased`}
+        suppressHydrationWarning={true}
+      >
         <ToastProvider>{children}</ToastProvider>
         <OneSignalScript />
         {/* <Script src="/chat-widget.js" strategy="afterInteractive" /> */}

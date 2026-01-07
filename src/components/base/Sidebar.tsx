@@ -1,4 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import ChatItem from './ChatItem';
@@ -30,7 +32,6 @@ import RoomSearchResultsModal from '@/components/(search)/RoomSearchResultsModal
 import ComingSoonModal from '@/components/modal/ComingSoonModal';
 import CategoryManagerModal from '@/components/modal/CategoryManagerModal';
 import TagManagerModal from '@/components/modal/TagManagerModal';
-import GlobalFolderModal from '@/components/modal/GlobalFolderModal';
 
 interface SidebarProps {
   currentUser: User;
@@ -103,40 +104,6 @@ export const parseMentions = (text: string): { mentions: string[]; displayText: 
   }
 
   return { mentions, displayText: text };
-};
-
-export const renderMessageWithMentions = (
-  content: string,
-  currentUserId: string,
-  isMe: boolean = false,
-): React.ReactNode => {
-  if (!content) return null;
-
-  const parts = content.split(/(@\[[^\]]+\]\([^)]+\))/g);
-
-  return parts.map((part, index) => {
-    const mentionMatch = part.match(/@\[([^\]]+)\]\(([^)]+)\)/);
-    if (mentionMatch) {
-      const [, displayName, userId] = mentionMatch;
-      const isMentioningMe = userId === currentUserId;
-
-      return (
-        <span
-          key={index}
-          className={`font-semibold px-1 rounded ${
-            isMentioningMe
-              ? 'bg-yellow-300 text-yellow-900'
-              : isMe
-                ? 'bg-blue-300 text-blue-900'
-                : 'bg-gray-300 text-gray-900'
-          }`}
-        >
-          @{displayName}
-        </span>
-      );
-    }
-    return <span key={index}>{part}</span>;
-  });
 };
 
 export default function Sidebar({
@@ -399,7 +366,7 @@ export default function Sidebar({
     }
   }, [searchTerm, globalSearchResults.contacts.length, globalSearchResults.messages.length, handleGlobalSearch]);
   const regularMessages = useMemo(() => globalSearchResults.messages, [globalSearchResults.messages]);
- 
+
   const fileMessages = useMemo(() => globalSearchResults.messages, [globalSearchResults.messages]);
 
   const groupedMessages = useMemo(() => {
@@ -680,7 +647,7 @@ export default function Sidebar({
           </div>
         </div>
         <div className="flex items-center justify-between px-4 bg-white border-b border-gray-200 select-none">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setFilterType('all')}
               className={`relative py-3 text-sm font-medium transition-colors cursor-pointer ${
@@ -711,7 +678,7 @@ export default function Sidebar({
             </button>
           </div>
 
-          <div className="flex justify-end items-center gap-3">
+          <div className="flex justify-end items-center gap-">
             <div className="relative" ref={tagFilterDropdownRef}>
               <button
                 onClick={() => setShowTagFilterDropdown(!showTagFilterDropdown)}
@@ -940,9 +907,6 @@ export default function Sidebar({
       {/* Fade Bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-100 to-transparent pointer-events-none" />
 
-      {showGlobalFolder && (
-        <GlobalFolderModal currentUserId={String(currentUserId)} onClose={() => setShowGlobalFolder(false)} />
-      )}
       {roomResultsModal && (
         <RoomSearchResultsModal
           isOpen={!!roomResultsModal}

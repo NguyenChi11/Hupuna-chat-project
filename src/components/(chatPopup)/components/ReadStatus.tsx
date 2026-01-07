@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import Image from 'next/image';
 import type { Message } from '@/types/Message';
@@ -64,7 +65,7 @@ export default function ReadStatus({
         className="flex mt-2 cursor-pointer"
         title={readers.length > 0 ? names.join(', ') : undefined}
         onClick={() => {
-           setOpen(true);
+          setOpen(true);
         }}
       >
         <div className="flex items-center justify-center gap-1">

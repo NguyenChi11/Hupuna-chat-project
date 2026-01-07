@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+
 import { HiX, HiChevronLeft, HiBan, HiTrash } from 'react-icons/hi';
 import ModalMembers from '@/components/base/ModalMembers';
 import { GroupConversation, MemberInfo, GroupRole } from '@/types/Group';
@@ -24,6 +26,7 @@ import io from 'socket.io-client';
 import { getProxyUrl, resolveSocketUrl } from '@/utils/utils';
 import GroupInviteLinkSection from '@/components/(chatPopup)/components/GroupInviteLinkSection';
 import PinnedMessagesSection from '@/components/(chatPopup)/components/PinnedMessagesSection';
+
 import { HiPencil } from 'react-icons/hi';
 import {
   CiBellOn,
@@ -39,6 +42,7 @@ import {
   CiNoWaitingSign,
 } from 'react-icons/ci';
 import Image from 'next/image';
+
 import ImageIconZalo from '@/components/svg/ICIconImageZalo';
 import { HiEyeSlash, HiChevronRight, HiPlay } from 'react-icons/hi2';
 import ICPin from '@/components/svg/ICPin';
@@ -173,7 +177,7 @@ export default function ChatInfoPopup({
       if (isGroup) setOpenMember(true);
       else setOpenMember(false);
     }
-  }, [initialSection]);
+  }, [initialSection, isGroup]);
 
   const {
     localIsPinned,
@@ -269,9 +273,11 @@ export default function ChatInfoPopup({
   const handleToggleMediaExpanded = useCallback(() => {
     void fetchAssets('media', !isMediaExpanded);
   }, [fetchAssets, isMediaExpanded]);
+
   const handleToggleFileExpanded = useCallback(() => {
     void fetchAssets('file', !isFileExpanded);
   }, [fetchAssets, isFileExpanded]);
+
   const handleToggleLinkExpanded = useCallback(() => {
     void fetchAssets('link', !isLinkExpanded);
   }, [fetchAssets, isLinkExpanded]);
@@ -344,7 +350,7 @@ export default function ChatInfoPopup({
         setIsGroupAvatarUploading(false);
       }
     },
-    [isGroup, selectedChat, currentUser._id, reLoad],
+    [isGroup, selectedChat, currentUser._id, currentUser.name, reLoad, sendNotifyMessage],
   );
 
   const handleRenameGroup = () => {
@@ -988,7 +994,7 @@ export default function ChatInfoPopup({
                   )}
                   {!isGroup && (
                     <button
-                    onClick={() => alert('Chức năng đang được hoàn thiện')}
+                      onClick={() => alert('Chức năng đang được hoàn thiện')}
                       // onClick={() => setShowAutoDeleteModal(true)}
                       className="cursor-pointer w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
                     >
@@ -1036,7 +1042,6 @@ export default function ChatInfoPopup({
                   )}
                 </div>
               </div>
-              {/* <ChatFlashSection isOpen={openItems['ChatFlash']} onToggle={() => toggleItem('ChatFlash')} /> */}
 
               {isGroup && (
                 <GroupDangerZone
@@ -1443,12 +1448,12 @@ export default function ChatInfoPopup({
                     {group.dateLabel && (
                       <div className="text-xs font-semibold text-gray-500 mb-2">{group.dateLabel}</div>
                     )}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                       {group.items.map((item) => (
                         <div
                           key={item.id}
                           className={`relative aspect-square rounded-xl cursor-pointer ${
-                            item.type === 'video' ? ' w-[8rem] h-[5rem] flex gap-2' : ''
+                            item.type === 'video' ? ' w-full h-full flex gap-2' : ''
                           }  group bg-gray-100 ${activeMenuId === item.id ? 'z-50' : 'z-0'}`}
                           onClick={() => {
                             const mediaType = item.type === 'video' ? 'video' : 'image';
