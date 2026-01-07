@@ -442,7 +442,7 @@ export default function ChatItem({
             <div className="flex items-center justify-between mb-1">
               <h4
                 className={`
-                 text-[1.25rem] md:text-[1.125rem] font-medium truncate max-w-[11rem]
+                 text-[1.125rem] md:text-[1.125rem] font-medium truncate max-w-[11rem]
                   ${unreadCount > 0 ? 'text-gray-900' : 'text-gray-500'}
                 `}
               >
@@ -457,7 +457,7 @@ export default function ChatItem({
             <div className="flex items-center justify-between">
               <p
                 className={`
-                  text-[1rem] md:text-[1rem] truncate max-w-[14rem]
+                  text-[0.875rem] md:text-[1rem] truncate max-w-[14rem]
                   ${unreadCount > 0 ? 'font-semibold text-gray-800' : 'text-gray-600'}
                 `}
               >
