@@ -20,6 +20,7 @@ type Props = {
   serverUrl: string;
   token: string;
   onDisconnected?: () => void;
+  onRequestEnd?: () => void;
   className?: string;
   titleName?: string;
   callStartAt?: number | null;
@@ -175,6 +176,7 @@ export default function LiveKitCall({
   serverUrl,
   token,
   onDisconnected,
+  onRequestEnd,
   className,
   titleName,
   callStartAt,
@@ -261,11 +263,13 @@ export default function LiveKitCall({
           {/* Mobile top actions */}
           <div className="absolute top-3 left-3 md:hidden">
             <button
-              className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition"
-              onClick={() => {
+              className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-50"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 try {
-                  const evt = new CustomEvent('hideCallOverlay');
-                  window.dispatchEvent(evt);
+                  window.dispatchEvent(new CustomEvent('minimizeCallOverlay'));
+                  window.dispatchEvent(new CustomEvent('hideCallOverlay'));
                 } catch {}
               }}
               title="Quay lại"
@@ -292,11 +296,15 @@ export default function LiveKitCall({
                 source={Track.Source.Camera}
                 className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
               />
-              <DisconnectButton
+              <button
                 className="cursor-pointer p-2 rounded-full bg-red-600 hover:bg-red-700 transition text-white"
+                onClick={() => {
+                  if (onRequestEnd) onRequestEnd();
+                }}
+                title="Kết thúc"
               >
                 <CiPhone className="w-5 h-5" />
-              </DisconnectButton>
+              </button>
               <TrackToggle
                 source={Track.Source.Microphone}
                 className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
@@ -327,11 +335,15 @@ export default function LiveKitCall({
               <span className="text-white text-xs">Mic</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <DisconnectButton
+              <button
                 className="w-12 h-12 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition"
+                onClick={() => {
+                  if (onRequestEnd) onRequestEnd();
+                }}
+                title="Kết thúc"
               >
                 <CiPhone className="w-6 h-6" />
-              </DisconnectButton>
+              </button>
               <span className="text-white text-xs">Kết thúc</span>
             </div>
             <div className="flex flex-col items-center gap-2">

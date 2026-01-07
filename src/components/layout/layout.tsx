@@ -417,9 +417,16 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [globalCallMin, setGlobalCallMin] = useState<boolean>(false);
   const globalPrevSizeRef = React.useRef<{ w: number } | null>(null);
   const [globalCallHidden, setGlobalCallHidden] = useState<boolean>(false);
+  const [globalIsDesktop, setGlobalIsDesktop] = useState<boolean>(false);
   const [remoteName, setRemoteName] = useState<string>('');
   const [remoteAvatar, setRemoteAvatar] = useState<string | undefined>(undefined);
   const [callDurationSec, setCallDurationSec] = useState<number>(0);
+  useEffect(() => {
+    const apply = () => setGlobalIsDesktop(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+    apply();
+    window.addEventListener('resize', apply);
+    return () => window.removeEventListener('resize', apply);
+  }, []);
   const [openBtnPos, setOpenBtnPos] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
   const openBtnRef = useRef<HTMLDivElement | null>(null);
   const openBtnDraggingRef = useRef<boolean>(false);
@@ -490,8 +497,18 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       setGlobalCallMin(true);
     };
     window.addEventListener('minimizeCallOverlay', minimize as EventListener);
-    return () => window.removeEventListener('minimizeCallOverlay', minimize as EventListener);
+    return () => {
+      window.removeEventListener('minimizeCallOverlay', minimize as EventListener);
+    };
   }, [globalCallSize.w]);
+  React.useEffect(() => {
+    const hide = () => {
+      setGlobalCallMin(false);
+      setGlobalCallHidden(true);
+    };
+    window.addEventListener('hideCallOverlay', hide as EventListener);
+    return () => window.removeEventListener('hideCallOverlay', hide as EventListener);
+  }, []);
   const handleGlobalDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     const state = { startX: e.clientX, startY: e.clientY, originX: globalCallPos.x, originY: globalCallPos.y };
     const onMove = (ev: MouseEvent) => {
@@ -620,12 +637,17 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       const parts = rid.split('_').filter(Boolean);
       const isOneToOneRoom = parts.length === 2;
       if (status === 'ended') {
-        const lastMap = (sendCallNotify as unknown as { endedSent?: Map<string, number> }).endedSent;
-        const map = lastMap || new Map<string, number>();
-        (sendCallNotify as unknown as { endedSent?: Map<string, number> }).endedSent = map;
-        const last = map.get(rid) || 0;
-        if (Date.now() - last < 30000) return;
-        map.set(rid, Date.now());
+        const keyStart =
+          typeof lastCallStartAtRef.current === 'number' && lastCallStartAtRef.current > 0
+            ? String(lastCallStartAtRef.current)
+            : typeof callStartAt === 'number' && callStartAt > 0
+              ? String(callStartAt)
+              : 'unknown';
+        const key = `${rid}:${keyStart}`;
+        const bag = (sendCallNotify as unknown as { endedSentBag?: Set<string> }).endedSentBag || new Set<string>();
+        (sendCallNotify as unknown as { endedSentBag?: Set<string> }).endedSentBag = bag;
+        if (bag.has(key)) return;
+        bag.add(key);
       }
       const computedDurationSec =
         status === 'ended'
@@ -703,7 +725,6 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const handler = (e: Event) => {
       try {
-        if (pathname === '/' || pathname === '/home' || pathname?.startsWith('/chat')) return;
         const d = (e as CustomEvent).detail || {};
         const t = d?.type === 'video' ? 'video' : 'voice';
         const rid = String(d?.roomId || '');
@@ -736,12 +757,17 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
 
   const outgoingRef = React.useRef<boolean>(false);
   const prevCallActiveRef = React.useRef<boolean>(false);
+  const endedSentRef = React.useRef<boolean>(false);
   useEffect(() => {
     const prev = prevCallActiveRef.current;
-    if (prev && !callActive) {
+    if (prev && !callActive && !endedSentRef.current && outgoingRef.current) {
+      endedSentRef.current = true;
       void sendCallNotify('ended');
     }
     prevCallActiveRef.current = callActive;
+    if (callActive) {
+      endedSentRef.current = false;
+    }
   }, [callActive]);
   // Bỏ lưu trạng thái call theo room trong localStorage cho 1-1
 
@@ -818,17 +844,27 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         {children}
       </main>
 
-      {/* Global Call Overlay outside chat pages */}
-      {isAuthed &&
-        checked &&
-        currentUser &&
-        !(pathname === '/' || pathname === '/home' || pathname?.startsWith('/chat')) && (
+      {/* Global Call Overlay – áp dụng mọi page */}
+      {isAuthed && checked && currentUser && (
           <>
             {(incomingCall || callConnecting || callActive) && (
               <div
-                className="fixed  z-[2000] "
+                className={`fixed z-[2000] ${globalIsDesktop ? '' : globalCallMin ? '' : 'inset-0 w-full h-full'}`}
+                style={
+                  globalIsDesktop
+                    ? { left: globalCallPos.x, top: globalCallPos.y, width: globalCallSize.w, display: globalCallHidden ? 'none' : 'block' }
+                    : globalCallMin
+                    ? {
+                        left: globalCallPos.x,
+                        top: globalCallPos.y,
+                        width: globalCallSize.w,
+                        height: callType === 'video' ? 180 : 200,
+                        display: globalCallHidden ? 'none' : 'block',
+                      }
+                    : { display: globalCallHidden ? 'none' : 'block' }
+                }
                 onClick={
-                  globalCallMin
+                  !globalIsDesktop && globalCallMin
                     ? () => {
                         const prev = globalPrevSizeRef.current;
                         if (prev) setGlobalCallSize(prev);
@@ -836,18 +872,11 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                       }
                     : undefined
                 }
-                onMouseDown={!globalCallMin ? undefined : handleGlobalDragStart}
-                onTouchStart={!globalCallMin ? undefined : handleGlobalTouchDragStart}
+                onMouseDown={!globalIsDesktop && globalCallMin ? handleGlobalDragStart : undefined}
+                onTouchStart={!globalIsDesktop && globalCallMin ? handleGlobalTouchDragStart : undefined}
               >
                 <div
-                  className={`absolute md:rounded-xl rounded-none ${globalCallMin ? '' : 'w-full md:max-w-[90vw]'} p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur`}
-                  style={{
-                    left: globalCallPos.x,
-                    top: globalCallPos.y,
-                    width: globalCallSize.w,
-                    height: globalCallMin ? (callType === 'video' ? 180 : 200) : undefined,
-                    display: globalCallHidden ? 'none' : 'block',
-                  }}
+                  className={`absolute ${globalCallMin ? '' : globalIsDesktop ? 'w-full md:max-w-[90vw]' : 'inset-0 w-full h-full'} md:rounded-xl rounded-none p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur`}
                 >
                   <div
                     className="md:cursor-move md:flex hidden items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
@@ -875,7 +904,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                       </button>
                     </span>
                   </div>
-                  <div className={`${globalCallMin ? 'rounded-lg overflow-hidden bg-black' : 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20'}`}>
+                  <div className={`${globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : 'rounded-none p-0 h-full bg-black'}`}>
                     {incomingCall && !callActive && !callConnecting && (
                       <IncomingCallModal
                         avatar={remoteAvatar || '/logo/avata.webp'}
@@ -910,10 +939,11 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                       <LiveKitCall
                         serverUrl={livekitUrl}
                         token={livekitToken}
-                        onDisconnected={() => {
+                        onDisconnected={() => {}}
+                        onRequestEnd={() => {
                           endCall('local');
                         }}
-                        className={`${globalCallMin ? '' : 'rounded-lg overflow-hidden'}`}
+                        className={`${globalCallMin ? '' : globalIsDesktop ? 'rounded-lg overflow-hidden' : 'rounded-none overflow-hidden h-full'}`}
                         titleName={remoteName || ''}
                         callStartAt={callStartAt}
                         avatarUrl={remoteAvatar || '/logo/avata.webp'}

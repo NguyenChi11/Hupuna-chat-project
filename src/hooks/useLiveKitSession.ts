@@ -47,6 +47,21 @@ export function useLiveKitSession({
     callConnectingRef.current = callConnecting;
   }, [callConnecting]);
   useEffect(() => {
+    const ensureUserJoin = async () => {
+      try {
+        if (!currentUserId) return;
+        if (!socketRef.current || !socketRef.current.connected) {
+          socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+          await new Promise<void>((resolve) => {
+            socketRef.current!.on('connect', () => resolve());
+          });
+        }
+        socketRef.current!.emit('join_user', { userId: String(currentUserId) });
+      } catch {}
+    };
+    void ensureUserJoin();
+  }, [currentUserId]);
+  useEffect(() => {
     setActiveRoomId(roomId);
   }, [roomId]);
   useEffect(() => {
