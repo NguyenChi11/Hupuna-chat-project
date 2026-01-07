@@ -77,7 +77,7 @@ io.on('connection', (socket) => {
     const rc = roomCalls.get(roomId) || { type: 'voice', participants: new Set(), active: false, startAt: null };
     rc.participants.delete(userId);
     if (rc.participants.size === 0) {
-      io.in(roomId).emit('call_end', { roomId });
+      io.in(roomId).emit('call_end', { roomId, from: userId });
       rc.active = false;
       rc.startAt = null;
       roomCalls.set(roomId, rc);
@@ -463,7 +463,7 @@ io.on('connection', (socket) => {
           rc.startAt = null;
         } else {
           if (rc.participants.size === 0) {
-            io.in(roomId).emit('call_end', { roomId });
+            io.in(roomId).emit('call_end', { roomId, from: connectedUserId });
             rc.active = false;
             rc.startAt = null;
           } else {
@@ -613,8 +613,8 @@ io.on('connection', (socket) => {
       });
     } else {
       if (rc.participants.size === 0) {
-        io.in(roomId).emit('call_end', { roomId });
-        targets.forEach((t) => io.to(String(t)).emit('call_end', { roomId }));
+        io.in(roomId).emit('call_end', { roomId, from: fromId });
+        targets.forEach((t) => io.to(String(t)).emit('call_end', { roomId, from: fromId }));
         rc.active = false;
         rc.startAt = null;
         roomCalls.set(roomId, rc);

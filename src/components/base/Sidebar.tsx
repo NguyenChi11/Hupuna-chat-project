@@ -189,6 +189,7 @@ export default function Sidebar({
   const [userCategoryTags, setUserCategoryTags] = useState<{ id: string; label: string; color: string }[]>(
     currentUser?.categoryTags || [],
   );
+  const [activeCallRooms, setActiveCallRooms] = useState<string[]>([]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -204,6 +205,22 @@ export default function Sidebar({
   useEffect(() => {
     setUserCategoryTags(currentUser?.categoryTags || []);
   }, [currentUser]);
+  useEffect(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('ACTIVE_GROUP_CALL_ROOMS') : null;
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) setActiveCallRooms(arr.filter((x: unknown) => typeof x === 'string'));
+      }
+    } catch {}
+    const handler = (e: Event) => {
+      const d = (e as unknown as { detail?: { rooms?: string[] } }).detail;
+      const rooms = Array.isArray(d?.rooms) ? d!.rooms!.filter((x) => typeof x === 'string') : [];
+      setActiveCallRooms(rooms);
+    };
+    window.addEventListener('activeGroupCallsUpdated', handler as EventListener);
+    return () => window.removeEventListener('activeGroupCallsUpdated', handler as EventListener);
+  }, []);
   useEffect(() => {
     async function loadUserData() {
       if (!currentUserId) return;
@@ -928,6 +945,7 @@ export default function Sidebar({
                       categoryTags={userCategoryTags}
                       userTags={userTags}
                       onOpenTagManager={() => setShowTagManager(true)}
+                      activeCallRooms={activeCallRooms}
                     />
                   );
                 })}

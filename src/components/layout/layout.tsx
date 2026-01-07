@@ -217,7 +217,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     const s = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
     socketRef.current = s;
     s.emit('join_user', { userId: String(currentUser._id) });
-    (async () => {
+    const joinAllGroups = async () => {
       try {
         const res = await fetch('/api/groups', {
           method: 'POST',
@@ -232,10 +232,15 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           const members = (Array.isArray(g.members) ? g.members : []) as Array<{ _id: string } | string>;
           m.set(gid, members);
           groupInfoRef.current.set(gid, { name: g.name, avatar: g.avatar });
+          s.emit('join_room', gid);
         });
         groupMembersRef.current = m;
       } catch {}
-    })();
+    };
+    void joinAllGroups();
+    s.on('connect', () => {
+      void joinAllGroups();
+    });
     s.on(
       'update_sidebar',
       (data: {
@@ -284,8 +289,111 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
             newMsgBannerTimerRef.current = null;
           }, 5000);
         }
+        if (data.type === 'notify' && typeof data.content === 'string') {
+          const rid = String(data.roomId || '');
+          if (rid && data.content.toLowerCase().includes('cuộc gọi nhóm đã kết thúc')) {
+            const prev = new Map(activeGroupCallRooms);
+            if (prev.has(rid)) {
+              prev.set(rid, { active: false, type: prev.get(rid)?.type || null, participants: [], startAt: null });
+              setActiveGroupCallRooms(prev);
+              const activeRooms = Array.from(prev.entries())
+                .filter(([, v]) => v.active)
+                .map(([k]) => k);
+              try {
+                localStorage.setItem('ACTIVE_GROUP_CALL_ROOMS', JSON.stringify(activeRooms));
+              } catch {}
+              const ev2 = new CustomEvent('activeGroupCallsUpdated', { detail: { rooms: activeRooms } });
+              window.dispatchEvent(ev2 as unknown as Event);
+            }
+          }
+        }
       },
     );
+
+    s.on('call_state', (payload: { roomId: string; type: string; participants: string[]; active: boolean; startAt?: number | null }) => {
+      try {
+        const rid = String(payload.roomId || '');
+        if (!rid) return;
+        const prev = new Map(activeGroupCallRooms);
+        prev.set(rid, {
+          active: !!payload.active,
+          type: payload.type || null,
+          participants: Array.isArray(payload.participants) ? payload.participants.map((x) => String(x)) : [],
+          startAt: typeof payload.startAt === 'number' ? payload.startAt : null,
+        });
+        setActiveGroupCallRooms(prev);
+        const activeRooms = Array.from(prev.entries())
+          .filter(([, v]) => v.active)
+          .map(([k]) => k);
+        try {
+          localStorage.setItem('ACTIVE_GROUP_CALL_ROOMS', JSON.stringify(activeRooms));
+        } catch {}
+        const ev = new CustomEvent('activeGroupCallsUpdated', { detail: { rooms: activeRooms } });
+        window.dispatchEvent(ev as unknown as Event);
+      } catch {}
+    });
+    s.on('call_end', (payload: { roomId: string; from?: string }) => {
+      try {
+        const rid = String(payload.roomId || '');
+        if (!rid) return;
+        const prevEntry =
+          activeGroupCallRooms.get(rid) || { active: false, type: null, participants: [], startAt: null };
+        const wasActive = !!prevEntry.active;
+        const prevParticipants = Array.isArray(prevEntry.participants) ? prevEntry.participants : [];
+        const isGroupRoom = rid.split('_').filter(Boolean).length !== 2;
+        const prev = new Map(activeGroupCallRooms);
+        prev.set(rid, {
+          active: false,
+          type: (prev.get(rid)?.type as string) || null,
+          participants: [],
+          startAt: null,
+        });
+        setActiveGroupCallRooms(prev);
+        const activeRooms = Array.from(prev.entries())
+          .filter(([, v]) => v.active)
+          .map(([k]) => k);
+        try {
+          localStorage.setItem('ACTIVE_GROUP_CALL_ROOMS', JSON.stringify(activeRooms));
+        } catch {}
+        const ev = new CustomEvent('activeGroupCallsUpdated', { detail: { rooms: activeRooms } });
+        window.dispatchEvent(ev as unknown as Event);
+        const senderId = String(payload?.from || '');
+        const amLast =
+          isGroupRoom &&
+          wasActive &&
+          prevParticipants.length <= 1 &&
+          prevParticipants.includes(String(currentUser?._id || '')) &&
+          senderId &&
+          String(currentUser?._id || '') === senderId;
+        if (amLast) {
+          const members = groupMembersRef.current.get(rid) || [];
+          socketRef.current?.emit('send_message', {
+            roomId: rid,
+            sender: String(currentUser?._id || ''),
+            senderName: String(currentUser?.name || 'Hệ thống'),
+            isGroup: true,
+            members,
+            type: 'notify',
+            content: 'Cuộc gọi nhóm đã kết thúc',
+          });
+        }
+      } catch {}
+    });
+    (async () => {
+      try {
+        const res = await fetch('/api/groups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'readGroups', _id: String(currentUser?._id || '') }),
+        });
+        const j = await res.json();
+        const arr = (j?.data || []) as GroupConversation[];
+        arr.forEach((g) => {
+          const gid = String(g._id);
+          s.emit('join_room', gid);
+        });
+      } catch {}
+    })();
 
     s.on('call_notify', async () => {});
     return () => {
@@ -460,6 +568,10 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [remoteName, setRemoteName] = useState<string>('');
   const [remoteAvatar, setRemoteAvatar] = useState<string | undefined>(undefined);
   const [callDurationSec, setCallDurationSec] = useState<number>(0);
+  const [activeGroupCallRooms, setActiveGroupCallRooms] = useState<Map<
+    string,
+    { active: boolean; type: string | null; participants: string[]; startAt: number | null }
+  >>(new Map());
   useEffect(() => {
     const apply = () => setGlobalIsDesktop(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
     apply();
@@ -548,6 +660,18 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     window.addEventListener('hideCallOverlay', hide as EventListener);
     return () => window.removeEventListener('hideCallOverlay', hide as EventListener);
   }, []);
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      const d = (e as unknown as { detail?: { roomId?: string } }).detail;
+      const rid = String(d?.roomId || '');
+      if (!rid) return;
+      setGlobalRoomId(rid);
+      setGlobalIsGroup(true);
+      void joinActiveGroupCall();
+    };
+    window.addEventListener('joinActiveGroupCallRequest', handler as EventListener);
+    return () => window.removeEventListener('joinActiveGroupCallRequest', handler as EventListener);
+  }, [joinActiveGroupCall]);
   const handleGlobalDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     const state = { startX: e.clientX, startY: e.clientY, originX: globalCallPos.x, originY: globalCallPos.y };
     const onMove = (ev: MouseEvent) => {
