@@ -557,33 +557,10 @@ export default function ChatInput({
       const target = e.target as Node | null;
       if (mobileActionsRef.current && target && mobileActionsRef.current.contains(target)) return;
       if (toggleMobileActionsBtnRef.current && target && toggleMobileActionsBtnRef.current.contains(target)) return;
-      if (editableRef.current && target && editableRef.current.contains(target)) return;
-      const el = editableRef.current;
       setShowMobileActions(false);
       try {
         window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
       } catch {}
-      if (el) {
-        try {
-          el.focus();
-          const range = document.createRange();
-          range.selectNodeContents(el);
-          range.collapse(false);
-          const sel = window.getSelection();
-          sel?.removeAllRanges();
-          sel?.addRange(range);
-        } catch {}
-        setTimeout(() => {
-          try {
-            el.focus();
-          } catch {}
-        }, 80);
-        setTimeout(() => {
-          try {
-            el.focus();
-          } catch {}
-        }, 160);
-      }
     };
     document.addEventListener('mousedown', onDoc, true);
     document.addEventListener('touchstart', onDoc, true);
