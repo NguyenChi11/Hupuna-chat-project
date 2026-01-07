@@ -14,7 +14,7 @@ import { Track } from 'livekit-client';
 import { CiPhone } from 'react-icons/ci';
 import Image from 'next/image';
 import type { TrackReference, TrackReferenceOrPlaceholder } from '@livekit/components-core';
-import { HiEye, HiEyeSlash } from 'react-icons/hi2';
+import { HiEye, HiEyeSlash, HiChevronLeft, HiChevronRight, HiCamera, HiFaceSmile, HiHeart } from 'react-icons/hi2';
 
 type Props = {
   serverUrl: string;
@@ -22,7 +22,7 @@ type Props = {
   onDisconnected?: () => void;
   className?: string;
   titleName?: string;
-  durationSec?: number;
+  callStartAt?: number | null;
   avatarUrl?: string;
   myName?: string;
   myAvatarUrl?: string;
@@ -36,11 +36,13 @@ function CustomTrackTile({
   title,
   avatarUrl,
   offMinHeight,
+  cover,
 }: {
   trackRef: TrackReferenceOrPlaceholder;
   title?: string | null;
   avatarUrl?: string;
   offMinHeight?: number;
+  cover?: boolean;
 }) {
   const isMuted = useIsMuted(trackRef);
   const [portrait, setPortrait] = React.useState<boolean>(false);
@@ -60,7 +62,7 @@ function CustomTrackTile({
       {!isMuted && (trackRef as TrackReference)?.publication ? (
         <VideoTrack
           trackRef={trackRef as TrackReference}
-          className={portrait ? 'w-full h-full object-contain' : 'w-full h-full object-cover'}
+          className={(cover || !portrait) ? 'w-full h-full object-cover' : 'w-full h-full object-contain'}
           onLoadedMetadata={handleMeta}
           muted
           playsInline
@@ -69,7 +71,6 @@ function CustomTrackTile({
       ) : (
         <div
           className="w-full h-full flex items-center justify-center bg-black"
-          style={{ minHeight: offMinHeight ?? 240 }}
         >
           {avatarUrl ? (
             <Image
@@ -77,10 +78,10 @@ function CustomTrackTile({
               alt={title || 'avatar'}
               width={240}
               height={240}
-              className="w-24 h-24 rounded-full object-cover"
+              className="w-14 h-14 rounded-full object-cover"
             />
           ) : (
-            <div className="w-24 h-24 rounded-full bg-white/10" />
+            <div className="w-14 h-14 rounded-full bg-white/10" />
           )}
         </div>
       )}
@@ -109,30 +110,60 @@ function CallTiles({
   const localTrack = cameraTracks.find((t) => t.participant?.isLocal);
   const cols = remoteTracks.length <= 1 ? 1 : remoteTracks.length === 2 ? 2 : remoteTracks.length <= 4 ? 2 : remoteTracks.length <= 9 ? 3 : 4;
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-lg bg-black" style={{ minHeight: offMinHeight ?? 240 }}>
-      {remoteTracks.length > 0 ? (
-        <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-          {remoteTracks.map((tr, i) => (
-            <div key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`} className="relative">
-              <CustomTrackTile trackRef={tr} offMinHeight={offMinHeight} />
-            </div>
-          ))}
-        </div>
-      ) : localTrack ? (
-        <div className="w-full h-full">
-          <CustomTrackTile trackRef={localTrack} title={myName} avatarUrl={myAvatarUrl} offMinHeight={offMinHeight} />
-        </div>
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="text-white/80 text-sm">Đang chờ đối phương bật camera...</div>
-        </div>
-      )}
+    <div className="relative w-full h-full overflow-hidden bg-black" style={{ minHeight: offMinHeight ?? 240 }}>
+      <div className="md:block hidden rounded-lg w-full h-full">
+        {remoteTracks.length > 0 ? (
+          <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+            {remoteTracks.map((tr, i) => (
+              <div key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`} className="relative">
+                <CustomTrackTile trackRef={tr} offMinHeight={offMinHeight} />
+              </div>
+            ))}
+          </div>
+        ) : localTrack ? (
+          <div className="w-full h-full">
+            <CustomTrackTile trackRef={localTrack} title={myName} avatarUrl={myAvatarUrl} offMinHeight={offMinHeight} />
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="text-white/80 text-sm">Đang chờ đối phương bật camera...</div>
+          </div>
+        )}
+      </div>
+      <div className="md:hidden block w-full h-[85vh] flex items-center justify-center">
+        {remoteTracks.length > 0 ? (
+          (() => {
+            const preferred =
+              remoteTracks.find((t) => {
+                const nm =
+                  (t as unknown as { participant?: { name?: string; identity?: string } })?.participant?.name ||
+                  (t as unknown as { participant?: { identity?: string } })?.participant?.identity ||
+                  '';
+                return titleName ? String(nm).trim() === String(titleName).trim() : false;
+              }) || remoteTracks[0];
+            return (
+              <div className="w-full">
+                <CustomTrackTile trackRef={preferred} offMinHeight={offMinHeight} cover />
+              </div>
+            );
+          })()
+        ) : localTrack ? (
+          <div className="w-full h-[85vh] mt-4">
+            <CustomTrackTile trackRef={localTrack} title={myName} avatarUrl={myAvatarUrl} offMinHeight={offMinHeight} cover />
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="text-white/80 text-sm">Đang chờ đối phương bật camera...</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-function formatTime(sec?: number) {
-  const s = Math.max(0, Math.floor(sec || 0));
+function formatTime(startAt?: number | null) {
+  if (!startAt) return '00:00';
+  const s = Math.max(0, Math.floor((Date.now() - startAt) / 1000));
   const m = Math.floor(s / 60)
     .toString()
     .padStart(2, '0');
@@ -146,7 +177,7 @@ export default function LiveKitCall({
   onDisconnected,
   className,
   titleName,
-  durationSec,
+  callStartAt,
   avatarUrl,
   myName,
   myAvatarUrl,
@@ -156,6 +187,7 @@ export default function LiveKitCall({
 }: Props) {
   const [showLocalPreview, setShowLocalPreview] = React.useState(true);
   const [showControls, setShowControls] = React.useState(false);
+  const [tick, setTick] = React.useState(0);
   const initialPreview = React.useMemo(() => {
     return { w: localPreviewSize?.w ?? 80, h: localPreviewSize?.h ?? 50 };
   }, [localPreviewSize]);
@@ -163,16 +195,25 @@ export default function LiveKitCall({
   const toggleControls = () => {
     setShowControls((prev) => !prev);
   };
+  React.useEffect(() => {
+    if (!callStartAt) {
+      setTick(0);
+      return;
+    }
+    setTick(0);
+    const id = window.setInterval(() => setTick((x) => x + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [callStartAt]);
 
-  function ParticipantsCounter() {
-    const tracks = useTracks([Track.Source.Camera]);
-    const count = tracks.filter((t) => !t.participant?.isLocal).length;
-    return (
-      <div className="absolute top-3 right-3 text-xs font-semibold bg-white/20 text-white px-2 py-1 rounded">
-        {count} người
-      </div>
-    );
-  }
+  // function ParticipantsCounter() {
+  //   const tracks = useTracks([Track.Source.Camera]);
+  //   const count = tracks.filter((t) => !t.participant?.isLocal).length;
+  //   return (
+  //     <div className="absolute top-3 right-3 text-xs font-semibold bg-white/20 text-white px-2 py-1 rounded">
+  //       {count} người
+  //     </div>
+  //   );
+  // }
   function ParticipantsWatcher({ onChanged }: { onChanged?: (parts: Array<{ id: string; name?: string }>) => void }) {
     const tracks = useTracks([Track.Source.Camera]);
     const parts = React.useMemo(() => {
@@ -206,13 +247,34 @@ export default function LiveKitCall({
     <div className={className ? className : ''}>
       <LiveKitRoom serverUrl={serverUrl} token={token} connect video={true} audio={true} onDisconnected={onDisconnected}>
         <RoomAudioRenderer />
-        <div className="relative w-full h-full" onClick={toggleControls}>
+        <div className="relative w-full h-full group" onClick={toggleControls}>
           <CallTiles titleName={titleName} avatarUrl={avatarUrl} offMinHeight={offMinHeight} myName={myName} myAvatarUrl={myAvatarUrl} />
           
-          <div className="absolute top-3 left-3 text-xs font-semibold bg-green-600 text-white px-2 py-1 rounded">
-            {formatTime(durationSec)}
+          {/* Timer */}
+          <div className="absolute md:block hidden top-3 left-3 text-xs font-semibold bg-green-600 text-white px-2 py-1 rounded">{formatTime(callStartAt)}</div>
+          <div className="absolute md:hidden block top-3 left-1/2 -translate-x-1/2 text-xs font-semibold  text-white px-2 py-1 rounded">
+            
+            <p className='text-green-500 text-[1rem]'>
+            {formatTime(callStartAt)}
+            </p>
           </div>
-          <ParticipantsCounter />
+          {/* Mobile top actions */}
+          <div className="absolute top-3 left-3 md:hidden">
+            <button
+              className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition"
+              onClick={() => {
+                try {
+                  const evt = new CustomEvent('hideCallOverlay');
+                  window.dispatchEvent(evt);
+                } catch {}
+              }}
+              title="Quay lại"
+            >
+              <HiChevronLeft className="w-5 h-5" />
+            </button>
+          </div>
+          
+          {/* <ParticipantsCounter /> */}
           <ParticipantsWatcher onChanged={onParticipantsChanged} />
           
           {/* Local preview (toggleable) */}
@@ -220,8 +282,8 @@ export default function LiveKitCall({
             <LocalPreview myName={myName} myAvatarUrl={myAvatarUrl} size={initialPreview} />
           )}
 
-          <div className="absolute left-0 right-0 bottom-4 flex justify-center group">
-            <div className={`flex items-center gap-3 bg-black/40 text-white px-4 py-2 rounded-full backdrop-blur-md transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}>
+          <div className="absolute left-0 right-0 bottom-4 md:flex hidden justify-center">
+            <div className="flex items-center gap-3 bg-black/40 text-white px-4 py-2 rounded-full backdrop-blur-md transition-opacity duration-300 opacity-0 group-hover:opacity-100">
               <TrackToggle
                 source={Track.Source.ScreenShare}
                 className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
@@ -231,7 +293,6 @@ export default function LiveKitCall({
                 className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
               />
               <DisconnectButton
-                stopTracks
                 className="cursor-pointer p-2 rounded-full bg-red-600 hover:bg-red-700 transition text-white"
               >
                 <CiPhone className="w-5 h-5" />
@@ -249,6 +310,44 @@ export default function LiveKitCall({
               </button>
             </div>
           </div>
+          {/* Mobile controls – ẩn mặc định, hiện khi chạm */}
+          <div className={`fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-6 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="flex flex-col items-center gap-2">
+              <TrackToggle
+                source={Track.Source.Camera}
+                className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+              />
+              <span className="text-white text-xs">Camera</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <TrackToggle
+                source={Track.Source.Microphone}
+                 className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+              />
+              <span className="text-white text-xs">Mic</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <DisconnectButton
+                className="w-12 h-12 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition"
+              >
+                <CiPhone className="w-6 h-6" />
+              </DisconnectButton>
+              <span className="text-white text-xs">Kết thúc</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <button
+                className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                onClick={() => setShowLocalPreview((v) => !v)}
+                title={showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi'}
+              >
+                {showLocalPreview ? <HiEyeSlash className="w-6 h-6" /> : <HiEye className="w-6 h-6" />}
+              </button>
+              <span className="text-white text-xs">{showLocalPreview ? 'Ẩn cam tôi' : 'Hiện cam tôi'}</span>
+            </div>
+          
+          </div>
+          {/* Mobile right-side quick actions */}
+          
         </div>
       </LiveKitRoom>
     </div>
@@ -266,10 +365,72 @@ function LocalPreview({
 }) {
   const cameraTracks = useTracks([Track.Source.Camera]);
   const localTrack = cameraTracks.find((t) => t.participant?.isLocal);
+  const [isDesktop, setIsDesktop] = React.useState<boolean>(false);
+  const [pos, setPos] = React.useState<{ x: number; y: number }>({ x: 12, y: 12 });
+  React.useEffect(() => {
+    const apply = () => setIsDesktop(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+    apply();
+    window.addEventListener('resize', apply);
+    return () => window.removeEventListener('resize', apply);
+  }, []);
+  React.useEffect(() => {
+    if (isDesktop) return;
+    try {
+      const W = typeof window !== 'undefined' ? window.innerWidth : 360;
+      setPos({ x: Math.max(8, W - size.w - 12), y: 12 });
+    } catch {
+      setPos({ x: 12, y: 12 });
+    }
+  }, [size.w, isDesktop]);
+  const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isDesktop) return;
+    const st = { sx: e.clientX, sy: e.clientY, ox: pos.x, oy: pos.y };
+    const onMove = (ev: MouseEvent) => {
+      const dx = ev.clientX - st.sx;
+      const dy = ev.clientY - st.sy;
+      const nx = Math.min(Math.max(8, st.ox + dx), Math.max(8, (window.innerWidth || 360) - size.w - 8));
+      const ny = Math.min(Math.max(8, st.oy + dy), Math.max(8, (window.innerHeight || 640) - size.h - 8));
+      setPos({ x: nx, y: ny });
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isDesktop) return;
+    const t = e.touches[0];
+    const st = { sx: t.clientX, sy: t.clientY, ox: pos.x, oy: pos.y };
+    const onMove = (ev: TouchEvent) => {
+      const tt = ev.touches[0];
+      const dx = tt.clientX - st.sx;
+      const dy = tt.clientY - st.sy;
+      const nx = Math.min(Math.max(8, st.ox + dx), Math.max(8, (window.innerWidth || 360) - size.w - 8));
+      const ny = Math.min(Math.max(8, st.oy + dy), Math.max(8, (window.innerHeight || 640) - size.h - 8));
+      setPos({ x: nx, y: ny });
+    };
+    const onUp = () => {
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp, { passive: false });
+  };
+  const style: React.CSSProperties = { width: size.w, height: size.h };
+  if (isDesktop) {
+    // desktop: fixed position handled by className; keep size only
+  } else {
+    style.left = pos.x;
+    style.top = pos.y;
+  }
   return (
     <div
-      className="absolute top-2 right-2 rounded-lg overflow-hidden ring-2 ring-white/60 shadow-lg bg-black"
-      style={{ width: size.w, height: size.h }}
+      className={`${isDesktop ? 'absolute top-2 right-2' : 'absolute'} rounded-lg overflow-hidden ring-2 ring-white/60 shadow-lg bg-black ${isDesktop ? '' : 'cursor-move'}`}
+      style={style}
+      onMouseDown={handleDragStart}
+      onTouchStart={handleTouchStart}
     >
       {localTrack ? (
         <CustomTrackTile trackRef={localTrack} title={myName} avatarUrl={myAvatarUrl} />

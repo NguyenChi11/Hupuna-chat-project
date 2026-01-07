@@ -412,9 +412,6 @@ export function useCallSession({
         window.clearTimeout(ringTimeoutRef.current);
         ringTimeoutRef.current = null;
       }
-      try {
-        if (typeof window !== 'undefined') localStorage.removeItem('pendingIncomingCall');
-      } catch {}
       endedRef.current = true;
       endingRef.current = false;
     },
@@ -527,13 +524,6 @@ const toggleMic = useCallback(async () => {
         await acceptIncomingCallWith({ from: String(data.from), type: data.type, roomId: data.roomId, sdp: data.sdp });
         return;
       }
-      try {
-        const raw = typeof window !== 'undefined' ? localStorage.getItem('pendingIncomingCall') : null;
-        if (raw) {
-          const p = JSON.parse(raw) as { roomId: string; from: string };
-          if (String(p.roomId) === String(data.roomId) && String(p.from) === String(data.from)) return;
-        }
-      } catch {}
       setIncomingCall({ from: String(data.from), type: data.type, roomId: data.roomId, sdp: data.sdp });
       playGlobalRingTone();
     };

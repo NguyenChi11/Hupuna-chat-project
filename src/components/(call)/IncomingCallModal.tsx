@@ -23,7 +23,7 @@ export default function IncomingCallModal({
   callType = 'voice',
 }: Props) {
   return (
-    <div className="relative w-full min-h-[24rem] rounded-xl overflow-hidden bg-black pt-10">
+    <div className="relative w-full min-h-[100vh] md:min-h-[24rem] md:max-h-[28rem] md:rounded-xl rounded-none overflow-hidden bg-black md:pt-10 pt-16">
       {avatar && (
         <Image
           src={getProxyUrl(avatar)}

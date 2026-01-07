@@ -88,18 +88,12 @@ export default function ChatIframe() {
       stopGlobalRingTone();
       setIncomingCallHome(null);
       try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
-      try {
         window.parent?.postMessage({ type: 'HUPUNA_WIDGET_CALL', active: false }, window.location.origin);
       } catch {}
     };
     const handleReject = () => {
       stopGlobalRingTone();
       setIncomingCallHome(null);
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
       try {
         window.parent?.postMessage({ type: 'HUPUNA_WIDGET_CALL', active: false }, window.location.origin);
       } catch {}
@@ -162,7 +156,7 @@ export default function ChatIframe() {
       </div>
       {incomingCallHome && (
         <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center">
-          <div className=" rounded-xl w-full max-w-md p-4">
+          <div className="w-full h-full md:h-auto md:max-w-md md:rounded-xl md:p-4 p-0">
             {(() => {
               const caller = allUsers.find((u) => String(u._id) === String(incomingCallHome.from));
               const avatar = caller?.avatar;
@@ -173,9 +167,6 @@ export default function ChatIframe() {
                   name={name}
                   callType={incomingCallHome.type}
                   onAccept={() => {
-                    try {
-                      localStorage.setItem('pendingIncomingCall', JSON.stringify(incomingCallHome));
-                    } catch {}
                     const group = groups.find((g) => String(g._id) === String(incomingCallHome.roomId));
                     if (group) {
                       setSelectedChat(group);

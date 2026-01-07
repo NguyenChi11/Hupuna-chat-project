@@ -131,17 +131,11 @@ function GroupPageContent() {
     const handleEnd = () => {
       stopGlobalRingTone(); // ✅ DÙNG GLOBAL
       setIncomingCallHome(null);
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     const handleReject = () => {
       stopGlobalRingTone(); // ✅ DÙNG GLOBAL
       setIncomingCallHome(null);
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     // ✅ THÊM HANDLER call_answer

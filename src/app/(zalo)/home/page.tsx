@@ -90,18 +90,36 @@ export default function HomePage() {
     selectedChat,
   });
 
-  const [callTicker, setCallTicker] = useState(0);
-  useEffect(() => {
-    if (!callActive) return;
-    const id = window.setInterval(() => setCallTicker((x) => x + 1), 1000);
-    return () => window.clearInterval(id);
-  }, [callActive]);
-
   const [callWindowMin, setCallWindowMin] = useState(false);
+  const [callWindowHidden, setCallWindowHidden] = useState(false);
+
   const [callModalSize, setCallModalSize] = useState<{ w: number; h: number | null }>({ w: 320, h: 150 });
   const prevSizeRef = useRef<{ w: number; h: number | null } | null>(null);
   const callModalRef = useRef<HTMLDivElement | null>(null);
   const [callWindowPos, setCallWindowPos] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
+  useEffect(() => {
+    const apply = () => setIsDesktop(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+    apply();
+    window.addEventListener('resize', apply);
+    return () => window.removeEventListener('resize', apply);
+  }, []);
+  useEffect(() => {
+    const hide = () => setCallWindowHidden(true);
+    window.addEventListener('hideCallOverlay', hide as EventListener);
+    return () => window.removeEventListener('hideCallOverlay', hide as EventListener);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
+      if (isDesktop) {
+        const w = Math.floor(window.innerWidth * 0.5);
+        const h = Math.floor(window.innerHeight * 0.5);
+        setCallModalSize({ w: Math.max(400, w), h: Math.max(300, h) });
+      }
+    } catch {}
+  }, []);
 
   const toggleMinimize = () => {
     if (!callWindowMin) {
@@ -219,6 +237,55 @@ export default function HomePage() {
     window.addEventListener('touchend', onUp, { passive: false });
   };
 
+  const openBtnRef = useRef<HTMLDivElement | null>(null);
+  const openBtnDraggingRef = useRef<boolean>(false);
+  const handleOpenBtnDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const rect = openBtnRef.current?.getBoundingClientRect();
+    const bw = rect?.width ?? 140;
+    const bh = rect?.height ?? 48;
+    const st = { sx: e.clientX, sy: e.clientY, ox: callWindowPos.x, oy: callWindowPos.y };
+    const onMove = (ev: MouseEvent) => {
+      openBtnDraggingRef.current = true;
+      const dx = ev.clientX - st.sx;
+      const dy = ev.clientY - st.sy;
+      const nx = Math.min(Math.max(8, st.ox + dx), Math.max(8, (window.innerWidth || 360) - bw - 8));
+      const ny = Math.min(Math.max(8, st.oy + dy), Math.max(8, (window.innerHeight || 640) - bh - 8));
+      setCallWindowPos({ x: nx, y: ny });
+    };
+    const onUp = () => {
+      setTimeout(() => (openBtnDraggingRef.current = false), 0);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+  const handleOpenBtnTouchDragStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const rect = openBtnRef.current?.getBoundingClientRect();
+    const bw = rect?.width ?? 140;
+    const bh = rect?.height ?? 48;
+    const t = e.touches[0];
+    const st = { sx: t.clientX, sy: t.clientY, ox: callWindowPos.x, oy: callWindowPos.y };
+    const onMove = (ev: TouchEvent) => {
+      openBtnDraggingRef.current = true;
+      const tt = ev.touches[0];
+      const dx = tt.clientX - st.sx;
+      const dy = tt.clientY - st.sy;
+      const nx = Math.min(Math.max(8, st.ox + dx), Math.max(8, (window.innerWidth || 360) - bw - 8));
+      const ny = Math.min(Math.max(8, st.oy + dy), Math.max(8, (window.innerHeight || 640) - bh - 8));
+      setCallWindowPos({ x: nx, y: ny });
+    };
+    const onUp = () => {
+      setTimeout(() => (openBtnDraggingRef.current = false), 0);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp, { passive: false });
+  };
+
   useEffect(() => {
     const handler = (e: Event) => {
       try {
@@ -231,25 +298,7 @@ export default function HomePage() {
     return () => window.removeEventListener('startCall', handler as EventListener);
   }, [startCall]);
 
-  useEffect(() => {
-    try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('pendingIncomingCall') : null;
-      if (!raw) return;
-      if (callActive || callConnecting) return;
-      const data = JSON.parse(raw) as {
-        roomId: string;
-        from: string;
-        type: 'voice' | 'video';
-      };
-      if (!data || String(data.roomId) !== String(roomId)) return;
-      (async () => {
-        await acceptIncomingCall();
-        try {
-          localStorage.removeItem('pendingIncomingCall');
-        } catch {}
-      })();
-    } catch {}
-  }, [roomId, incomingCall, callActive, callConnecting, acceptIncomingCall]);
+  useEffect(() => {}, []);
 
   useEffect(() => {
     const run = async () => {
@@ -308,17 +357,11 @@ export default function HomePage() {
     const handleEnd = () => {
       stopGlobalRingTone();
       setIncomingCallHome(null);
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     const handleReject = () => {
       stopGlobalRingTone();
       setIncomingCallHome(null);
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     const handleAnswer = () => {
@@ -366,10 +409,6 @@ export default function HomePage() {
   
   return (
     <div className="flex h-screen w-full font-sans">
-      {/* Theo dõi việc ChatPopup đã xử lý pendingIncomingCall để đóng overlay trên mobile list */}
-      {incomingCallHome && (
-        <Watcher />
-      )}
       <HomeDesktop
         onNavigateToMessage={handleNavigateToMessage}
         currentUser={currentUser}
@@ -439,28 +478,45 @@ export default function HomePage() {
 
       {(callActive || incomingCall || callConnecting) && (
         <div
-          className="fixed z-[2000]"
-          style={{ left: callWindowPos.x, top: callWindowPos.y, width: callModalSize.w }}
+          className={`fixed z-[2000] ${isDesktop ? '' : 'inset-0 w-full h-full'}`}
+          style={
+            isDesktop
+              ? {
+                  left: callWindowPos.x,
+                  top: callWindowPos.y,
+                  width: callModalSize.w,
+                  display: callWindowHidden ? 'none' : 'block',
+                }
+              : { display: callWindowHidden ? 'none' : 'block' }
+          }
         >
-          <div
-            className="cursor-move flex items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
-            onMouseDown={handleDragStart}
-            onTouchStart={handleTouchDragStart}
-          >
-            <span className="text-sm">{callActive ? 'Đang gọi' : incomingCall ? 'Cuộc gọi đến' : 'Đang kết nối...'}</span>
-            <span className="flex items-center gap-3">
-              <button
-                className="text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
-                onClick={toggleMinimize}
-              >
-                {callWindowMin ? 'Khôi phục' : 'Thu nhỏ'}
-              </button>
-              <span className="text-xs">{callType === 'video' ? 'Video' : 'Thoại'}</span>
-            </span>
-          </div>
+          {isDesktop && (
+            <div
+              className="cursor-move flex items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
+              onMouseDown={handleDragStart}
+              onTouchStart={handleTouchDragStart}
+            >
+              <span className="text-sm">{callActive ? 'Đang gọi' : incomingCall ? 'Cuộc gọi đến' : 'Đang kết nối...'}</span>
+              <span className="flex items-center gap-3">
+                <button
+                  className="text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
+                  onClick={toggleMinimize}
+                >
+                  {callWindowMin ? 'Khôi phục' : 'Thu nhỏ'}
+                </button>
+                <button
+                  className="text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
+                  onClick={() => setCallWindowHidden(true)}
+                >
+                  Ẩn
+                </button>
+                <span className="text-xs">{callType === 'video' ? 'Video' : 'Thoại'}</span>
+              </span>
+            </div>
+          )}
           <div
             ref={callModalRef}
-            className="rounded-b-xl pt-2 p-4 backdrop-blur-sm relative"
+            className={`${isDesktop ? 'rounded-b-xl pt-2 p-4' : 'rounded-none p-0 h-full'} backdrop-blur-sm relative`}
           >
             {!callActive &&
               incomingCall &&
@@ -491,9 +547,6 @@ export default function HomePage() {
                       });
                       setIncomingCall(null);
                       stopGlobalRingTone();
-                      try {
-                        localStorage.removeItem('pendingIncomingCall');
-                      } catch {}
                     }}
                   />
                 );
@@ -543,15 +596,15 @@ export default function HomePage() {
                 const avatar = isOneToOneCall ? other?.avatar : currentGroup?.avatar || (selectedChat as GroupConversation)?.avatar;
                 const name = isOneToOneCall ? other?.name || '' : currentGroup?.name || (selectedChat as GroupConversation)?.name || '';
                 return (
-                  <div className="relative">
+                  <div className="relative h-full">
                     {livekitToken && livekitUrl ? (
                       <LiveKitCall
                         serverUrl={livekitUrl}
                         token={livekitToken}
                         onDisconnected={() => endCall('local')}
-                        className="rounded-lg overflow-hidden"
+                        className="rounded-lg overflow-hidden h-full bg-black"
                         titleName={name}
-                        durationSec={callTicker}
+                        callStartAt={callStartAt}
                         avatarUrl={avatar || '/logo/avata.webp'}
                         myName={currentUser.name}
                         myAvatarUrl={currentUser.avatar}
@@ -572,10 +625,30 @@ export default function HomePage() {
           </div>
         </div>
       )}
+      {(callActive || incomingCall || callConnecting) && callWindowHidden && (
+        <div
+          ref={openBtnRef}
+          className="fixed z-[2000] cursor-move"
+          style={{ left: callWindowPos.x, top: callWindowPos.y }}
+          onMouseDown={handleOpenBtnDragStart}
+          onTouchStart={handleOpenBtnTouchDragStart}
+        >
+          <button
+            className="cursor-pointer cursor-move px-3 py-2 rounded-full bg-green-500 text-white shadow-md"
+            onClick={() => {
+              if (openBtnDraggingRef.current) return;
+              setCallWindowHidden(false);
+            }}
+            title="Mở cửa sổ cuộc gọi"
+          >
+            Mở cuộc gọi
+          </button>
+        </div>
+      )}
 
       {incomingCallHome && (
         <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center">
-          <div className=" rounded-xl w-full max-w-md p-4">
+          <div className="w-full h-full md:h-auto md:max-w-md md:rounded-xl md:p-4 p-0">
             {(() => {
               const caller = allUsers.find((u) => String(u._id) === String(incomingCallHome.from));
               const avatar = caller?.avatar;
@@ -586,9 +659,6 @@ export default function HomePage() {
                   name={name}
                   callType={incomingCallHome.type}
                   onAccept={async () => {
-                    try {
-                      localStorage.setItem('pendingIncomingCall', JSON.stringify(incomingCallHome));
-                    } catch {}
                     setIncomingCall({
                       from: String(incomingCallHome.from),
                       type: incomingCallHome.type === 'video' ? 'video' : 'voice',
@@ -605,6 +675,7 @@ export default function HomePage() {
                       }
                     }
                     stopGlobalRingTone();
+                    setIncomingCallHome(null);
                   }}
                   onReject={() => {
                     socketRef.current?.emit('call_reject', {
@@ -622,30 +693,4 @@ export default function HomePage() {
       )}
     </div>
   );
-}
-
-function Watcher() {
-  const seenRef = useRef(false);
-  useEffect(() => {
-    const check = () => {
-      try {
-        const raw = localStorage.getItem('pendingIncomingCall');
-        if (raw) {
-          seenRef.current = true;
-          return;
-        }
-        if (seenRef.current) {
-          const evt = new CustomEvent('closeIncomingOverlay');
-          window.dispatchEvent(evt);
-        }
-      } catch {}
-    };
-    const id = setInterval(check, 300);
-    window.addEventListener('storage', check);
-    return () => {
-      clearInterval(id);
-      window.removeEventListener('storage', check);
-    };
-  }, []);
-  return null;
 }

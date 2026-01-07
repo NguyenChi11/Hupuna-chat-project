@@ -410,12 +410,88 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       window.dispatchEvent(ev as unknown as Event);
     } catch {}
   }, [incomingCall, callActive, callConnecting]);
+  
 
   const [globalCallPos, setGlobalCallPos] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
   const [globalCallSize, setGlobalCallSize] = useState<{ w: number }>({ w: 560 });
+  const [globalCallMin, setGlobalCallMin] = useState<boolean>(false);
+  const globalPrevSizeRef = React.useRef<{ w: number } | null>(null);
+  const [globalCallHidden, setGlobalCallHidden] = useState<boolean>(false);
   const [remoteName, setRemoteName] = useState<string>('');
   const [remoteAvatar, setRemoteAvatar] = useState<string | undefined>(undefined);
   const [callDurationSec, setCallDurationSec] = useState<number>(0);
+  const [openBtnPos, setOpenBtnPos] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
+  const openBtnRef = useRef<HTMLDivElement | null>(null);
+  const openBtnDraggingRef = useRef<boolean>(false);
+  useEffect(() => {
+    try {
+      const W = typeof window !== 'undefined' ? window.innerWidth : 360;
+      const H = typeof window !== 'undefined' ? window.innerHeight : 640;
+      setOpenBtnPos({ x: Math.max(8, W - 140), y: Math.max(8, H - 80) });
+    } catch {}
+  }, []);
+  const handleOpenBtnDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const rect = openBtnRef.current?.getBoundingClientRect();
+    const bw = rect?.width ?? 140;
+    const bh = rect?.height ?? 48;
+    const st = { sx: e.clientX, sy: e.clientY, ox: openBtnPos.x, oy: openBtnPos.y };
+    const onMove = (ev: MouseEvent) => {
+      openBtnDraggingRef.current = true;
+      const dx = ev.clientX - st.sx;
+      const dy = ev.clientY - st.sy;
+      const nx = Math.min(Math.max(8, st.ox + dx), Math.max(8, (window.innerWidth || 360) - bw - 8));
+      const ny = Math.min(Math.max(8, st.oy + dy), Math.max(8, (window.innerHeight || 640) - bh - 8));
+      setOpenBtnPos({ x: nx, y: ny });
+    };
+    const onUp = () => {
+      setTimeout(() => (openBtnDraggingRef.current = false), 0);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+  const handleOpenBtnTouchDragStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const rect = openBtnRef.current?.getBoundingClientRect();
+    const bw = rect?.width ?? 140;
+    const bh = rect?.height ?? 48;
+    const t = e.touches[0];
+    const st = { sx: t.clientX, sy: t.clientY, ox: openBtnPos.x, oy: openBtnPos.y };
+    const onMove = (ev: TouchEvent) => {
+      openBtnDraggingRef.current = true;
+      const tt = ev.touches[0];
+      const dx = tt.clientX - st.sx;
+      const dy = tt.clientY - st.sy;
+      const nx = Math.min(Math.max(8, st.ox + dx), Math.max(8, (window.innerWidth || 360) - bw - 8));
+      const ny = Math.min(Math.max(8, st.oy + dy), Math.max(8, (window.innerHeight || 640) - bh - 8));
+      setOpenBtnPos({ x: nx, y: ny });
+    };
+    const onUp = () => {
+      setTimeout(() => (openBtnDraggingRef.current = false), 0);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp, { passive: false });
+  };
+  React.useEffect(() => {
+    const minimize = () => {
+      setGlobalCallHidden(false);
+      globalPrevSizeRef.current = { ...globalCallSize };
+      const w = Math.max(280, Math.min(360, globalCallSize.w));
+      setGlobalCallSize({ w });
+      try {
+        const W = typeof window !== 'undefined' ? window.innerWidth : 360;
+        const x = Math.max(8, W - w - 16);
+        setGlobalCallPos({ x, y: 16 });
+      } catch {}
+      setGlobalCallMin(true);
+    };
+    window.addEventListener('minimizeCallOverlay', minimize as EventListener);
+    return () => window.removeEventListener('minimizeCallOverlay', minimize as EventListener);
+  }, [globalCallSize.w]);
   const handleGlobalDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     const state = { startX: e.clientX, startY: e.clientY, originX: globalCallPos.x, originY: globalCallPos.y };
     const onMove = (ev: MouseEvent) => {
@@ -476,6 +552,15 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     window.addEventListener('touchend', onUp);
   };
   useEffect(() => {
+    try {
+      const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
+      if (isDesktop) {
+        const w = Math.floor(window.innerWidth * 0.5);
+        setGlobalCallSize({ w: Math.max(560, w) });
+      }
+    } catch {}
+  }, []);
+  useEffect(() => {
     const id = (() => {
       if (counterpartId) return String(counterpartId);
       if (incomingCall?.from) return String(incomingCall.from);
@@ -505,19 +590,25 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     };
     void run();
   }, [counterpartId, incomingCall, globalSelectedChat, globalIsGroup]);
+  const callTimerRef = React.useRef<number | null>(null);
   useEffect(() => {
+    if (callTimerRef.current) {
+      window.clearInterval(callTimerRef.current);
+      callTimerRef.current = null;
+    }
     if (!callActive || !callStartAt) {
       setCallDurationSec(0);
       return;
     }
-    let raf = 0;
-    const tick = () => {
-      setCallDurationSec(Math.floor((Date.now() - Number(callStartAt)) / 1000));
-      raf = window.setTimeout(tick, 1000);
-    };
-    tick();
+    setCallDurationSec(0);
+    callTimerRef.current = window.setInterval(() => {
+      setCallDurationSec(Math.max(0, Math.floor((Date.now() - Number(callStartAt)) / 1000)));
+    }, 1000);
     return () => {
-      if (raf) window.clearTimeout(raf);
+      if (callTimerRef.current) {
+        window.clearInterval(callTimerRef.current);
+        callTimerRef.current = null;
+      }
     };
   }, [callActive, callStartAt]);
   const sendCallNotify = async (status: 'answered' | 'rejected' | 'timeout' | 'ended') => {
@@ -634,6 +725,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         setGlobalSelectedChat(norm);
         if (sel?.name) setRemoteName(String(sel.name));
         if (sel?.avatar) setRemoteAvatar(String(sel.avatar));
+        setCallDurationSec(0);
         outgoingRef.current = true;
         void startCall(t);
       } catch {}
@@ -733,13 +825,32 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         !(pathname === '/' || pathname === '/home' || pathname?.startsWith('/chat')) && (
           <>
             {(incomingCall || callConnecting || callActive) && (
-              <div className="fixed  z-[2000] ">
+              <div
+                className="fixed  z-[2000] "
+                onClick={
+                  globalCallMin
+                    ? () => {
+                        const prev = globalPrevSizeRef.current;
+                        if (prev) setGlobalCallSize(prev);
+                        setGlobalCallMin(false);
+                      }
+                    : undefined
+                }
+                onMouseDown={!globalCallMin ? undefined : handleGlobalDragStart}
+                onTouchStart={!globalCallMin ? undefined : handleGlobalTouchDragStart}
+              >
                 <div
-                  className="absolute rounded-xl w-full max-w-[90vw] p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur"
-                  style={{ left: globalCallPos.x, top: globalCallPos.y, width: globalCallSize.w }}
+                  className={`absolute md:rounded-xl rounded-none ${globalCallMin ? '' : 'w-full md:max-w-[90vw]'} p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur`}
+                  style={{
+                    left: globalCallPos.x,
+                    top: globalCallPos.y,
+                    width: globalCallSize.w,
+                    height: globalCallMin ? (callType === 'video' ? 180 : 200) : undefined,
+                    display: globalCallHidden ? 'none' : 'block',
+                  }}
                 >
                   <div
-                    className="cursor-move flex items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
+                    className="md:cursor-move md:flex hidden items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
                     onMouseDown={handleGlobalDragStart}
                     onTouchStart={handleGlobalTouchDragStart}
                   >
@@ -755,9 +866,16 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                       {callActive && callDurationSec > 0 ? ` • ${Math.floor(callDurationSec / 60)
                         .toString()
                         .padStart(2, '0')}:${(callDurationSec % 60).toString().padStart(2, '0')}` : ''}
+                      <button
+                        className="ml-3 text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
+                        onClick={() => setGlobalCallHidden(true)}
+                        title="Ẩn cửa sổ gọi"
+                      >
+                        Ẩn
+                      </button>
                     </span>
                   </div>
-                  <div className="rounded-b-xl pt-2 p-2 relative bg-black/20">
+                  <div className={`${globalCallMin ? 'rounded-lg overflow-hidden bg-black' : 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20'}`}>
                     {incomingCall && !callActive && !callConnecting && (
                       <IncomingCallModal
                         avatar={remoteAvatar || '/logo/avata.webp'}
@@ -795,13 +913,17 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                         onDisconnected={() => {
                           endCall('local');
                         }}
-                        className="rounded-lg overflow-hidden"
+                        className={`${globalCallMin ? '' : 'rounded-lg overflow-hidden'}`}
                         titleName={remoteName || ''}
-                        durationSec={callDurationSec}
+                        callStartAt={callStartAt}
                         avatarUrl={remoteAvatar || '/logo/avata.webp'}
                         myName={currentUser.name}
                         myAvatarUrl={currentUser.avatar}
-                        localPreviewSize={{ w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }}
+                        localPreviewSize={
+                          globalCallMin
+                            ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
+                            : { w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }
+                        }
                         offMinHeight={320}
                       />
                     )}
@@ -812,6 +934,26 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                     />
                   </div>
                 </div>
+              </div>
+            )}
+            {(incomingCall || callConnecting || callActive) && globalCallHidden && (
+              <div
+                ref={openBtnRef}
+                className="fixed z-[2000] cursor-move"
+                style={{ left: openBtnPos.x, top: openBtnPos.y }}
+                onMouseDown={handleOpenBtnDragStart}
+                onTouchStart={handleOpenBtnTouchDragStart}
+              >
+                <button
+                  className="cursor-pointer cursor-move px-3 py-2 rounded-full bg-green-500 text-white shadow-md"
+                  onClick={() => {
+                    if (openBtnDraggingRef.current) return;
+                    setGlobalCallHidden(false);
+                  }}
+                  title="Mở cửa sổ cuộc gọi"
+                >
+                  Mở cuộc gọi
+                </button>
               </div>
             )}
           </>

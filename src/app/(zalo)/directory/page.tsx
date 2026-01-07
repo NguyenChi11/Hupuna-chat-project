@@ -100,16 +100,10 @@ export default function DirectoryPage() {
 
     const handleEnd = () => {
       stopGlobalRingTone();
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     const handleReject = () => {
       stopGlobalRingTone();
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     const handleAnswer = () => {

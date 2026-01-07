@@ -1513,7 +1513,7 @@ export default function MessageList({
                                       const evt = new CustomEvent('startCall', { detail: { type: t } });
                                       window.dispatchEvent(evt);
                                     }}
-                                    className="ml-2 px-2 py-1 text-xs font-semibold rounded-lg border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
+                                    className="ml-2  py-1 text-xs font-semibold rounded-lg border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
                                   >
                                     Gọi lại
                                   </button>

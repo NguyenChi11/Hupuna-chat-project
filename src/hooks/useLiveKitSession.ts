@@ -70,44 +70,7 @@ export function useLiveKitSession({
     void ensureJoin();
   }, [roomId, currentUserId, socketRef]);
 
-  useEffect(() => {
-    try {
-      const rid = String(roomId || '');
-      if (!rid) return;
-      localStorage.setItem(`livekit_room_${rid}_active`, roomCallActive ? 'true' : 'false');
-      localStorage.setItem(`livekit_room_${rid}_type`, String(roomCallType || 'voice'));
-      localStorage.setItem(
-        `livekit_room_${rid}_participants`,
-        JSON.stringify(Array.isArray(roomParticipants) ? roomParticipants.map((x) => String(x)) : []),
-      );
-      const ev = new CustomEvent('roomCallStateChanged', {
-        detail: {
-          roomId: rid,
-          active: !!roomCallActive,
-          type: (roomCallType || 'voice') as CallType,
-          participants: Array.isArray(roomParticipants) ? roomParticipants.map((x) => String(x)) : [],
-        },
-      });
-      window.dispatchEvent(ev as unknown as Event);
-    } catch {}
-  }, [roomId, roomCallActive, roomCallType, roomParticipants]);
-
-  useEffect(() => {
-    try {
-      const rid = String(roomId || '');
-      if (!rid) return;
-      const active = localStorage.getItem(`livekit_room_${rid}_active`) === 'true';
-      const typeRaw = localStorage.getItem(`livekit_room_${rid}_type`);
-      const type = (typeRaw === 'video' ? 'video' : 'voice') as CallType;
-      const partsRaw = localStorage.getItem(`livekit_room_${rid}_participants`);
-      const parts = partsRaw ? (JSON.parse(partsRaw) as string[]) : [];
-      if (active) {
-        setRoomCallActive(true);
-        setRoomCallType(type);
-        setRoomParticipants(Array.isArray(parts) ? parts.map((x) => String(x)) : []);
-      }
-    } catch {}
-  }, [roomId]);
+  // Bỏ hoàn toàn lưu trạng thái phòng gọi vào localStorage
 
   const getReceiverIds = useCallback(() => {
     if (isGroup) {
@@ -237,9 +200,6 @@ export function useLiveKitSession({
           });
         }
       }
-      try {
-        if (typeof window !== 'undefined') localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     },
     [roomId, currentUserId, counterpartId],
   );
@@ -360,12 +320,6 @@ export function useLiveKitSession({
       setRoomCallType(data.type);
       setRoomParticipants(Array.isArray(data.participants) ? data.participants.map((x) => String(x)) : []);
       setCallStartAt(typeof data.startAt === 'number' ? data.startAt : null);
-      try {
-        const dedupKey = `callEndedNotify:${String(roomId)}`;
-        if (data.active) {
-          localStorage.removeItem(dedupKey);
-        }
-      } catch {}
     };
     socket.on('call_offer', handleCallOffer);
     socket.on('call_answer', handleCallAnswer);
