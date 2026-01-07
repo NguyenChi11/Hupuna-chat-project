@@ -30,7 +30,6 @@ interface ChatItemProps {
   categoryTags?: { id: string; label: string; color: string }[];
   userTags?: { id: string; label: string; color: string }[];
   onOpenTagManager?: () => void;
-  activeCallRooms?: string[];
 }
 
 export default function ChatItem({
@@ -43,7 +42,6 @@ export default function ChatItem({
   categoryTags = [],
   userTags = [],
   onOpenTagManager,
-  activeCallRooms = [],
 }: ChatItemProps) {
   const CATEGORY_TAGS = categoryTags;
   const USER_TAGS = userTags;
@@ -298,11 +296,6 @@ export default function ChatItem({
   const handleAction = (type: 'pin' | 'hide') => {
     setShowMenu(false);
     onChatAction(item._id, type, type === 'pin' ? !isPinned : !isHidden, isGroup);
-  };
-  const handleRejoinClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const ev = new CustomEvent('joinActiveGroupCallRequest', { detail: { roomId: String(item._id) } });
-    window.dispatchEvent(ev as unknown as Event);
   };
 
   // Click outside để đóng menu

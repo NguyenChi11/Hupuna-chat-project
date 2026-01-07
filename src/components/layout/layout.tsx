@@ -743,6 +743,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (globalIsGroup) {
       const rid =
+        String(activeRoomId || '') ||
         normalizedRoomId ||
         String(incomingCall?.roomId || '') ||
         String(globalRoomId || '');
