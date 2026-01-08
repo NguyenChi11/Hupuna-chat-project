@@ -54,6 +54,13 @@ export default function HomePage() {
     roomId: string;
     sdp: RTCSessionDescriptionInit;
   } | null>(null);
+  const [incomingLivekitHome, setIncomingLivekitHome] = useState<{
+    roomId: string;
+    lkRoom: string;
+    type: 'voice' | 'video';
+    from: string;
+    targets?: string[];
+  } | null>(null);
 
   useEffect(() => {
     const run = async () => {
@@ -85,14 +92,14 @@ export default function HomePage() {
     void run();
   }, [currentUser]);
 
- useEffect(() => {
+  useEffect(() => {
     if (!currentUser || !currentUser._id) return;
-    
-    const socket = (socketRef.current = io(resolveSocketUrl(), { 
-      transports: ['websocket'], 
-      withCredentials: false 
+
+    const socket = (socketRef.current = io(resolveSocketUrl(), {
+      transports: ['websocket'],
+      withCredentials: false,
     }));
-    
+
     socket.emit('join_user', { userId: String(currentUser._id) });
 
     // Cleanup cũ
@@ -101,24 +108,24 @@ export default function HomePage() {
     socket.off('call_reject');
     socket.off('call_answer'); // ✅ THÊM LISTENER MỚI
 
-    const handleOffer = (data: { 
-      roomId: string; 
-      target: string; 
-      from: string; 
-      type: 'voice' | 'video'; 
-      sdp: RTCSessionDescriptionInit 
+    const handleOffer = (data: {
+      roomId: string;
+      target: string;
+      from: string;
+      type: 'voice' | 'video';
+      sdp: RTCSessionDescriptionInit;
     }) => {
       if (String(data.target) !== String(currentUser._id)) return;
       if (selectedChat) return; // Đã mở chat, để ChatPopup xử lý
       if (incomingCallHome) return;
-      
-      setIncomingCallHome({ 
-        from: String(data.from), 
-        type: data.type, 
-        roomId: String(data.roomId), 
-        sdp: data.sdp 
+
+      setIncomingCallHome({
+        from: String(data.from),
+        type: data.type,
+        roomId: String(data.roomId),
+        sdp: data.sdp,
       });
-      
+
       playGlobalRingTone(); // ✅ DÙNG GLOBAL
     };
 
@@ -143,18 +150,65 @@ export default function HomePage() {
       stopGlobalRingTone(); // ✅ DÙNG GLOBAL
     };
 
+    const handleLkOffer = (data: {
+      roomId: string;
+      lkRoom: string;
+      type: 'voice' | 'video';
+      from: string;
+      targets?: string[];
+    }) => {
+      const me = String(currentUser._id);
+      const targets = Array.isArray(data.targets) ? data.targets.map((x) => String(x)) : [];
+      if (targets.length > 0 && !targets.includes(me)) return;
+      if (selectedChat) return; // ChatPopup sẽ xử lý
+      if (incomingLivekitHome) return;
+      setIncomingLivekitHome({
+        roomId: String(data.roomId),
+        lkRoom: String(data.lkRoom),
+        type: data.type === 'video' ? 'video' : 'voice',
+        from: String(data.from),
+        targets,
+      });
+      playGlobalRingTone();
+    };
+    const handleLkEnd = () => {
+      stopGlobalRingTone();
+      setIncomingLivekitHome(null);
+      try {
+        localStorage.removeItem('pendingIncomingLivekit');
+      } catch {}
+    };
+    const handleLkReject = () => {
+      stopGlobalRingTone();
+      setIncomingLivekitHome(null);
+      try {
+        localStorage.removeItem('pendingIncomingLivekit');
+      } catch {}
+    };
+    const handleLkAnswer = () => {
+      stopGlobalRingTone();
+    };
+
     socket.on('call_offer', handleOffer);
     socket.on('call_end', handleEnd);
     socket.on('call_reject', handleReject);
     socket.on('call_answer', handleAnswer); // ✅ LẮNG NGHE call_answer
+    socket.on('lk_call_offer', handleLkOffer);
+    socket.on('lk_call_end', handleLkEnd);
+    socket.on('lk_call_reject', handleLkReject);
+    socket.on('lk_call_answer', handleLkAnswer);
 
     return () => {
       socket.off('call_offer', handleOffer);
       socket.off('call_end', handleEnd);
       socket.off('call_reject', handleReject);
       socket.off('call_answer', handleAnswer);
+      socket.off('lk_call_offer', handleLkOffer);
+      socket.off('lk_call_end', handleLkEnd);
+      socket.off('lk_call_reject', handleLkReject);
+      socket.off('lk_call_answer', handleLkAnswer);
     };
-  }, [currentUser, selectedChat, incomingCallHome]);
+  }, [currentUser, selectedChat, incomingCallHome, incomingLivekitHome]);
 
   useEffect(() => {
     const close = () => setIncomingCallHome(null);
@@ -181,13 +235,11 @@ export default function HomePage() {
   if (isLoading || !currentUser) {
     return <div className="flex h-screen items-center justify-center bg-white">Loading...</div>;
   }
-  
+
   return (
     <div className="flex h-screen w-full font-sans">
       {/* Theo dõi việc ChatPopup đã xử lý pendingIncomingCall để đóng overlay trên mobile list */}
-      {incomingCallHome && (
-        <Watcher />
-      )}
+      {incomingCallHome && <Watcher />}
       <HomeDesktop
         onNavigateToMessage={handleNavigateToMessage}
         currentUser={currentUser}
@@ -287,6 +339,51 @@ export default function HomePage() {
                       targets: [String(incomingCallHome.from)],
                     });
                     setIncomingCallHome(null);
+                    stopGlobalRingTone();
+                  }}
+                />
+              );
+            })()}
+          </div>
+        </div>
+      )}
+      {incomingLivekitHome && (
+        <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-4">
+            {(() => {
+              const caller = allUsers.find((u) => String(u._id) === String(incomingLivekitHome.from));
+              const avatar = caller?.avatar;
+              const name = caller?.name || 'Cuộc gọi nhóm';
+              return (
+                <IncomingCallModal
+                  avatar={avatar}
+                  name={name}
+                  onAccept={() => {
+                    try {
+                      localStorage.setItem(
+                        'pendingIncomingLivekit',
+                        JSON.stringify({ ...incomingLivekitHome, autoAccept: true }),
+                      );
+                    } catch {}
+                    const group = groups.find((g) => String(g._id) === String(incomingLivekitHome.roomId));
+                    if (group) {
+                      setSelectedChat(group as unknown as GroupConversation);
+                    } else {
+                      const c = allUsers.find((u) => String(u._id) === String(incomingLivekitHome.from));
+                      if (c) {
+                        setSelectedChat(c as unknown as GroupConversation);
+                      }
+                    }
+                    stopGlobalRingTone();
+                    setIncomingLivekitHome(null);
+                  }}
+                  onReject={() => {
+                    socketRef.current?.emit('lk_call_reject', {
+                      roomId: incomingLivekitHome.roomId,
+                      from: String(currentUser._id),
+                      targets: incomingLivekitHome.targets || [],
+                    });
+                    setIncomingLivekitHome(null);
                     stopGlobalRingTone();
                   }}
                 />

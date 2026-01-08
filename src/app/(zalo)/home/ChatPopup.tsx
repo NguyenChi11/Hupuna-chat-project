@@ -47,11 +47,12 @@ import { groupMessagesByDate } from '@/utils/chatMessages';
 import { ChatProvider } from '@/context/ChatContext';
 import { useRouter } from 'next/navigation';
 import ShareMessageModal from '@/components/(chatPopup)/ShareMessageModal';
-import { stopGlobalRingTone } from '@/utils/callRing';
+import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
 import { useCallSession } from '@/hooks/useCallSession';
 import IncomingCallModal from '@/components/(call)/IncomingCallModal';
 import { HiChevronDoubleDown, HiChevronDoubleUp } from 'react-icons/hi2';
 import MessageMobileContextMenu from '@/components/(chatPopup)/MessageMobileContextMenu';
+import LiveKitCall from '@/components/(call)/LiveKitCall';
 
 const STICKERS = [
   'https://cdn-icons-png.flaticon.com/512/9408/9408176.png',
@@ -764,11 +765,83 @@ export default function ChatWindow({
   }, [toggleCamera_s2]);
 
   const handleVoiceCall = useCallback(() => {
-    void startCall('voice');
+    const hasLivekit = !!process.env.NEXT_PUBLIC_LIVEKIT_URL;
+    if (hasLivekit) {
+      const ts = Date.now();
+      const random = Math.random().toString(36).slice(2, 8);
+      const lkRoom = `call_${roomId}_${ts}_${random}`;
+      const myId = String(currentUser._id);
+      let targets: string[] = [];
+      if (isGroup) {
+        const members = (selectedChat?.members || []) as MemberInfo[] | string[];
+        targets = (members as Array<MemberInfo | string>)
+          .map((m) => (typeof m === 'object' && m?._id ? String(m._id) : String(m)))
+          .filter((id) => id && id !== myId);
+      } else {
+        const parts = String(roomId).split('_').filter(Boolean);
+        const otherId = parts.find((p) => p !== myId) || getId(selectedChat);
+        if (otherId) targets = [String(otherId)];
+      }
+      try {
+        if (!socketRef.current || !socketRef.current.connected) {
+          socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+          socketRef.current.emit('join_room', roomId);
+          socketRef.current.emit('join_user', { userId: myId });
+        }
+        socketRef.current?.emit('lk_call_offer', {
+          roomId,
+          lkRoom,
+          type: 'voice',
+          from: myId,
+          targets,
+        });
+      } catch {}
+      setLivekitRoomName(lkRoom);
+      setLivekitKind('voice');
+      setShowLivekit(true);
+    } else {
+      void startCall('voice');
+    }
   }, [startCall]);
 
   const handleVideoCall = useCallback(() => {
-    void startCall('video');
+    const hasLivekit = !!process.env.NEXT_PUBLIC_LIVEKIT_URL;
+    if (hasLivekit) {
+      const ts = Date.now();
+      const random = Math.random().toString(36).slice(2, 8);
+      const lkRoom = `call_${roomId}_${ts}_${random}`;
+      const myId = String(currentUser._id);
+      let targets: string[] = [];
+      if (isGroup) {
+        const members = (selectedChat?.members || []) as MemberInfo[] | string[];
+        targets = (members as Array<MemberInfo | string>)
+          .map((m) => (typeof m === 'object' && m?._id ? String(m._id) : String(m)))
+          .filter((id) => id && id !== myId);
+      } else {
+        const parts = String(roomId).split('_').filter(Boolean);
+        const otherId = parts.find((p) => p !== myId) || getId(selectedChat);
+        if (otherId) targets = [String(otherId)];
+      }
+      try {
+        if (!socketRef.current || !socketRef.current.connected) {
+          socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
+          socketRef.current.emit('join_room', roomId);
+          socketRef.current.emit('join_user', { userId: myId });
+        }
+        socketRef.current?.emit('lk_call_offer', {
+          roomId,
+          lkRoom,
+          type: 'video',
+          from: myId,
+          targets,
+        });
+      } catch {}
+      setLivekitRoomName(lkRoom);
+      setLivekitKind('video');
+      setShowLivekit(true);
+    } else {
+      void startCall('video');
+    }
   }, [startCall]);
 
   useEffect(() => {
@@ -810,6 +883,17 @@ export default function ChatWindow({
     const id = window.setInterval(() => setCallTicker((x) => x + 1), 1000);
     return () => window.clearInterval(id);
   }, [callActive]);
+
+  const [showLivekit, setShowLivekit] = useState(false);
+  const [livekitKind, setLivekitKind] = useState<'voice' | 'video'>('voice');
+  const [livekitRoomName, setLivekitRoomName] = useState<string | null>(null);
+  const [incomingLivekit, setIncomingLivekit] = useState<{
+    roomId: string;
+    lkRoom: string;
+    type: 'voice' | 'video';
+    from: string;
+    targets?: string[];
+  } | null>(null);
 
   const [callModalSize, setCallModalSize] = useState<{ w: number; h: number | null }>({ w: 320, h: null });
   const callModalRef = useRef<HTMLDivElement | null>(null);
@@ -2435,6 +2519,39 @@ export default function ChatWindow({
       }
     });
 
+    socketRef.current.on(
+      'lk_call_offer',
+      (data: { roomId: string; lkRoom: string; type: 'voice' | 'video'; from: string; targets?: string[] }) => {
+        const me = String(currentUser._id);
+        const targets = Array.isArray(data.targets) ? data.targets.map((x) => String(x)) : [];
+        if (targets.length > 0 && !targets.includes(me)) return;
+        if (showLivekit) return;
+        setIncomingLivekit({
+          roomId: String(data.roomId),
+          lkRoom: String(data.lkRoom),
+          type: data.type === 'video' ? 'video' : 'voice',
+          from: String(data.from),
+          targets,
+        });
+        playGlobalRingTone();
+      },
+    );
+    socketRef.current.on('lk_call_answer', (data: { roomId: string; lkRoom: string; from: string; target: string }) => {
+      if (String(data.roomId) !== String(roomId)) return;
+      stopGlobalRingTone();
+    });
+    socketRef.current.on('lk_call_end', (data: { roomId: string; from: string }) => {
+      if (String(data.roomId) !== String(roomId)) return;
+      stopGlobalRingTone();
+      setIncomingLivekit(null);
+      setShowLivekit(false);
+    });
+    socketRef.current.on('lk_call_reject', (data: { roomId: string; from: string }) => {
+      if (String(data.roomId) !== String(roomId)) return;
+      stopGlobalRingTone();
+      setIncomingLivekit(null);
+    });
+
     socketRef.current.emit('join_room', roomId);
     socketRef.current.emit('join_user', { userId: String(currentUser._id) });
 
@@ -2448,6 +2565,10 @@ export default function ChatWindow({
         socketRef.current?.off('edit_message');
         socketRef.current?.off('message_recalled');
         socketRef.current?.off('message_deleted');
+        socketRef.current?.off('lk_call_offer');
+        socketRef.current?.off('lk_call_answer');
+        socketRef.current?.off('lk_call_end');
+        socketRef.current?.off('lk_call_reject');
       } catch {}
       if (!socket) {
         socketRef.current?.disconnect();
@@ -2491,6 +2612,67 @@ export default function ChatWindow({
       })();
     } catch {}
   }, [roomId, incomingCall, callActive, callConnecting, acceptIncomingCallWith_s2]);
+  useEffect(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('pendingIncomingLivekit') : null;
+      if (!raw) return;
+      if (callActive || showLivekit) return;
+      const data = JSON.parse(raw) as {
+        roomId: string;
+        lkRoom: string;
+        type: 'voice' | 'video';
+        from: string;
+        targets?: string[];
+        autoAccept?: boolean;
+      };
+      if (!data || String(data.roomId) !== String(roomId)) return;
+      if (data.autoAccept) {
+        setLivekitRoomName(String(data.lkRoom));
+        setLivekitKind(data.type === 'video' ? 'video' : 'voice');
+        setShowLivekit(true);
+        try {
+          socketRef.current?.emit('join_room', String(data.roomId));
+          socketRef.current?.emit('lk_call_answer', {
+            roomId: String(data.roomId),
+            lkRoom: String(data.lkRoom),
+            from: String(currentUser._id),
+            target: String(data.from),
+          });
+        } catch {}
+        setIncomingLivekit(null);
+      } else {
+        setIncomingLivekit({
+          roomId: String(data.roomId),
+          lkRoom: String(data.lkRoom),
+          type: data.type === 'video' ? 'video' : 'voice',
+          from: String(data.from),
+          targets: Array.isArray(data.targets) ? data.targets : [],
+        });
+        playGlobalRingTone();
+      }
+      try {
+        localStorage.removeItem('pendingIncomingLivekit');
+      } catch {}
+    } catch {}
+  }, [roomId, callActive, showLivekit]);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const d = (e as CustomEvent).detail || {};
+        if (!d) return;
+        setIncomingLivekit({
+          roomId: String(d.roomId || roomId),
+          lkRoom: String(d.lkRoom || ''),
+          type: d.type === 'video' ? 'video' : 'voice',
+          from: String(d.from || ''),
+          targets: Array.isArray(d.targets) ? d.targets : [],
+        });
+        playGlobalRingTone();
+      } catch {}
+    };
+    window.addEventListener('incomingLivekitOffer', handler as EventListener);
+    return () => window.removeEventListener('incomingLivekitOffer', handler as EventListener);
+  }, [roomId]);
 
   useEffect(() => {
     messages.forEach((m) => {
@@ -3807,6 +3989,49 @@ export default function ChatWindow({
                   );
                 })()}
               {!callActive &&
+                incomingLivekit &&
+                (() => {
+                  const rid = String(incomingLivekit.roomId || '');
+                  const parts = rid.split('_').filter(Boolean);
+                  const isOneToOneIncoming = parts.length === 2;
+                  const group = !isOneToOneIncoming ? groups.find((g) => String(g._id) === rid) : null;
+                  const caller = allUsers.find((u) => String(u._id) === String(incomingLivekit?.from));
+                  const avatar = isOneToOneIncoming ? caller?.avatar : group?.avatar;
+                  const name = isOneToOneIncoming ? caller?.name || chatName : group?.name || chatName;
+                  return (
+                    <IncomingCallModal
+                      avatar={avatar}
+                      name={name}
+                      onAccept={async () => {
+                        setLivekitRoomName(incomingLivekit.lkRoom);
+                        setLivekitKind(incomingLivekit.type);
+                        setShowLivekit(true);
+                        try {
+                          socketRef.current?.emit('join_room', String(incomingLivekit.roomId));
+                          socketRef.current?.emit('lk_call_answer', {
+                            roomId: String(incomingLivekit.roomId),
+                            lkRoom: String(incomingLivekit.lkRoom),
+                            from: String(currentUser._id),
+                            target: String(incomingLivekit.from),
+                          });
+                        } catch {}
+                        setIncomingLivekit(null);
+                      }}
+                      onReject={() => {
+                        try {
+                          socketRef.current?.emit('lk_call_reject', {
+                            roomId: String(incomingLivekit.roomId),
+                            from: String(currentUser._id),
+                            targets: incomingLivekit.targets || [],
+                          });
+                        } catch {}
+                        setIncomingLivekit(null);
+                        stopGlobalRingTone();
+                      }}
+                    />
+                  );
+                })()}
+              {!callActive &&
                 callConnecting &&
                 (() => {
                   const parts = String(roomId).split('_');
@@ -3884,6 +4109,23 @@ export default function ChatWindow({
                     />
                   );
                 })()}
+            </div>
+          </div>
+        )}
+        {showLivekit && (
+          <div className="fixed inset-0 z-30 bg-black/60 flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-lg p-4">
+              <LiveKitCall
+                roomName={livekitRoomName || roomId}
+                identity={String(currentUser._id)}
+                kind={livekitKind}
+                onClose={() => {
+                  setShowLivekit(false);
+                  try {
+                    socketRef.current?.emit('lk_call_end', { roomId, from: String(currentUser._id) });
+                  } catch {}
+                }}
+              />
             </div>
           </div>
         )}

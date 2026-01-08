@@ -694,6 +694,29 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         }
       },
     );
+    socketRef.current.on(
+      'lk_call_offer',
+      (data: { roomId: string; lkRoom: string; type: 'voice' | 'video'; from: string; targets?: string[] }) => {
+        try {
+          const me = String(currentUser._id);
+          const targets = Array.isArray(data.targets) ? data.targets.map((x) => String(x)) : [];
+          if (targets.length > 0 && !targets.includes(me)) return;
+          const detail = {
+            roomId: String(data.roomId),
+            lkRoom: String(data.lkRoom),
+            type: data.type === 'video' ? 'video' : 'voice',
+            from: String(data.from),
+            targets,
+          };
+          if (selectedChatRef.current && String(selectedChatRef.current._id) === String(data.roomId)) {
+            const evt = new CustomEvent('incomingLivekitOffer', { detail });
+            window.dispatchEvent(evt);
+          } else {
+            localStorage.setItem('pendingIncomingLivekit', JSON.stringify(detail));
+          }
+        } catch {}
+      },
+    );
 
     socketRef.current.on('group_members_updated', (payload: { roomId: string; members: { _id: string }[] }) => {
       const myId = String(currentUser._id);
@@ -721,6 +744,9 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         clearInterval(hb);
       } catch {}
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      try {
+        socketRef.current?.off('lk_call_offer');
+      } catch {}
       socketRef.current?.disconnect();
     };
   }, [currentUser, fetchAllData, playMessageSound]);

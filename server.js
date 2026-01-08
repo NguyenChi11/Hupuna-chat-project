@@ -622,4 +622,90 @@ io.on('connection', (socket) => {
       startAt: rc.startAt || null,
     });
   });
+
+  // LiveKit signalling for creating/joining meeting rooms
+  socket.on('lk_call_offer', (data) => {
+    const roomId = String(data.roomId);
+    const lkRoom = String(data.lkRoom || '');
+    const type = String(data.type || 'voice');
+    const fromId = String(data.from || connectedUserId || '');
+    const targets = Array.isArray(data.targets) ? data.targets : [];
+    io.in(roomId).emit('lk_call_offer', { roomId, lkRoom, type, from: fromId, targets });
+    targets.forEach((t) => io.to(String(t)).emit('lk_call_offer', { roomId, lkRoom, type, from: fromId, targets }));
+    const rc = roomCalls.get(roomId) || { type, participants: new Set(), active: false, startAt: null };
+    rc.type = type;
+    rc.active = false;
+    rc.participants.add(fromId);
+    rc.livekitRoom = lkRoom;
+    roomCalls.set(roomId, rc);
+    io.in(roomId).emit('call_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+      livekitRoom: rc.livekitRoom,
+    });
+  });
+  socket.on('lk_call_answer', (data) => {
+    const roomId = String(data.roomId);
+    const lkRoom = String(data.lkRoom || '');
+    const fromId = String(data.from || connectedUserId || '');
+    const targetId = String(data.target || '');
+    io.in(roomId).emit('lk_call_answer', { roomId, lkRoom, from: fromId, target: targetId });
+    if (targetId) io.to(targetId).emit('lk_call_answer', { roomId, lkRoom, from: fromId, target: targetId });
+    const rc = roomCalls.get(roomId) || { type: 'voice', participants: new Set(), active: false, startAt: null };
+    rc.active = true;
+    rc.startAt = rc.startAt || Date.now();
+    rc.livekitRoom = lkRoom || rc.livekitRoom;
+    rc.participants.add(fromId);
+    if (targetId) rc.participants.add(targetId);
+    roomCalls.set(roomId, rc);
+    io.in(roomId).emit('call_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+      livekitRoom: rc.livekitRoom,
+    });
+  });
+  socket.on('lk_call_end', (data) => {
+    const roomId = String(data.roomId);
+    const fromId = String(data.from || connectedUserId || '');
+    const rc = roomCalls.get(roomId) || { type: 'voice', participants: new Set(), active: false, startAt: null };
+    rc.participants.delete(fromId);
+    if (rc.participants.size === 0) {
+      rc.active = false;
+      rc.startAt = null;
+    }
+    roomCalls.set(roomId, rc);
+    io.in(roomId).emit('lk_call_end', { roomId, from: fromId });
+    io.in(roomId).emit('call_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+      livekitRoom: rc.livekitRoom,
+    });
+  });
+  socket.on('lk_call_reject', (data) => {
+    const roomId = String(data.roomId);
+    const fromId = String(data.from || connectedUserId || '');
+    const targets = Array.isArray(data.targets) ? data.targets : [];
+    io.in(roomId).emit('lk_call_reject', { roomId, from: fromId });
+    targets.forEach((t) => io.to(String(t)).emit('lk_call_reject', { roomId, from: fromId }));
+    const rc = roomCalls.get(roomId) || { type: 'voice', participants: new Set(), active: false, startAt: null };
+    rc.participants.delete(fromId);
+    roomCalls.set(roomId, rc);
+    io.in(roomId).emit('call_state', {
+      roomId,
+      type: rc.type,
+      participants: Array.from(rc.participants),
+      active: rc.active,
+      startAt: rc.startAt || null,
+      livekitRoom: rc.livekitRoom,
+    });
+  });
 });

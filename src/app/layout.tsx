@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Patrick_Hand, Be_Vietnam_Pro, Source_Sans_3 } from '
 // import Script from 'next/script';
 import './globals.css';
 import 'react-advanced-cropper/dist/style.css';
+import '@livekit/components-styles';
 import { ToastProvider } from '../components/base/toast';
 import OneSignalScript from '@/components/OneSignalScript';
 
