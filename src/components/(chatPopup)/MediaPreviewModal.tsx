@@ -408,7 +408,7 @@ export default function MediaPreviewModal({
           </div>
           <div className="flex items-center gap-1.5 text-white/80">
             <button
-              className="inline-flex p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
+              className="cursor-pointer inline-flex p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all active:scale-95"
               onClick={(e) => {
                 e.preventDefault();
                 handleDownload();
