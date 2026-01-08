@@ -2433,9 +2433,6 @@ export default function ChatWindow({
         socketRef.current?.off('message_recalled');
         socketRef.current?.off('message_deleted');
       } catch {}
-      if (!socket) {
-        socketRef.current?.disconnect();
-      }
       setSocketInstance(null);
     };
   }, [roomId, currentUser._id, playMessageSound, showMessageNotification, fetchMessages, sendNotifyMessage, socket]);

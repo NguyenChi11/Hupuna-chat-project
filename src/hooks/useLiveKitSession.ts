@@ -39,6 +39,8 @@ export function useLiveKitSession({
   const callActiveRef = useRef<boolean>(false);
   const callConnectingRef = useRef<boolean>(false);
   const lastJoinedRoomRef = useRef<string>('');
+  const activeRoomIdRef = useRef<string>('');
+  const ignoreRemoteEndUntilRef = useRef<number>(0);
 
   useEffect(() => {
     callActiveRef.current = callActive;
@@ -46,6 +48,9 @@ export function useLiveKitSession({
   useEffect(() => {
     callConnectingRef.current = callConnecting;
   }, [callConnecting]);
+  useEffect(() => {
+    activeRoomIdRef.current = String(activeRoomId || '');
+  }, [activeRoomId]);
   useEffect(() => {
     const ensureUserJoin = async () => {
       try {
@@ -62,13 +67,18 @@ export function useLiveKitSession({
     void ensureUserJoin();
   }, [currentUserId]);
   useEffect(() => {
+    if (callActive || callConnecting) {
+      ignoreRemoteEndUntilRef.current = Date.now() + 5000;
+      return;
+    }
     setActiveRoomId(roomId);
-  }, [roomId]);
+  }, [roomId, callActive, callConnecting]);
   useEffect(() => {
     const rid = String(roomId || '');
     if (!rid) return;
     const ensureJoin = async () => {
       try {
+        if (callActive || callConnecting) return;
         if (!socketRef.current || !socketRef.current.connected) {
           socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
           await new Promise<void>((resolve) => {
@@ -83,7 +93,7 @@ export function useLiveKitSession({
       } catch {}
     };
     void ensureJoin();
-  }, [roomId, currentUserId, socketRef]);
+  }, [roomId, currentUserId, socketRef, callActive, callConnecting]);
 
   // Bỏ hoàn toàn lưu trạng thái phòng gọi vào localStorage
 
@@ -329,6 +339,9 @@ export function useLiveKitSession({
     const handleCallEnd = (data: { roomId: string }) => {
       stopGlobalRingTone();
       setIncomingCall(null);
+      const isDirect = String(data.roomId).split('_').filter(Boolean).length === 2;
+      if (isDirect && ignoreRemoteEndUntilRef.current > Date.now()) return;
+      if (String(data.roomId) !== String(activeRoomIdRef.current)) return;
       endCall('remote');
       if (String(data.roomId) === String(roomId)) {
         setRoomCallActive(false);
@@ -340,6 +353,7 @@ export function useLiveKitSession({
       stopGlobalRingTone();
       setIncomingCall(null);
       if (String(data.roomId).split('_').filter(Boolean).length === 2) {
+        if (String(data.roomId) !== String(activeRoomIdRef.current)) return;
         endCall('remote');
         if (String(data.roomId) === String(roomId)) {
           setRoomCallActive(false);
