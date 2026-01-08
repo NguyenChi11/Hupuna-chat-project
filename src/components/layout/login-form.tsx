@@ -107,7 +107,6 @@ export default function LoginForm() {
         const savedUser = JSON.parse(savedUserRaw) as User;
         setUsername(savedUser.username || '');
       } else {
-        localStorage.removeItem('info_user');
         setUsername('');
       }
     } catch {
