@@ -407,10 +407,28 @@ export function useLiveKitSession({
     const handleCallOffer = (data: { roomId: string; target: string; from: string; type: CallType }) => {
       if (String(data.target) !== String(currentUserId)) return;
       if (callActiveRef.current || callConnectingRef.current) {
+        socket.emit('call_candidate', {
+          roomId: data.roomId,
+          target: data.from,
+          from: currentUserId,
+          candidate: 'busy-signal',
+        });
         return;
       }
       setIncomingCall({ from: String(data.from), type: data.type, roomId: data.roomId });
       playGlobalRingTone();
+    };
+    const handleCallCandidate = (data: {
+      roomId: string;
+      target?: string;
+      candidate?: string | RTCIceCandidate;
+      from?: string;
+    }) => {
+      if (data.target && String(data.target) !== String(currentUserId)) return;
+      if (data.candidate === 'busy-signal') {
+        const ev = new CustomEvent('callBusy', { detail: { roomId: data.roomId, from: data.from } });
+        window.dispatchEvent(ev as unknown as Event);
+      }
     };
     const handleCallAnswer = async (data: { roomId: string; target: string; from: string }) => {
       if (String(data.target) !== String(currentUserId)) return;
@@ -491,6 +509,7 @@ export function useLiveKitSession({
     socket.on('call_reject', handleCallReject);
     socket.on('call_leave', handleCallLeave);
     socket.on('call_state', handleCallState);
+    socket.on('call_candidate', handleCallCandidate);
     return () => {
       socket.off('call_offer', handleCallOffer);
       socket.off('call_answer', handleCallAnswer);
@@ -498,6 +517,7 @@ export function useLiveKitSession({
       socket.off('call_reject', handleCallReject);
       socket.off('call_leave', handleCallLeave);
       socket.off('call_state', handleCallState);
+      socket.off('call_candidate', handleCallCandidate);
     };
   }, [currentUserId, socketRef, endCall, roomId, fetchToken]);
 

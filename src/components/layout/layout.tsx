@@ -999,6 +999,10 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const handler = (e: Event) => {
       try {
+        if (callActive || incomingCall || callConnecting) {
+          toast({ type: 'warning', message: 'Người này đang có cuộc gọi' });
+          return;
+        }
         const d = (e as CustomEvent).detail || {};
         const isG = !!d?.isGroup;
         const t = isG ? 'video' : d?.type === 'video' ? 'video' : 'voice';
@@ -1036,6 +1040,17 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     window.addEventListener('startCall', handler as EventListener);
     return () => window.removeEventListener('startCall', handler as EventListener);
   }, [startCall, pathname]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      // Show toast
+      toast({ type: 'warning', message: 'Người này đang có cuộc gọi' });
+      // End call
+      endCall('local');
+    };
+    window.addEventListener('callBusy', handler as EventListener);
+    return () => window.removeEventListener('callBusy', handler as EventListener);
+  }, [endCall]);
 
   const outgoingRef = React.useRef<boolean>(false);
   const prevCallActiveRef = React.useRef<boolean>(false);
