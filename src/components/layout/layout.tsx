@@ -664,6 +664,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     activeGroupCallRoomsRef.current = new Map(activeGroupCallRooms);
   }, [activeGroupCallRooms]);
   const participantsZeroTimerRef = React.useRef<number | null>(null);
+  const prevParticipantsRef = React.useRef<Array<{ id: string; name?: string }> | null>(null);
   useEffect(() => {
     const apply = () => setGlobalIsDesktop(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
     apply();
@@ -1048,6 +1049,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     prevCallActiveRef.current = callActive;
     if (callActive) {
       endedSentRef.current = false;
+      prevParticipantsRef.current = null;
     }
   }, [callActive]);
   // Bỏ lưu trạng thái call theo room trong localStorage cho 1-1
@@ -1123,30 +1125,50 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         <>
           {(incomingCall || callConnecting || callActive) && (
             <div
-              ref={callOverlayRef}
-              className={`fixed z-[2000] ${globalCallFullscreen ? 'inset-0 w-screen h-screen' : globalIsDesktop ? '' : globalCallMin ? '' : 'inset-0 w-full h-full'}`}
+              ref={globalCallHidden && callType === 'video' ? openBtnRef : callOverlayRef}
+              className={`fixed z-[2000] ${
+                globalCallHidden && callType === 'video'
+                  ? 'rounded-xl overflow-hidden shadow-2xl ring-1 ring-black/20 bg-black cursor-move'
+                  : globalCallFullscreen
+                    ? 'inset-0 w-screen h-screen'
+                    : globalIsDesktop
+                      ? ''
+                      : globalCallMin
+                        ? ''
+                        : 'inset-0 w-full h-full'
+              }`}
               style={
-                globalCallFullscreen
-                  ? { display: globalCallHidden ? 'none' : 'block' }
-                  : globalIsDesktop
+                globalCallHidden
+                  ? callType === 'video'
                     ? {
-                        left: globalCallPos.x,
-                        top: globalCallPos.y,
-                        width: globalCallSize.w,
-                        display: globalCallHidden ? 'none' : 'block',
+                        left: openBtnPos.x,
+                        top: openBtnPos.y,
+                        width: 240,
+                        height: 160,
+                        display: 'block',
                       }
-                    : globalCallMin
+                    : { display: 'none' }
+                  : globalCallFullscreen
+                    ? { display: 'block' }
+                    : globalIsDesktop
                       ? {
                           left: globalCallPos.x,
                           top: globalCallPos.y,
                           width: globalCallSize.w,
-                          height: callType === 'video' ? 180 : 200,
-                          display: globalCallHidden ? 'none' : 'block',
+                          display: 'block',
                         }
-                      : { display: globalCallHidden ? 'none' : 'block' }
+                      : globalCallMin
+                        ? {
+                            left: globalCallPos.x,
+                            top: globalCallPos.y,
+                            width: globalCallSize.w,
+                            height: callType === 'video' ? 180 : 200,
+                            display: 'block',
+                          }
+                        : { display: 'block' }
               }
               onClick={
-                !globalIsDesktop && globalCallMin
+                !globalIsDesktop && globalCallMin && !globalCallHidden
                   ? () => {
                       const prev = globalPrevSizeRef.current;
                       if (prev) setGlobalCallSize(prev);
@@ -1154,70 +1176,124 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                     }
                   : undefined
               }
-              onMouseDown={!globalIsDesktop && globalCallMin ? handleGlobalDragStart : undefined}
-              onTouchStart={!globalIsDesktop && globalCallMin ? handleGlobalTouchDragStart : undefined}
+              onMouseDown={
+                globalCallHidden && callType === 'video'
+                  ? handleOpenBtnDragStart
+                  : !globalIsDesktop && globalCallMin
+                    ? handleGlobalDragStart
+                    : undefined
+              }
+              onTouchStart={
+                globalCallHidden && callType === 'video'
+                  ? handleOpenBtnTouchDragStart
+                  : !globalIsDesktop && globalCallMin
+                    ? handleGlobalTouchDragStart
+                    : undefined
+              }
             >
               <div
-                className={`absolute h-auto ${globalCallMin ? '' : globalCallFullscreen ? 'inset-0 w-full h-full' : globalIsDesktop ? 'w-full md:w-[44rem] lg:w-[50rem] h-[23rem]' : 'inset-0 w-full h-full'} md:rounded-xl rounded-none p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur`}
+                className={`absolute h-auto ${
+                  globalCallHidden && callType === 'video'
+                    ? 'inset-0 w-full h-full p-0 rounded-xl overflow-hidden'
+                    : globalCallMin
+                      ? ''
+                      : globalCallFullscreen
+                        ? 'inset-0 w-full h-full'
+                        : globalIsDesktop
+                          ? 'w-full md:w-[44rem] lg:w-[50rem] h-[23rem]'
+                          : 'inset-0 w-full h-full'
+                } ${globalCallHidden && callType === 'video' ? 'bg-black' : 'md:rounded-xl rounded-none p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur'}`}
               >
+                {!globalCallHidden && (
+                  <div
+                    className="md:flex hidden items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
+                    onMouseDown={globalCallFullscreen ? undefined : handleGlobalDragStart}
+                    onTouchStart={globalCallFullscreen ? undefined : handleGlobalTouchDragStart}
+                  >
+                    <span className="text-sm">
+                      {callActive
+                        ? remoteName ||
+                          groupInfoRef.current.get(String(normalizedRoomId || globalRoomId || ''))?.name ||
+                          'Đang gọi'
+                        : incomingCall
+                          ? (() => {
+                              const gname = globalIsGroup
+                                ? groupInfoRef.current.get(
+                                    String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''),
+                                  )?.name
+                                : undefined;
+                              return `Cuộc gọi từ ${gname || remoteName || 'Cuộc gọi đến'}`;
+                            })()
+                          : 'Đang kết nối...'}
+                    </span>
+                    <span className="text-xs flex items-center">
+                      {callType === 'video' ? 'Video' : 'Thoại'}
+                      {callActive && callDurationSec > 0
+                        ? ` • ${Math.floor(callDurationSec / 60)
+                            .toString()
+                            .padStart(2, '0')}:${(callDurationSec % 60).toString().padStart(2, '0')}`
+                        : ''}
+                      <button
+                        className="ml-3 p-1 rounded hover:bg-white/20 cursor-pointer transition-colors"
+                        onClick={() => setGlobalCallFullscreen((v) => !v)}
+                        title={globalCallFullscreen ? 'Thu nhỏ' : 'Phóng to'}
+                      >
+                        {globalCallFullscreen ? (
+                          <HiArrowsPointingIn className="w-5 h-5" />
+                        ) : (
+                          <HiArrowsPointingOut className="w-5 h-5" />
+                        )}
+                      </button>
+                      <button
+                        className="ml-2 p-1 rounded hover:bg-white/20 cursor-pointer transition-colors"
+                        onClick={() => setGlobalCallHidden(true)}
+                        title="Ẩn cửa sổ gọi"
+                      >
+                        <HiMinus className="w-5 h-5" />
+                      </button>
+                      <button
+                        className="ml-2 p-1 rounded bg-red-600 hover:bg-red-500 text-white cursor-pointer transition-colors"
+                        onClick={() => endCall('local')}
+                        title="Kết thúc cuộc gọi"
+                      >
+                        <HiXMark className="w-5 h-5" />
+                      </button>
+                    </span>
+                  </div>
+                )}
                 <div
-                  className="md:flex hidden items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
-                  onMouseDown={globalCallFullscreen ? undefined : handleGlobalDragStart}
-                  onTouchStart={globalCallFullscreen ? undefined : handleGlobalTouchDragStart}
+                  className={`${globalCallHidden && callType === 'video' ? 'w-full h-full bg-black' : globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : `rounded-none p-0 h-full ${callType === 'voice' ? 'bg-blue-500' : 'bg-black'}`}`}
                 >
-                  <span className="text-sm">
-                    {callActive
-                      ? remoteName ||
-                        groupInfoRef.current.get(String(normalizedRoomId || globalRoomId || ''))?.name ||
-                        'Đang gọi'
-                      : incomingCall
-                        ? (() => {
-                            const gname = globalIsGroup
-                              ? groupInfoRef.current.get(
-                                  String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''),
-                                )?.name
-                              : undefined;
-                            return `Cuộc gọi từ ${gname || remoteName || 'Cuộc gọi đến'}`;
-                          })()
-                        : 'Đang kết nối...'}
-                  </span>
-                  <span className="text-xs flex items-center">
-                    {callType === 'video' ? 'Video' : 'Thoại'}
-                    {callActive && callDurationSec > 0
-                      ? ` • ${Math.floor(callDurationSec / 60)
-                          .toString()
-                          .padStart(2, '0')}:${(callDurationSec % 60).toString().padStart(2, '0')}`
-                      : ''}
-                    <button
-                      className="ml-3 p-1 rounded hover:bg-white/20 cursor-pointer transition-colors"
-                      onClick={() => setGlobalCallFullscreen((v) => !v)}
-                      title={globalCallFullscreen ? 'Thu nhỏ' : 'Phóng to'}
-                    >
-                      {globalCallFullscreen ? (
-                        <HiArrowsPointingIn className="w-5 h-5" />
-                      ) : (
+                  {/* Mini Controls for Hidden Video Call */}
+                  {globalCallHidden && callType === 'video' && (
+                    <div className="absolute top-1 right-1 z-[2100] flex items-center gap-1">
+                      <button
+                        className="p-1 rounded bg-white/20 hover:bg-white/30 text-white cursor-pointer transition-colors"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (openBtnDraggingRef.current) return;
+                          setGlobalCallHidden(false);
+                        }}
+                        title="Mở cửa sổ cuộc gọi"
+                      >
                         <HiArrowsPointingOut className="w-5 h-5" />
-                      )}
-                    </button>
-                    <button
-                      className="ml-2 p-1 rounded hover:bg-white/20 cursor-pointer transition-colors"
-                      onClick={() => setGlobalCallHidden(true)}
-                      title="Ẩn cửa sổ gọi"
-                    >
-                      <HiMinus className="w-5 h-5" />
-                    </button>
-                    <button
-                      className="ml-2 p-1 rounded bg-red-600 hover:bg-red-500 text-white cursor-pointer transition-colors"
-                      onClick={() => endCall('local')}
-                      title="Kết thúc cuộc gọi"
-                    >
-                      <HiXMark className="w-5 h-5" />
-                    </button>
-                  </span>
-                </div>
-                <div
-                  className={`${globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : `rounded-none p-0 h-full ${callType === 'voice' ? 'bg-blue-500' : 'bg-black'}`}`}
-                >
+                      </button>
+                      <button
+                        className="p-1 rounded bg-red-600 hover:bg-red-500 text-white cursor-pointer transition-colors"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (openBtnDraggingRef.current) return;
+                          endCall('local');
+                        }}
+                        title="Kết thúc cuộc gọi"
+                      >
+                        <HiXMark className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+
                   {incomingCall && !callActive && !callConnecting && (
                     <IncomingCallModal
                       avatar={
@@ -1275,6 +1351,22 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                       }}
                       onParticipantsChanged={(parts) => {
                         try {
+                          const prev = prevParticipantsRef.current;
+                          if (prev !== null) {
+                            const currentIds = new Set(parts.map((p) => p.id));
+                            const prevIds = new Set(prev.map((p) => p.id));
+                            parts.forEach((p) => {
+                              if (!prevIds.has(p.id)) {
+                                toast({ type: 'info', message: `${p.name || 'Ai đó'} đã tham gia cuộc gọi` });
+                              }
+                            });
+                            prev.forEach((p) => {
+                              if (!currentIds.has(p.id)) {
+                                toast({ type: 'info', message: `${p.name || 'Ai đó'} đã rời cuộc gọi` });
+                              }
+                            });
+                          }
+                          prevParticipantsRef.current = parts;
                           if (participantsZeroTimerRef.current) {
                             window.clearTimeout(participantsZeroTimerRef.current);
                             participantsZeroTimerRef.current = null;
@@ -1296,7 +1388,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                           }
                         } catch {}
                       }}
-                      className={`${globalCallMin ? '' : globalIsDesktop ? 'md:rounded-xl rounded-none overflow-hidden min-h-[46vh] md:min-h-[20rem] md:max-h-[100vh]' : 'rounded-none overflow-hidden h-full min-h-[46vh]'}`}
+                      className={`${globalCallHidden && callType === 'video' ? 'w-full h-full' : globalCallMin ? '' : globalIsDesktop ? 'md:rounded-xl rounded-none overflow-hidden min-h-[46vh] md:min-h-[20rem] md:max-h-[100vh]' : 'rounded-none overflow-hidden h-full min-h-[46vh]'}`}
                       titleName={remoteName || ''}
                       callStartAt={callStartAt}
                       avatarUrl={remoteAvatar || '/logo/avata.webp'}
@@ -1308,7 +1400,8 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                           ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
                           : { w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }
                       }
-                      offMinHeight={320}
+                      offMinHeight={globalCallHidden && callType === 'video' ? 120 : 320}
+                      uiVariant={globalCallHidden && callType === 'video' ? 'mini' : 'full'}
                     />
                   )}
                   {!incomingCall &&
@@ -1334,7 +1427,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                         </button>
                       </div>
                     )}
-                  {!globalCallFullscreen && (
+                  {!globalCallFullscreen && !globalCallHidden && (
                     <div
                       className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize bg-white/30 hover:bg-white/50 rounded-sm"
                       onMouseDown={handleResizeStart}
@@ -1345,7 +1438,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
               </div>
             </div>
           )}
-          {(incomingCall || callConnecting || callActive) && globalCallHidden && (
+          {(incomingCall || callConnecting || callActive) && globalCallHidden && callType !== 'video' && (
             <div
               ref={openBtnRef}
               className="fixed z-[2000] cursor-move"
@@ -1353,16 +1446,30 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
               onMouseDown={handleOpenBtnDragStart}
               onTouchStart={handleOpenBtnTouchDragStart}
             >
-              <button
-                className="cursor-pointer cursor-move px-3 py-2 rounded-full bg-green-500 text-white shadow-md"
-                onClick={() => {
-                  if (openBtnDraggingRef.current) return;
-                  setGlobalCallHidden(false);
-                }}
-                title="Mở cửa sổ cuộc gọi"
-              >
-                Mở cuộc gọi
-              </button>
+              <div className="flex items-center gap-1 bg-white/10 backdrop-blur-md p-1 rounded-full shadow-lg border border-white/20">
+                <button
+                  className="p-2 rounded-full bg-green-500 hover:bg-green-600 text-white cursor-pointer transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (openBtnDraggingRef.current) return;
+                    setGlobalCallHidden(false);
+                  }}
+                  title="Mở cửa sổ cuộc gọi"
+                >
+                  <HiArrowsPointingOut className="w-5 h-5" />
+                </button>
+                <button
+                  className="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white cursor-pointer transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (openBtnDraggingRef.current) return;
+                    endCall('local');
+                  }}
+                  title="Kết thúc cuộc gọi"
+                >
+                  <HiXMark className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           )}
         </>
