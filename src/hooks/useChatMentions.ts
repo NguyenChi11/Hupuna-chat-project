@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { normalizeNoAccent } from '@/utils/utils';
 
 import type { User } from '@/types/User';
 import type { MemberInfo } from '@/types/Group';
@@ -120,11 +121,11 @@ export function useChatMentions({ allUsers, activeMembers, currentUser, allUsers
 
     if (!mentionQuery) return finalUsersList;
 
-    const query = mentionQuery.toLowerCase();
+    const query = normalizeNoAccent(mentionQuery);
 
     return finalUsersList.filter((user) => {
       const name = getName(user);
-      return name && name.toLowerCase().includes(query);
+      return name && normalizeNoAccent(name).includes(query);
     });
   }, [mentionQuery, activeMembers, allUsers, currentUser, allUsersMap]);
 

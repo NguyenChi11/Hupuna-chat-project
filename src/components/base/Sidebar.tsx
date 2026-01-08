@@ -7,7 +7,7 @@ import ChatItem from './ChatItem';
 import SearchResults from '@/components/(chatPopup)/SearchResults';
 import { User } from '../../types/User';
 import type { GroupConversation, ChatItem as ChatItemType } from '../../types/Group';
-import { getProxyUrl } from '../../utils/utils';
+import { getProxyUrl, normalizeNoAccent, computeMatchScore, hasDiacritics } from '../../utils/utils';
 import MessageFilter, { FilterType } from '../(chatPopup)/MessageFilter';
 import SidebarMobileMenu from './SidebarMobileMenu';
 
@@ -296,7 +296,8 @@ export default function Sidebar({
         return;
       }
 
-      const lowerCaseTerm = term.toLowerCase();
+      const normalizedTerm = normalizeNoAccent(term);
+      const hasDia = hasDiacritics(term);
       let allChats: ChatItemType[] = [...groups, ...allUsers];
       if (onlyGroups) {
         allChats = [...groups];
@@ -305,8 +306,27 @@ export default function Sidebar({
       }
 
       const contactResults = allChats
-        .filter((c) => getChatDisplayName(c, String(currentUserId)).toLowerCase().includes(lowerCaseTerm))
-        .slice(0, 10);
+        .filter((c) => {
+          const name = getChatDisplayName(c, String(currentUserId));
+          const accentInsensitive = normalizeNoAccent(name).includes(normalizedTerm);
+          if (!accentInsensitive) return false;
+          if (!hasDia) return true;
+          const exactAccent = String(name || '').toLowerCase().includes(String(term || '').toLowerCase());
+          const nameHasDia = hasDiacritics(name);
+          return exactAccent || nameHasDia;
+        })
+        .map((c) => ({
+          item: c,
+          score: computeMatchScore(getChatDisplayName(c, String(currentUserId)), term),
+        }))
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          const aName = getChatDisplayName(a.item, String(currentUserId));
+          const bName = getChatDisplayName(b.item, String(currentUserId));
+          return aName.localeCompare(bName);
+        })
+        .slice(0, 10)
+        .map((x) => x.item);
 
       try {
         const res = await fetch('/api/messages', {
@@ -319,13 +339,38 @@ export default function Sidebar({
         });
 
         const messageData = await res.json();
-        const rawMessages = messageData.data || [];
-        let messages = rawMessages;
+        const rawMessages = (messageData.data || []) as Message[];
+        let messages: Message[] = rawMessages;
         if (onlyGroups) {
           messages = rawMessages.filter((m: Message) => m.isGroupChat);
         } else if (onlyPersonal) {
           messages = rawMessages.filter((m: Message) => !m.isGroupChat);
         }
+
+        const getMessageSearchText = (m: Message): string => {
+          if (m.type === 'file') return m.fileName || 'File';
+          if (m.type === 'image') return 'Hình ảnh';
+          if (m.type === 'video') return 'Video';
+          if (m.type === 'sticker') return 'Sticker';
+          return m.content || '';
+        };
+
+        messages = messages.filter((m) => {
+          const text = getMessageSearchText(m);
+          const accentInsensitive = normalizeNoAccent(text).includes(normalizedTerm);
+          if (!accentInsensitive) return false;
+          if (!hasDia) return true;
+          const exactAccent = String(text || '').toLowerCase().includes(String(term || '').toLowerCase());
+          const textHasDia = hasDiacritics(text);
+          return exactAccent || textHasDia;
+        });
+
+        messages = [...messages].sort((a, b) => {
+          const sa = computeMatchScore(getMessageSearchText(a), term);
+          const sb = computeMatchScore(getMessageSearchText(b), term);
+          if (sb !== sa) return sb - sa;
+          return (b.timestamp || 0) - (a.timestamp || 0);
+        });
 
         setGlobalSearchResults({
           contacts: contactResults,
@@ -461,7 +506,9 @@ export default function Sidebar({
     let filtered = mixedChats.filter((chat: ChatItemType) => {
       const isHidden = chat.isHidden;
       const displayName = getChatDisplayName(chat, String(currentUserId));
-      const matchesSearch = isSearchActive ? displayName.toLowerCase().includes(searchTerm.toLowerCase()) : true;
+      const matchesSearch = isSearchActive
+        ? normalizeNoAccent(displayName).includes(normalizeNoAccent(searchTerm))
+        : true;
 
       if (isSearchActive) return matchesSearch;
       if (filterType === 'hidden') return isHidden && matchesSearch;

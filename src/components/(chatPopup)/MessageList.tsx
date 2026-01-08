@@ -1392,6 +1392,41 @@ export default function MessageList({
                       }
 
                       if ((msg as Message & { callType?: 'voice' | 'video' }).callType) {
+                        // Group consecutive call notify messages and collapse if many
+                        const prev = index > 0 ? msgs[index - 1] : null;
+                        const prevIsNotify = prev?.type === 'notify';
+                        const prevIsCall = prevIsNotify && !!(prev as Message & { callType?: 'voice' | 'video' }).callType;
+                        if (!prevIsCall) {
+                          const callGroup = [msg];
+                          for (let k = index + 1; k < msgs.length; k++) {
+                            const next = msgs[k];
+                            if (next.type !== 'notify') break;
+                            const nextIsCall = !!(next as Message & { callType?: 'voice' | 'video' }).callType;
+                            if (!nextIsCall) break;
+                            callGroup.push(next);
+                          }
+                          if (callGroup.length >= 3) {
+                            const groupId = msg._id;
+                            const isExpanded = expandedNotifyGroups.has(groupId);
+                            if (!isExpanded) {
+                              callGroup.slice(1).forEach((m) => consumedIds.add(m._id));
+                              return (
+                                <div key={`group-notify-call-${groupId}`} className="flex justify-center my-4">
+                                  <button
+                                    onClick={() => {
+                                      const newSet = new Set(expandedNotifyGroups);
+                                      newSet.add(groupId);
+                                      setExpandedNotifyGroups(newSet);
+                                    }}
+                                    className="px-4 py-1.5 bg-white text-xs font-medium text-blue-600 rounded-full shadow-sm border border-blue-100 hover:bg-blue-50 transition-all cursor-pointer"
+                                  >
+                                    Xem thông báo cuộc gọi trước
+                                  </button>
+                                </div>
+                              );
+                            }
+                          }
+                        }
                         const callType =
                           (msg as Message & { callType?: 'voice' | 'video' }).callType === 'video' ? 'video' : 'voice';
                         const calleeId = (msg as Message & { calleeId?: string }).calleeId || '';
@@ -1461,7 +1496,7 @@ export default function MessageList({
                                     <p className="text-xs text-gray-500 truncate">{` ${dateLabel} • ${timeLabel}`}</p>
                                   </div>
 
-                                  <button
+                                  {/* <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       const t = callType === 'video' ? 'video' : 'voice';
@@ -1491,7 +1526,7 @@ export default function MessageList({
                                     className="ml-2  py-1 text-xs font-semibold rounded-lg border-blue-200 text-blue-600 hover:bg-blue-50 hover:cursor-pointer"
                                   >
                                     Gọi lại
-                                  </button>
+                                  </button> */}
                                 </div>
                               </div>
                             </div>
@@ -2491,7 +2526,7 @@ export default function MessageList({
                               {/* IMAGE – FIX SIZE MOBILE */}
                               {msg.type === 'image' && msg.fileUrl && !isRecalled && (
                                 <div
-                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[70vw] sm:max-w-[18rem] select-none lg:select-auto"
+                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[50vw] sm:max-w-[10rem] select-none lg:select-auto"
                                   onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
                                   style={{ WebkitTouchCallout: 'none' }}
                                 >

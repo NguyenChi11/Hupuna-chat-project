@@ -6,7 +6,7 @@ import { Message } from '@/types/Message';
 import { User } from '@/types/User';
 import Image from 'next/image';
 import ArrowRightICon from '@/public/icons/arrow-right-icon.svg'; // Reuse existing icon
-import { getProxyUrl } from '@/utils/utils';
+import { getProxyUrl, normalizeNoAccent, buildAccentInsensitiveRegex, hasDiacritics } from '@/utils/utils';
 import MediaPreviewModal from '@/components/(chatPopup)/MediaPreviewModal';
 import { IoReload } from 'react-icons/io5';
 import { HiPlay } from 'react-icons/hi2';
@@ -67,13 +67,28 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
               type: { $ne: 'notify' },
             },
             limit: 500,
-            sort: { timestamp: -1 },
+            sort: { field: 'timestamp', order: 'desc' },
           }),
         });
         const data = await res.json();
-        const results: Message[] = (data.data || [])
-          .slice()
-          .sort((a: Message, b: Message) => Number(b.timestamp) - Number(a.timestamp));
+        const raw: Message[] = Array.isArray(data?.data) ? (data.data as Message[]) : [];
+        const term = normalizeNoAccent(query);
+        const hasDia = hasDiacritics(query);
+        const filtered = raw.filter((m) => {
+          const text =
+            m.type === 'file'
+              ? String(m.fileName || '')
+              : m.type === 'sticker'
+                ? ''
+                : String(m.content || '');
+          const accentInsensitive = normalizeNoAccent(text).includes(term);
+          if (!accentInsensitive) return false;
+          if (!hasDia) return true;
+          const exactAccent = String(text || '').toLowerCase().includes(String(query || '').toLowerCase());
+          const textHasDia = hasDiacritics(text);
+          return exactAccent || textHasDia;
+        });
+        const results: Message[] = filtered.slice().sort((a: Message, b: Message) => Number(b.timestamp) - Number(a.timestamp));
         setSearchResults(results);
         setCurrentResultIndex((prev) => {
           if (results.length === 0) return -1;
@@ -227,7 +242,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
   // Highlight keyword function
   const highlightKeyword = (text: string, keyword: string) => {
     if (!keyword.trim() || !text) return text;
-    const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const regex = buildAccentInsensitiveRegex(keyword);
     const parts = text.split(regex);
     return (
       <>

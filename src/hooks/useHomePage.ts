@@ -34,7 +34,7 @@ interface GlobalSearchMessageApi {
   displayRoomName?: string;
 }
 
-import { resolveSocketUrl } from '@/utils/utils';
+import { resolveSocketUrl, normalizeNoAccent } from '@/utils/utils';
 import { useChatNotifications } from '@/hooks/useChatNotifications';
 
 export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: boolean }) {
@@ -173,7 +173,7 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         return;
       }
 
-      const lowerCaseTerm = term.toLowerCase();
+      const lowerCaseTerm = normalizeNoAccent(term);
 
       // 1. Lọc liên hệ/nhóm (Local - Instant)
       let allChats = [...groups, ...allUsers];
@@ -200,7 +200,7 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         })
         .filter(({ contact, displayName }) => {
           if (contact.isHidden) return false;
-          return displayName.toLowerCase().includes(lowerCaseTerm);
+          return normalizeNoAccent(displayName).includes(lowerCaseTerm);
         })
         .map(({ contact, isGroup, displayName }) => ({
           _id: contact._id,

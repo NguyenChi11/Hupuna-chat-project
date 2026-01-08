@@ -7,7 +7,7 @@ import { HiMagnifyingGlass } from 'react-icons/hi2';
 import Image from 'next/image';
 import { User } from '@/types/User';
 import { GroupConversation } from '@/types/Group';
-import { getProxyUrl } from '@/utils/utils';
+import { getProxyUrl, normalizeNoAccent } from '@/utils/utils';
 
 interface CommonGroupsMobileProps {
   groups: GroupConversation[];
@@ -29,8 +29,8 @@ export default function CommonGroupsMobile({
 
   const filteredGroups = useMemo(() => {
     if (!searchTerm.trim()) return groups;
-    const lower = searchTerm.toLowerCase();
-    return groups.filter((g) => (g.name || '').toLowerCase().includes(lower));
+    const norm = normalizeNoAccent(searchTerm);
+    return groups.filter((g) => normalizeNoAccent(g.name || '').includes(norm));
   }, [groups, searchTerm]);
 
   return (

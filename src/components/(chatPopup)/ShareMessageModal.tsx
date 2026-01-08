@@ -7,7 +7,7 @@ import { HiUsers, HiUser, HiOutlineDocumentText } from 'react-icons/hi2';
 import { User } from '@/types/User';
 import { GroupConversation } from '@/types/Group';
 import Image from 'next/image';
-import { getProxyUrl } from '@/utils/utils';
+import { getProxyUrl, normalizeNoAccent } from '@/utils/utils';
 import { Message } from '@/types/Message';
 import { HiPlay, HiX, HiXCircle } from 'react-icons/hi';
 
@@ -130,8 +130,8 @@ export default function ShareMessageModal({
 
   const filteredTargets = useMemo(() => {
     if (!searchTerm.trim()) return shareTargets;
-    const lower = searchTerm.toLowerCase();
-    return shareTargets.filter((t) => t.name.toLowerCase().includes(lower));
+    const norm = normalizeNoAccent(searchTerm);
+    return shareTargets.filter((t) => normalizeNoAccent(t.name).includes(norm));
   }, [shareTargets, searchTerm]);
 
   const toggleSelect = (targetId: string) => {

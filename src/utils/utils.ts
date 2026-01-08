@@ -84,3 +84,67 @@ export const resolveSocketUrl = (): string => {
   // Production (HTTP) hoặc IP LAN
   return `${protocol}//${host}:${port}`;
 };
+
+export const normalizeNoAccent = (str: string): string => {
+  const s = String(str || '');
+  const n = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return n.replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+};
+
+export const buildAccentInsensitiveRegex = (term: string): RegExp => {
+  const escape = (ch: string) => ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts: string[] = [];
+  for (const ch of term) {
+    if (/\s/.test(ch)) {
+      parts.push('\\s+');
+    } else if (/[A-Za-z]/.test(ch)) {
+      if (ch.toLowerCase() === 'd') {
+        parts.push('(?:[dđ][\\u0300-\\u036f]*)');
+      } else {
+        parts.push(`(?:${escape(ch)}[\\u0300-\\u036f]*)`);
+      }
+    } else {
+      parts.push(escape(ch));
+    }
+  }
+  const pattern = parts.join('');
+  return new RegExp(`(${pattern})`, 'giu');
+};
+
+export const hasDiacritics = (str: string): boolean => {
+  const s = String(str || '');
+  const n = normalizeNoAccent(s);
+  return s.toLowerCase() !== n;
+};
+
+export const computeMatchScore = (text: string, term: string): number => {
+  const escape = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const txt = String(text || '').toLowerCase();
+  const q = String(term || '').toLowerCase();
+  const nTxt = normalizeNoAccent(txt);
+  const nQ = normalizeNoAccent(q);
+  if (!nTxt.includes(nQ)) return -Infinity;
+
+  const qHasDia = hasDiacritics(q);
+  const exactIdx = txt.indexOf(q);
+  const normIdx = nTxt.indexOf(nQ);
+  const wordExact = new RegExp(`(^|\\b)${escape(q)}`, 'i').test(txt);
+  const wordNorm = new RegExp(`(^|\\b)${escape(nQ)}`, 'i').test(nTxt);
+
+  let score = 0;
+  if (exactIdx >= 0) {
+    score += 50;
+    if (qHasDia) score += 30;
+    if (exactIdx === 0) score += 20;
+    if (wordExact) score += 10;
+    score += Math.max(0, 10 - exactIdx);
+  } else {
+    score += 20;
+    if (normIdx === 0) score += 10;
+    if (wordNorm) score += 5;
+    score += Math.max(0, 5 - normIdx);
+  }
+  const lengthBoost = Math.min(10, Math.floor((nQ.length / Math.max(1, nTxt.length)) * 10));
+  score += lengthBoost;
+  return score;
+};
