@@ -72,7 +72,7 @@ function CustomTrackTile({
       (trackRef as unknown as { participant?: { identity?: string } })?.participant?.identity ||
       '');
   return (
-    <div className={`relative w-full  h-full bg-black`}>
+    <div className={`relative w-full  h-full bg-black overflow-hidden rounded-md`}>
       {showVideo ? (
         <VideoTrack
           trackRef={trackRef as TrackReference}
@@ -80,8 +80,8 @@ function CustomTrackTile({
             contain
               ? 'w-full h-full object-contain'
               : cover || !portrait
-                ? 'w-full  object-cover'
-                : 'w-full  object-contain'
+                ? 'w-full h-full object-cover'
+                : 'w-full h-full object-contain'
           }
           onLoadedMetadata={handleMeta}
           muted
@@ -178,10 +178,15 @@ function CallTiles({
     }
     return s;
   }, [gridTracks, spotlightId]);
-  const displayTracks = sortedTracks.slice(0, 8);
-  const moreCount = Math.max(0, sortedTracks.length - displayTracks.length);
-  const cols = displayTracks.length <= 1 ? 1 : displayTracks.length <= 4 ? 2 : displayTracks.length <= 9 ? 3 : 4;
-  const rows = Math.ceil(displayTracks.length / cols);
+  const maxTiles = 9;
+  const total = sortedTracks.length;
+  const showMore = total > maxTiles;
+  const displayLimit = showMore ? maxTiles - 1 : maxTiles;
+  const displayTracks = sortedTracks.slice(0, displayLimit);
+  const moreCount = Math.max(0, total - displayTracks.length);
+  const totalTiles = displayTracks.length + (moreCount > 0 ? 1 : 0);
+  const cols = totalTiles <= 1 ? 1 : totalTiles <= 4 ? 2 : totalTiles <= 9 ? 3 : 4;
+  const rows = Math.ceil(totalTiles / cols);
 
   return (
     <div
@@ -208,7 +213,7 @@ function CallTiles({
           </div>
         ) : displayTracks.length > 0 ? (
           <div
-            className="grid w-full h-full"
+            className="grid w-full h-full gap-2 p-2"
             style={{
               gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
@@ -345,7 +350,7 @@ function CallTiles({
           </div>
           <div className="flex-1 overflow-auto p-3">
             <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
-              {sortedTracks.slice(8).map((tr, i) => {
+              {sortedTracks.slice(displayTracks.length).map((tr, i) => {
                 const id = String(
                   ((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim(),
                 );

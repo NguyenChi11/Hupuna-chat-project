@@ -22,6 +22,10 @@ import {
   HiUserCircle,
   HiSparkles,
   HiRectangleGroup,
+  HiArrowsPointingIn,
+  HiArrowsPointingOut,
+  HiMinus,
+  HiXMark,
 } from 'react-icons/hi2';
 
 import { useChatNotifications } from '@/hooks/useChatNotifications';
@@ -539,6 +543,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     socketRef,
     roomId: normalizedRoomId,
     currentUserId: String(currentUser?._id || ''),
+    currentUser: currentUser,
     isGroup: normalizedIsGroup,
     selectedChat: globalSelectedChat,
   });
@@ -1176,7 +1181,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                           })()
                         : 'Đang kết nối...'}
                   </span>
-                  <span className="text-xs">
+                  <span className="text-xs flex items-center">
                     {callType === 'video' ? 'Video' : 'Thoại'}
                     {callActive && callDurationSec > 0
                       ? ` • ${Math.floor(callDurationSec / 60)
@@ -1184,18 +1189,29 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                           .padStart(2, '0')}:${(callDurationSec % 60).toString().padStart(2, '0')}`
                       : ''}
                     <button
-                      className="ml-3 text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
+                      className="ml-3 p-1 rounded hover:bg-white/20 cursor-pointer transition-colors"
                       onClick={() => setGlobalCallFullscreen((v) => !v)}
                       title={globalCallFullscreen ? 'Thu nhỏ' : 'Phóng to'}
                     >
-                      {globalCallFullscreen ? 'Thu nhỏ' : 'Phóng to'}
+                      {globalCallFullscreen ? (
+                        <HiArrowsPointingIn className="w-5 h-5" />
+                      ) : (
+                        <HiArrowsPointingOut className="w-5 h-5" />
+                      )}
                     </button>
                     <button
-                      className="ml-3 text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
+                      className="ml-2 p-1 rounded hover:bg-white/20 cursor-pointer transition-colors"
                       onClick={() => setGlobalCallHidden(true)}
                       title="Ẩn cửa sổ gọi"
                     >
-                      Ẩn
+                      <HiMinus className="w-5 h-5" />
+                    </button>
+                    <button
+                      className="ml-2 p-1 rounded bg-red-600 hover:bg-red-500 text-white cursor-pointer transition-colors"
+                      onClick={() => endCall('local')}
+                      title="Kết thúc cuộc gọi"
+                    >
+                      <HiXMark className="w-5 h-5" />
                     </button>
                   </span>
                 </div>

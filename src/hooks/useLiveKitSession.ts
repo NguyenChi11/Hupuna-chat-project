@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import io, { Socket } from 'socket.io-client';
 import { resolveSocketUrl } from '@/utils/utils';
 import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
+import type { User } from '@/types/User';
 
 type CallType = 'voice' | 'video';
 type Member = string | { _id: string };
@@ -12,12 +13,14 @@ export function useLiveKitSession({
   socketRef,
   roomId,
   currentUserId,
+  currentUser,
   isGroup,
   selectedChat,
 }: {
   socketRef: React.MutableRefObject<Socket | null>;
   roomId: string;
   currentUserId: string;
+  currentUser: User | null;
   isGroup: boolean;
   selectedChat?: { _id?: string; members?: Member[] } | null;
 }) {
@@ -41,16 +44,24 @@ export function useLiveKitSession({
   const lastJoinedRoomRef = useRef<string>('');
   const activeRoomIdRef = useRef<string>('');
   const ignoreRemoteEndUntilRef = useRef<number>(0);
+  const roomParticipantsRef = useRef<string[]>([]);
+  const callTypeRef = useRef<CallType | null>(null);
 
   useEffect(() => {
     callActiveRef.current = callActive;
   }, [callActive]);
+  useEffect(() => {
+    callTypeRef.current = callType;
+  }, [callType]);
   useEffect(() => {
     callConnectingRef.current = callConnecting;
   }, [callConnecting]);
   useEffect(() => {
     activeRoomIdRef.current = String(activeRoomId || '');
   }, [activeRoomId]);
+  useEffect(() => {
+    roomParticipantsRef.current = roomParticipants;
+  }, [roomParticipants]);
   useEffect(() => {
     const ensureUserJoin = async () => {
       try {
@@ -109,15 +120,55 @@ export function useLiveKitSession({
     return id ? [id] : [];
   }, [isGroup, selectedChat, currentUserId]);
 
-  const fetchToken = useCallback(
-    async (rid: string) => {
-      const res = await fetch(`/api/livekit/token?room=${encodeURIComponent(rid)}`, { method: 'GET' });
-      if (!res.ok) throw new Error('token failed');
-      const data = await res.json();
-      setLivekitToken(String(data.token || ''));
-      setLivekitUrl(String(data.serverUrl || ''));
+  const fetchToken = useCallback(async (rid: string) => {
+    const res = await fetch(`/api/livekit/token?room=${encodeURIComponent(rid)}`, { method: 'GET' });
+    if (!res.ok) throw new Error('token failed');
+    const data = await res.json();
+    setLivekitToken(String(data.token || ''));
+    setLivekitUrl(String(data.serverUrl || ''));
+  }, []);
+
+  const sendNotify = useCallback(
+    async (content: string) => {
+      if (!roomId || !currentUserId) return;
+      const myName = currentUser?.name || 'Bạn';
+      const msgData = {
+        roomId,
+        sender: currentUserId,
+        type: 'notify',
+        content,
+        timestamp: Date.now(),
+      };
+      try {
+        const res = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create',
+            data: msgData,
+          }),
+        });
+        const json = await res.json();
+        if (json.success && json._id) {
+          let members: Member[] = [];
+          if (selectedChat && String(selectedChat._id) === String(roomId) && isGroup) {
+            members = selectedChat.members || [];
+          }
+
+          socketRef.current?.emit('send_message', {
+            ...msgData,
+            _id: json._id,
+            senderName: myName,
+            isGroup,
+            receiver: null,
+            members,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to send notify', e);
+      }
     },
-    [],
+    [roomId, currentUserId, currentUser, isGroup, selectedChat, socketRef],
   );
 
   const joinActiveGroupCall = useCallback(async () => {
@@ -132,7 +183,9 @@ export function useLiveKitSession({
         socketRef.current!.emit('join_user', { userId: String(currentUserId) });
       }
       socketRef.current?.emit('join_room', rid);
-      const target = (Array.isArray(roomParticipants) ? roomParticipants : []).find((id) => String(id) !== String(currentUserId));
+      const target = (Array.isArray(roomParticipants) ? roomParticipants : []).find(
+        (id) => String(id) !== String(currentUserId),
+      );
       if (target) {
         socketRef.current?.emit('call_answer', {
           roomId: rid,
@@ -146,10 +199,23 @@ export function useLiveKitSession({
       setCallConnecting(false);
       await fetchToken(rid);
       setCallActive(true);
+
+      const myName = currentUser?.name || 'Bạn';
+      void sendNotify(`${myName} đã tham gia cuộc gọi video`);
     } catch {
       // ignore
     }
-  }, [isGroup, roomCallActive, roomParticipants, roomId, currentUserId, roomCallType, fetchToken]);
+  }, [
+    isGroup,
+    roomCallActive,
+    roomParticipants,
+    roomId,
+    currentUserId,
+    roomCallType,
+    fetchToken,
+    currentUser,
+    sendNotify,
+  ]);
 
   const startCall = useCallback(
     async (type: CallType, overrideTargetId?: string) => {
@@ -174,6 +240,12 @@ export function useLiveKitSession({
       })();
       receiversRef.current = receivers;
       if (receivers.length === 0) return;
+
+      if (isGroup) {
+        const myName = currentUser?.name || 'Bạn';
+        void sendNotify(`${myName} đã tham gia cuộc gọi video`);
+      }
+
       setCallType(type);
       setCallStartAt(null);
       setCallConnecting(true);
@@ -217,7 +289,7 @@ export function useLiveKitSession({
         setCallConnecting(false);
       }
     },
-    [getReceiverIds, roomId, currentUserId, isGroup, roomCallActive, roomParticipants],
+    [getReceiverIds, roomId, currentUserId, isGroup, roomCallActive, roomParticipants, currentUser, sendNotify],
   );
 
   const endCall = useCallback(
@@ -242,6 +314,19 @@ export function useLiveKitSession({
             roomId,
             userId: String(currentUserId),
           });
+
+          const myName = currentUser?.name || 'Bạn';
+          void sendNotify(`${myName} đã rời cuộc gọi video`);
+
+          const type = callTypeRef.current;
+          if (type === 'video') {
+            const currentParts = roomParticipantsRef.current || [];
+            const remaining = currentParts.filter((id) => String(id) !== String(currentUserId));
+            if (remaining.length === 0) {
+              const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+              void sendNotify(`Cuộc gọi video đã kết thúc lúc ${time}`);
+            }
+          }
           setRoomParticipants((prev) => {
             const next = (prev || []).filter((id) => String(id) !== String(currentUserId));
             if (next.length === 0) {
@@ -271,7 +356,7 @@ export function useLiveKitSession({
         }
       }
     },
-    [roomId, currentUserId, counterpartId],
+    [roomId, currentUserId, counterpartId, isGroup, callType, currentUser, sendNotify],
   );
 
   const acceptIncomingCall = useCallback(async () => {
@@ -340,9 +425,7 @@ export function useLiveKitSession({
       stopGlobalRingTone();
       setIncomingCall(null);
       const isDirect = String(data.roomId).split('_').filter(Boolean).length === 2;
-      const fromOther =
-        typeof data.from === 'string' &&
-        String(data.from) !== String(currentUserId);
+      const fromOther = typeof data.from === 'string' && String(data.from) !== String(currentUserId);
       const explicit = fromOther || (Array.isArray(data.targets) && data.targets.length > 0);
       // 1-1: luôn kết thúc khi roomId trùng phòng đang gọi (dù explicit hay không)
       if (isDirect) {
