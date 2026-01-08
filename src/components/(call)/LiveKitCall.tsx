@@ -40,7 +40,7 @@ function CustomTrackTile({
   offMinHeight,
   cover,
   contain,
-  callMode
+  callMode,
 }: {
   trackRef: TrackReferenceOrPlaceholder;
   title?: string | null;
@@ -48,9 +48,17 @@ function CustomTrackTile({
   offMinHeight?: number;
   cover?: boolean;
   contain?: boolean;
-  callMode?: "voice" | "video"
+  callMode?: 'voice' | 'video';
 }) {
   const isMuted = useIsMuted(trackRef);
+  const ref = trackRef as TrackReference;
+  const pub = ref?.publication as unknown as
+    | {
+        isEnabled?: boolean;
+        isSubscribed?: boolean;
+      }
+    | undefined;
+  const showVideo = !!(pub && pub.isEnabled !== false && pub.isSubscribed !== false && !isMuted);
   const [portrait, setPortrait] = React.useState<boolean>(false);
   const handleMeta = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const v = e.currentTarget;
@@ -65,15 +73,15 @@ function CustomTrackTile({
       '');
   return (
     <div className={`relative w-full  h-full bg-black`}>
-      {!isMuted && (trackRef as TrackReference)?.publication ? (
+      {showVideo ? (
         <VideoTrack
           trackRef={trackRef as TrackReference}
           className={
             contain
               ? 'w-full h-full object-contain'
-              : (cover || !portrait)
-              ? 'w-full  object-cover'
-              : 'w-full  object-contain'
+              : cover || !portrait
+                ? 'w-full  object-cover'
+                : 'w-full  object-contain'
           }
           onLoadedMetadata={handleMeta}
           muted
@@ -81,9 +89,7 @@ function CustomTrackTile({
           autoPlay
         />
       ) : (
-        <div
-          className="w-full h-full flex items-center justify-center bg-black"
-        >
+        <div className="w-full h-full flex items-center justify-center bg-black">
           {avatarUrl ? (
             <Image
               src={avatarUrl}
@@ -97,9 +103,7 @@ function CustomTrackTile({
           )}
         </div>
       )}
-      <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-        {displayName}
-      </div>
+      <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">{displayName}</div>
     </div>
   );
 }
@@ -122,28 +126,125 @@ function CallTiles({
   const cameraTracks = useTracks([Track.Source.Camera]);
   const remoteTracks = cameraTracks.filter((t) => !t.participant?.isLocal);
   const localTrack = cameraTracks.find((t) => t.participant?.isLocal);
-  const cols = remoteTracks.length <= 1 ? 1 : remoteTracks.length === 2 ? 2 : remoteTracks.length <= 4 ? 2 : remoteTracks.length <= 9 ? 3 : 4;
+  const isGridMode = cameraTracks.length >= 3;
+  const gridTracks = isGridMode ? cameraTracks : remoteTracks;
+  const [avatarsMap, setAvatarsMap] = React.useState<Record<string, string>>({});
+  const [showRoster, setShowRoster] = React.useState(false);
+  const [spotlightId, setSpotlightId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const ids = gridTracks
+      .map((tr) =>
+        String(((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim()),
+      )
+      .filter((id) => !!id && !avatarsMap[id]);
+    if (ids.length === 0) return;
+    const run = async () => {
+      try {
+        const results = await Promise.all(
+          ids.map(async (id) => {
+            const res = await fetch('/api/users', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'getById', _id: String(id) }),
+            });
+            const data = await res.json();
+            const row = (data && (data.row || (Array.isArray(data?.data) ? data.data[0] : null))) || null;
+            const avatar = typeof row?.avatar === 'string' ? row.avatar : '';
+            return { id, avatar };
+          }),
+        );
+        const next: Record<string, string> = { ...avatarsMap };
+        results.forEach(({ id, avatar }) => {
+          if (avatar) next[id] = avatar;
+        });
+        setAvatarsMap(next);
+      } catch {}
+    };
+    void run();
+  }, [gridTracks, avatarsMap]);
+
+  const sortedTracks = React.useMemo(() => {
+    if (!spotlightId) return gridTracks;
+    const s = gridTracks.slice();
+    const idx = s.findIndex(
+      (tr) =>
+        String(((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim()) ===
+        spotlightId,
+    );
+    if (idx > 0) {
+      const [sp] = s.splice(idx, 1);
+      s.unshift(sp);
+    }
+    return s;
+  }, [gridTracks, spotlightId]);
+  const displayTracks = sortedTracks.slice(0, 8);
+  const moreCount = Math.max(0, sortedTracks.length - displayTracks.length);
+  const cols = displayTracks.length <= 1 ? 1 : displayTracks.length <= 4 ? 2 : displayTracks.length <= 9 ? 3 : 4;
+  const rows = Math.ceil(displayTracks.length / cols);
+
   return (
-    <div className={`relative w-full h-full overflow-hidden ${callMode === 'voice' ? 'bg-blue-500' : "bg-black"}`} style={{ minHeight: offMinHeight ?? 240 }}>
+    <div
+      className={`relative w-full h-full overflow-hidden max-md:h-[100vh]  ${callMode === 'voice' ? 'bg-blue-500' : 'bg-black'}`}
+      style={{ minHeight: offMinHeight ?? 240 }}
+    >
       <div className="md:block hidden rounded-lg w-full h-full">
         {callMode === 'voice' ? (
           <div className="w-full h-full flex items-center justify-center">
             <div className="flex flex-col items-center gap-4 mt-20">
               {avatarUrl ? (
-                <Image src={avatarUrl} alt={titleName || 'avatar'} width={160} height={160} className="w-32 h-32 rounded-full object-cover" />
+                <Image
+                  src={avatarUrl}
+                  alt={titleName || 'avatar'}
+                  width={160}
+                  height={160}
+                  className="w-32 h-32 rounded-full object-cover"
+                />
               ) : (
                 <div className="w-32 h-32 rounded-full bg-white/10" />
               )}
               <div className="text-white/90 text-lg">{titleName || ''}</div>
             </div>
           </div>
-        ) : remoteTracks.length > 0 ? (
-          <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-            {remoteTracks.map((tr, i) => (
-              <div key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`} className="relative">
-                <CustomTrackTile trackRef={tr} offMinHeight={offMinHeight} />
+        ) : displayTracks.length > 0 ? (
+          <div
+            className="grid w-full h-full"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+            }}
+          >
+            {displayTracks.map((tr, i) => (
+              <div
+                key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`}
+                className="relative"
+              >
+                <CustomTrackTile
+                  trackRef={tr}
+                  offMinHeight={offMinHeight}
+                  avatarUrl={
+                    ((tr as unknown as { participant?: { isLocal?: boolean } })?.participant?.isLocal
+                      ? myAvatarUrl
+                      : avatarsMap[
+                          String(
+                            (
+                              (tr as unknown as { participant?: { identity?: string } })?.participant?.identity || ''
+                            ).trim(),
+                          )
+                        ]) || (isGridMode ? undefined : avatarUrl)
+                  }
+                />
               </div>
             ))}
+            {moreCount > 0 && (
+              <button
+                onClick={() => setShowRoster(true)}
+                className="flex items-center justify-center bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-md"
+                title="Xem thêm"
+              >
+                +{moreCount}
+              </button>
+            )}
           </div>
         ) : localTrack ? (
           <div className="w-full h-full">
@@ -155,32 +256,74 @@ function CallTiles({
           </div>
         )}
       </div>
-      <div className="md:hidden block w-full h-full flex items-center justify-center">
+      <div className="md:hidden  w-full h-full flex items-center justify-center">
         {callMode === 'voice' ? (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4 mt-40">
+            <div className="flex flex-col items-center gap-4 mt-40 max-md:mt-0">
               {avatarUrl ? (
-                <Image src={avatarUrl} alt={titleName || 'avatar'} width={128} height={128} className="w-28 h-28 rounded-full object-cover" />
+                <Image
+                  src={avatarUrl}
+                  alt={titleName || 'avatar'}
+                  width={128}
+                  height={128}
+                  className="w-28 h-28 rounded-full object-cover"
+                />
               ) : (
                 <div className="w-28 h-28 rounded-full bg-white/10" />
               )}
               <div className="text-white/90 text-xl font-bold">{titleName || ''}</div>
             </div>
           </div>
-        ) : remoteTracks.length > 0 ? (
-          <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-            {remoteTracks.map((tr, i) => (
+        ) : displayTracks.length > 0 ? (
+          <div
+            className="grid w-full h-full"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+            }}
+          >
+            {displayTracks.map((tr, i) => (
               <div
                 key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`}
                 className="relative"
               >
-                <CustomTrackTile trackRef={tr} offMinHeight={offMinHeight} contain />
+                <CustomTrackTile
+                  trackRef={tr}
+                  offMinHeight={offMinHeight}
+                  contain
+                  avatarUrl={
+                    ((tr as unknown as { participant?: { isLocal?: boolean } })?.participant?.isLocal
+                      ? myAvatarUrl
+                      : avatarsMap[
+                          String(
+                            (
+                              (tr as unknown as { participant?: { identity?: string } })?.participant?.identity || ''
+                            ).trim(),
+                          )
+                        ]) || (isGridMode ? undefined : avatarUrl)
+                  }
+                />
               </div>
             ))}
+            {moreCount > 0 && (
+              <button
+                onClick={() => setShowRoster(true)}
+                className="flex items-center justify-center bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-md"
+                title="Xem thêm"
+              >
+                +{moreCount}
+              </button>
+            )}
           </div>
         ) : localTrack ? (
           <div className="w-full h-[85vh] mt-4">
-            <CustomTrackTile trackRef={localTrack} title={myName} avatarUrl={myAvatarUrl} offMinHeight={offMinHeight} contain />
+            <CustomTrackTile
+              trackRef={localTrack}
+              title={myName}
+              avatarUrl={myAvatarUrl}
+              offMinHeight={offMinHeight}
+              contain
+            />
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -188,6 +331,51 @@ function CallTiles({
           </div>
         )}
       </div>
+      {showRoster && callMode === 'video' && (
+        <div className="absolute inset-0 bg-black/80 z-50 flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="text-white text-sm">Người tham gia khác</div>
+            <button
+              className="px-3 py-1 rounded bg-white/10 text-white hover:bg-white/20"
+              onClick={() => setShowRoster(false)}
+              title="Đóng"
+            >
+              Đóng
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto p-3">
+            <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+              {sortedTracks.slice(8).map((tr, i) => {
+                const id = String(
+                  ((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim(),
+                );
+                return (
+                  <button
+                    key={`${id}-${i}`}
+                    className="relative rounded-md overflow-hidden bg-black"
+                    onClick={() => {
+                      setSpotlightId(id);
+                      setShowRoster(false);
+                    }}
+                    title="Đẩy lên giao diện chính"
+                  >
+                    <CustomTrackTile
+                      trackRef={tr}
+                      offMinHeight={120}
+                      contain
+                      avatarUrl={
+                        ((tr as unknown as { participant?: { isLocal?: boolean } })?.participant?.isLocal
+                          ? myAvatarUrl
+                          : avatarsMap[id]) || avatarUrl
+                      }
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -278,18 +466,31 @@ export default function LiveKitCall({
 
   return (
     <div className={className ? className : ''}>
-      <LiveKitRoom serverUrl={serverUrl} token={token} connect video={callMode === 'video'} audio={true} onDisconnected={onDisconnected}>
+      <LiveKitRoom
+        serverUrl={serverUrl}
+        token={token}
+        connect
+        video={callMode === 'video'}
+        audio={true}
+        onDisconnected={onDisconnected}
+      >
         <RoomAudioRenderer />
         <div className="relative w-full h-full group" onClick={toggleControls}>
-          <CallTiles titleName={titleName} avatarUrl={avatarUrl} offMinHeight={offMinHeight} myName={myName} myAvatarUrl={myAvatarUrl} callMode={callMode} />
-          
+          <CallTiles
+            titleName={titleName}
+            avatarUrl={avatarUrl}
+            offMinHeight={offMinHeight}
+            myName={myName}
+            myAvatarUrl={myAvatarUrl}
+            callMode={callMode}
+          />
+
           {/* Timer */}
-          <div className="absolute md:block hidden top-3 left-3 text-xs font-semibold bg-green-600 text-white px-2 py-1 rounded">{formatTime(callStartAt)}</div>
-          <div className="absolute md:hidden block top-3 left-1/2 -translate-x-1/2 text-xs font-semibold  text-white px-2 py-1 rounded">
-            
-            <p className='text-green-500 text-[1rem]'>
+          <div className="absolute md:block hidden top-3 left-3 text-xs font-semibold bg-green-600 text-white px-2 py-1 rounded">
             {formatTime(callStartAt)}
-            </p>
+          </div>
+          <div className="absolute md:hidden block top-3 left-1/2 -translate-x-1/2 text-xs font-semibold  text-white px-2 py-1 rounded">
+            <p className="text-green-500 text-[1rem]">{formatTime(callStartAt)}</p>
           </div>
           {/* Mobile top actions */}
           <div className="absolute top-3 left-3 md:hidden">
@@ -308,10 +509,10 @@ export default function LiveKitCall({
               <HiChevronLeft className="w-5 h-5" />
             </button>
           </div>
-          
+
           {/* <ParticipantsCounter /> */}
           <ParticipantsWatcher onChanged={onParticipantsChanged} />
-          
+
           {/* Local preview (toggleable) */}
           {showLocalPreview && callMode === 'video' && (
             <LocalPreview myName={myName} myAvatarUrl={myAvatarUrl} size={initialPreview} />
@@ -356,7 +557,9 @@ export default function LiveKitCall({
             </div>
           </div>
           {/* Mobile controls – ẩn mặc định, hiện khi chạm */}
-          <div className={`fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-6 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+          <div
+            className={`fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-6 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}
+          >
             <div className="flex flex-col items-center gap-2">
               {callMode === 'video' && (
                 <>
@@ -371,7 +574,7 @@ export default function LiveKitCall({
             <div className="flex flex-col items-center gap-2">
               <TrackToggle
                 source={Track.Source.Microphone}
-                 className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
               />
               <span className="text-white text-xs">Mic</span>
             </div>
@@ -401,10 +604,8 @@ export default function LiveKitCall({
                 </>
               )}
             </div>
-          
           </div>
           {/* Mobile right-side quick actions */}
-          
         </div>
       </LiveKitRoom>
     </div>
@@ -422,23 +623,23 @@ function LocalPreview({
 }) {
   const cameraTracks = useTracks([Track.Source.Camera]);
   const localTrack = cameraTracks.find((t) => t.participant?.isLocal);
+
   const [isDesktop, setIsDesktop] = React.useState<boolean>(false);
   const [pos, setPos] = React.useState<{ x: number; y: number }>({ x: 12, y: 12 });
   React.useEffect(() => {
-    const apply = () => setIsDesktop(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+    const apply = () => {
+      if (typeof window === 'undefined') return;
+      const width = window.innerWidth;
+      const desktop = width >= 768;
+      setIsDesktop(desktop);
+      if (!desktop) {
+        setPos({ x: Math.max(8, width - size.w - 12), y: 12 });
+      }
+    };
     apply();
     window.addEventListener('resize', apply);
     return () => window.removeEventListener('resize', apply);
-  }, []);
-  React.useEffect(() => {
-    if (isDesktop) return;
-    try {
-      const W = typeof window !== 'undefined' ? window.innerWidth : 360;
-      setPos({ x: Math.max(8, W - size.w - 12), y: 12 });
-    } catch {
-      setPos({ x: 12, y: 12 });
-    }
-  }, [size.w, isDesktop]);
+  }, [size.w]);
   const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDesktop) return;
     const st = { sx: e.clientX, sy: e.clientY, ox: pos.x, oy: pos.y };
@@ -482,9 +683,13 @@ function LocalPreview({
     style.left = pos.x;
     style.top = pos.y;
   }
+
+  // Hide local preview if we have 3 or more participants (grid mode)
+  if (cameraTracks.length >= 3) return null;
+
   return (
     <div
-      className={`${isDesktop ? 'absolute top-2 right-2' : 'absolute'} rounded-lg overflow-hidden ring-2 ring-white/60 shadow-lg bg-black ${isDesktop ? '' : 'cursor-move'}`}
+      className={`${isDesktop ? 'absolute top-2 right-2' : 'absolute'} rounded-lg overflow-hidden bg-black ${isDesktop ? '' : 'cursor-move'}`}
       style={style}
       onMouseDown={handleDragStart}
       onTouchStart={handleTouchStart}

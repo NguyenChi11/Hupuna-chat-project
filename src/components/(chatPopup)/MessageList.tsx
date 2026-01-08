@@ -1500,11 +1500,25 @@ export default function MessageList({
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       const t = callType === 'video' ? 'video' : 'voice';
+                                      const rid = String(msg.roomId || '');
+                                      const isG = !(rid.includes('_') && rid.split('_').filter(Boolean).length === 2);
+                                      const me = String(currentUser._id || '');
+                                      const parts = rid.split('_').filter(Boolean);
+                                      const partnerId =
+                                        !isG && parts.length === 2 ? (parts[0] === me ? parts[1] : parts[0]) : '';
+                                      const partnerInfo = !isG && partnerId ? getSenderInfo(partnerId) : null;
                                       const evt = new CustomEvent('startCall', {
                                         detail: {
                                           type: t,
-                                          roomId: String(msg.roomId || ''),
-                                          isGroup: !(String(msg.roomId || '').includes('_') && String(msg.roomId || '').split('_').filter(Boolean).length === 2),
+                                          roomId: rid,
+                                          isGroup: isG,
+                                          selectedChat: isG
+                                            ? { _id: rid }
+                                            : {
+                                                _id: partnerId,
+                                                name: partnerInfo?.name,
+                                                avatar: partnerInfo?.avatar || undefined,
+                                              },
                                         },
                                       });
                                       window.dispatchEvent(evt);

@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 import { HiPhone, HiVideoCamera } from 'react-icons/hi2';
+import { PiPhoneDisconnectFill } from 'react-icons/pi';
 
 type Props = {
   avatar?: string;
@@ -23,7 +24,7 @@ export default function IncomingCallModal({
   callType = 'voice',
 }: Props) {
   return (
-    <div className="relative w-full min-h-[100vh] md:min-h-[24rem] md:max-h-[28rem] md:rounded-xl rounded-none overflow-hidden bg-black md:pt-10 pt-16">
+    <div className="relative w-full min-h-[46vh] md:min-h-[24rem] md:max-h-[28rem] md:rounded-xl rounded-none overflow-hidden bg-black md:pt-10 pt-16">
       {avatar && (
         <Image
           src={getProxyUrl(avatar)}
@@ -48,7 +49,13 @@ export default function IncomingCallModal({
             </div>
           ) : (
             <div className="w-24 h-24 rounded-full bg-gray-500 flex items-center justify-center text-white text-2xl font-semibold ring-4 ring-white/60">
-              <Image src="/logo/avata.webp" alt={name} width={64} height={64} className="w-full h-full rounded-full object-cover" />
+              <Image
+                src="/logo/avata.webp"
+                alt={name}
+                width={64}
+                height={64}
+                className="w-full h-full rounded-full object-cover"
+              />
             </div>
           )}
           <div className="text-white font-medium text-base">{name}</div>
@@ -74,9 +81,9 @@ export default function IncomingCallModal({
             title="Từ chối"
           >
             {callType === 'video' ? (
-              <HiVideoCamera className="w-7 h-7 text-red-500" />
+              <PiPhoneDisconnectFill className="w-7 h-7 text-red-500" />
             ) : (
-              <HiPhone className="w-7 h-7 text-red-500" />
+              <PiPhoneDisconnectFill className="w-7 h-7 text-red-500" />
             )}
           </button>
         </div>

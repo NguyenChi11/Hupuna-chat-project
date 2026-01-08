@@ -233,26 +233,26 @@ export default function ChatHeader({
       </div>
 
       <div className="flex items-center gap-1">
-          <>
-            {typeof onVoiceCall === 'function' && !isGroup && (
-              <button
-                onClick={onVoiceCall}
-                className="p-2.5 rounded-full cursor-pointer transition-all duration-200 hover:bg-gray-100 text-gray-600"
-                title="Gọi thoại"
-              >
-                <CiPhone className="w-5 h-5" />
-              </button>
-            )}
-            {typeof onVideoCall === 'function' && (
-              <button
-                onClick={onVideoCall}
-                className="p-2.5 rounded-full cursor-pointer transition-all duration-200 hover:bg-gray-100 text-gray-600"
-                title="Gọi video"
-              >
-                <CiVideoOn className="w-5 h-5" />
-              </button>
-            )}
-          </>
+        <>
+          {typeof onVoiceCall === 'function' && !isGroup && (
+            <button
+              onClick={onVoiceCall}
+              className="p-2 rounded-full cursor-pointer transition-all duration-200 hover:bg-gray-100 text-white md:text-gray-600"
+              title="Gọi thoại"
+            >
+              <CiPhone className="w-5 h-5" />
+            </button>
+          )}
+          {typeof onVideoCall === 'function' && (
+            <button
+              onClick={onVideoCall}
+              className="p-2 rounded-full cursor-pointer transition-all duration-200 hover:bg-gray-100 text-white md:text-gray-600"
+              title="Gọi video"
+            >
+              <CiVideoOn className="w-5 h-5" />
+            </button>
+          )}
+        </>
 
         {/* Nút tìm kiếm - Mobile: Toggle inline search, Desktop: Toggle sidebar */}
         <button
@@ -267,7 +267,7 @@ export default function ChatHeader({
             }
           }}
           className={`
-            p-2.5 rounded-full text-white md:text-gray-600 cursor-pointer transition-all duration-200
+            p-2 rounded-full text-white md:text-gray-600 cursor-pointer transition-all duration-200
             ${showSearchSidebar || isSearchActive ? 'bg-blue-100 text-blue-600 shadow-sm' : 'hover:bg-gray-100 text-gray-600'}
           `}
           title="Tìm kiếm tin nhắn"
@@ -282,7 +282,7 @@ export default function ChatHeader({
             onTogglePopup();
           }}
           className={`
-            p-2.5 rounded-full text-white md:text-gray-600 cursor-pointer transition-all duration-200 relative
+            p-2 rounded-full text-white md:text-gray-600 cursor-pointer transition-all duration-200 relative
             ${showPopup ? 'bg-blue-100 text-blue-600 shadow-sm' : 'hover:bg-gray-100 text-gray-600'}
           `}
           title="Thông tin trò chuyện"

@@ -77,21 +77,11 @@ export default function ModalCall({
   }, [remotePeers]);
   if (mode === 'connecting') {
     return (
-      <div className="relative w-full sm:min-h-[24rem] min-h-[100vh] sm:rounded-xl rounded-none overflow-hidden bg-black">
+      <div className="relative w-full max-md:h-[100vh] md:min-h-[24rem] md:max-h-[28rem] md:rounded-xl rounded-none overflow-hidden bg-black">
         {avatar && (
           <Image src={getProxyUrl(avatar)} alt={name} fill className="object-cover blur-xl opacity-40" sizes="100vw" />
         )}
         <div className="absolute inset-0 bg-blue/40" />
-        {/* Mobile top actions */}
-        <div className="absolute top-6 left-4 md:hidden">
-          <button
-            className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition"
-            onClick={onEndCall}
-            title="Quay lại"
-          >
-            <HiChevronLeft className="w-5 h-5" />
-          </button>
-        </div>
 
         <div className="relative z-10 h-full flex flex-col items-center justify-center gap-4">
           <div className="flex flex-col items-center gap-3 pt-10">
@@ -183,7 +173,7 @@ export default function ModalCall({
   }
 
   return (
-    <div className="relative w-full min-h-[24rem] rounded-xl overflow-hidden bg-black">
+    <div className="relative w-full max-md:h-[100vh] md:min-h-[24rem] md:max-h-[28rem] md:rounded-xl rounded-none overflow-hidden bg-black">
       {avatar && (
         <Image src={getProxyUrl(avatar)} alt={name} fill className="object-cover blur-xl opacity-40" sizes="100vw" />
       )}
