@@ -215,7 +215,12 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
             : input instanceof Request
               ? input.url
               : '';
-      const res = await orig(input, init);
+      let res: Response;
+      try {
+        res = await orig(input, init);
+      } catch (err) {
+        return new Response(null, { status: 502, statusText: 'Network Error' });
+      }
 
       // Chỉ xử lý refresh token cho các API nội bộ (bắt đầu bằng /api/)
       // và bỏ qua các request không phải API (ví dụ: socket.io, assets, external links)
