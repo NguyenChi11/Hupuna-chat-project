@@ -678,7 +678,7 @@ export default function Sidebar({
             </button>
           </div>
 
-          <div className="flex justify-end items-center gap-">
+          <div className="flex justify-end items-center gap-4">
             <div className="relative" ref={tagFilterDropdownRef}>
               <button
                 onClick={() => setShowTagFilterDropdown(!showTagFilterDropdown)}

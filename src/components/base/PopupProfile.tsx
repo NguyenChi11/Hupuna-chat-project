@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { useState } from 'react';
+import CropImageModal from '@/components/base/CropImageModal';
 
 import ProfileView from '@/components/(profile)/popup-profile/ProfileView';
 import EditInfoView from '@/components/(profile)/popup-profile/EditInfoView';
@@ -20,6 +21,11 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
 
   const { upload, isUploading, avatarFailed, setAvatarFailed } = useUploadAvatar(user, onAvatarUpdated);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropKind, setCropKind] = useState<'avatar' | 'background' | null>(null);
+  const [cropFileName, setCropFileName] = useState<string>('image.jpg');
+  const [pendingReset, setPendingReset] = useState<(() => void) | null>(null);
 
   const { updateUser, loading } = useUpdateUser(String(user._id), onUserUpdated);
 
@@ -132,8 +138,22 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
             avatarFailed={avatarFailed}
             setAvatarFailed={setAvatarFailed}
             onSelectFile={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const f = e.target.files?.[0];
-              if (f) upload(f, () => (e.target.value = ''));
+              const inputEl = e.target;
+              const f = inputEl.files?.[0];
+              if (!f) return;
+              try {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  setCropSrc(String(reader.result || ''));
+                  setCropKind('avatar');
+                  setCropFileName(f.name || 'avatar.jpg');
+                  setPendingReset(() => () => {
+                    inputEl.value = '';
+                  });
+                  setCropOpen(true);
+                };
+                reader.readAsDataURL(f);
+              } catch {}
             }}
             isUploadingBackground={isUploadingBackground}
             onSelectBackgroundFile={async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,77 +161,18 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
               const f = inputEl.files?.[0];
               if (!f) return;
               try {
-                setIsUploadingBackground(true);
-                const MAX = 1024 * 1024 * 1024; // 1GB
-                if (!f.type.startsWith('image/') || f.size > MAX) {
-                  toast({ type: 'error', message: 'Ảnh không hợp lệ hoặc quá lớn (>1GB)' });
-                  return;
-                }
-                const formData = new FormData();
-                formData.append('file', f);
-                formData.append('roomId', 'background');
-                formData.append('sender', String(user._id));
-                formData.append('receiver', '');
-                formData.append('type', 'image');
-                formData.append('folderName', 'Backgrounds');
-                const uploadRes = await fetch(`/api/upload?uploadId=background_${user._id}`, {
-                  method: 'POST',
-                  body: formData,
-                });
-                const uploadJson = await uploadRes.json();
-                if (!uploadRes.ok || !uploadJson.success || !uploadJson.link) {
-                  toast({ type: 'error', message: 'Upload thất bại' });
-                  return;
-                }
-                const newUrl = String(uploadJson.link);
-                let updateOk = false;
-                try {
-                  const res1 = await fetch('/api/users', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      action: 'update',
-                      field: '_id',
-                      value: String(user._id),
-                      data: { background: newUrl },
-                    }),
+                const reader = new FileReader();
+                reader.onload = () => {
+                  setCropSrc(String(reader.result || ''));
+                  setCropKind('background');
+                  setCropFileName(f.name || 'background.jpg');
+                  setPendingReset(() => () => {
+                    inputEl.value = '';
                   });
-                  const json1 = await res1.json();
-                  updateOk = res1.ok && !json1.error;
-                } catch {}
-                if (!updateOk) {
-                  try {
-                    const res2 = await fetch('/api/users', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        action: 'update',
-                        field: 'username',
-                        value: String(user.username || ''),
-                        data: { background: newUrl },
-                      }),
-                    });
-                    const json2 = await res2.json();
-                    updateOk = res2.ok && !json2.error;
-                  } catch {}
-                }
-                if (!updateOk) {
-                  toast({ type: 'error', message: 'Cập nhật nền thất bại' });
-                  return;
-                }
-                try {
-                  const raw = localStorage.getItem('info_user');
-                  if (raw) {
-                    const parsed = JSON.parse(raw);
-                    localStorage.setItem('info_user', JSON.stringify({ ...parsed, background: newUrl }));
-                  }
-                } catch {}
-                onUserUpdated?.({ background: newUrl });
-                toast({ type: 'success', message: 'Cập nhật nền thành công!' });
-              } finally {
-                setIsUploadingBackground(false);
-                if (inputEl) inputEl.value = '';
-              }
+                  setCropOpen(true);
+                };
+                reader.readAsDataURL(f);
+              } catch {}
             }}
           />
 
@@ -296,6 +257,99 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
             )}
           </div>
         </div>
+        <CropImageModal
+          open={cropOpen}
+          src={cropSrc}
+          onClose={() => {
+            setCropOpen(false);
+          }}
+          onConfirm={async (file: File) => {
+            if (cropKind === 'avatar') {
+              await upload(file, () => pendingReset?.());
+            } else if (cropKind === 'background') {
+              try {
+                setIsUploadingBackground(true);
+                const MAX = 1024 * 1024 * 1024;
+                if (!file.type.startsWith('image/') || file.size > MAX) {
+                  toast({ type: 'error', message: 'Ảnh không hợp lệ hoặc quá lớn (>1GB)' });
+                  return;
+                }
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('roomId', 'background');
+                formData.append('sender', String(user._id));
+                formData.append('receiver', '');
+                formData.append('type', 'image');
+                formData.append('folderName', 'Backgrounds');
+                const uploadRes = await fetch(`/api/upload?uploadId=background_${user._id}`, {
+                  method: 'POST',
+                  body: formData,
+                });
+                const uploadJson = await uploadRes.json();
+                if (!uploadRes.ok || !uploadJson.success || !uploadJson.link) {
+                  toast({ type: 'error', message: 'Upload thất bại' });
+                  return;
+                }
+                const newUrl = String(uploadJson.link);
+                let updateOk = false;
+                try {
+                  const res1 = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      action: 'update',
+                      field: '_id',
+                      value: String(user._id),
+                      data: { background: newUrl },
+                    }),
+                  });
+                  const json1 = await res1.json();
+                  updateOk = res1.ok && !json1.error;
+                } catch {}
+                if (!updateOk) {
+                  try {
+                    const res2 = await fetch('/api/users', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        action: 'update',
+                        field: 'username',
+                        value: String(user.username || ''),
+                        data: { background: newUrl },
+                      }),
+                    });
+                    const json2 = await res2.json();
+                    updateOk = res2.ok && !json2.error;
+                  } catch {}
+                }
+                if (!updateOk) {
+                  toast({ type: 'error', message: 'Cập nhật nền thất bại' });
+                  return;
+                }
+                try {
+                  const raw = localStorage.getItem('info_user');
+                  if (raw) {
+                    const parsed = JSON.parse(raw);
+                    localStorage.setItem('info_user', JSON.stringify({ ...parsed, background: newUrl }));
+                  }
+                } catch {}
+                onUserUpdated?.({ background: newUrl });
+                toast({ type: 'success', message: 'Cập nhật nền thành công!' });
+              } finally {
+                setIsUploadingBackground(false);
+                pendingReset?.();
+              }
+            }
+            setCropOpen(false);
+            setCropSrc(null);
+            setCropKind(null);
+          }}
+          aspectRatio={cropKind === 'background' ? 16 / 9 : 1}
+          circle={cropKind === 'avatar'}
+          fileName={cropFileName}
+          outputType="image/jpeg"
+          quality={0.92}
+        />
       </div>
     </div>
   );

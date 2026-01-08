@@ -178,12 +178,6 @@ export default function SidebarMenu({ totalUnread = 0, unreadGroups = 0, unreadC
 
               {/* Menu Items */}
               <div className="py-2">
-                {/* Nâng cấp tài khoản */}
-                <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors group">
-                  <span className="text-gray-700 font-medium">Nâng cấp tài khoản</span>
-                  <HiUpload className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
-                </div>
-
                 {/* Hồ sơ của bạn */}
                 <div
                   className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"

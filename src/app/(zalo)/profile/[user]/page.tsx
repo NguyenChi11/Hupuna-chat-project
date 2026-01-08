@@ -8,6 +8,7 @@ import { useViewingUser } from '@/hooks/(profile)/useViewingUser';
 import { useUploadImage } from '@/hooks/(profile)/useUploadImage';
 import { useCurrentUser } from '@/hooks/(profile)/useCurrentUser';
 import { getProxyUrl } from '@/utils/utils';
+import CropImageModal from '@/components/base/CropImageModal';
 
 import ProfileContent from '@/components/(profile)/ProfileContent';
 import MobileProfileSheet from '@/components/(profile)/MobileProfileSheet';
@@ -87,6 +88,31 @@ export default function ProfileByIdPage() {
   const [isSavingNickname, setIsSavingNickname] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropKind, setCropKind] = useState<'avatar' | 'background' | null>(null);
+  const [cropFileName, setCropFileName] = useState<string>('image.jpg');
+
+  const openCropper = (file: File, kind: 'avatar' | 'background') => {
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCropSrc(String(reader.result || ''));
+        setCropKind(kind);
+        setCropFileName(file.name || (kind === 'avatar' ? 'avatar.jpg' : 'background.jpg'));
+        setCropOpen(true);
+      };
+      reader.readAsDataURL(file);
+    } catch {}
+  };
+
+  const handleConfirmCrop = async (file: File) => {
+    if (!cropKind) return;
+    await handleUpload(file, cropKind);
+    setCropOpen(false);
+    setCropSrc(null);
+    setCropKind(null);
+  };
   const handleSaveNickname = async (value: string) => {
     if (!currentUser || !currentUser['_id'] || !viewingId) return;
     const v = String(value || '').trim();
@@ -244,7 +270,7 @@ export default function ProfileByIdPage() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'background')}
+                  onChange={(e) => e.target.files?.[0] && openCropper(e.target.files[0], 'background')}
                 />
               </label>
             )}
@@ -293,7 +319,7 @@ export default function ProfileByIdPage() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'avatar')}
+                      onChange={(e) => e.target.files?.[0] && openCropper(e.target.files[0], 'avatar')}
                     />
                   </label>
                 )}
@@ -687,6 +713,17 @@ export default function ProfileByIdPage() {
           )}
         </MobileProfileSheet>
       </div>
+      <CropImageModal
+        open={cropOpen}
+        src={cropSrc}
+        onClose={() => setCropOpen(false)}
+        onConfirm={handleConfirmCrop}
+        aspectRatio={cropKind === 'background' ? 16 / 9 : 1}
+        circle={cropKind === 'avatar'}
+        fileName={cropFileName}
+        outputType="image/jpeg"
+        quality={0.92}
+      />
     </div>
   );
 }

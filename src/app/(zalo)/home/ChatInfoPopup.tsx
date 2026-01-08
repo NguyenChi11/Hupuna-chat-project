@@ -59,6 +59,7 @@ import { CiBookmarkCheck, CiEdit, CiImageOn, CiStar } from 'react-icons/ci';
 import { AiOutlineUsergroupAdd } from 'react-icons/ai';
 import { PiEyeSlashLight } from 'react-icons/pi';
 import GroupAvatarSection from '@/components/(chatPopup)/components/GroupAvatarSection';
+import CropImageModal from '@/components/base/CropImageModal';
 
 interface ChatInfoPopupProps {
   onClose: () => void;
@@ -118,6 +119,10 @@ export default function ChatInfoPopup({
   const [isBestFriend, setIsBestFriend] = useState(false);
   const [callAlertEnabled, setCallAlertEnabled] = useState(true);
   const [autoDeletePolicy, setAutoDeletePolicy] = useState<'off' | '24h' | '7d'>('off');
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropFileName, setCropFileName] = useState<string>('group-avatar.jpg');
+  const [pendingReset, setPendingReset] = useState<(() => void) | null>(null);
   const [showAutoDeleteModal, setShowAutoDeleteModal] = useState(false);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
@@ -300,55 +305,19 @@ export default function ChatInfoPopup({
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file || !isGroup) return;
-      e.target.value = '';
-
-      // Remove size limit if any
-      // const MAX = 5 * 1024 * 1024;
-      // if (file.size > MAX) { ... }
-
-      setIsGroupAvatarUploading(true);
       try {
-        const groupId = (selectedChat as GroupConversation)._id;
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('roomId', String(groupId));
-        formData.append('sender', String(currentUser._id));
-        formData.append('type', 'image');
-        formData.append('folderName', `GroupAvatar_${groupId}`);
-        formData.append('skipSaveMessage', 'true');
-
-        const uploadRes = await fetch(`/api/upload?uploadId=group-avatar-${groupId}-${Date.now()}`, {
-          method: 'POST',
-          body: formData,
-        });
-        const uploadJson = await uploadRes.json();
-
-        if (!uploadRes.ok || !uploadJson?.success || !uploadJson?.link) throw new Error('Upload failed');
-
-        const updateRes = await fetch('/api/groups', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'updateAvatar',
-            conversationId: groupId,
-            data: { avatar: uploadJson.link },
-          }),
-        });
-
-        if (!updateRes.ok) throw new Error('Update failed');
-
-        setGroupAvatar(uploadJson.link);
-        try {
-          const actorName = currentUser.name || 'Một thành viên';
-          const text = `${actorName} đã đổi ảnh đại diện nhóm.`;
-          await sendNotifyMessage?.(text);
-        } catch {}
-        reLoad?.();
-      } catch {
-        alert('Cập nhật ảnh nhóm thất bại. Vui lòng thử lại.');
-      } finally {
-        setIsGroupAvatarUploading(false);
-      }
+        const inputEl = e.target;
+        const reader = new FileReader();
+        reader.onload = () => {
+          setCropSrc(String(reader.result || ''));
+          setCropFileName(file.name || 'group-avatar.jpg');
+          setPendingReset(() => () => {
+            inputEl.value = '';
+          });
+          setCropOpen(true);
+        };
+        reader.readAsDataURL(file);
+      } catch {}
     },
     [isGroup, selectedChat, currentUser._id, currentUser.name, reLoad, sendNotifyMessage],
   );
@@ -1649,6 +1618,65 @@ export default function ChatInfoPopup({
           </div>
         </div>
       )}
+      <CropImageModal
+        open={cropOpen}
+        src={cropSrc}
+        onClose={() => setCropOpen(false)}
+        onConfirm={async (file: File) => {
+          if (!isGroup) return;
+          setIsGroupAvatarUploading(true);
+          try {
+            const groupId = (selectedChat as GroupConversation)._id;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('roomId', String(groupId));
+            formData.append('sender', String(currentUser._id));
+            formData.append('type', 'image');
+            formData.append('folderName', `GroupAvatar_${groupId}`);
+            formData.append('skipSaveMessage', 'true');
+
+            const uploadRes = await fetch(`/api/upload?uploadId=group-avatar-${groupId}-${Date.now()}`, {
+              method: 'POST',
+              body: formData,
+            });
+            const uploadJson = await uploadRes.json();
+
+            if (!uploadRes.ok || !uploadJson?.success || !uploadJson?.link) throw new Error('Upload failed');
+
+            const updateRes = await fetch('/api/groups', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'updateAvatar',
+                conversationId: groupId,
+                data: { avatar: uploadJson.link },
+              }),
+            });
+
+            if (!updateRes.ok) throw new Error('Update failed');
+
+            setGroupAvatar(uploadJson.link);
+            try {
+              const actorName = currentUser.name || 'Một thành viên';
+              const text = `${actorName} đã đổi ảnh đại diện nhóm.`;
+              await sendNotifyMessage?.(text);
+            } catch {}
+            reLoad?.();
+          } catch {
+            alert('Cập nhật ảnh nhóm thất bại. Vui lòng thử lại.');
+          } finally {
+            setIsGroupAvatarUploading(false);
+            pendingReset?.();
+            setCropOpen(false);
+            setCropSrc(null);
+          }
+        }}
+        aspectRatio={1}
+        circle
+        fileName={cropFileName}
+        outputType="image/jpeg"
+        quality={0.92}
+      />
     </>
   );
 }
