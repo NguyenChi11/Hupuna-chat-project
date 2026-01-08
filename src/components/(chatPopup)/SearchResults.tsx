@@ -3,7 +3,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { getProxyUrl } from '@/utils/utils';
+import { getProxyUrl, buildAccentInsensitiveRegex } from '@/utils/utils';
 import type { ChatItem as ChatItemType } from '@/types/Group';
 import type { User } from '@/types/User';
 
@@ -113,10 +113,8 @@ const SearchTabs = ({
 // === HIGHLIGHT TEXT ĐẸP NHƯ ZALO 2025 ===
 const HighlightText = ({ text, keyword }: { text: string; keyword: string }) => {
   if (!keyword.trim() || !text) return <span className="text-gray-800">{text}</span>;
-
-  const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const regex = buildAccentInsensitiveRegex(keyword);
   const parts = text.split(regex);
-
   return (
     <span>
       {parts.map((part, i) =>

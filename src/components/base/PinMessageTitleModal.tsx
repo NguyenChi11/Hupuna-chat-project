@@ -27,7 +27,7 @@ export default function PinMessageTitleModal({
           </h3>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+            className="cursor-pointer p-1.5 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
           >
             <HiXMark className="w-5 h-5" />
           </button>
@@ -50,13 +50,13 @@ export default function PinMessageTitleModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+              className="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
             >
               Ghim
             </button>

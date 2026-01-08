@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Message } from '@/types/Message';
 import { User } from '@/types/User';
 import type { GlobalSearchMessage } from '@/components/(home)/HomeOverlays';
-import { getProxyUrl } from '@/utils/utils';
+import { getProxyUrl, normalizeNoAccent, buildAccentInsensitiveRegex, hasDiacritics } from '@/utils/utils';
 import { HiArrowLeft, HiPlay, HiXMark } from 'react-icons/hi2';
 import { IoReload, IoReloadCircle } from 'react-icons/io5';
 
@@ -111,13 +111,29 @@ export default function RoomSearchResultsModal({
               type: { $ne: 'notify' },
             },
             limit: 500,
-            sort: { timestamp: -1 },
+            sort: { field: 'timestamp', order: 'desc' },
           }),
         });
         const json = await res.json();
         const rows: Message[] = Array.isArray(json?.data) ? (json.data as Message[]) : [];
         if (!cancelled) {
-          const sorted = rows.slice().sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+          const term = normalizeNoAccent(keyword);
+          const hasDia = hasDiacritics(keyword);
+          const filtered = rows.filter((m) => {
+            const text =
+              m.type === 'file'
+                ? String(m.fileName || '')
+                : m.type === 'sticker'
+                  ? ''
+                  : String(m.content || '');
+            const accentInsensitive = normalizeNoAccent(text).includes(term);
+            if (!accentInsensitive) return false;
+            if (!hasDia) return true;
+            const exactAccent = String(text || '').toLowerCase().includes(String(keyword || '').toLowerCase());
+            const textHasDia = hasDiacritics(text);
+            return exactAccent || textHasDia;
+          });
+          const sorted = filtered.slice().sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
           setMessages(sorted);
           try {
             localStorage.setItem(cacheKey, JSON.stringify(sorted));
@@ -260,7 +276,7 @@ export default function RoomSearchResultsModal({
 
   const highlight = (text: string) => {
     if (!keyword.trim() || !text) return text;
-    const re = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')})`, 'gi');
+    const re = buildAccentInsensitiveRegex(keyword);
     const parts = String(text).split(re);
     return (
       <span>

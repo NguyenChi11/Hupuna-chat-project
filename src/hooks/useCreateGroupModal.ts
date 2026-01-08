@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import io from 'socket.io-client';
-import { resolveSocketUrl } from '@/utils/utils';
+import { resolveSocketUrl, normalizeNoAccent } from '@/utils/utils';
 import type { User } from '@/types/User';
 import type { GroupConversation } from '@/types/Group';
 
@@ -74,8 +74,8 @@ export function useCreateGroupModal({
   const groupedUsers = useMemo(() => {
     let filtered = allUsers;
     if (searchTerm.trim()) {
-      const lowerTerm = searchTerm.toLowerCase();
-      filtered = allUsers.filter((u) => (u.name || '').toLowerCase().includes(lowerTerm));
+      const norm = normalizeNoAccent(searchTerm);
+      filtered = allUsers.filter((u) => normalizeNoAccent(u.name || '').includes(norm));
     }
 
     const sortedUsers = [...filtered].sort((a, b) => (a.name || '').localeCompare(b.name || ''));

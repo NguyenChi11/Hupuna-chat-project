@@ -524,7 +524,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
       <div className="px-4 py-4 flex items-center justify-between text-white bg-black border-b border-white/10">
         {isCropping ? (
           <div className="flex items-center justify-between w-full pointer-events-auto">
-            <button onClick={() => setIsCropping(false)} className="p-2 -ml-2">
+            <button onClick={() => setIsCropping(false)} className="cursor-pointer p-2 -ml-2">
               <HiX className="w-8 h-8" />
             </button>
             <div className="text-lg font-semibold">Cắt ảnh</div>
@@ -542,12 +542,12 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                 const ctx = c?.getContext('2d');
                 if (c && ctx) ctx.clearRect(0, 0, c.width, c.height);
               }}
-              className="p-2 -ml-2"
+              className="cursor-pointer p-2 -ml-2"
             >
               <HiX className="w-8 h-8" />
             </button>
             <div className="text-lg font-semibold">Vẽ</div>
-            <button onClick={applyDrawing} className="p-2 -mr-2 text-blue-400">
+            <button onClick={applyDrawing} className="cursor-pointer p-2 -mr-2 text-blue-400">
               <HiCheck className="w-8 h-8" />
             </button>
           </div>
@@ -558,7 +558,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                 setIsTexting(false);
                 setTextInput('');
               }}
-              className="p-2 -ml-2"
+              className="cursor-pointer p-2 -ml-2"
             >
               <HiX className="w-8 h-8" />
             </button>
@@ -586,14 +586,14 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                 setIsTexting(false);
                 setTextInput('');
               }}
-              className="p-2 -mr-2 text-blue-400"
+              className="cursor-pointer p-2 -mr-2 text-blue-400"
             >
               <HiCheck className="w-8 h-8" />
             </button>
           </div>
         ) : (
           <div className="flex items-center justify-between w-full pointer-events-auto">
-            <button onClick={onClose} className="p-2 -ml-2">
+            <button onClick={onClose} className="cursor-pointer p-2 -ml-2">
               <HiX className="w-8 h-8" />
             </button>
             <div className="flex items-center gap-6">
@@ -881,7 +881,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
           <div className="flex items-center justify-between">
             <button
               onClick={() => setIsHD(!isHD)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              className={`cursor-pointer flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 isHD ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'
               }`}
             >
@@ -892,7 +892,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
             <div className="flex items-center gap-4">
               <button onClick={() => setSelected(!selected)} className="flex items-center gap-2 text-white text-sm">
                 <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                  className={`cursor-pointer w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                     selected ? 'bg-blue-500 border-blue-500' : 'border-white/60'
                   }`}
                 >
@@ -919,7 +919,7 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
                   });
                   onClose();
                 }}
-                className="w-10 h-10 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors"
+                className="cursor-pointer w-10 h-10 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors"
               >
                 <IoSend className="w-5 h-5 ml-0.5" />
               </button>

@@ -40,7 +40,7 @@ import {
   tryLockPollApi,
 } from '@/fetch/messages';
 import SearchSidebar from '@/components/(chatPopup)/SearchMessageModal';
-import { isVideoFile, resolveSocketUrl, getProxyUrl } from '@/utils/utils';
+import { isVideoFile, resolveSocketUrl, getProxyUrl, buildAccentInsensitiveRegex } from '@/utils/utils';
 import { insertTextAtCursor } from '@/utils/chatInput';
 import { groupMessagesByDate } from '@/utils/chatMessages';
 import { ChatProvider } from '@/context/ChatContext';
@@ -2786,7 +2786,7 @@ export default function ChatWindow({
 
     const highlightKeyword = (text: string, keyword: string | null | undefined) => {
       if (!keyword || !keyword.trim() || !text) return text;
-      const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      const regex = buildAccentInsensitiveRegex(keyword);
       const parts = text.split(regex);
       return (
         <>

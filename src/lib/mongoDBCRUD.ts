@@ -1,6 +1,6 @@
 // app\lib\monggodb\mongoDBCRUD.ts
 
-import { Collection, Filter, ObjectId, OptionalUnlessRequiredId, UpdateFilter } from 'mongodb';
+import { Collection, Filter, ObjectId, OptionalUnlessRequiredId, UpdateFilter, type CollationOptions } from 'mongodb';
 import { connectToDatabase } from '../components/(mongodb)/connectToDatabase';
 
 // ========== Helper ====================
@@ -73,6 +73,7 @@ export const getAllRows = async <T extends Record<string, unknown>>(
     value,
     filters,
     sort,
+    collation,
   }: {
     search?: string;
     skip?: number;
@@ -81,6 +82,7 @@ export const getAllRows = async <T extends Record<string, unknown>>(
     value?: unknown;
     filters?: Record<string, unknown>;
     sort?: { field: keyof T; order?: 'asc' | 'desc' } | Array<{ field: keyof T; order?: 'asc' | 'desc' }>;
+    collation?: CollationOptions;
   } = {},
 ): Promise<{ total: number; data: T[] }> => {
   const { db } = await connectToDatabase();
@@ -203,14 +205,13 @@ export const getAllRows = async <T extends Record<string, unknown>>(
     );
   }
 
-  const total = await collection.countDocuments(query);
+  const total = await collection.countDocuments(query, collation ? { collation } : undefined);
 
-  const data = await collection
-    .find(query)
-    .sort(sortOption)
-    .skip(skip)
-    .limit(limit ?? 0)
-    .toArray();
+  let cursor = collection.find(query);
+  if (collation) {
+    cursor = cursor.collation(collation);
+  }
+  const data = await cursor.sort(sortOption).skip(skip).limit(limit ?? 0).toArray();
 
   return { total, data: data as unknown as T[] };
 };

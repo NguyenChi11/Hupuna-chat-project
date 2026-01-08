@@ -1,4 +1,4 @@
-import { getProxyUrl } from '@/utils/utils';
+import { getProxyUrl, buildAccentInsensitiveRegex } from '@/utils/utils';
 import Image from 'next/image';
 import React from 'react';
 
@@ -34,7 +34,7 @@ interface HighlightTextProps {
 
 function HighlightText({ text, keyword }: HighlightTextProps) {
   if (!keyword.trim() || !text) return <>{text}</>;
-  const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const regex = buildAccentInsensitiveRegex(keyword);
   const parts = text.split(regex);
   return (
     <>

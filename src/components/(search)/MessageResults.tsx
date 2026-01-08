@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import React from 'react';
+import { buildAccentInsensitiveRegex } from '@/utils/utils';
 
 interface Message {
   _id: string;
@@ -40,7 +41,7 @@ interface HighlightTextProps {
 
 function HighlightText({ text, keyword }: HighlightTextProps) {
   if (!keyword.trim() || !text) return <>{text}</>;
-  const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const regex = buildAccentInsensitiveRegex(keyword);
   const parts = text.split(regex);
   return (
     <>

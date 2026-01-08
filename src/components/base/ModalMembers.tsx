@@ -9,7 +9,7 @@ import { HiX, HiSearch } from 'react-icons/hi';
 import CreateGroupModal from '../../app/(zalo)/home/CreateGroupModal';
 import { User } from '../../types/User';
 import { MemberInfo, GroupRole } from '../../types/Group';
-import { getProxyUrl, resolveSocketUrl } from '../../utils/utils';
+import { getProxyUrl, resolveSocketUrl, normalizeNoAccent } from '../../utils/utils';
 import { useToast } from './toast';
 import { confirmAlert } from './alert';
 import { HiUserMinus, HiUserPlus, HiEllipsisVertical } from 'react-icons/hi2';
@@ -339,7 +339,9 @@ export default function GroupMembersModal({
       toast({ type: 'error', message: 'Rời nhóm thất bại', duration: 3000 });
     }
   };
-  const searchUser = localMembers.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const searchUser = localMembers.filter((item) =>
+    normalizeNoAccent(item.name).includes(normalizeNoAccent(searchTerm)),
+  );
 
   const displayMembers = searchUser.filter((m) => {
     if (activeTab === 'all') return true;

@@ -4,7 +4,7 @@ import { HiPlus, HiChevronRight } from 'react-icons/hi2';
 import Image from 'next/image';
 import { User } from '@/types/User';
 import { GroupConversation } from '@/types/Group';
-import { getProxyUrl, resolveSocketUrl } from '@/utils/utils';
+import { getProxyUrl, resolveSocketUrl, normalizeNoAccent } from '@/utils/utils';
 import SuccessModal from '@/components/modal/SuccessModal';
 import io from 'socket.io-client';
 
@@ -57,13 +57,9 @@ export default function AddToGroupModal({
   }, [isOpen, fetchMyGroupsQuick]);
 
   const filteredGroups = useMemo(() => {
-    const q = groupSearch.trim().toLowerCase();
+    const q = normalizeNoAccent(groupSearch.trim());
     if (!q) return myGroupsQuick;
-    return myGroupsQuick.filter((g) =>
-      String(g.name || '')
-        .toLowerCase()
-        .includes(q),
-    );
+    return myGroupsQuick.filter((g) => normalizeNoAccent(String(g.name || '')).includes(q));
   }, [groupSearch, myGroupsQuick]);
 
   const toggleSelectGroup = useCallback(

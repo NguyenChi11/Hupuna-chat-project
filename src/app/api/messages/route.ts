@@ -15,6 +15,7 @@ import { User, USERS_COLLECTION_NAME } from '@/types/User';
 import { GroupConversation, GroupMemberSchema, MemberInfo } from '@/types/Group';
 import { Filter, ObjectId } from 'mongodb';
 import { getSocketInstance } from '@/lib/socketInstance';
+import { normalizeNoAccent } from '@/utils/utils';
 
 type MongoFilters = Record<string, unknown>;
 type MemberInput = string | GroupMemberSchema | MemberInfo | { id?: string; _id?: string };
@@ -254,11 +255,10 @@ export async function POST(req: NextRequest) {
           (finalFilters as Record<string, unknown>)[k] = v;
         }
 
-        let searchOr: Array<Record<string, unknown>> | null = null;
+        const searchOr: Array<Record<string, unknown>> | null = null;
         if (searchQuery && typeof searchQuery === 'string' && searchQuery.trim()) {
-          const escapedTerm = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const searchRegex = new RegExp(escapedTerm, 'i');
-          searchOr = [{ content: { $regex: searchRegex } }, { fileName: { $regex: searchRegex } }];
+          // Không thêm $regex ở Mongo để tránh phải điền đủ dấu
+          // Chỉ đảm bảo loại bỏ notify để giảm dữ liệu
           if (!otherFilters || !Object.keys(otherFilters).includes('type')) {
             (finalFilters as Record<string, unknown>).type = { $ne: 'notify' };
           }
@@ -279,8 +279,6 @@ export async function POST(req: NextRequest) {
           } else if (searchOr) {
             (finalFilters as Record<string, unknown>).$or = searchOr;
           }
-        } else if (searchOr) {
-          (finalFilters as Record<string, unknown>).$or = searchOr;
         }
 
         const result = await getAllRows<Message>(collectionName, {
@@ -289,9 +287,22 @@ export async function POST(req: NextRequest) {
           limit,
           filters: finalFilters,
           sort,
+          collation: { locale: 'vi', strength: 1, normalization: true },
         });
 
-        const messages: Message[] = result.data || [];
+        let messages: Message[] = result.data || [];
+        if (searchQuery && typeof searchQuery === 'string' && searchQuery.trim()) {
+          const term = normalizeNoAccent(searchQuery);
+          messages = messages.filter((m) => {
+            const text =
+              m.type === 'file'
+                ? String(m.fileName || '')
+                : m.type === 'sticker'
+                  ? ''
+                  : String(m.content || '');
+            return normalizeNoAccent(text).includes(term);
+          });
+        }
 
         // ... (phần còn lại của case 'read' để lấy thông tin sender và trả về)
         // ... (phần lấy danh sách senderIds, query users, enrichedMessages)
@@ -649,8 +660,7 @@ export async function POST(req: NextRequest) {
         }
 
         // ========== BƯỚC 2: TẠO REGEX TÌM KIẾM ==========
-        const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const searchRegex = new RegExp(escapedTerm, 'i');
+        const termNorm = normalizeNoAccent(String(searchTerm || ''));
 
         // ========== BƯỚC 3: LẤY DANH SÁCH ROOMID CHAT 1-1 ==========
         const oneToOneRoomIds: string[] = [];
@@ -683,9 +693,6 @@ export async function POST(req: NextRequest) {
         const searchFilters = {
           $and: [
             {
-              $or: [{ content: { $regex: searchRegex } }, { fileName: { $regex: searchRegex } }],
-            },
-            {
               roomId: { $in: allAccessibleRoomIds },
             },
             { isDeleted: { $ne: true } },
@@ -698,9 +705,21 @@ export async function POST(req: NextRequest) {
           filters: searchFilters,
           limit: data.limit || 100,
           sort: { field: 'timestamp', order: 'desc' },
+          collation: { locale: 'vi', strength: 1, normalization: true },
         });
 
-        const foundMessages: Message[] = searchResults.data || [];
+        let foundMessages: Message[] = searchResults.data || [];
+        if (termNorm) {
+          foundMessages = foundMessages.filter((msg) => {
+            const base =
+              msg.type === 'file'
+                ? String(msg.fileName || '')
+                : msg.type === 'sticker'
+                  ? ''
+                  : String(msg.content || '');
+            return normalizeNoAccent(base).includes(termNorm);
+          });
+        }
 
         if (!foundMessages.length) {
           return NextResponse.json({ success: true, data: [], total: 0 });
