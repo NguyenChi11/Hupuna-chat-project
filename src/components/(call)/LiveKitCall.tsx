@@ -232,7 +232,7 @@ function CallTiles({
       <div className="md:hidden block w-full h-full flex items-center justify-center">
         {callMode === 'voice' ? (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4 mt-40">
+            <div className="flex flex-col items-center gap-4 mt-40 max-md:mt-0">
               {avatarUrl ? (
                 <Image
                   src={avatarUrl}
