@@ -24,8 +24,11 @@
     ]
   },
   "dependencies": {
+    "@livekit/components-react": "^2.9.17",
+    "@livekit/components-styles": "^1.2.0",
     "bcryptjs": "^2.4.3",
     "emoji-picker-react": "^4.16.1",
+    "livekit-client": "^2.16.1",
     "lucide-react": "^0.561.0",
     "mongodb": "^7.0.0",
     "next": "^16.0.10",
