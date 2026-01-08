@@ -310,7 +310,7 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
                   setShowCreateMenu(false);
                   setShowCreatePoll(true);
                 }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                className="cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
               >
                 Tạo bình chọn
               </button>
@@ -320,7 +320,7 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
                   setShowCreateMenu(false);
                   setShowCreateNote(true);
                 }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                className="cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
               >
                 Tạo ghi chú
               </button>
