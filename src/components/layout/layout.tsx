@@ -41,6 +41,34 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const callNotifySeenRef = useRef<Set<string>>(new Set());
   const [showNewMsgBanner, setShowNewMsgBanner] = useState(false);
   const newMsgBannerTimerRef = useRef<number | null>(null);
+  const [globalCallFullscreen, setGlobalCallFullscreen] = useState<boolean>(false);
+  const callOverlayRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = callOverlayRef.current;
+    if (globalCallFullscreen) {
+      try {
+        if (el && typeof el.requestFullscreen === 'function') {
+          void el.requestFullscreen();
+        }
+      } catch {}
+    } else {
+      try {
+        if (document.fullscreenElement) {
+          void document.exitFullscreen();
+        }
+      } catch {}
+    }
+  }, [globalCallFullscreen]);
+  useEffect(() => {
+    const handler = () => {
+      const active = !!document.fullscreenElement;
+      if (!active && globalCallFullscreen) {
+        setGlobalCallFullscreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, [globalCallFullscreen]);
 
   const { playMessageSound, flashTabTitle } = useChatNotifications({});
 
@@ -1090,24 +1118,27 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         <>
           {(incomingCall || callConnecting || callActive) && (
             <div
-              className={`fixed z-[2000] ${globalIsDesktop ? '' : globalCallMin ? '' : 'inset-0 w-full h-full'}`}
+              ref={callOverlayRef}
+              className={`fixed z-[2000] ${globalCallFullscreen ? 'inset-0 w-screen h-screen' : globalIsDesktop ? '' : globalCallMin ? '' : 'inset-0 w-full h-full'}`}
               style={
-                globalIsDesktop
-                  ? {
-                      left: globalCallPos.x,
-                      top: globalCallPos.y,
-                      width: globalCallSize.w,
-                      display: globalCallHidden ? 'none' : 'block',
-                    }
-                  : globalCallMin
+                globalCallFullscreen
+                  ? { display: globalCallHidden ? 'none' : 'block' }
+                  : globalIsDesktop
                     ? {
                         left: globalCallPos.x,
                         top: globalCallPos.y,
                         width: globalCallSize.w,
-                        height: callType === 'video' ? 180 : 200,
                         display: globalCallHidden ? 'none' : 'block',
                       }
-                    : { display: globalCallHidden ? 'none' : 'block' }
+                    : globalCallMin
+                      ? {
+                          left: globalCallPos.x,
+                          top: globalCallPos.y,
+                          width: globalCallSize.w,
+                          height: callType === 'video' ? 180 : 200,
+                          display: globalCallHidden ? 'none' : 'block',
+                        }
+                      : { display: globalCallHidden ? 'none' : 'block' }
               }
               onClick={
                 !globalIsDesktop && globalCallMin
@@ -1122,12 +1153,12 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
               onTouchStart={!globalIsDesktop && globalCallMin ? handleGlobalTouchDragStart : undefined}
             >
               <div
-                className={`absolute ${globalCallMin ? '' : globalIsDesktop ? 'w-full md:w-[44rem] lg:w-[50rem] h-[23rem]' : 'inset-0 w-full h-full'} md:rounded-xl rounded-none p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur`}
+                className={`absolute h-auto ${globalCallMin ? '' : globalCallFullscreen ? 'inset-0 w-full h-full' : globalIsDesktop ? 'w-full md:w-[44rem] lg:w-[50rem] h-[23rem]' : 'inset-0 w-full h-full'} md:rounded-xl rounded-none p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur`}
               >
                 <div
-                  className="md:cursor-move md:flex hidden items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
-                  onMouseDown={handleGlobalDragStart}
-                  onTouchStart={handleGlobalTouchDragStart}
+                  className="md:flex hidden items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
+                  onMouseDown={globalCallFullscreen ? undefined : handleGlobalDragStart}
+                  onTouchStart={globalCallFullscreen ? undefined : handleGlobalTouchDragStart}
                 >
                   <span className="text-sm">
                     {callActive
@@ -1152,6 +1183,13 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                           .toString()
                           .padStart(2, '0')}:${(callDurationSec % 60).toString().padStart(2, '0')}`
                       : ''}
+                    <button
+                      className="ml-3 text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
+                      onClick={() => setGlobalCallFullscreen((v) => !v)}
+                      title={globalCallFullscreen ? 'Thu nhỏ' : 'Phóng to'}
+                    >
+                      {globalCallFullscreen ? 'Thu nhỏ' : 'Phóng to'}
+                    </button>
                     <button
                       className="ml-3 text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
                       onClick={() => setGlobalCallHidden(true)}
@@ -1242,7 +1280,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                           }
                         } catch {}
                       }}
-                      className={`${globalCallMin ? '' : globalIsDesktop ? 'md:rounded-xl rounded-none overflow-hidden min-h-[46vh] md:min-h-[20rem] md:max-h-[28rem]' : 'rounded-none overflow-hidden h-full min-h-[46vh]'}`}
+                      className={`${globalCallMin ? '' : globalIsDesktop ? 'md:rounded-xl rounded-none overflow-hidden min-h-[46vh] md:min-h-[20rem] md:max-h-[100vh]' : 'rounded-none overflow-hidden h-full min-h-[46vh]'}`}
                       titleName={remoteName || ''}
                       callStartAt={callStartAt}
                       avatarUrl={remoteAvatar || '/logo/avata.webp'}
@@ -1280,11 +1318,13 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                         </button>
                       </div>
                     )}
-                  <div
-                    className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize bg-white/30 hover:bg-white/50 rounded-sm"
-                    onMouseDown={handleResizeStart}
-                    onTouchStart={handleResizeStart}
-                  />
+                  {!globalCallFullscreen && (
+                    <div
+                      className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize bg-white/30 hover:bg-white/50 rounded-sm"
+                      onMouseDown={handleResizeStart}
+                      onTouchStart={handleResizeStart}
+                    />
+                  )}
                 </div>
               </div>
             </div>
