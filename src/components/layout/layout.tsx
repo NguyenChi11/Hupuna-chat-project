@@ -12,6 +12,7 @@ import IncomingCallModal from '@/components/(call)/IncomingCallModal';
 import ModalCall from '@/components/(call)/ModalCall';
 import LiveKitCall from '@/components/(call)/LiveKitCall';
 import { useLiveKitSession } from '@/hooks/useLiveKitSession';
+import { useToast } from '@/components/base/toast';
 
 // React Icons – Bộ hiện đại nhất 2025
 import {
@@ -513,6 +514,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     isGroup: normalizedIsGroup,
     selectedChat: globalSelectedChat,
   });
+  const toast = useToast();
   const lastActiveRoomIdRef = React.useRef<string>('');
   useEffect(() => {
     if (activeRoomId) lastActiveRoomIdRef.current = String(activeRoomId);
@@ -588,7 +590,6 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       }
     }
   }, [incomingCall]);
-  const liveParticipantsRef = React.useRef<Array<{ id: string; name?: string }>>([]);
   useEffect(() => {
     try {
       const flag = incomingCall ? '1' : '';
@@ -1232,6 +1233,13 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                               endCall('local');
                             }, 800);
                           }
+                          if (!isDirect && isVideo) {
+                            const total = remoteCount + 1;
+                            if (total > 20) {
+                              toast({ type: 'warning', message: 'Cuộc gọi nhóm đã đủ 20 người (tối đa 20)' });
+                              endCall('local');
+                            }
+                          }
                         } catch {}
                       }}
                       className={`${globalCallMin ? '' : globalIsDesktop ? 'md:rounded-xl rounded-none overflow-hidden min-h-[46vh] md:min-h-[20rem] md:max-h-[28rem]' : 'rounded-none overflow-hidden h-full min-h-[46vh]'}`}
@@ -1259,6 +1267,11 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                         <button
                           className="px-3 py-1 rounded-full bg-green-600 text-white text-xs shadow cursor-pointer hover:bg-green-700"
                           onClick={() => {
+                            const cur = Array.isArray(roomParticipants) ? roomParticipants.length : 0;
+                            if (cur >= 20) {
+                              toast({ type: 'warning', message: 'Cuộc gọi nhóm đã đủ 20 người (tối đa 20)' });
+                              return;
+                            }
                             void joinActiveGroupCall();
                           }}
                           title="Tham gia cuộc gọi nhóm"
@@ -1309,6 +1322,11 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
             <button
               className="px-4 py-2 rounded-full bg-green-600 text-white shadow cursor-pointer hover:bg-green-700"
               onClick={() => {
+                const cur = Array.isArray(roomParticipants) ? roomParticipants.length : 0;
+                if (cur >= 20) {
+                  toast({ type: 'warning', message: 'Cuộc gọi nhóm đã đủ 20 người (tối đa 20)' });
+                  return;
+                }
                 void joinActiveGroupCall();
               }}
               title="Tham gia lại cuộc gọi nhóm"

@@ -129,6 +129,8 @@ function CallTiles({
   const isGridMode = cameraTracks.length >= 3;
   const gridTracks = isGridMode ? cameraTracks : remoteTracks;
   const [avatarsMap, setAvatarsMap] = React.useState<Record<string, string>>({});
+  const [showRoster, setShowRoster] = React.useState(false);
+  const [spotlightId, setSpotlightId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const ids = gridTracks
@@ -162,8 +164,24 @@ function CallTiles({
     void run();
   }, [gridTracks, avatarsMap]);
 
-  const cols = gridTracks.length <= 1 ? 1 : gridTracks.length <= 4 ? 2 : gridTracks.length <= 9 ? 3 : 4;
-  const rows = Math.ceil(gridTracks.length / cols);
+  const sortedTracks = React.useMemo(() => {
+    if (!spotlightId) return gridTracks;
+    const s = gridTracks.slice();
+    const idx = s.findIndex(
+      (tr) =>
+        String(((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim()) ===
+        spotlightId,
+    );
+    if (idx > 0) {
+      const [sp] = s.splice(idx, 1);
+      s.unshift(sp);
+    }
+    return s;
+  }, [gridTracks, spotlightId]);
+  const displayTracks = sortedTracks.slice(0, 8);
+  const moreCount = Math.max(0, sortedTracks.length - displayTracks.length);
+  const cols = displayTracks.length <= 1 ? 1 : displayTracks.length <= 4 ? 2 : displayTracks.length <= 9 ? 3 : 4;
+  const rows = Math.ceil(displayTracks.length / cols);
 
   return (
     <div
@@ -188,7 +206,7 @@ function CallTiles({
               <div className="text-white/90 text-lg">{titleName || ''}</div>
             </div>
           </div>
-        ) : gridTracks.length > 0 ? (
+        ) : displayTracks.length > 0 ? (
           <div
             className="grid w-full h-full"
             style={{
@@ -196,7 +214,7 @@ function CallTiles({
               gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
             }}
           >
-            {gridTracks.map((tr, i) => (
+            {displayTracks.map((tr, i) => (
               <div
                 key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`}
                 className="relative"
@@ -218,6 +236,15 @@ function CallTiles({
                 />
               </div>
             ))}
+            {moreCount > 0 && (
+              <button
+                onClick={() => setShowRoster(true)}
+                className="flex items-center justify-center bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-md"
+                title="Xem thêm"
+              >
+                +{moreCount}
+              </button>
+            )}
           </div>
         ) : localTrack ? (
           <div className="w-full h-full">
@@ -229,7 +256,7 @@ function CallTiles({
           </div>
         )}
       </div>
-      <div className="md:hidden block w-full h-full flex items-center justify-center">
+      <div className="md:hidden  w-full h-full flex items-center justify-center">
         {callMode === 'voice' ? (
           <div className="w-full h-full flex items-center justify-center">
             <div className="flex flex-col items-center gap-4 mt-40 max-md:mt-0">
@@ -247,7 +274,7 @@ function CallTiles({
               <div className="text-white/90 text-xl font-bold">{titleName || ''}</div>
             </div>
           </div>
-        ) : gridTracks.length > 0 ? (
+        ) : displayTracks.length > 0 ? (
           <div
             className="grid w-full h-full"
             style={{
@@ -255,7 +282,7 @@ function CallTiles({
               gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
             }}
           >
-            {gridTracks.map((tr, i) => (
+            {displayTracks.map((tr, i) => (
               <div
                 key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`}
                 className="relative"
@@ -278,6 +305,15 @@ function CallTiles({
                 />
               </div>
             ))}
+            {moreCount > 0 && (
+              <button
+                onClick={() => setShowRoster(true)}
+                className="flex items-center justify-center bg-white/10 hover:bg-white/20 text-white text-lg font-semibold rounded-md"
+                title="Xem thêm"
+              >
+                +{moreCount}
+              </button>
+            )}
           </div>
         ) : localTrack ? (
           <div className="w-full h-[85vh] mt-4">
@@ -295,6 +331,51 @@ function CallTiles({
           </div>
         )}
       </div>
+      {showRoster && callMode === 'video' && (
+        <div className="absolute inset-0 bg-black/80 z-50 flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="text-white text-sm">Người tham gia khác</div>
+            <button
+              className="px-3 py-1 rounded bg-white/10 text-white hover:bg-white/20"
+              onClick={() => setShowRoster(false)}
+              title="Đóng"
+            >
+              Đóng
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto p-3">
+            <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+              {sortedTracks.slice(8).map((tr, i) => {
+                const id = String(
+                  ((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim(),
+                );
+                return (
+                  <button
+                    key={`${id}-${i}`}
+                    className="relative rounded-md overflow-hidden bg-black"
+                    onClick={() => {
+                      setSpotlightId(id);
+                      setShowRoster(false);
+                    }}
+                    title="Đẩy lên giao diện chính"
+                  >
+                    <CustomTrackTile
+                      trackRef={tr}
+                      offMinHeight={120}
+                      contain
+                      avatarUrl={
+                        ((tr as unknown as { participant?: { isLocal?: boolean } })?.participant?.isLocal
+                          ? myAvatarUrl
+                          : avatarsMap[id]) || avatarUrl
+                      }
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
