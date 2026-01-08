@@ -51,6 +51,14 @@ function CustomTrackTile({
   callMode?: 'voice' | 'video';
 }) {
   const isMuted = useIsMuted(trackRef);
+  const ref = trackRef as TrackReference;
+  const pub = ref?.publication as unknown as
+    | {
+        isEnabled?: boolean;
+        isSubscribed?: boolean;
+      }
+    | undefined;
+  const showVideo = !!(pub && pub.isEnabled !== false && pub.isSubscribed !== false && !isMuted);
   const [portrait, setPortrait] = React.useState<boolean>(false);
   const handleMeta = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const v = e.currentTarget;
@@ -65,7 +73,7 @@ function CustomTrackTile({
       '');
   return (
     <div className={`relative w-full  h-full bg-black`}>
-      {!isMuted && (trackRef as TrackReference)?.publication ? (
+      {showVideo ? (
         <VideoTrack
           trackRef={trackRef as TrackReference}
           className={
@@ -118,19 +126,48 @@ function CallTiles({
   const cameraTracks = useTracks([Track.Source.Camera]);
   const remoteTracks = cameraTracks.filter((t) => !t.participant?.isLocal);
   const localTrack = cameraTracks.find((t) => t.participant?.isLocal);
-  const cols =
-    remoteTracks.length <= 1
-      ? 1
-      : remoteTracks.length === 2
-        ? 2
-        : remoteTracks.length <= 4
-          ? 2
-          : remoteTracks.length <= 9
-            ? 3
-            : 4;
+  const isGridMode = cameraTracks.length >= 3;
+  const gridTracks = isGridMode ? cameraTracks : remoteTracks;
+  const [avatarsMap, setAvatarsMap] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    const ids = gridTracks
+      .map((tr) =>
+        String(((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim()),
+      )
+      .filter((id) => !!id && !avatarsMap[id]);
+    if (ids.length === 0) return;
+    const run = async () => {
+      try {
+        const results = await Promise.all(
+          ids.map(async (id) => {
+            const res = await fetch('/api/users', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'getById', _id: String(id) }),
+            });
+            const data = await res.json();
+            const row = (data && (data.row || (Array.isArray(data?.data) ? data.data[0] : null))) || null;
+            const avatar = typeof row?.avatar === 'string' ? row.avatar : '';
+            return { id, avatar };
+          }),
+        );
+        const next: Record<string, string> = { ...avatarsMap };
+        results.forEach(({ id, avatar }) => {
+          if (avatar) next[id] = avatar;
+        });
+        setAvatarsMap(next);
+      } catch {}
+    };
+    void run();
+  }, [gridTracks, avatarsMap]);
+
+  const cols = gridTracks.length <= 1 ? 1 : gridTracks.length <= 4 ? 2 : gridTracks.length <= 9 ? 3 : 4;
+  const rows = Math.ceil(gridTracks.length / cols);
+
   return (
     <div
-      className={`relative w-full h-full overflow-hidden max-md:h-[100vh] ${callMode === 'voice' ? 'bg-blue-500' : 'bg-black'}`}
+      className={`relative w-full h-full overflow-hidden max-md:h-[100vh]  ${callMode === 'voice' ? 'bg-blue-500' : 'bg-black'}`}
       style={{ minHeight: offMinHeight ?? 240 }}
     >
       <div className="md:block hidden rounded-lg w-full h-full">
@@ -151,14 +188,34 @@ function CallTiles({
               <div className="text-white/90 text-lg">{titleName || ''}</div>
             </div>
           </div>
-        ) : remoteTracks.length > 0 ? (
-          <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-            {remoteTracks.map((tr, i) => (
+        ) : gridTracks.length > 0 ? (
+          <div
+            className="grid w-full h-full"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+            }}
+          >
+            {gridTracks.map((tr, i) => (
               <div
                 key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`}
                 className="relative"
               >
-                <CustomTrackTile trackRef={tr} offMinHeight={offMinHeight} />
+                <CustomTrackTile
+                  trackRef={tr}
+                  offMinHeight={offMinHeight}
+                  avatarUrl={
+                    ((tr as unknown as { participant?: { isLocal?: boolean } })?.participant?.isLocal
+                      ? myAvatarUrl
+                      : avatarsMap[
+                          String(
+                            (
+                              (tr as unknown as { participant?: { identity?: string } })?.participant?.identity || ''
+                            ).trim(),
+                          )
+                        ]) || (isGridMode ? undefined : avatarUrl)
+                  }
+                />
               </div>
             ))}
           </div>
@@ -190,14 +247,35 @@ function CallTiles({
               <div className="text-white/90 text-xl font-bold">{titleName || ''}</div>
             </div>
           </div>
-        ) : remoteTracks.length > 0 ? (
-          <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-            {remoteTracks.map((tr, i) => (
+        ) : gridTracks.length > 0 ? (
+          <div
+            className="grid w-full h-full"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+            }}
+          >
+            {gridTracks.map((tr, i) => (
               <div
                 key={`${String((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '')}-${i}`}
                 className="relative"
               >
-                <CustomTrackTile trackRef={tr} offMinHeight={offMinHeight} contain />
+                <CustomTrackTile
+                  trackRef={tr}
+                  offMinHeight={offMinHeight}
+                  contain
+                  avatarUrl={
+                    ((tr as unknown as { participant?: { isLocal?: boolean } })?.participant?.isLocal
+                      ? myAvatarUrl
+                      : avatarsMap[
+                          String(
+                            (
+                              (tr as unknown as { participant?: { identity?: string } })?.participant?.identity || ''
+                            ).trim(),
+                          )
+                        ]) || (isGridMode ? undefined : avatarUrl)
+                  }
+                />
               </div>
             ))}
           </div>
@@ -464,23 +542,23 @@ function LocalPreview({
 }) {
   const cameraTracks = useTracks([Track.Source.Camera]);
   const localTrack = cameraTracks.find((t) => t.participant?.isLocal);
+
   const [isDesktop, setIsDesktop] = React.useState<boolean>(false);
   const [pos, setPos] = React.useState<{ x: number; y: number }>({ x: 12, y: 12 });
   React.useEffect(() => {
-    const apply = () => setIsDesktop(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+    const apply = () => {
+      if (typeof window === 'undefined') return;
+      const width = window.innerWidth;
+      const desktop = width >= 768;
+      setIsDesktop(desktop);
+      if (!desktop) {
+        setPos({ x: Math.max(8, width - size.w - 12), y: 12 });
+      }
+    };
     apply();
     window.addEventListener('resize', apply);
     return () => window.removeEventListener('resize', apply);
-  }, []);
-  React.useEffect(() => {
-    if (isDesktop) return;
-    try {
-      const W = typeof window !== 'undefined' ? window.innerWidth : 360;
-      setPos({ x: Math.max(8, W - size.w - 12), y: 12 });
-    } catch {
-      setPos({ x: 12, y: 12 });
-    }
-  }, [size.w, isDesktop]);
+  }, [size.w]);
   const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDesktop) return;
     const st = { sx: e.clientX, sy: e.clientY, ox: pos.x, oy: pos.y };
@@ -524,6 +602,10 @@ function LocalPreview({
     style.left = pos.x;
     style.top = pos.y;
   }
+
+  // Hide local preview if we have 3 or more participants (grid mode)
+  if (cameraTracks.length >= 3) return null;
+
   return (
     <div
       className={`${isDesktop ? 'absolute top-2 right-2' : 'absolute'} rounded-lg overflow-hidden bg-black ${isDesktop ? '' : 'cursor-move'}`}

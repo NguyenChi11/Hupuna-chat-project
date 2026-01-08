@@ -1234,7 +1234,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                           }
                         } catch {}
                       }}
-                      className={`${globalCallMin ? '' : globalIsDesktop ? 'md:rounded-xl rounded-none overflow-hidden min-h-[46vh] md:min-h-[24rem] md:max-h-[28rem]' : 'rounded-none overflow-hidden h-full min-h-[46vh]'}`}
+                      className={`${globalCallMin ? '' : globalIsDesktop ? 'md:rounded-xl rounded-none overflow-hidden min-h-[46vh] md:min-h-[20rem] md:max-h-[28rem]' : 'rounded-none overflow-hidden h-full min-h-[46vh]'}`}
                       titleName={remoteName || ''}
                       callStartAt={callStartAt}
                       avatarUrl={remoteAvatar || '/logo/avata.webp'}

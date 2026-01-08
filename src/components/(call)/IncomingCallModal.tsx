@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { getProxyUrl } from '@/utils/utils';
 import { HiPhone, HiVideoCamera } from 'react-icons/hi2';
+import { PiPhoneDisconnectFill } from 'react-icons/pi';
 
 type Props = {
   avatar?: string;
@@ -80,9 +81,9 @@ export default function IncomingCallModal({
             title="Từ chối"
           >
             {callType === 'video' ? (
-              <HiVideoCamera className="w-7 h-7 text-red-500" />
+              <PiPhoneDisconnectFill className="w-7 h-7 text-red-500" />
             ) : (
-              <HiPhone className="w-7 h-7 text-red-500" />
+              <PiPhoneDisconnectFill className="w-7 h-7 text-red-500" />
             )}
           </button>
         </div>
