@@ -77,7 +77,7 @@ export default function ModalCall({
   }, [remotePeers]);
   if (mode === 'connecting') {
     return (
-      <div className="relative w-full sm:min-h-[24rem] min-h-[100vh] sm:rounded-xl rounded-none overflow-hidden bg-black">
+      <div className="relative w-full min-h-[46vh] md:min-h-[24rem] md:max-h-[28rem] md:rounded-xl rounded-none overflow-hidden bg-black">
         {avatar && (
           <Image src={getProxyUrl(avatar)} alt={name} fill className="object-cover blur-xl opacity-40" sizes="100vw" />
         )}
@@ -183,7 +183,7 @@ export default function ModalCall({
   }
 
   return (
-    <div className="relative w-full min-h-[24rem] rounded-xl overflow-hidden bg-black">
+    <div className="relative w-full min-h-[46vh] md:min-h-[24rem] md:max-h-[28rem] md:rounded-xl rounded-none overflow-hidden bg-black">
       {avatar && (
         <Image src={getProxyUrl(avatar)} alt={name} fill className="object-cover blur-xl opacity-40" sizes="100vw" />
       )}

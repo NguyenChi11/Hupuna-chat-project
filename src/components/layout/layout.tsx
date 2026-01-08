@@ -324,59 +324,72 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       },
     );
 
-    s.on('call_state', (payload: { roomId: string; type: string; participants: string[]; active: boolean; startAt?: number | null }) => {
-      try {
-        const rid = String(payload.roomId || '');
-        if (!rid) return;
-        const prevEntry =
-          activeGroupCallRoomsRef.current.get(rid) || { active: false, type: null, participants: [], startAt: null };
-        const wasActive = !!prevEntry.active;
-        const prevParticipants = Array.isArray(prevEntry.participants) ? prevEntry.participants.map((x) => String(x)) : [];
-        const nowActive = !!payload.active;
-        const nowParticipants = Array.isArray(payload.participants) ? payload.participants.map((x) => String(x)) : [];
-        const isGroupRoom = rid.split('_').filter(Boolean).length !== 2;
-        const amLast =
-          isGroupRoom &&
-          wasActive &&
-          !nowActive &&
-          prevParticipants.length <= 1 &&
-          prevParticipants.includes(String(currentUser?._id || ''));
-        const prev = new Map(activeGroupCallRooms);
-        prev.set(rid, {
-          active: nowActive,
-          type: payload.type || null,
-          participants: nowParticipants,
-          startAt: typeof payload.startAt === 'number' ? payload.startAt : null,
-        });
-        setActiveGroupCallRooms(prev);
-        const activeRooms = Array.from(prev.entries())
-          .filter(([, v]) => v.active)
-          .map(([k]) => k);
+    s.on(
+      'call_state',
+      (payload: { roomId: string; type: string; participants: string[]; active: boolean; startAt?: number | null }) => {
         try {
-          localStorage.setItem('ACTIVE_GROUP_CALL_ROOMS', JSON.stringify(activeRooms));
-        } catch {}
-        const ev = new CustomEvent('activeGroupCallsUpdated', { detail: { rooms: activeRooms } });
-        window.dispatchEvent(ev as unknown as Event);
-        if (amLast) {
-          const members = groupMembersRef.current.get(rid) || [];
-          socketRef.current?.emit('send_message', {
-            roomId: rid,
-            sender: String(currentUser?._id || ''),
-            senderName: String(currentUser?.name || 'Hệ thống'),
-            isGroup: true,
-            members,
-            type: 'notify',
-            content: 'Cuộc gọi nhóm đã kết thúc',
+          const rid = String(payload.roomId || '');
+          if (!rid) return;
+          const prevEntry = activeGroupCallRoomsRef.current.get(rid) || {
+            active: false,
+            type: null,
+            participants: [],
+            startAt: null,
+          };
+          const wasActive = !!prevEntry.active;
+          const prevParticipants = Array.isArray(prevEntry.participants)
+            ? prevEntry.participants.map((x) => String(x))
+            : [];
+          const nowActive = !!payload.active;
+          const nowParticipants = Array.isArray(payload.participants) ? payload.participants.map((x) => String(x)) : [];
+          const isGroupRoom = rid.split('_').filter(Boolean).length !== 2;
+          const amLast =
+            isGroupRoom &&
+            wasActive &&
+            !nowActive &&
+            prevParticipants.length <= 1 &&
+            prevParticipants.includes(String(currentUser?._id || ''));
+          const prev = new Map(activeGroupCallRooms);
+          prev.set(rid, {
+            active: nowActive,
+            type: payload.type || null,
+            participants: nowParticipants,
+            startAt: typeof payload.startAt === 'number' ? payload.startAt : null,
           });
-        }
-      } catch {}
-    });
+          setActiveGroupCallRooms(prev);
+          const activeRooms = Array.from(prev.entries())
+            .filter(([, v]) => v.active)
+            .map(([k]) => k);
+          try {
+            localStorage.setItem('ACTIVE_GROUP_CALL_ROOMS', JSON.stringify(activeRooms));
+          } catch {}
+          const ev = new CustomEvent('activeGroupCallsUpdated', { detail: { rooms: activeRooms } });
+          window.dispatchEvent(ev as unknown as Event);
+          if (amLast) {
+            const members = groupMembersRef.current.get(rid) || [];
+            socketRef.current?.emit('send_message', {
+              roomId: rid,
+              sender: String(currentUser?._id || ''),
+              senderName: String(currentUser?.name || 'Hệ thống'),
+              isGroup: true,
+              members,
+              type: 'notify',
+              content: 'Cuộc gọi nhóm đã kết thúc',
+            });
+          }
+        } catch {}
+      },
+    );
     s.on('call_end', (payload: { roomId: string; from?: string }) => {
       try {
         const rid = String(payload.roomId || '');
         if (!rid) return;
-        const prevEntry =
-          activeGroupCallRoomsRef.current.get(rid) || { active: false, type: null, participants: [], startAt: null };
+        const prevEntry = activeGroupCallRoomsRef.current.get(rid) || {
+          active: false,
+          type: null,
+          participants: [],
+          startAt: null,
+        };
         const wasActive = !!prevEntry.active;
         const prevParticipants = Array.isArray(prevEntry.participants) ? prevEntry.participants : [];
         const isGroupRoom = rid.split('_').filter(Boolean).length !== 2;
@@ -597,7 +610,6 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
       window.dispatchEvent(ev as unknown as Event);
     } catch {}
   }, [incomingCall, callActive, callConnecting]);
-  
 
   const [globalCallPos, setGlobalCallPos] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
   const [globalCallSize, setGlobalCallSize] = useState<{ w: number }>({ w: 560 });
@@ -608,10 +620,9 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const [remoteName, setRemoteName] = useState<string>('');
   const [remoteAvatar, setRemoteAvatar] = useState<string | undefined>(undefined);
   const [callDurationSec, setCallDurationSec] = useState<number>(0);
-  const [activeGroupCallRooms, setActiveGroupCallRooms] = useState<Map<
-    string,
-    { active: boolean; type: string | null; participants: string[]; startAt: number | null }
-  >>(new Map());
+  const [activeGroupCallRooms, setActiveGroupCallRooms] = useState<
+    Map<string, { active: boolean; type: string | null; participants: string[]; startAt: number | null }>
+  >(new Map());
   const activeGroupCallRoomsRef = React.useRef<
     Map<string, { active: boolean; type: string | null; participants: string[]; startAt: number | null }>
   >(new Map());
@@ -866,9 +877,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   }, [callActive, callStartAt]);
   const sendCallNotify = async (status: 'answered' | 'rejected' | 'timeout' | 'ended') => {
     try {
-      const rid = String(
-        activeRoomId || lastActiveRoomIdRef.current || normalizedRoomId || currentViewedRoomId || '',
-      );
+      const rid = String(activeRoomId || lastActiveRoomIdRef.current || normalizedRoomId || currentViewedRoomId || '');
       if (!rid || !currentUser?._id) return;
       const parts = rid.split('_').filter(Boolean);
       const isOneToOneRoom = parts.length === 2;
@@ -959,7 +968,9 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         const isG = !!d?.isGroup;
         const t = isG ? 'video' : d?.type === 'video' ? 'video' : 'voice';
         const rid = String(d?.roomId || '');
-        const sel = d?.selectedChat as { _id?: string; members?: Array<string | { _id: string }>; name?: string; avatar?: string } | undefined;
+        const sel = d?.selectedChat as
+          | { _id?: string; members?: Array<string | { _id: string }>; name?: string; avatar?: string }
+          | undefined;
         setGlobalRoomId(rid);
         setGlobalIsGroup(isG);
         const norm = (() => {
@@ -967,7 +978,9 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           const _id = String(sel._id || '');
           if (isG) {
             const members = Array.isArray(sel.members)
-              ? sel.members.map((m) => (typeof m === 'object' ? { _id: String((m as { _id: string })._id) } : String(m)))
+              ? sel.members.map((m) =>
+                  typeof m === 'object' ? { _id: String((m as { _id: string })._id) } : String(m),
+                )
               : [];
             return { _id, members, name: sel.name, avatar: sel.avatar };
           }
@@ -1073,14 +1086,19 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
 
       {/* Global Call Overlay – áp dụng mọi page */}
       {isAuthed && checked && currentUser && (
-          <>
-            {(incomingCall || callConnecting || callActive) && (
-              <div
-                className={`fixed z-[2000] ${globalIsDesktop ? '' : globalCallMin ? '' : 'inset-0 w-full h-full'}`}
-                style={
-                  globalIsDesktop
-                    ? { left: globalCallPos.x, top: globalCallPos.y, width: globalCallSize.w, display: globalCallHidden ? 'none' : 'block' }
-                    : globalCallMin
+        <>
+          {(incomingCall || callConnecting || callActive) && (
+            <div
+              className={`fixed z-[2000] ${globalIsDesktop ? '' : globalCallMin ? '' : 'inset-0 w-full h-full'}`}
+              style={
+                globalIsDesktop
+                  ? {
+                      left: globalCallPos.x,
+                      top: globalCallPos.y,
+                      width: globalCallSize.w,
+                      display: globalCallHidden ? 'none' : 'block',
+                    }
+                  : globalCallMin
                     ? {
                         left: globalCallPos.x,
                         top: globalCallPos.y,
@@ -1089,201 +1107,216 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                         display: globalCallHidden ? 'none' : 'block',
                       }
                     : { display: globalCallHidden ? 'none' : 'block' }
-                }
-                onClick={
-                  !globalIsDesktop && globalCallMin
-                    ? () => {
-                        const prev = globalPrevSizeRef.current;
-                        if (prev) setGlobalCallSize(prev);
-                        setGlobalCallMin(false);
-                      }
-                    : undefined
-                }
-                onMouseDown={!globalIsDesktop && globalCallMin ? handleGlobalDragStart : undefined}
-                onTouchStart={!globalIsDesktop && globalCallMin ? handleGlobalTouchDragStart : undefined}
+              }
+              onClick={
+                !globalIsDesktop && globalCallMin
+                  ? () => {
+                      const prev = globalPrevSizeRef.current;
+                      if (prev) setGlobalCallSize(prev);
+                      setGlobalCallMin(false);
+                    }
+                  : undefined
+              }
+              onMouseDown={!globalIsDesktop && globalCallMin ? handleGlobalDragStart : undefined}
+              onTouchStart={!globalIsDesktop && globalCallMin ? handleGlobalTouchDragStart : undefined}
+            >
+              <div
+                className={`absolute ${globalCallMin ? '' : globalIsDesktop ? 'w-full md:w-[44rem] lg:w-[50rem] h-[23rem]' : 'inset-0 w-full h-full'} md:rounded-xl rounded-none p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur`}
               >
                 <div
-                  className={`absolute ${globalCallMin ? '' : globalIsDesktop ? 'w-full md:max-w-[90vw]' : 'inset-0 w-full h-full'} md:rounded-xl rounded-none p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur`}
+                  className="md:cursor-move md:flex hidden items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
+                  onMouseDown={handleGlobalDragStart}
+                  onTouchStart={handleGlobalTouchDragStart}
                 >
+                  <span className="text-sm">
+                    {callActive
+                      ? remoteName ||
+                        groupInfoRef.current.get(String(normalizedRoomId || globalRoomId || ''))?.name ||
+                        'Đang gọi'
+                      : incomingCall
+                        ? (() => {
+                            const gname = globalIsGroup
+                              ? groupInfoRef.current.get(
+                                  String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''),
+                                )?.name
+                              : undefined;
+                            return `Cuộc gọi từ ${gname || remoteName || 'Cuộc gọi đến'}`;
+                          })()
+                        : 'Đang kết nối...'}
+                  </span>
+                  <span className="text-xs">
+                    {callType === 'video' ? 'Video' : 'Thoại'}
+                    {callActive && callDurationSec > 0
+                      ? ` • ${Math.floor(callDurationSec / 60)
+                          .toString()
+                          .padStart(2, '0')}:${(callDurationSec % 60).toString().padStart(2, '0')}`
+                      : ''}
+                    <button
+                      className="ml-3 text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
+                      onClick={() => setGlobalCallHidden(true)}
+                      title="Ẩn cửa sổ gọi"
+                    >
+                      Ẩn
+                    </button>
+                  </span>
+                </div>
+                <div
+                  className={`${globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : `rounded-none p-0 h-full ${callType === 'voice' ? 'bg-blue-500' : 'bg-black'}`}`}
+                >
+                  {incomingCall && !callActive && !callConnecting && (
+                    <IncomingCallModal
+                      avatar={
+                        (globalIsGroup
+                          ? groupInfoRef.current.get(
+                              String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''),
+                            )?.avatar || remoteAvatar
+                          : remoteAvatar) || '/logo/avata.webp'
+                      }
+                      name={
+                        (globalIsGroup
+                          ? groupInfoRef.current.get(
+                              String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''),
+                            )?.name || remoteName
+                          : remoteName) || 'Cuộc gọi đến'
+                      }
+                      callType={incomingCall.type}
+                      onAccept={async () => {
+                        outgoingRef.current = false;
+                        await acceptIncomingCall();
+                      }}
+                      onReject={() => {
+                        socketRef.current?.emit('call_reject', {
+                          roomId: String(incomingCall.roomId),
+                          targets: [String(incomingCall.from)],
+                        });
+                        try {
+                          setIncomingCall(null);
+                        } catch {}
+                        void sendCallNotify('rejected');
+                      }}
+                    />
+                  )}
+                  {!incomingCall && callConnecting && (
+                    <ModalCall
+                      avatar={remoteAvatar || '/logo/avata.webp'}
+                      name={remoteName || 'Đang kết nối...'}
+                      mode="connecting"
+                      callType={callType === 'video' ? 'video' : 'voice'}
+                      onEndCall={() => {
+                        endCall('local');
+                        void sendCallNotify('timeout');
+                      }}
+                    />
+                  )}
+                  {callActive && livekitToken && livekitUrl && (
+                    <LiveKitCall
+                      serverUrl={livekitUrl}
+                      token={livekitToken}
+                      onDisconnected={() => {
+                        endCall('remote');
+                      }}
+                      onRequestEnd={() => {
+                        endCall('local');
+                      }}
+                      onParticipantsChanged={(parts) => {
+                        try {
+                          if (participantsZeroTimerRef.current) {
+                            window.clearTimeout(participantsZeroTimerRef.current);
+                            participantsZeroTimerRef.current = null;
+                          }
+                          const isDirect = !!counterpartId;
+                          const isVideo = callType === 'video';
+                          const remoteCount = Array.isArray(parts) ? parts.length : 0;
+                          if (isDirect && isVideo && remoteCount === 0) {
+                            participantsZeroTimerRef.current = window.setTimeout(() => {
+                              endCall('local');
+                            }, 800);
+                          }
+                        } catch {}
+                      }}
+                      className={`${globalCallMin ? '' : globalIsDesktop ? 'md:rounded-xl rounded-none overflow-hidden min-h-[46vh] md:min-h-[24rem] md:max-h-[28rem]' : 'rounded-none overflow-hidden h-full min-h-[46vh]'}`}
+                      titleName={remoteName || ''}
+                      callStartAt={callStartAt}
+                      avatarUrl={remoteAvatar || '/logo/avata.webp'}
+                      myName={currentUser.name}
+                      myAvatarUrl={currentUser.avatar}
+                      callMode={callType === 'video' ? 'video' : 'voice'}
+                      localPreviewSize={
+                        globalCallMin
+                          ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
+                          : { w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }
+                      }
+                      offMinHeight={320}
+                    />
+                  )}
+                  {!incomingCall &&
+                    !callActive &&
+                    !callConnecting &&
+                    normalizedIsGroup &&
+                    roomCallActive &&
+                    !(roomParticipants || []).includes(String(currentUser?._id || '')) && (
+                      <div className="absolute top-3 right-3 z-50">
+                        <button
+                          className="px-3 py-1 rounded-full bg-green-600 text-white text-xs shadow cursor-pointer hover:bg-green-700"
+                          onClick={() => {
+                            void joinActiveGroupCall();
+                          }}
+                          title="Tham gia cuộc gọi nhóm"
+                        >
+                          Tham gia
+                        </button>
+                      </div>
+                    )}
                   <div
-                    className="md:cursor-move md:flex hidden items-center justify-between px-3 py-2 bg-black/70 text-white rounded-t-xl select-none"
-                    onMouseDown={handleGlobalDragStart}
-                    onTouchStart={handleGlobalTouchDragStart}
-                  >
-                    <span className="text-sm">
-                      {callActive
-                        ? (remoteName || groupInfoRef.current.get(String(normalizedRoomId || globalRoomId || ''))?.name || 'Đang gọi')
-                        : incomingCall
-                          ? (() => {
-                              const gname = globalIsGroup
-                                ? groupInfoRef.current.get(String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''))?.name
-                                : undefined;
-                              return `Cuộc gọi từ ${gname || remoteName || 'Cuộc gọi đến'}`;
-                            })()
-                          : 'Đang kết nối...'}
-                    </span>
-                    <span className="text-xs">
-                      {callType === 'video' ? 'Video' : 'Thoại'}
-                      {callActive && callDurationSec > 0 ? ` • ${Math.floor(callDurationSec / 60)
-                        .toString()
-                        .padStart(2, '0')}:${(callDurationSec % 60).toString().padStart(2, '0')}` : ''}
-                      <button
-                        className="ml-3 text-xs px-2 py-1 rounded hover:bg-white/10 cursor-pointer"
-                        onClick={() => setGlobalCallHidden(true)}
-                        title="Ẩn cửa sổ gọi"
-                      >
-                        Ẩn
-                      </button>
-                    </span>
-                  </div>
-                <div className={`${globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : `rounded-none p-0 h-full ${callType === "voice" ? "bg-blue-500" : "bg-black"}`}`}>
-  {incomingCall && !callActive && !callConnecting && (
-    <IncomingCallModal
-      avatar={(globalIsGroup
-        ? (groupInfoRef.current.get(String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''))?.avatar || remoteAvatar)
-        : remoteAvatar) || '/logo/avata.webp'}
-      name={(globalIsGroup
-        ? (groupInfoRef.current.get(String(incomingCall?.roomId || globalRoomId || normalizedRoomId || ''))?.name || remoteName)
-        : remoteName) || 'Cuộc gọi đến'}
-      callType={incomingCall.type}
-      onAccept={async () => {
-        outgoingRef.current = false;
-        await acceptIncomingCall();
-      }}
-      onReject={() => {
-        socketRef.current?.emit('call_reject', {
-          roomId: String(incomingCall.roomId),
-          targets: [String(incomingCall.from)],
-        });
-        try {
-          setIncomingCall(null);
-        } catch {}
-        void sendCallNotify('rejected');
-      }}
-    />
-  )}
-  {!incomingCall && callConnecting && (
-    <ModalCall
-      avatar={remoteAvatar || '/logo/avata.webp'}
-      name={remoteName || 'Đang kết nối...'}
-      mode="connecting"
-      callType={callType === 'video' ? 'video' : 'voice'}
-      onEndCall={() => {
-        endCall('local');
-        void sendCallNotify('timeout');
-      }}
-    />
-  )}
-        {callActive && livekitToken && livekitUrl && (
-          <LiveKitCall
-            serverUrl={livekitUrl}
-            token={livekitToken}
-            onDisconnected={() => {
-              endCall('remote');
-            }}
-            onRequestEnd={() => {
-              endCall('local');
-            }}
-            onParticipantsChanged={(parts) => {
-              try {
-                if (participantsZeroTimerRef.current) {
-                  window.clearTimeout(participantsZeroTimerRef.current);
-                  participantsZeroTimerRef.current = null;
-                }
-                const isDirect = !!counterpartId;
-                const isVideo = callType === 'video';
-                const remoteCount = Array.isArray(parts) ? parts.length : 0;
-                if (isDirect && isVideo && remoteCount === 0) {
-                  participantsZeroTimerRef.current = window.setTimeout(() => {
-                    endCall('local');
-                  }, 800);
-                }
-              } catch {}
-            }}
-            className={`${globalCallMin ? '' : globalIsDesktop ? 'rounded-lg overflow-hidden' : 'rounded-none overflow-hidden h-full'}`}
-            titleName={remoteName || ''}
-            callStartAt={callStartAt}
-            avatarUrl={remoteAvatar || '/logo/avata.webp'}
-            myName={currentUser.name}
-            myAvatarUrl={currentUser.avatar}
-            callMode={callType === 'video' ? 'video' : 'voice'}
-            localPreviewSize={
-              globalCallMin
-                ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
-                : { w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }
-            }
-            offMinHeight={320}
-          />
-        )}
-        {!incomingCall &&
-          !callActive &&
-          !callConnecting &&
-          normalizedIsGroup &&
-          roomCallActive &&
-          !(roomParticipants || []).includes(String(currentUser?._id || '')) && (
-            <div className="absolute top-3 right-3 z-50">
-              <button
-                className="px-3 py-1 rounded-full bg-green-600 text-white text-xs shadow cursor-pointer hover:bg-green-700"
-                onClick={() => {
-                  void joinActiveGroupCall();
-                }}
-                title="Tham gia cuộc gọi nhóm"
-              >
-                Tham gia
-              </button>
-            </div>
-          )}
-  <div
-    className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize bg-white/30 hover:bg-white/50 rounded-sm"
-    onMouseDown={handleResizeStart}
-    onTouchStart={handleResizeStart}
-  />
-</div>
+                    className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize bg-white/30 hover:bg-white/50 rounded-sm"
+                    onMouseDown={handleResizeStart}
+                    onTouchStart={handleResizeStart}
+                  />
                 </div>
               </div>
-            )}
-            {(incomingCall || callConnecting || callActive) && globalCallHidden && (
-              <div
-                ref={openBtnRef}
-                className="fixed z-[2000] cursor-move"
-                style={{ left: openBtnPos.x, top: openBtnPos.y }}
-                onMouseDown={handleOpenBtnDragStart}
-                onTouchStart={handleOpenBtnTouchDragStart}
-              >
-                <button
-                  className="cursor-pointer cursor-move px-3 py-2 rounded-full bg-green-500 text-white shadow-md"
-                  onClick={() => {
-                    if (openBtnDraggingRef.current) return;
-                    setGlobalCallHidden(false);
-                  }}
-                  title="Mở cửa sổ cuộc gọi"
-                >
-                  Mở cuộc gọi
-                </button>
-              </div>
-            )}
-          </>
-        )}
-
-        
-        {/* Tham gia lại – hiển thị cả khi overlay không mở */}
-        {!callActive &&
-          !callConnecting &&
-          normalizedIsGroup &&
-          roomCallActive &&
-          !(roomParticipants || []).includes(String(currentUser?._id || '')) && (
-            <div className="fixed z-[1200] bottom-20 right-4 md:bottom-6 md:right-6">
+            </div>
+          )}
+          {(incomingCall || callConnecting || callActive) && globalCallHidden && (
+            <div
+              ref={openBtnRef}
+              className="fixed z-[2000] cursor-move"
+              style={{ left: openBtnPos.x, top: openBtnPos.y }}
+              onMouseDown={handleOpenBtnDragStart}
+              onTouchStart={handleOpenBtnTouchDragStart}
+            >
               <button
-                className="px-4 py-2 rounded-full bg-green-600 text-white shadow cursor-pointer hover:bg-green-700"
+                className="cursor-pointer cursor-move px-3 py-2 rounded-full bg-green-500 text-white shadow-md"
                 onClick={() => {
-                  void joinActiveGroupCall();
+                  if (openBtnDraggingRef.current) return;
+                  setGlobalCallHidden(false);
                 }}
-                title="Tham gia lại cuộc gọi nhóm"
+                title="Mở cửa sổ cuộc gọi"
               >
-                Tham gia lại
+                Mở cuộc gọi
               </button>
             </div>
           )}
+        </>
+      )}
+
+      {/* Tham gia lại – hiển thị cả khi overlay không mở */}
+      {!callActive &&
+        !callConnecting &&
+        normalizedIsGroup &&
+        roomCallActive &&
+        !(roomParticipants || []).includes(String(currentUser?._id || '')) && (
+          <div className="fixed z-[1200] bottom-20 right-4 md:bottom-6 md:right-6">
+            <button
+              className="px-4 py-2 rounded-full bg-green-600 text-white shadow cursor-pointer hover:bg-green-700"
+              onClick={() => {
+                void joinActiveGroupCall();
+              }}
+              title="Tham gia lại cuộc gọi nhóm"
+            >
+              Tham gia lại
+            </button>
+          </div>
+        )}
 
       {/* Mobile Bottom Navigation – ĐẸP NHƯ ZALO PRO 2025 */}
       {isAuthed && !(hideMobileFooter || isWidgetIframe) && (
