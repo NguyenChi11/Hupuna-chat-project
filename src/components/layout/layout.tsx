@@ -587,6 +587,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     string,
     { active: boolean; type: string | null; participants: string[]; startAt: number | null }
   >>(new Map());
+  const participantsZeroTimerRef = React.useRef<number | null>(null);
   useEffect(() => {
     const apply = () => setGlobalIsDesktop(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
     apply();
@@ -876,13 +877,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           const ss = computedDurationSec % 60;
           return `Cuộc gọi ${kind} ${dir} – ${m2} phút ${ss} giây`;
         }
-        if (status === 'rejected') return '';
-        if (status === 'answered' || status === 'ended') {
-          return Math.random() < 0.5
-            ? `Cuộc gọi kết thúc. Thời gian: ${computedDurationSec} giây`
-            : `Cuộc gọi đã được kết thúc sau ${computedDurationSec} giây`;
-        }
-        return 'Cuộc gọi nhỡ';
+        return '';
       })();
       if (!content) return;
       const tsNow = Date.now();
@@ -1152,9 +1147,27 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           <LiveKitCall
             serverUrl={livekitUrl}
             token={livekitToken}
-            onDisconnected={() => {}}
+            onDisconnected={() => {
+              endCall('remote');
+            }}
             onRequestEnd={() => {
               endCall('local');
+            }}
+            onParticipantsChanged={(parts) => {
+              try {
+                if (participantsZeroTimerRef.current) {
+                  window.clearTimeout(participantsZeroTimerRef.current);
+                  participantsZeroTimerRef.current = null;
+                }
+                const isDirect = !!counterpartId;
+                const isVideo = callType === 'video';
+                const remoteCount = Array.isArray(parts) ? parts.length : 0;
+                if (isDirect && isVideo && remoteCount === 0) {
+                  participantsZeroTimerRef.current = window.setTimeout(() => {
+                    endCall('local');
+                  }, 800);
+                }
+              } catch {}
             }}
             className={`${globalCallMin ? '' : globalIsDesktop ? 'rounded-lg overflow-hidden' : 'rounded-none overflow-hidden h-full'}`}
             titleName={remoteName || ''}

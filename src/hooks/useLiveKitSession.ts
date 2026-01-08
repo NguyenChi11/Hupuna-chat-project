@@ -336,11 +336,25 @@ export function useLiveKitSession({
       await fetchToken(data.roomId);
       setCallActive(true);
     };
-    const handleCallEnd = (data: { roomId: string }) => {
+    const handleCallEnd = (data: { roomId: string; from?: string; targets?: string[] }) => {
       stopGlobalRingTone();
       setIncomingCall(null);
       const isDirect = String(data.roomId).split('_').filter(Boolean).length === 2;
-      if (isDirect && ignoreRemoteEndUntilRef.current > Date.now()) return;
+      const fromOther =
+        typeof data.from === 'string' &&
+        String(data.from) !== String(currentUserId);
+      const explicit = fromOther || (Array.isArray(data.targets) && data.targets.length > 0);
+      // 1-1: luôn kết thúc khi roomId trùng phòng đang gọi (dù explicit hay không)
+      if (isDirect) {
+        if (String(data.roomId) !== String(activeRoomIdRef.current)) return;
+        endCall('remote');
+        if (String(data.roomId) === String(roomId)) {
+          setRoomCallActive(false);
+          setRoomCallType(null);
+          setRoomParticipants([]);
+        }
+        return;
+      }
       if (String(data.roomId) !== String(activeRoomIdRef.current)) return;
       endCall('remote');
       if (String(data.roomId) === String(roomId)) {
