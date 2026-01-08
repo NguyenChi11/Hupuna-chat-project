@@ -600,13 +600,13 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
               {currentMedia !== mediaUrl || videoCropConfig ? (
                 <button
                   onClick={handleRestore}
-                  className="px-3 py-1 rounded-full bg-white/10 text-xs hover:bg-white/20"
+                  className="cursor-pointer px-3 py-1 rounded-full bg-white/10 text-xs hover:bg-white/20"
                 >
                   Khôi phục
                 </button>
               ) : null}
               <button
-                className="p-2"
+                className="cursor-pointer p-2"
                 onClick={async () => {
                   if (mediaType === 'video') {
                     const poster = await generateVideoPoster();
@@ -617,16 +617,16 @@ export default function MediaEditor({ mediaUrl, mediaType = 'image', chatName, o
               >
                 <FaCropSimple className="w-6 h-6" />
               </button>
-              <button className="p-2" onClick={() => setIsDrawing(true)}>
+              <button className="cursor-pointer p-2" onClick={() => setIsDrawing(true)}>
                 <FaPen className="w-6 h-6" />
               </button>
-              <button className="p-2 font-serif text-xl font-bold" onClick={() => setIsTexting(true)}>
+              <button className="cursor-pointer p-2 font-serif text-xl font-bold" onClick={() => setIsTexting(true)}>
                 Aa
               </button>
               {textEntries.length > 0 && mediaType === 'image' ? (
                 <button
                   onClick={applyTextToImage}
-                  className="px-3 py-1 rounded-full bg-white/10 text-xs hover:bg-white/20"
+                  className="cursor-pointer px-3 py-1 rounded-full bg-white/10 text-xs hover:bg-white/20"
                 >
                   Áp dụng văn bản
                 </button>

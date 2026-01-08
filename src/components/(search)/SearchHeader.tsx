@@ -23,11 +23,6 @@ export default function SearchHeader({
     inputRef.current?.focus();
   }, []);
 
-  // 🔥 Đồng bộ localSearchTerm với searchTerm prop khi thay đổi
-  useEffect(() => {
-    setLocalSearchTerm(searchTerm);
-  }, [searchTerm]);
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setLocalSearchTerm(term);

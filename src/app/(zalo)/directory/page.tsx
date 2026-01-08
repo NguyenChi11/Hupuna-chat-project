@@ -17,7 +17,7 @@ import {
   ensureSubscribed,
   waitForOneSignalReady,
 } from '@/lib/onesignal';
-import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
+import { stopGlobalRingTone } from '@/utils/callRing';
 
 export default function DirectoryPage() {
   const {
@@ -48,12 +48,7 @@ export default function DirectoryPage() {
   } = useHomePage({ onlyPersonal: true });
 
   const socketRef = useRef<ReturnType<typeof io> | null>(null);
-  const [incomingCallHome, setIncomingCallHome] = useState<{
-    from: string;
-    type: 'voice' | 'video';
-    roomId: string;
-    sdp: RTCSessionDescriptionInit;
-  } | null>(null);
+  // Overlay gọi đến được xử lý ở layout.tsx (toàn cục)
 
   useEffect(() => {
     const run = async () => {
@@ -101,41 +96,14 @@ export default function DirectoryPage() {
     socket.off('call_reject');
     socket.off('call_answer');
 
-    const handleOffer = (data: {
-      roomId: string;
-      target: string;
-      from: string;
-      type: 'voice' | 'video';
-      sdp: RTCSessionDescriptionInit;
-    }) => {
-      if (String(data.target) !== String(currentUser._id)) return;
-      if (selectedChat) return; // Đã mở chat, để ChatPopup xử lý
-      if (incomingCallHome) return;
-
-      setIncomingCallHome({
-        from: String(data.from),
-        type: data.type,
-        roomId: String(data.roomId),
-        sdp: data.sdp,
-      });
-
-      playGlobalRingTone();
-    };
+    const handleOffer = () => {};
 
     const handleEnd = () => {
       stopGlobalRingTone();
-      setIncomingCallHome(null);
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     const handleReject = () => {
       stopGlobalRingTone();
-      setIncomingCallHome(null);
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     const handleAnswer = () => {
@@ -153,7 +121,7 @@ export default function DirectoryPage() {
       socket.off('call_reject', handleReject);
       socket.off('call_answer', handleAnswer);
     };
-  }, [currentUser, selectedChat, incomingCallHome]);
+  }, [currentUser]);
 
   if (isLoading || !currentUser) {
     return <div className="flex h-screen items-center justify-center bg-white">Loading...</div>;
@@ -227,47 +195,7 @@ export default function DirectoryPage() {
         reLoad={fetchAllData}
       />
 
-      {incomingCallHome && (
-        <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-4">
-            {(() => {
-              const caller = allUsers.find((u) => String(u._id) === String(incomingCallHome.from));
-              const avatar = caller?.avatar;
-              const name = caller?.name || 'Cuộc gọi đến';
-              return (
-                <IncomingCallModal
-                  avatar={avatar}
-                  name={name}
-                  onAccept={() => {
-                    try {
-                      localStorage.setItem('pendingIncomingCall', JSON.stringify(incomingCallHome));
-                    } catch {}
-                    const group = groups.find((g) => String(g._id) === String(incomingCallHome.roomId));
-                    if (group) {
-                      setSelectedChat(group as unknown as GroupConversation);
-                    } else {
-                      const c = allUsers.find((u) => String(u._id) === String(incomingCallHome.from));
-                      if (c) {
-                        setSelectedChat(c as unknown as GroupConversation);
-                      }
-                    }
-                    setIncomingCallHome(null);
-                    stopGlobalRingTone();
-                  }}
-                  onReject={() => {
-                    socketRef.current?.emit('call_reject', {
-                      roomId: incomingCallHome.roomId,
-                      targets: [String(incomingCallHome.from)],
-                    });
-                    setIncomingCallHome(null);
-                    stopGlobalRingTone();
-                  }}
-                />
-              );
-            })()}
-          </div>
-        </div>
-      )}
+      {/* Overlay cuộc gọi đến đã được xử lý ở layout.tsx */}
     </div>
   );
 }

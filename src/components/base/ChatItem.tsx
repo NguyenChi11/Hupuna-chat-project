@@ -472,6 +472,7 @@ export default function ChatItem({
                   </div>
                 </div>
               )}
+            
             </div>
             {(chatTags.length > 0 || showTagSelector) && (
               <div className="flex flex-wrap items-center gap-1 mt-2 relative z-10 w-full">

@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { io } from 'socket.io-client';
 import { resolveSocketUrl } from '@/utils/utils';
-import IncomingCallModal from '@/components/(call)/IncomingCallModal';
 
 import HomeDesktop from '@/components/(home)/HomeDesktop';
 import HomeMobile from '@/components/(home)/HomeMobile';
@@ -19,7 +18,7 @@ import {
   ensureSubscribed,
   waitForOneSignalReady,
 } from '@/lib/onesignal';
-import { playGlobalRingTone, stopGlobalRingTone } from '@/utils/callRing';
+import { stopGlobalRingTone } from '@/utils/callRing';
 import { useSearchParams } from 'next/navigation';
 
 function GroupPageContent() {
@@ -127,41 +126,16 @@ function GroupPageContent() {
     socket.off('call_reject');
     socket.off('call_answer'); // ✅ THÊM LISTENER MỚI
 
-    const handleOffer = (data: {
-      roomId: string;
-      target: string;
-      from: string;
-      type: 'voice' | 'video';
-      sdp: RTCSessionDescriptionInit;
-    }) => {
-      if (String(data.target) !== String(currentUser._id)) return;
-      if (selectedChat) return; // Đã mở chat, để ChatPopup xử lý
-      if (incomingCallHome) return;
-
-      setIncomingCallHome({
-        from: String(data.from),
-        type: data.type,
-        roomId: String(data.roomId),
-        sdp: data.sdp,
-      });
-
-      playGlobalRingTone(); // ✅ DÙNG GLOBAL
-    };
+    const handleOffer = () => {};
 
     const handleEnd = () => {
       stopGlobalRingTone(); // ✅ DÙNG GLOBAL
       setIncomingCallHome(null);
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     const handleReject = () => {
       stopGlobalRingTone(); // ✅ DÙNG GLOBAL
       setIncomingCallHome(null);
-      try {
-        localStorage.removeItem('pendingIncomingCall');
-      } catch {}
     };
 
     // ✅ THÊM HANDLER call_answer
@@ -180,7 +154,7 @@ function GroupPageContent() {
       socket.off('call_reject', handleReject);
       socket.off('call_answer', handleAnswer);
     };
-  }, [currentUser, selectedChat, incomingCallHome]);
+  }, [currentUser]);
 
   useEffect(() => {
     if (!openGroupId) return;
@@ -304,47 +278,7 @@ function GroupPageContent() {
         />
       )}
 
-      {incomingCallHome && (
-        <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-4">
-            {(() => {
-              const caller = allUsers.find((u) => String(u._id) === String(incomingCallHome.from));
-              const avatar = caller?.avatar;
-              const name = caller?.name || 'Cuộc gọi đến';
-              return (
-                <IncomingCallModal
-                  avatar={avatar}
-                  name={name}
-                  onAccept={() => {
-                    try {
-                      localStorage.setItem('pendingIncomingCall', JSON.stringify(incomingCallHome));
-                    } catch {}
-                    const group = groups.find((g) => String(g._id) === String(incomingCallHome.roomId));
-                    if (group) {
-                      setSelectedChat(group as unknown as GroupConversation);
-                    } else {
-                      const c = allUsers.find((u) => String(u._id) === String(incomingCallHome.from));
-                      if (c) {
-                        setSelectedChat(c as unknown as GroupConversation);
-                      }
-                    }
-                    setIncomingCallHome(null);
-                    stopGlobalRingTone();
-                  }}
-                  onReject={() => {
-                    socketRef.current?.emit('call_reject', {
-                      roomId: incomingCallHome.roomId,
-                      targets: [String(incomingCallHome.from)],
-                    });
-                    setIncomingCallHome(null);
-                    stopGlobalRingTone();
-                  }}
-                />
-              );
-            })()}
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 }
