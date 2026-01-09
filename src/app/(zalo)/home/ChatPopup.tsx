@@ -40,7 +40,7 @@ import {
   tryLockPollApi,
 } from '@/fetch/messages';
 import SearchSidebar from '@/components/(chatPopup)/SearchMessageModal';
-import { isVideoFile, resolveSocketUrl, getProxyUrl, buildAccentInsensitiveRegex } from '@/utils/utils';
+import { isVideoFile, resolveSocketUrl, getProxyUrl, buildAccentInsensitiveRegex, accentAwareIncludes } from '@/utils/utils';
 import { insertTextAtCursor } from '@/utils/chatInput';
 import { groupMessagesByDate } from '@/utils/chatMessages';
 import { ChatProvider } from '@/context/ChatContext';
@@ -534,14 +534,24 @@ export default function ChatWindow({
             },
             skip: append ? mobileSearchResultsRef.current.length : 0,
             limit: MOBILE_SEARCH_LIMIT,
-            sort: { timestamp: -1 },
+            sort: { field: 'timestamp', order: 'desc' },
           }),
         });
         const data = await res.json();
-        const results: Message[] = data.data || [];
-        const merged: Message[] = append ? [...mobileSearchResultsRef.current, ...results] : results;
+        const raw: Message[] = Array.isArray(data?.data) ? (data.data as Message[]) : [];
+        const filtered: Message[] = raw.filter((m) => {
+          const text =
+            m.type === 'file'
+              ? String(m.fileName || '')
+              : m.type === 'sticker'
+                ? ''
+                : String(m.content || '');
+          return accentAwareIncludes(text, query);
+        });
+        const sorted: Message[] = filtered.slice().sort((a, b) => Number(a.timestamp) - Number(b.timestamp) );
+        const merged: Message[] = append ? [...mobileSearchResultsRef.current, ...sorted] : sorted;
         setMobileSearchResults(merged);
-        setMobileSearchHasMore(results.length === MOBILE_SEARCH_LIMIT);
+        setMobileSearchHasMore(raw.length === MOBILE_SEARCH_LIMIT);
         if (merged.length > 0) {
           const selectedId = mobileSelectedMsgIdRef.current;
           if (mobileSelectingRef.current && selectedId) {

@@ -4,7 +4,7 @@ import { CiEdit, CiTrash } from 'react-icons/ci';
 import type { User } from '@/types/User';
 import type { GroupConversation, ChatItem as ChatItemType } from '@/types/Group';
 import Image from 'next/image';
-import { getProxyUrl, normalizeNoAccent } from '@/utils/utils';
+import { getProxyUrl, normalizeNoAccent, hasDiacritics, accentAwareIncludes } from '@/utils/utils';
 
 export interface TagItem {
   id: string;
@@ -540,9 +540,7 @@ export default function BaseManagerModal({
                     <div className="max-h-48 overflow-auto custom-scrollbar">
                       {allChats
                         .filter((c) => !selectedChats.includes(String(c._id)))
-                        .filter((c) =>
-                          normalizeNoAccent(getChatDisplayName(c)).includes(normalizeNoAccent(searchTerm.trim())),
-                        )
+                        .filter((c) => accentAwareIncludes(getChatDisplayName(c), searchTerm.trim()))
                         .slice(0, 50)
                         .map((c) => (
                           <button
