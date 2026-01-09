@@ -3,8 +3,8 @@ import { HiXMark, HiPlus, HiBars3, HiChevronLeft, HiCheck } from 'react-icons/hi
 import { CiEdit, CiTrash } from 'react-icons/ci';
 import type { User } from '@/types/User';
 import type { GroupConversation, ChatItem as ChatItemType } from '@/types/Group';
-import Image from 'next/image';
 import { getProxyUrl, normalizeNoAccent, hasDiacritics, accentAwareIncludes } from '@/utils/utils';
+import Image from 'next/image';
 
 export interface TagItem {
   id: string;
@@ -554,7 +554,7 @@ export default function BaseManagerModal({
                           >
                             <div className="relative w-8 h-8 flex-none">
                               <Image
-                                src={getProxyUrl(c.avatar || '/placeholder-user.jpg')}
+                                src={getProxyUrl(c.avatar || '/logo/avata.webp')}
                                 alt=""
                                 fill
                                 className="rounded-full object-cover"
