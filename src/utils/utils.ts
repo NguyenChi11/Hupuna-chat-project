@@ -60,6 +60,8 @@ export const resolveSocketUrl = (): string => {
     // Nếu chưa có protocol
     const proto = isSecure ? 'https:' : 'http:';
     return `${proto}//${finalUrl}`;
+  } else if (process.env.NODE_ENV === 'production') {
+    console.warn('⚠️ WARNING: NEXT_PUBLIC_SOCKET_URL is not defined. Socket connection may fail if the fallback logic is incorrect for your deployment.');
   }
 
   // 2. Logic fallback (tự động đoán)

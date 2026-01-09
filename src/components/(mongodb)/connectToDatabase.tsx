@@ -14,6 +14,10 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
     return { client: cachedClient, db: cachedDb };
   }
 
+  if (process.env.NODE_ENV === 'production' && (MONGODB_URI.includes('localhost') || MONGODB_URI.includes('127.0.0.1'))) {
+    console.error('❌ ERROR: You are using a localhost MongoDB URI in production. Please set MONGODB_URI in your Vercel project settings to a remote database (e.g., MongoDB Atlas).');
+  }
+
   const client = new MongoClient(MONGODB_URI);
   await client.connect();
 
