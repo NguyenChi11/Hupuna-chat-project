@@ -1500,10 +1500,11 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         !callConnecting &&
         normalizedIsGroup &&
         roomCallActive &&
+        String(currentViewedRoomId || '') === String(normalizedRoomId || '') &&
         !(roomParticipants || []).includes(String(currentUser?._id || '')) && (
-          <div className="fixed z-[1200] bottom-20 right-4 md:bottom-6 md:right-6">
+          <div className="fixed z-50 bottom-25 right-4 md:bottom-30 md:right-6">
             <button
-              className="px-4 py-2 rounded-full bg-green-600 text-white shadow cursor-pointer hover:bg-green-700"
+              className="px-2 py-2 rounded-full bg-green-600 text-white shadow cursor-pointer hover:bg-green-700"
               onClick={() => {
                 const cur = Array.isArray(roomParticipants) ? roomParticipants.length : 0;
                 if (cur >= 20) {
@@ -1514,7 +1515,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
               }}
               title="Tham gia lại cuộc gọi nhóm"
             >
-              Tham gia lại
+              Tham gia cuộc gọi
             </button>
           </div>
         )}

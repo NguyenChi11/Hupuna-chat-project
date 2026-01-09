@@ -86,6 +86,19 @@ export function useLiveKitSession({
   }, [roomId, callActive, callConnecting]);
   useEffect(() => {
     const rid = String(roomId || '');
+    if (!rid) {
+      setRoomCallActive(false);
+      setRoomCallType(null);
+      setRoomParticipants([]);
+      return;
+    }
+    if (callActiveRef.current || callConnectingRef.current) return;
+    setRoomCallActive(false);
+    setRoomCallType(null);
+    setRoomParticipants([]);
+  }, [roomId]);
+  useEffect(() => {
+    const rid = String(roomId || '');
     if (!rid) return;
     const ensureJoin = async () => {
       try {

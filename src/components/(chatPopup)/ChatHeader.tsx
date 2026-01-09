@@ -218,7 +218,7 @@ export default function ChatHeader({
           onClick={onOpenMembers}
           className=" cursor-pointer text-left md:hover:bg-gray-50 rounded-xl px-3 py-2 -ml-2 transition-colors"
         >
-          <h1 className="font-semibold text-white md:text-gray-900 truncate text-base">{chatName}</h1>
+          <h1 className="font-semibold text-white md:text-gray-900 truncate w-[150px] md:w-full md:max-w-[300px] text-base">{chatName}</h1>
           <p className="text-xs text-white md:text-gray-500 flex items-center gap-1 mt-0.5">
             {isGroup ? (
               <>
