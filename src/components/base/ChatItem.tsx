@@ -482,7 +482,7 @@ export default function ChatItem({
               <div>
                 <p
                   className={`
-                  text-[0.875rem] md:text-[1rem] truncate max-w-[14rem]
+                  text-[0.875rem] md:text-[1rem] truncate max-w-[13rem]
                   ${unreadCount > 0 ? 'font-semibold text-gray-800' : 'text-gray-600'}
                 `}
                 >

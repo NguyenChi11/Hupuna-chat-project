@@ -764,8 +764,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     if (!normalizedIsGroup) return;
     const nowActive = !!callActive || !!roomCallActive;
     const prev = new Map(activeGroupCallRooms);
-    const prevEntry =
-      prev.get(rid) || { active: false, type: null, participants: [], startAt: null as number | null };
+    const prevEntry = prev.get(rid) || { active: false, type: null, participants: [], startAt: null as number | null };
     const parts = Array.isArray(roomParticipants) ? roomParticipants.map((x) => String(x)) : [];
     const nextParts = parts.length > 0 ? parts : nowActive ? [String(currentUser?._id || '')] : [];
     const nextType = (callType as string) || prevEntry.type || null;
@@ -1184,9 +1183,9 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         <>
           {(incomingCall || callConnecting || callActive) && (
             <div
-              ref={globalCallHidden && callType === 'video' ? openBtnRef : callOverlayRef}
+              ref={globalCallHidden && (callType === 'video' || callType === 'voice') ? openBtnRef : callOverlayRef}
               className={`fixed z-[2000] ${
-                globalCallHidden && callType === 'video'
+                globalCallHidden && (callType === 'video' || callType === 'voice')
                   ? 'rounded-xl overflow-hidden shadow-2xl ring-1 ring-black/20 bg-black cursor-move'
                   : globalCallFullscreen
                     ? 'inset-0 w-screen h-screen'
@@ -1206,7 +1205,13 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                         height: 160,
                         display: 'block',
                       }
-                    : { display: 'none' }
+                    : {
+                        left: openBtnPos.x,
+                        top: openBtnPos.y,
+                        width: 200,
+                        height: 80,
+                        display: 'block',
+                      }
                   : globalCallFullscreen
                     ? { display: 'block' }
                     : globalIsDesktop
@@ -1236,14 +1241,14 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                   : undefined
               }
               onMouseDown={
-                globalCallHidden && callType === 'video'
+                globalCallHidden && (callType === 'video' || callType === 'voice')
                   ? handleOpenBtnDragStart
                   : !globalIsDesktop && globalCallMin
                     ? handleGlobalDragStart
                     : undefined
               }
               onTouchStart={
-                globalCallHidden && callType === 'video'
+                globalCallHidden && (callType === 'video' || callType === 'voice')
                   ? handleOpenBtnTouchDragStart
                   : !globalIsDesktop && globalCallMin
                     ? handleGlobalTouchDragStart
@@ -1252,7 +1257,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
             >
               <div
                 className={`absolute h-auto ${
-                  globalCallHidden && callType === 'video'
+                  globalCallHidden && (callType === 'video' || callType === 'voice')
                     ? 'inset-0 w-full h-full p-0 rounded-xl overflow-hidden'
                     : globalCallMin
                       ? ''
@@ -1261,7 +1266,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                         : globalIsDesktop
                           ? 'w-full md:w-[44rem] lg:w-[50rem] h-[23rem]'
                           : 'inset-0 w-full h-full'
-                } ${globalCallHidden && callType === 'video' ? 'bg-black' : 'md:rounded-xl rounded-none p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur'}`}
+                } ${globalCallHidden && (callType === 'video' || callType === 'voice') ? 'bg-black' : 'md:rounded-xl rounded-none p-0 shadow-2xl ring-1 ring-black/10 bg-white/5 backdrop-blur'}`}
               >
                 {!globalCallHidden && (
                   <div
@@ -1321,10 +1326,10 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                   </div>
                 )}
                 <div
-                  className={`${globalCallHidden && callType === 'video' ? 'w-full h-full bg-black' : globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : `rounded-none p-0 h-full ${callType === 'voice' ? 'bg-blue-500' : 'bg-black'}`}`}
+                  className={`${globalCallHidden && (callType === 'video' || callType === 'voice') ? 'w-full h-full bg-black' : globalCallMin ? 'rounded-lg overflow-hidden bg-black' : globalIsDesktop ? 'md:rounded-b-xl rounded-none md:pt-2 md:p-2 p-0 relative bg-black/20' : `rounded-none p-0 h-full ${callType === 'voice' ? 'bg-blue-500' : 'bg-black'}`}`}
                 >
-                  {/* Mini Controls for Hidden Video Call */}
-                  {globalCallHidden && callType === 'video' && (
+                  {/* Mini Controls for Hidden Call */}
+                  {globalCallHidden && (callType === 'video' || callType === 'voice') && (
                     <div className="absolute top-1 right-1 z-[2100] flex items-center gap-1">
                       <button
                         className="p-1 rounded bg-white/20 hover:bg-white/30 text-white cursor-pointer transition-colors"
@@ -1459,8 +1464,8 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                           ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
                           : { w: Math.max(240, Math.min(300, Math.floor(globalCallSize.w / 2))), h: 160 }
                       }
-                      offMinHeight={globalCallHidden && callType === 'video' ? 120 : 320}
-                      uiVariant={globalCallHidden && callType === 'video' ? 'mini' : 'full'}
+                      offMinHeight={globalCallHidden && (callType === 'video' || callType === 'voice') ? 120 : 320}
+                      uiVariant={globalCallHidden && (callType === 'video' || callType === 'voice') ? 'mini' : 'full'}
                     />
                   )}
                   {!incomingCall &&
@@ -1497,40 +1502,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
               </div>
             </div>
           )}
-          {(incomingCall || callConnecting || callActive) && globalCallHidden && callType !== 'video' && (
-            <div
-              ref={openBtnRef}
-              className="fixed z-[2000] cursor-move"
-              style={{ left: openBtnPos.x, top: openBtnPos.y }}
-              onMouseDown={handleOpenBtnDragStart}
-              onTouchStart={handleOpenBtnTouchDragStart}
-            >
-              <div className="flex items-center gap-1 bg-white/10 backdrop-blur-md p-1 rounded-full shadow-lg border border-white/20">
-                <button
-                  className="p-2 rounded-full bg-green-500 hover:bg-green-600 text-white cursor-pointer transition-colors"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (openBtnDraggingRef.current) return;
-                    setGlobalCallHidden(false);
-                  }}
-                  title="Mở cửa sổ cuộc gọi"
-                >
-                  <HiArrowsPointingOut className="w-5 h-5" />
-                </button>
-                <button
-                  className="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white cursor-pointer transition-colors"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (openBtnDraggingRef.current) return;
-                    endCall('local');
-                  }}
-                  title="Kết thúc cuộc gọi"
-                >
-                  <HiXMark className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Old mini controls for voice removed to unify UI */}
         </>
       )}
 
