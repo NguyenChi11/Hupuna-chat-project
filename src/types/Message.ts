@@ -2,7 +2,7 @@ import { User } from '@/types/User';
 
 export const MESSAGES_COLLECTION_NAME = 'Messages';
 
-export type MessageType = 'text' | 'image' | 'file' | 'notify' | 'sticker' | 'video' | 'reminder' | 'poll';
+export type MessageType = 'text' | 'image' | 'file' | 'notify' | 'sticker' | 'video' | 'reminder' | 'poll' | 'contact';
 
 export interface Message {
   [key: string]: unknown;
@@ -61,6 +61,12 @@ export interface Message {
   callDurationSec?: number;
   callStartedAt?: number;
   callEndedAt?: number;
+  contactCard?: {
+    _id: string;
+    name: string;
+    username?: string;
+    avatar?: string;
+  };
 }
 export interface MessageCreate {
   [key: string]: unknown;
@@ -115,4 +121,10 @@ export interface MessageCreate {
   callDurationSec?: number;
   callStartedAt?: number;
   callEndedAt?: number;
+  contactCard?: {
+    _id: string;
+    name: string;
+    username?: string;
+    avatar?: string;
+  };
 }

@@ -1704,6 +1704,32 @@ function useHomePage(config) {
                     } : u));
         }
     }, []);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const handler = (e)=>{
+            const d = e.detail || {};
+            const userId = String(d.userId || d._id || '');
+            if (!userId) return;
+            const found = allUsersRef.current.find((u)=>String(u._id) === userId) || null;
+            const name = typeof d.name === 'string' ? d.name : found?.name || found?.username || 'Người dùng';
+            const username = typeof d.username === 'string' ? d.username : found?.username || '';
+            const avatar = typeof d.avatar === 'string' ? d.avatar : found?.avatar;
+            if (found) {
+                handleSelectChat(found);
+                return;
+            }
+            const fallbackUser = {
+                _id: userId,
+                name: String(name || 'Người dùng'),
+                username: String(username || userId)
+            };
+            if (avatar) fallbackUser.avatar = String(avatar);
+            handleSelectChat(fallbackUser);
+        };
+        window.addEventListener('openDirectChat', handler);
+        return ()=>window.removeEventListener('openDirectChat', handler);
+    }, [
+        handleSelectChat
+    ]);
     const handleSelectContact = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])((contact)=>{
         setShowGlobalSearchModal(false);
         setScrollToMessageId(null);

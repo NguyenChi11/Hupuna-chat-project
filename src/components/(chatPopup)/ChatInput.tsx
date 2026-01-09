@@ -36,7 +36,7 @@ import {
   CiInstagram,
   CiPen,
 } from 'react-icons/ci';
-import { HiDocumentText, HiLightningBolt, HiX } from 'react-icons/hi';
+import { HiDocumentText, HiLightningBolt, HiSearch, HiX } from 'react-icons/hi';
 import { IoIosAttach } from 'react-icons/io';
 import Image from 'next/image';
 import { useChatContext } from '@/context/ChatContext';
@@ -54,8 +54,10 @@ import { createMessageApi } from '@/fetch/messages';
 import { Socket } from 'socket.io-client';
 import { GroupConversation, GroupRole } from '@/types/Group';
 import { User } from '@/types/User';
+import type { MessageCreate } from '@/types/Message';
 import { useToast } from '@/components/base/toast';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { accentAwareIncludes, getProxyUrl, normalizeNoAccent } from '@/utils/utils';
 
 interface ChatInputProps {
   socket?: Socket | null;
@@ -69,6 +71,7 @@ interface ChatInputProps {
   onPasteEditable: (e: ClipboardEvent<HTMLDivElement>) => void;
   onFocusEditable: () => void;
   onSendMessage: () => void;
+  onSendMessageData?: (data: MessageCreate) => Promise<void>;
   onSelectImage: (file: File) => void;
   onSelectFile: (file: File) => void;
   onAttachFromFolder: (att: { url: string; type: 'image' | 'video' | 'file'; fileName?: string }) => void;
@@ -91,6 +94,7 @@ export default function ChatInput({
   onPasteEditable,
   onFocusEditable,
   onSendMessage,
+  onSendMessageData,
   onSelectImage,
   onSelectFile,
   onAttachFromFolder,
@@ -101,7 +105,7 @@ export default function ChatInput({
   uploadingCount = 0,
   overallUploadPercent = 0,
 }: ChatInputProps) {
-  const { currentUser, selectedChat, isGroup } = useChatContext();
+  const { currentUser, selectedChat, isGroup, allUsers } = useChatContext();
   const showToast = useToast();
 
   const myRole = useMemo(() => {
@@ -374,6 +378,163 @@ export default function ChatInput({
   const [showUpdatingPopup, setShowUpdatingPopup] = useState(false);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
+  const [showContactCardModal, setShowContactCardModal] = useState(false);
+  const [contactCardSearch, setContactCardSearch] = useState('');
+  const [activeContactCategory, setActiveContactCategory] = useState<string>('all');
+  const [selectedContactCardIds, setSelectedContactCardIds] = useState<string[]>([]);
+  const contactCategoryBarRef = useRef<HTMLDivElement | null>(null);
+  const contactCategoryDragRef = useRef<{ active: boolean; startX: number; startScrollLeft: number; moved: boolean }>({
+    active: false,
+    startX: 0,
+    startScrollLeft: 0,
+    moved: false,
+  });
+
+  const myId = String(currentUser._id || '');
+  const [categoryTags, setCategoryTags] = useState<Array<{ id: string; label: string; color: string }>>([]);
+
+  useEffect(() => {
+    const loadCategoryTags = async () => {
+      if (!currentUser?._id) return;
+
+      if (Array.isArray(currentUser.categoryTags)) {
+        setCategoryTags(
+          currentUser.categoryTags.filter(
+            (x): x is { id: string; label: string; color: string } => !!x && typeof x.id === 'string',
+          ),
+        );
+      }
+
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getById', _id: String(currentUser._id) }),
+        });
+        const data = await res.json();
+        const row = (data && data.row) || (Array.isArray(data?.data) ? data.data[0] : null);
+        if (row && Array.isArray(row.categoryTags)) {
+          setCategoryTags(
+            row.categoryTags.filter(
+              (x: unknown): x is { id: string; label: string; color: string } =>
+                !!x && typeof x === 'object' && typeof (x as { id?: unknown }).id === 'string',
+            ),
+          );
+        }
+      } catch {}
+    };
+
+    loadCategoryTags();
+
+    const handleUserCategoryTagsUpdated = (e: Event) => {
+      const ev = e as CustomEvent<{ userId: string; tags: { id: string; label: string; color: string }[] }>;
+      if (ev.detail && String(ev.detail.userId) === String(currentUser?._id)) {
+        setCategoryTags(Array.isArray(ev.detail.tags) ? ev.detail.tags : []);
+      }
+    };
+    window.addEventListener('userCategoryTagsUpdated', handleUserCategoryTagsUpdated as EventListener);
+    return () => window.removeEventListener('userCategoryTagsUpdated', handleUserCategoryTagsUpdated as EventListener);
+  }, [currentUser?._id, currentUser?.categoryTags]);
+
+  useEffect(() => {
+    if (activeContactCategory === 'all') return;
+    if (categoryTags.some((t) => t.id === activeContactCategory)) return;
+    setActiveContactCategory('all');
+  }, [activeContactCategory, categoryTags]);
+
+  const handleContactCategoryPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const el = contactCategoryBarRef.current;
+    if (!el) return;
+    contactCategoryDragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startScrollLeft: el.scrollLeft,
+      moved: false,
+    };
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {}
+  };
+
+  const handleContactCategoryPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = contactCategoryBarRef.current;
+    const drag = contactCategoryDragRef.current;
+    if (!el || !drag.active) return;
+    const dx = e.clientX - drag.startX;
+    if (!drag.moved && Math.abs(dx) > 4) {
+      contactCategoryDragRef.current = { ...drag, moved: true };
+    }
+    el.scrollLeft = drag.startScrollLeft - dx;
+  };
+
+  const handleContactCategoryPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = contactCategoryBarRef.current;
+    const drag = contactCategoryDragRef.current;
+    if (!drag.active) return;
+    contactCategoryDragRef.current = { ...drag, active: false };
+    try {
+      el?.releasePointerCapture(e.pointerId);
+    } catch {}
+  };
+
+  const handleContactCategoryClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!contactCategoryDragRef.current.moved) return;
+    e.preventDefault();
+    e.stopPropagation();
+    contactCategoryDragRef.current = { ...contactCategoryDragRef.current, moved: false };
+  };
+
+  const getContactDisplayName = (u: User): string => {
+    const nick = (u.nicknames && typeof u.nicknames === 'object' ? u.nicknames[myId] : '') as string | undefined;
+    return String(nick || u.name || u.username || 'Người dùng').trim();
+  };
+
+  const getContactCategories = (u: User): string[] => {
+    const by =
+      (u as unknown as { categoriesBy?: Record<string, string[]> }).categoriesBy?.[myId] ||
+      ((u as unknown as { categories?: string[] }).categories as string[] | undefined) ||
+      [];
+    if (!Array.isArray(by)) return [];
+    return by.filter((x): x is string => typeof x === 'string' && x.length > 0);
+  };
+
+  const filteredContactUsers = useMemo(() => {
+    const term = String(contactCardSearch || '').trim();
+    const active = activeContactCategory;
+    const base = Array.isArray(allUsers) ? allUsers : [];
+
+    const filtered = base.filter((u) => {
+      if (!u || typeof u !== 'object') return false;
+      if ((u as unknown as { isHidden?: boolean }).isHidden) return false;
+      if (active !== 'all') {
+        const cats = getContactCategories(u);
+        if (!cats.includes(active)) return false;
+      }
+      if (!term) return true;
+      const displayName = getContactDisplayName(u);
+      const username = String(u.username || '');
+      return accentAwareIncludes(displayName, term) || accentAwareIncludes(username, term);
+    });
+
+    filtered.sort((a, b) => getContactDisplayName(a).localeCompare(getContactDisplayName(b), 'vi'));
+    return filtered;
+  }, [allUsers, contactCardSearch, activeContactCategory, myId]);
+
+  const groupedContactUsers = useMemo(() => {
+    const map = new Map<string, User[]>();
+    filteredContactUsers.forEach((u) => {
+      const name = getContactDisplayName(u);
+      const keyRaw = normalizeNoAccent(name || '').trim();
+      const ch = keyRaw ? keyRaw[0].toUpperCase() : '#';
+      const key = /[A-Z]/.test(ch) ? ch : '#';
+      const arr = map.get(key) || [];
+      arr.push(u);
+      map.set(key, arr);
+    });
+    const keys = Array.from(map.keys()).sort((a, b) => (a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b)));
+    return keys.map((k) => ({ key: k, users: map.get(k) || [] }));
+  }, [filteredContactUsers]);
 
   // --- TAGS LOGIC ---
   const TAG_COLORS: Record<string, string> = {
@@ -549,6 +710,58 @@ export default function ChatInput({
     // Optimistically update state as parent usually clears input
     setHasContent(false);
     setTimeout(checkContent, 100); // Double check
+  };
+
+  const handleSendContactCard = async () => {
+    const ids = selectedContactCardIds.map((x) => String(x)).filter(Boolean);
+    if (ids.length === 0) return;
+    const base = Array.isArray(allUsers) ? allUsers : [];
+    const selectedUsers = ids.map((id) => base.find((u) => String(u._id) === String(id))).filter((u): u is User => !!u);
+    if (selectedUsers.length === 0) return;
+
+    try {
+      for (const selectedUser of selectedUsers) {
+        const payload: MessageCreate = {
+          roomId,
+          sender: String(currentUser._id),
+          type: 'contact',
+          timestamp: Date.now(),
+          contactCard: {
+            _id: String(selectedUser._id),
+            name: getContactDisplayName(selectedUser),
+            username: selectedUser.username,
+            avatar: selectedUser.avatar,
+          },
+        };
+
+        if (onSendMessageData) {
+          await onSendMessageData(payload);
+        } else {
+          const createRes = await createMessageApi(payload);
+          if (createRes?.success) {
+            const receiver = isGroup ? null : String((selectedChat as User)._id);
+            const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
+            const sockBase = {
+              roomId,
+              sender: String(currentUser._id),
+              senderName: currentUser.name,
+              isGroup,
+              receiver,
+              members,
+            };
+
+            if (typeof createRes._id === 'string') {
+              socket?.emit('send_message', { ...sockBase, ...payload, _id: createRes._id });
+            }
+          }
+        }
+      }
+    } finally {
+      setShowContactCardModal(false);
+      setSelectedContactCardIds([]);
+      setContactCardSearch('');
+      setActiveContactCategory('all');
+    }
   };
 
   useEffect(() => {
@@ -834,9 +1047,9 @@ export default function ChatInput({
           />
         </label>
         <button
-          onClick={handleShowUpdatingPopup}
+          onClick={() => setShowContactCardModal(true)}
           className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
-          aria-label="Nhập bằng giọng nói"
+          aria-label="Gửi danh thiếp"
         >
           <CiCreditCard2 className="w-6 h-6" />
         </button>
@@ -1329,7 +1542,13 @@ export default function ChatInput({
           </button>
 
           <button
-            onClick={() => showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' })}
+            onClick={() => {
+              setShowMobileActions(false);
+              try {
+                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+              } catch {}
+              setShowContactCardModal(true);
+            }}
             className="group relative cursor-pointer flex flex-col items-center"
             aria-label="Danh thiếp"
           >
@@ -1424,6 +1643,178 @@ export default function ChatInput({
           confirmText="Báo xấu"
           variant="warning"
         />
+      )}
+      {showContactCardModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-0 md:px-4"
+          onClick={() => {
+            setShowContactCardModal(false);
+            setSelectedContactCardIds([]);
+            setContactCardSearch('');
+            setActiveContactCategory('all');
+          }}
+        >
+          <div
+            className="w-full  md:max-w-[46rem] bg-white md:rounded-2xl shadow-2xl overflow-hidden h-full md:max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <p className="text-lg font-bold text-gray-900">Gửi danh thiếp</p>
+              <button
+                onClick={() => {
+                  setShowContactCardModal(false);
+                  setSelectedContactCardIds([]);
+                  setContactCardSearch('');
+                  setActiveContactCategory('all');
+                }}
+                className="p-2 rounded-full cursor-pointer hover:bg-gray-100 text-gray-600"
+                aria-label="Đóng"
+              >
+                <HiX className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2 px-4 py-3 rounded-full border border-gray-200 bg-white">
+                <HiSearch className="w-5 h-5 text-gray-400" />
+                <input
+                  value={contactCardSearch}
+                  onChange={(e) => setContactCardSearch(e.target.value)}
+                  placeholder="Tìm danh thiếp theo tên"
+                  className="w-full outline-none text-sm text-gray-800"
+                />
+              </div>
+
+              <div
+                ref={contactCategoryBarRef}
+                onPointerDown={handleContactCategoryPointerDown}
+                onPointerMove={handleContactCategoryPointerMove}
+                onPointerUp={handleContactCategoryPointerEnd}
+                onPointerCancel={handleContactCategoryPointerEnd}
+                onLostPointerCapture={handleContactCategoryPointerEnd}
+                onClickCapture={handleContactCategoryClickCapture}
+                style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}
+                className="mt-4 flex items-center gap-2 overflow-x-auto w-full whitespace-nowrap custom-scrollbar select-none"
+              >
+                <button
+                  onClick={() => setActiveContactCategory('all')}
+                  className={`px-4 py-2 mb-2 rounded-full text-sm font-semibold cursor-pointer transition-colors ${
+                    activeContactCategory === 'all'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Tất cả
+                </button>
+                {categoryTags.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setActiveContactCategory(t.id)}
+                    className={`px-4 py-2 mb-2 rounded-full text-sm font-semibold cursor-pointer transition-colors ${
+                      activeContactCategory === t.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {groupedContactUsers.length === 0 ? (
+                <div className="py-12 text-center text-sm text-gray-500">Không tìm thấy liên hệ phù hợp</div>
+              ) : (
+                <div className="py-2">
+                  {groupedContactUsers.map((g) => (
+                    <div key={g.key}>
+                      <div className="px-4 sm:px-6 py-2 text-sm font-bold text-gray-700">{g.key}</div>
+                      <div className="space-y-1 px-2 sm:px-4 pb-2">
+                        {g.users.map((u) => {
+                          const idStr = String(u._id || '');
+                          const isSelected = selectedContactCardIds.includes(idStr);
+                          const displayName = getContactDisplayName(u);
+                          const sub = String(u.username || '');
+                          return (
+                            <button
+                              key={String(u._id)}
+                              onClick={() => {
+                                if (!idStr) return;
+                                setSelectedContactCardIds((prev) =>
+                                  prev.includes(idStr) ? prev.filter((x) => x !== idStr) : [...prev, idStr],
+                                );
+                              }}
+                              className="w-full flex items-center gap-3 px-2 py-2 rounded-xl cursor-pointer hover:bg-gray-50 active:scale-[0.99] transition"
+                            >
+                              <div
+                                className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                                  isSelected ? 'border-blue-600' : 'border-gray-300'
+                                }`}
+                              >
+                                {isSelected && <div className="w-3 h-3 rounded-full bg-blue-600" />}
+                              </div>
+
+                              <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shrink-0">
+                                {u.avatar ? (
+                                  <Image
+                                    src={getProxyUrl(u.avatar)}
+                                    alt=""
+                                    width={40}
+                                    height={40}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <Image
+                                    src="/logo/avata.webp"
+                                    alt=""
+                                    width={40}
+                                    height={40}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+
+                              <div className="flex-1 min-w-0 text-left">
+                                <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+                                {sub ? <p className="text-sm text-gray-500 truncate">{sub}</p> : null}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 bg-white">
+              <button
+                onClick={() => {
+                  setShowContactCardModal(false);
+                  setSelectedContactCardIds([]);
+                  setContactCardSearch('');
+                  setActiveContactCategory('all');
+                }}
+                className="px-5 py-2 rounded-xl bg-gray-100 text-gray-800 font-semibold cursor-pointer hover:bg-gray-200 transition"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSendContactCard}
+                disabled={selectedContactCardIds.length === 0}
+                className={`px-5 py-2 rounded-xl font-semibold transition ${
+                  selectedContactCardIds.length > 0
+                    ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700'
+                    : 'bg-blue-200 text-white cursor-not-allowed'
+                }`}
+              >
+                {`Gửi danh thiếp${selectedContactCardIds.length > 0 ? ` (${selectedContactCardIds.length})` : ''}`}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {/* Custom CSS cho placeholder */}
       <style jsx>{`

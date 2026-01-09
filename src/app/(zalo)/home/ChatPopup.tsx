@@ -40,7 +40,13 @@ import {
   tryLockPollApi,
 } from '@/fetch/messages';
 import SearchSidebar from '@/components/(chatPopup)/SearchMessageModal';
-import { isVideoFile, resolveSocketUrl, getProxyUrl, buildAccentInsensitiveRegex, accentAwareIncludes } from '@/utils/utils';
+import {
+  isVideoFile,
+  resolveSocketUrl,
+  getProxyUrl,
+  buildAccentInsensitiveRegex,
+  accentAwareIncludes,
+} from '@/utils/utils';
 import { insertTextAtCursor } from '@/utils/chatInput';
 import { groupMessagesByDate } from '@/utils/chatMessages';
 import { ChatProvider } from '@/context/ChatContext';
@@ -249,7 +255,12 @@ export default function ChatWindow({
   }, [roomId]);
   useEffect(() => {
     const handler = (e: Event) => {
-      const d = (e as unknown as { detail?: { roomId?: string; active?: boolean; type?: 'voice' | 'video'; participants?: string[] } }).detail || {};
+      const d =
+        (
+          e as unknown as {
+            detail?: { roomId?: string; active?: boolean; type?: 'voice' | 'video'; participants?: string[] };
+          }
+        ).detail || {};
       if (String(d.roomId) !== String(roomId)) return;
       setRoomCallActiveLocal(!!d.active);
       setRoomCallTypeLocal((d.type === 'video' ? 'video' : 'voice') as 'voice' | 'video');
@@ -267,9 +278,11 @@ export default function ChatWindow({
 
     const handler = (e: Event) => {
       const d =
-        (e as unknown as {
-          detail?: { active?: boolean; connecting?: boolean; incoming?: boolean };
-        }).detail || {};
+        (
+          e as unknown as {
+            detail?: { active?: boolean; connecting?: boolean; incoming?: boolean };
+          }
+        ).detail || {};
 
       setGlobalCallActive(!!d.active);
       setGlobalCallConnecting(!!d.connecting);
@@ -541,14 +554,10 @@ export default function ChatWindow({
         const raw: Message[] = Array.isArray(data?.data) ? (data.data as Message[]) : [];
         const filtered: Message[] = raw.filter((m) => {
           const text =
-            m.type === 'file'
-              ? String(m.fileName || '')
-              : m.type === 'sticker'
-                ? ''
-                : String(m.content || '');
+            m.type === 'file' ? String(m.fileName || '') : m.type === 'sticker' ? '' : String(m.content || '');
           return accentAwareIncludes(text, query);
         });
-        const sorted: Message[] = filtered.slice().sort((a, b) => Number(a.timestamp) - Number(b.timestamp) );
+        const sorted: Message[] = filtered.slice().sort((a, b) => Number(a.timestamp) - Number(b.timestamp));
         const merged: Message[] = append ? [...mobileSearchResultsRef.current, ...sorted] : sorted;
         setMobileSearchResults(merged);
         setMobileSearchHasMore(raw.length === MOBILE_SEARCH_LIMIT);
@@ -841,8 +850,6 @@ export default function ChatWindow({
   }, [isMobile, setShowPopup, setShowSearchSidebar]);
 
   // timer cuộc gọi xử lý ở HomePage
-
- 
 
   // Ring tone handled inside useCallSession
 
@@ -1780,10 +1787,13 @@ export default function ChatWindow({
           return ib.localeCompare(ia);
         });
         const contentCount = descProbe.reduce((acc, m) => acc + (isContent(m.type) ? 1 : 0), 0);
-        const minBatchTs = raw.reduce((min, m) => {
-          const ts = Number(m.serverTimestamp ?? m.timestamp) || 0;
-          return min === null || ts < (min as number) ? ts : (min as number);
-        }, null as number | null);
+        const minBatchTs = raw.reduce(
+          (min, m) => {
+            const ts = Number(m.serverTimestamp ?? m.timestamp) || 0;
+            return min === null || ts < (min as number) ? ts : (min as number);
+          },
+          null as number | null,
+        );
         beforeTs = typeof minBatchTs === 'number' ? minBatchTs : undefined;
         if (contentCount >= targetCount) break;
         if (raw.length < batchSize) break;
@@ -3516,6 +3526,7 @@ export default function ChatWindow({
               editableRef={editableRef}
               onInputEditable={handleInputChangeEditable}
               onKeyDownEditable={handleKeyDownCombined}
+              onSendMessageData={sendMessageProcess}
               onPasteEditable={(e) => {
                 const items = Array.from(e.clipboardData?.items || []);
                 const fileItems = items.filter(

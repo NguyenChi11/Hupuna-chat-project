@@ -9,7 +9,9 @@ __turbopack_context__.s([
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/image.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/utils.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$qrcode$2f$lib$2f$browser$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/qrcode/lib/browser.js [app-client] (ecmascript)");
 // Icons
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react-icons/hi2/index.mjs [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react-icons/hi/index.mjs [app-client] (ecmascript)");
@@ -20,7 +22,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$svg$2f$
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$components$2f$ReadStatus$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/(chatPopup)/components/ReadStatus.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$components$2f$ReminderCard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/(chatPopup)/components/ReminderCard.tsx [app-client] (ecmascript)");
 ;
-var _s = __turbopack_context__.k.signature();
+var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.signature();
 'use client';
 ;
 ;
@@ -34,8 +36,294 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uploadingFiles, highlightedMsgId, isGroup, onContextMenu, onMobileLongPress, onReplyMessage, onJumpToMessage, getSenderInfo, renderMessageContent, onOpenMedia, editingMessageId, setEditingMessageId, editContent, setEditContent, onSaveEdit, onRefresh, onPinMessage, onToggleReaction, contextMenu, scrollManagedExternally = false, isSidebarOpen = false, isMobile = false, onShareMessage, onOpenChatInfoSection }) {
+;
+;
+function ContactCardBubble({ contact, currentUserId }) {
     _s();
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
+    const contactId = String(contact?._id || '');
+    const name = String(contact?.name || 'Người dùng');
+    const username = String(contact?.username || '');
+    const avatar = String(contact?.avatar || '');
+    const profilePath = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "ContactCardBubble.useMemo[profilePath]": ()=>{
+            const slug = String(username || contactId || '').trim();
+            if (!slug) return '';
+            return `/profile/${encodeURIComponent(slug)}`;
+        }
+    }["ContactCardBubble.useMemo[profilePath]"], [
+        contactId,
+        username
+    ]);
+    const qrValue = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "ContactCardBubble.useMemo[qrValue]": ()=>{
+            if (!profilePath) return '';
+            if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+            ;
+            const origin = window.location.origin;
+            return `${origin}${profilePath}`;
+        }
+    }["ContactCardBubble.useMemo[qrValue]"], [
+        profilePath
+    ]);
+    const [qrDataUrl, setQrDataUrl] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "ContactCardBubble.useEffect": ()=>{
+            let cancelled = false;
+            if (!qrValue) {
+                setQrDataUrl('');
+                return;
+            }
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$qrcode$2f$lib$2f$browser$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].toDataURL(qrValue, {
+                errorCorrectionLevel: 'M',
+                margin: 1,
+                width: 240
+            }).then({
+                "ContactCardBubble.useEffect": (url)=>{
+                    if (!cancelled) setQrDataUrl(url);
+                }
+            }["ContactCardBubble.useEffect"]).catch({
+                "ContactCardBubble.useEffect": ()=>{
+                    if (!cancelled) setQrDataUrl('');
+                }
+            }["ContactCardBubble.useEffect"]);
+            return ({
+                "ContactCardBubble.useEffect": ()=>{
+                    cancelled = true;
+                }
+            })["ContactCardBubble.useEffect"];
+        }
+    }["ContactCardBubble.useEffect"], [
+        qrValue
+    ]);
+    const oneToOneRoomId = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "ContactCardBubble.useMemo[oneToOneRoomId]": ()=>{
+            if (!currentUserId || !contactId) return '';
+            return [
+                String(currentUserId),
+                String(contactId)
+            ].sort().join('_');
+        }
+    }["ContactCardBubble.useMemo[oneToOneRoomId]"], [
+        currentUserId,
+        contactId
+    ]);
+    const handleVoiceCall = (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        if (!contactId || !oneToOneRoomId) return;
+        try {
+            window.dispatchEvent(new CustomEvent('startCall', {
+                detail: {
+                    type: 'voice',
+                    roomId: oneToOneRoomId,
+                    isGroup: false,
+                    selectedChat: {
+                        _id: contactId,
+                        name,
+                        username,
+                        avatar: avatar || undefined
+                    }
+                }
+            }));
+        } catch  {}
+    };
+    const handleOpenChat = (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        if (!contactId) return;
+        try {
+            window.dispatchEvent(new CustomEvent('openDirectChat', {
+                detail: {
+                    userId: contactId,
+                    name,
+                    username,
+                    avatar: avatar || undefined
+                }
+            }));
+        } catch  {}
+    };
+    const handleOpenProfile = (e)=>{
+        if (!profilePath) return;
+        e.preventDefault();
+        router.push(profilePath);
+    };
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        role: profilePath ? 'button' : undefined,
+        tabIndex: profilePath ? 0 : undefined,
+        onClick: handleOpenProfile,
+        onKeyDown: (e)=>{
+            if (!profilePath) return;
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault();
+            router.push(profilePath);
+        },
+        className: `max-w-[70vw] w-[22rem] sm:max-w-[22rem] bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm select-none lg:select-text ${profilePath ? 'cursor-pointer hover:border-gray-300' : ''}`,
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "px-3 py-2 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-600",
+                children: "Danh thiếp"
+            }, void 0, false, {
+                fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                lineNumber: 184,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "p-3 flex items-center justify-between gap-3",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "flex items-center gap-3 min-w-0",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "w-11 h-11 rounded-full overflow-hidden bg-gray-200 shrink-0",
+                                children: avatar ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                                    src: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getProxyUrl"])(avatar),
+                                    alt: "",
+                                    width: 44,
+                                    height: 44,
+                                    className: "w-full h-full object-cover"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                                    lineNumber: 191,
+                                    columnNumber: 15
+                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                                    src: "/logo/avata.webp",
+                                    alt: "",
+                                    width: 44,
+                                    height: 44,
+                                    className: "w-full h-full object-cover"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                                    lineNumber: 193,
+                                    columnNumber: 15
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                                lineNumber: 189,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "min-w-0",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-sm font-semibold text-gray-900 truncate",
+                                        children: name
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                                        lineNumber: 197,
+                                        columnNumber: 13
+                                    }, this),
+                                    username ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-sm text-gray-500 truncate",
+                                        children: username
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                                        lineNumber: 198,
+                                        columnNumber: 25
+                                    }, this) : null
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                                lineNumber: 196,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                        lineNumber: 188,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "w-16 h-16 bg-white rounded-xl flex items-center justify-center border border-gray-200 shrink-0",
+                        children: qrDataUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                            width: 240,
+                            height: 240,
+                            src: qrDataUrl,
+                            alt: "Mã QR",
+                            className: "w-full h-full rounded-xl"
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                            lineNumber: 204,
+                            columnNumber: 13
+                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                            className: "text-[10px] text-gray-400",
+                            children: "QR"
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                            lineNumber: 206,
+                            columnNumber: 13
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                        lineNumber: 202,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                lineNumber: 187,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "border-t border-gray-100 bg-gray-50 grid grid-cols-2",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: handleVoiceCall,
+                        className: "cursor-pointer flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 active:scale-[0.99] transition",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiPhone"], {
+                                className: "w-4 h-4 text-blue-600"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                                lineNumber: 216,
+                                columnNumber: 11
+                            }, this),
+                            "Gọi điện"
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                        lineNumber: 212,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: handleOpenChat,
+                        className: "cursor-pointer flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 active:scale-[0.99] transition border-l border-gray-200",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiChatBubbleLeftRight"], {
+                                className: "w-4 h-4 text-emerald-600"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                                lineNumber: 223,
+                                columnNumber: 11
+                            }, this),
+                            "Nhắn tin"
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                        lineNumber: 219,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                lineNumber: 211,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+        lineNumber: 170,
+        columnNumber: 5
+    }, this);
+}
+_s(ContactCardBubble, "nILeyBCOhH7t0y6NRYMbaoSsxDI=", false, function() {
+    return [
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
+    ];
+});
+_c = ContactCardBubble;
+function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uploadingFiles, highlightedMsgId, isGroup, onContextMenu, onMobileLongPress, onReplyMessage, onJumpToMessage, getSenderInfo, renderMessageContent, onOpenMedia, editingMessageId, setEditingMessageId, editContent, setEditContent, onSaveEdit, onRefresh, onPinMessage, onToggleReaction, contextMenu, scrollManagedExternally = false, isSidebarOpen = false, isMobile = false, onShareMessage, onOpenChatInfoSection }) {
+    _s1();
     const [, setTimeVisibleId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [expandedOriginalId, setExpandedOriginalId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [activeMoreId, setActiveMoreId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
@@ -182,12 +470,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                 children: dateKey
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                lineNumber: 222,
+                                lineNumber: 375,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                            lineNumber: 221,
+                            lineNumber: 374,
                             columnNumber: 13
                         }, this),
                         (()=>{
@@ -232,12 +520,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                             children: formatTimeMarker(nowTs)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 279,
+                                            lineNumber: 432,
                                             columnNumber: 25
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                        lineNumber: 278,
+                                        lineNumber: 431,
                                         columnNumber: 23
                                     }, this) : null;
                                     const unreadDividerNode = null;
@@ -317,12 +605,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         unoptimized: String(senderInfo.avatar).includes('mega.nz')
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 367,
+                                                                        lineNumber: 520,
                                                                         columnNumber: 39
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                    lineNumber: 366,
+                                                                    lineNumber: 519,
                                                                     columnNumber: 37
                                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                     className: "w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold",
@@ -334,17 +622,17 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         className: "w-full h-full rounded-full object-cover"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 378,
+                                                                        lineNumber: 531,
                                                                         columnNumber: 39
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                    lineNumber: 377,
+                                                                    lineNumber: 530,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 364,
+                                                                lineNumber: 517,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -355,7 +643,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         children: allUsersMap.get(senderInfo._id) || senderInfo.name
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 391,
+                                                                        lineNumber: 544,
                                                                         columnNumber: 35
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -499,12 +787,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                             className: "w-4 h-4 text-indigo-600"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 514,
+                                                                                            lineNumber: 667,
                                                                                             columnNumber: 41
                                                                                         }, this)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 493,
+                                                                                        lineNumber: 646,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     isMobile && swipeState.id === msg._id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -518,23 +806,23 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                 className: "w-5 h-5 text-blue-600"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 523,
+                                                                                                lineNumber: 676,
                                                                                                 columnNumber: 47
                                                                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiArrowUturnRight"], {
                                                                                                 className: "w-5 h-5 text-blue-600"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 525,
+                                                                                                lineNumber: 678,
                                                                                                 columnNumber: 47
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 521,
+                                                                                            lineNumber: 674,
                                                                                             columnNumber: 43
                                                                                         }, this)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 517,
+                                                                                        lineNumber: 670,
                                                                                         columnNumber: 41
                                                                                     }, this),
                                                                                     !isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -550,12 +838,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                 className: "w-4 h-4 text-gray-600"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 541,
+                                                                                                lineNumber: 694,
                                                                                                 columnNumber: 45
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 532,
+                                                                                            lineNumber: 685,
                                                                                             columnNumber: 43
                                                                                         }, this)
                                                                                     }, void 0, false),
@@ -569,7 +857,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         className: `${isMeGroup ? 'right-full mr-18' : 'left-full ml-18'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'}`
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 546,
+                                                                                        lineNumber: 699,
                                                                                         columnNumber: 41
                                                                                     }, this)
                                                                                 ]
@@ -657,7 +945,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                 preload: "metadata"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 643,
+                                                                                                lineNumber: 796,
                                                                                                 columnNumber: 43
                                                                                             }, this),
                                                                                             !up && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -668,17 +956,17 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                         className: "w-5 h-5 text-blue-600 ml-0.5"
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 653,
+                                                                                                        lineNumber: 806,
                                                                                                         columnNumber: 49
                                                                                                     }, this)
                                                                                                 }, void 0, false, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 652,
+                                                                                                    lineNumber: 805,
                                                                                                     columnNumber: 47
                                                                                                 }, this)
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 651,
+                                                                                                lineNumber: 804,
                                                                                                 columnNumber: 45
                                                                                             }, this),
                                                                                             up && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -690,7 +978,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                             className: "w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin"
                                                                                                         }, void 0, false, {
                                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                            lineNumber: 660,
+                                                                                                            lineNumber: 813,
                                                                                                             columnNumber: 49
                                                                                                         }, this),
                                                                                                         prog !== undefined && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -701,24 +989,24 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                             ]
                                                                                                         }, void 0, true, {
                                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                            lineNumber: 662,
+                                                                                                            lineNumber: 815,
                                                                                                             columnNumber: 51
                                                                                                         }, this)
                                                                                                     ]
                                                                                                 }, void 0, true, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 659,
+                                                                                                    lineNumber: 812,
                                                                                                     columnNumber: 47
                                                                                                 }, this)
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 658,
+                                                                                                lineNumber: 811,
                                                                                                 columnNumber: 45
                                                                                             }, this)
                                                                                         ]
                                                                                     }, `${m._id}-${idx}`, true, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 578,
+                                                                                        lineNumber: 731,
                                                                                         columnNumber: 41
                                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                         id: `msg-${m._id}`,
@@ -795,7 +1083,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                 className: "w-full h-full object-cover"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 740,
+                                                                                                lineNumber: 893,
                                                                                                 columnNumber: 45
                                                                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                                                                                 width: 600,
@@ -805,7 +1093,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                 className: "w-full h-full object-cover"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 748,
+                                                                                                lineNumber: 901,
                                                                                                 columnNumber: 45
                                                                                             }, this),
                                                                                             up && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -832,7 +1120,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                     fill: "none"
                                                                                                                 }, void 0, false, {
                                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                    lineNumber: 768,
+                                                                                                                    lineNumber: 921,
                                                                                                                     columnNumber: 55
                                                                                                                 }, this),
                                                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
@@ -848,36 +1136,36 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                     transform: `rotate(-90 ${size / 2} ${size / 2})`
                                                                                                                 }, void 0, false, {
                                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                    lineNumber: 776,
+                                                                                                                    lineNumber: 929,
                                                                                                                     columnNumber: 55
                                                                                                                 }, this)
                                                                                                             ]
                                                                                                         }, void 0, true, {
                                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                            lineNumber: 767,
+                                                                                                            lineNumber: 920,
                                                                                                             columnNumber: 53
                                                                                                         }, this)
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 766,
+                                                                                                        lineNumber: 919,
                                                                                                         columnNumber: 51
                                                                                                     }, this);
                                                                                                 })()
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 758,
+                                                                                                lineNumber: 911,
                                                                                                 columnNumber: 45
                                                                                             }, this)
                                                                                         ]
                                                                                     }, `${m._id}-${idx}`, true, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 671,
+                                                                                        lineNumber: 824,
                                                                                         columnNumber: 41
                                                                                     }, this);
                                                                                 })
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 562,
+                                                                                lineNumber: 715,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             (()=>{
@@ -910,7 +1198,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: it.emoji
                                                                                                             }, void 0, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 830,
+                                                                                                                lineNumber: 983,
                                                                                                                 columnNumber: 47
                                                                                                             }, this),
                                                                                                             it.count > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -918,13 +1206,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: it.count
                                                                                                             }, void 0, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 832,
+                                                                                                                lineNumber: 985,
                                                                                                                 columnNumber: 49
                                                                                                             }, this)
                                                                                                         ]
                                                                                                     }, `${msg._id}-react-group-${idx}`, true, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 816,
+                                                                                                        lineNumber: 969,
                                                                                                         columnNumber: 45
                                                                                                     }, this)),
                                                                                                 items.length > 3 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -935,26 +1223,26 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                     ]
                                                                                                 }, void 0, true, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 841,
+                                                                                                    lineNumber: 994,
                                                                                                     columnNumber: 45
                                                                                                 }, this)
                                                                                             ]
                                                                                         }, void 0, true, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 814,
+                                                                                            lineNumber: 967,
                                                                                             columnNumber: 41
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                             className: "absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 846,
+                                                                                            lineNumber: 999,
                                                                                             columnNumber: 41
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 811,
+                                                                                    lineNumber: 964,
                                                                                     columnNumber: 39
                                                                                 }, this);
                                                                             })(),
@@ -965,7 +1253,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         onClick: ()=>setReactionDetail(null)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 852,
+                                                                                        lineNumber: 1005,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1004,7 +1292,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: reactionDetail.emoji
                                                                                                             }, void 0, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 884,
+                                                                                                                lineNumber: 1037,
                                                                                                                 columnNumber: 49
                                                                                                             }, this),
                                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1015,13 +1303,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 ]
                                                                                                             }, void 0, true, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 885,
+                                                                                                                lineNumber: 1038,
                                                                                                                 columnNumber: 49
                                                                                                             }, this)
                                                                                                         ]
                                                                                                     }, void 0, true, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 883,
+                                                                                                        lineNumber: 1036,
                                                                                                         columnNumber: 47
                                                                                                     }, this),
                                                                                                     users.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -1031,31 +1319,31 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: name
                                                                                                             }, `${msg._id}-user-group-${idx}`, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 892,
+                                                                                                                lineNumber: 1045,
                                                                                                                 columnNumber: 53
                                                                                                             }, this))
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 890,
+                                                                                                        lineNumber: 1043,
                                                                                                         columnNumber: 49
                                                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                                         className: "text-sm text-gray-500 py-1",
                                                                                                         children: "Chưa có ai"
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 901,
+                                                                                                        lineNumber: 1054,
                                                                                                         columnNumber: 49
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 882,
+                                                                                                lineNumber: 1035,
                                                                                                 columnNumber: 45
                                                                                             }, this);
                                                                                         })()
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 853,
+                                                                                        lineNumber: 1006,
                                                                                         columnNumber: 39
                                                                                     }, this)
                                                                                 ]
@@ -1067,18 +1355,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     children: formatTimestamp(Number(lastInGroup.serverTimestamp ?? lastInGroup.timestamp) || 0)
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 911,
+                                                                                    lineNumber: 1064,
                                                                                     columnNumber: 39
                                                                                 }, this)
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 910,
+                                                                                lineNumber: 1063,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 397,
+                                                                        lineNumber: 550,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$components$2f$ReadStatus$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -1094,25 +1382,25 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         isUploading: groupUploading
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 922,
+                                                                        lineNumber: 1075,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 389,
+                                                                lineNumber: 542,
                                                                 columnNumber: 31
                                                             }, this)
                                                         ]
                                                     }, `group-${msg._id}`, true, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 352,
+                                                        lineNumber: 505,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, `group-${msg._id}-frag`, true, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 349,
+                                                lineNumber: 502,
                                                 columnNumber: 27
                                             }, this);
                                         }
@@ -1181,12 +1469,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         unoptimized: String(senderInfo.avatar).includes('mega.nz')
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1003,
+                                                                        lineNumber: 1156,
                                                                         columnNumber: 39
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                    lineNumber: 1002,
+                                                                    lineNumber: 1155,
                                                                     columnNumber: 37
                                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                     className: "w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold",
@@ -1198,17 +1486,17 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         className: "w-full h-full rounded-full object-cover"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1014,
+                                                                        lineNumber: 1167,
                                                                         columnNumber: 39
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                    lineNumber: 1013,
+                                                                    lineNumber: 1166,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1000,
+                                                                lineNumber: 1153,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1219,7 +1507,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         children: allUsersMap.get(senderInfo._id) || senderInfo.name
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1027,
+                                                                        lineNumber: 1180,
                                                                         columnNumber: 35
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1244,12 +1532,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                 className: "w-4 h-4 text-gray-600"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 1051,
+                                                                                                lineNumber: 1204,
                                                                                                 columnNumber: 45
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 1042,
+                                                                                            lineNumber: 1195,
                                                                                             columnNumber: 43
                                                                                         }, this)
                                                                                     }, void 0, false),
@@ -1263,7 +1551,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         className: `${isMeGroup ? 'right-full mr-10' : 'left-full ml-10'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'}`
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 1056,
+                                                                                        lineNumber: 1209,
                                                                                         columnNumber: 41
                                                                                     }, this)
                                                                                 ]
@@ -1337,12 +1625,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                     className: "w-5 h-5 text-white"
                                                                                                 }, void 0, false, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 1141,
+                                                                                                    lineNumber: 1294,
                                                                                                     columnNumber: 43
                                                                                                 }, this)
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 1140,
+                                                                                                lineNumber: 1293,
                                                                                                 columnNumber: 41
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1353,7 +1641,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                         children: m.fileName || 'Tệp đính kèm'
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 1144,
+                                                                                                        lineNumber: 1297,
                                                                                                         columnNumber: 43
                                                                                                     }, this),
                                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1361,13 +1649,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                         children: "Nhấn để tải xuống"
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 1147,
+                                                                                                        lineNumber: 1300,
                                                                                                         columnNumber: 43
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 1143,
+                                                                                                lineNumber: 1296,
                                                                                                 columnNumber: 41
                                                                                             }, this),
                                                                                             uploadingFiles[m._id] !== undefined && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1395,7 +1683,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                         fill: "none"
                                                                                                                     }, void 0, false, {
                                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                        lineNumber: 1160,
+                                                                                                                        lineNumber: 1313,
                                                                                                                         columnNumber: 53
                                                                                                                     }, this),
                                                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
@@ -1411,13 +1699,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                         transform: `rotate(-90 ${size / 2} ${size / 2})`
                                                                                                                     }, void 0, false, {
                                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                        lineNumber: 1168,
+                                                                                                                        lineNumber: 1321,
                                                                                                                         columnNumber: 53
                                                                                                                     }, this)
                                                                                                                 ]
                                                                                                             }, void 0, true, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 1159,
+                                                                                                                lineNumber: 1312,
                                                                                                                 columnNumber: 51
                                                                                                             }, this),
                                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1428,30 +1716,30 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 ]
                                                                                                             }, void 0, true, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 1181,
+                                                                                                                lineNumber: 1334,
                                                                                                                 columnNumber: 51
                                                                                                             }, this)
                                                                                                         ]
                                                                                                     }, void 0, true, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 1158,
+                                                                                                        lineNumber: 1311,
                                                                                                         columnNumber: 49
                                                                                                     }, this);
                                                                                                 })()
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 1150,
+                                                                                                lineNumber: 1303,
                                                                                                 columnNumber: 43
                                                                                             }, this)
                                                                                         ]
                                                                                     }, `${m._id}-${idx}`, true, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 1074,
+                                                                                        lineNumber: 1227,
                                                                                         columnNumber: 39
                                                                                     }, this))
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1072,
+                                                                                lineNumber: 1225,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             (()=>{
@@ -1484,7 +1772,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: it.emoji
                                                                                                             }, void 0, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 1221,
+                                                                                                                lineNumber: 1374,
                                                                                                                 columnNumber: 47
                                                                                                             }, this),
                                                                                                             it.count > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1492,13 +1780,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: it.count
                                                                                                             }, void 0, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 1223,
+                                                                                                                lineNumber: 1376,
                                                                                                                 columnNumber: 49
                                                                                                             }, this)
                                                                                                         ]
                                                                                                     }, `${msg._id}-react-filegroup-${idx}`, true, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 1207,
+                                                                                                        lineNumber: 1360,
                                                                                                         columnNumber: 45
                                                                                                     }, this)),
                                                                                                 items.length > 3 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1509,26 +1797,26 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                     ]
                                                                                                 }, void 0, true, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 1232,
+                                                                                                    lineNumber: 1385,
                                                                                                     columnNumber: 45
                                                                                                 }, this)
                                                                                             ]
                                                                                         }, void 0, true, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 1205,
+                                                                                            lineNumber: 1358,
                                                                                             columnNumber: 41
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                             className: "absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 1237,
+                                                                                            lineNumber: 1390,
                                                                                             columnNumber: 41
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 1202,
+                                                                                    lineNumber: 1355,
                                                                                     columnNumber: 39
                                                                                 }, this);
                                                                             })(),
@@ -1539,7 +1827,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         onClick: ()=>setReactionDetail(null)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 1243,
+                                                                                        lineNumber: 1396,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1578,7 +1866,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: reactionDetail.emoji
                                                                                                             }, void 0, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 1275,
+                                                                                                                lineNumber: 1428,
                                                                                                                 columnNumber: 49
                                                                                                             }, this),
                                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1589,13 +1877,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 ]
                                                                                                             }, void 0, true, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 1276,
+                                                                                                                lineNumber: 1429,
                                                                                                                 columnNumber: 49
                                                                                                             }, this)
                                                                                                         ]
                                                                                                     }, void 0, true, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 1274,
+                                                                                                        lineNumber: 1427,
                                                                                                         columnNumber: 47
                                                                                                     }, this),
                                                                                                     users.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -1605,31 +1893,31 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: name
                                                                                                             }, `${msg._id}-user-filegroup-${idx}`, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 1283,
+                                                                                                                lineNumber: 1436,
                                                                                                                 columnNumber: 53
                                                                                                             }, this))
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 1281,
+                                                                                                        lineNumber: 1434,
                                                                                                         columnNumber: 49
                                                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                                         className: "text-sm text-gray-500 py-1",
                                                                                                         children: "Chưa có ai"
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 1292,
+                                                                                                        lineNumber: 1445,
                                                                                                         columnNumber: 49
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 1273,
+                                                                                                lineNumber: 1426,
                                                                                                 columnNumber: 45
                                                                                             }, this);
                                                                                         })()
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 1244,
+                                                                                        lineNumber: 1397,
                                                                                         columnNumber: 39
                                                                                     }, this)
                                                                                 ]
@@ -1640,18 +1928,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     children: formatTimestamp(Number(lastInGroup.serverTimestamp ?? lastInGroup.timestamp) || 0)
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 1304,
+                                                                                    lineNumber: 1457,
                                                                                     columnNumber: 39
                                                                                 }, this)
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1301,
+                                                                                lineNumber: 1454,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1031,
+                                                                        lineNumber: 1184,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$components$2f$ReadStatus$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -1667,25 +1955,25 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         isUploading: groupUploading
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1315,
+                                                                        lineNumber: 1468,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1025,
+                                                                lineNumber: 1178,
                                                                 columnNumber: 31
                                                             }, this)
                                                         ]
                                                     }, `group-file-${msg._id}`, true, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 988,
+                                                        lineNumber: 1141,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, `group-file-${msg._id}-frag`, true, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 985,
+                                                lineNumber: 1138,
                                                 columnNumber: 27
                                             }, this);
                                         }
@@ -1733,12 +2021,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                 children: "Xem cập nhật trước"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1377,
+                                                                lineNumber: 1530,
                                                                 columnNumber: 35
                                                             }, this)
                                                         }, `group-notify-${groupId}`, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1376,
+                                                            lineNumber: 1529,
                                                             columnNumber: 33
                                                         }, this);
                                                     }
@@ -1778,12 +2066,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                 children: "Xem thông báo cuộc gọi trước"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1415,
+                                                                lineNumber: 1569,
                                                                 columnNumber: 35
                                                             }, this)
                                                         }, `group-notify-call-${groupId}`, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1414,
+                                                            lineNumber: 1568,
                                                             columnNumber: 33
                                                         }, this);
                                                     }
@@ -1798,38 +2086,38 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                 className: "w-4 h-4 text-red-600"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1441,
+                                                lineNumber: 1595,
                                                 columnNumber: 31
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiVideoCamera"], {
                                                 className: "w-4 h-4 text-blue-600"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1443,
+                                                lineNumber: 1597,
                                                 columnNumber: 31
                                             }, this) : status === 'rejected' || status === 'timeout' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiPhone"], {
                                                 className: "w-4 h-4 text-red-600"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1446,
+                                                lineNumber: 1600,
                                                 columnNumber: 29
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiPhone"], {
                                                 className: "w-4 h-4 text-green-600"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1448,
+                                                lineNumber: 1602,
                                                 columnNumber: 29
                                             }, this);
                                             const iconDir = incoming ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiArrowDown"], {
                                                 className: "w-4 h-4 text-gray-600"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1451,
+                                                lineNumber: 1605,
                                                 columnNumber: 27
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiArrowUp"], {
                                                 className: "w-4 h-4 text-gray-600"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1453,
+                                                lineNumber: 1607,
                                                 columnNumber: 27
                                             }, this);
                                             const title = `Cuộc gọi ${callType === 'video' ? 'video' : 'thoại'} ${incoming ? 'đến' : 'đi'}`;
@@ -1870,7 +2158,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 children: `${title} – ${detail}`
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1495,
+                                                                                lineNumber: 1649,
                                                                                 columnNumber: 37
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1878,35 +2166,35 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 children: ` ${dateLabel} • ${timeLabel}`
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1496,
+                                                                                lineNumber: 1650,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1494,
+                                                                        lineNumber: 1648,
                                                                         columnNumber: 35
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1491,
+                                                                lineNumber: 1645,
                                                                 columnNumber: 33
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1488,
+                                                            lineNumber: 1642,
                                                             columnNumber: 31
                                                         }, this)
                                                     }, msg._id, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 1482,
+                                                        lineNumber: 1636,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, `notify-call-${msg._id}-frag`, true, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1479,
+                                                lineNumber: 1633,
                                                 columnNumber: 27
                                             }, this);
                                         }
@@ -1945,79 +2233,79 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                             className: "w-4 h-4 text-red-500"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1574,
+                                            lineNumber: 1728,
                                             columnNumber: 25
                                         }, this) : isCreate ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiOutlineClock"], {
                                             className: "w-4 h-4 text-indigo-500"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1576,
+                                            lineNumber: 1730,
                                             columnNumber: 25
                                         }, this) : isPoll ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiChartBar"], {
                                             className: "w-4 h-4 text-blue-500"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1578,
+                                            lineNumber: 1732,
                                             columnNumber: 25
                                         }, this) : isPin ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiMapPin"], {
                                             className: "w-4 h-4 text-orange-500"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1580,
+                                            lineNumber: 1734,
                                             columnNumber: 25
                                         }, this) : isRenameGroup ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiPencil"], {
                                             className: "w-4 h-4 text-indigo-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1582,
+                                            lineNumber: 1736,
                                             columnNumber: 25
                                         }, this) : isNickname ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiPencil"], {
                                             className: "w-4 h-4 text-blue-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1584,
+                                            lineNumber: 1738,
                                             columnNumber: 25
                                         }, this) : isChangeAvatar ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiPhoto"], {
                                             className: "w-4 h-4 text-pink-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1586,
+                                            lineNumber: 1740,
                                             columnNumber: 25
                                         }, this) : isInvite ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiUserPlus"], {
                                             className: "w-4 h-4 text-emerald-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1588,
+                                            lineNumber: 1742,
                                             columnNumber: 25
                                         }, this) : isLeave ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiOutlineLogout"], {
                                             className: "w-4 h-4 text-red-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1590,
+                                            lineNumber: 1744,
                                             columnNumber: 25
                                         }, this) : isPromote ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiShieldCheck"], {
                                             className: "w-4 h-4 text-blue-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1592,
+                                            lineNumber: 1746,
                                             columnNumber: 25
                                         }, this) : isDemote ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiUserMinus"], {
                                             className: "w-4 h-4 text-yellow-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1594,
+                                            lineNumber: 1748,
                                             columnNumber: 25
                                         }, this) : isKick ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiUserMinus"], {
                                             className: "w-4 h-4 text-red-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1596,
+                                            lineNumber: 1750,
                                             columnNumber: 25
                                         }, this) : isCreateGroup ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiUserGroup"], {
                                             className: "w-4 h-4 text-purple-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1598,
+                                            lineNumber: 1752,
                                             columnNumber: 25
                                         }, this) : null;
                                         const nameLabel = senderInfo.name || '';
@@ -2027,7 +2315,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                             children: display
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1602,
+                                            lineNumber: 1756,
                                             columnNumber: 58
                                         }, this);
                                         if (isJoinByLink) {
@@ -2044,14 +2332,14 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                         children: actualName || 'Một thành viên'
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 1613,
+                                                        lineNumber: 1767,
                                                         columnNumber: 29
                                                     }, this),
                                                     ` ${tail}`
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1612,
+                                                lineNumber: 1766,
                                                 columnNumber: 27
                                             }, this);
                                         }
@@ -2072,23 +2360,23 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1632,
+                                                            lineNumber: 1786,
                                                             columnNumber: 31
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 1629,
+                                                        lineNumber: 1783,
                                                         columnNumber: 29
                                                     }, this)
                                                 }, `pill-${msg._id}`, false, {
                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                    lineNumber: 1624,
+                                                    lineNumber: 1778,
                                                     columnNumber: 27
                                                 }, this)
                                             ]
                                         }, `pill-${msg._id}-frag`, true, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1621,
+                                            lineNumber: 1775,
                                             columnNumber: 25
                                         }, this);
                                         if (isDue) {
@@ -2108,18 +2396,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1646,
+                                                                lineNumber: 1800,
                                                                 columnNumber: 33
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1645,
+                                                            lineNumber: 1799,
                                                             columnNumber: 31
                                                         }, this)
                                                     ]
                                                 }, `notify-${msg._id}-due`, true, {
                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                    lineNumber: 1643,
+                                                    lineNumber: 1797,
                                                     columnNumber: 29
                                                 }, this);
                                             }
@@ -2152,18 +2440,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                             }
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1680,
+                                                            lineNumber: 1834,
                                                             columnNumber: 31
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 1679,
+                                                        lineNumber: 1833,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, `notify-${msg._id}-due-inline`, true, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1677,
+                                                lineNumber: 1831,
                                                 columnNumber: 27
                                             }, this);
                                         }
@@ -2179,12 +2467,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                     isMe: isMe
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                    lineNumber: 1700,
+                                                    lineNumber: 1854,
                                                     columnNumber: 29
                                                 }, this)
                                             }, `notify-${msg._id}-create`, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1699,
+                                                lineNumber: 1853,
                                                 columnNumber: 27
                                             }, this);
                                         }
@@ -2200,18 +2488,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                             children: "XEM CHI TIẾT"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1717,
+                                                            lineNumber: 1871,
                                                             columnNumber: 31
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 1716,
+                                                        lineNumber: 1870,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, `notify-${msg._id}-reminder`, true, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1714,
+                                                lineNumber: 1868,
                                                 columnNumber: 27
                                             }, this);
                                         }
@@ -2243,12 +2531,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                             isMe: isMe
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1749,
+                                                            lineNumber: 1903,
                                                             columnNumber: 33
                                                         }, this)
                                                     }, `notify-${msg._id}-create-inline`, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 1748,
+                                                        lineNumber: 1902,
                                                         columnNumber: 31
                                                     }, this);
                                                 }
@@ -2263,18 +2551,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                 children: "XEM CHI TIẾT"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1765,
+                                                                lineNumber: 1919,
                                                                 columnNumber: 33
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1764,
+                                                            lineNumber: 1918,
                                                             columnNumber: 31
                                                         }, this)
                                                     ]
                                                 }, `notify-${msg._id}-reminder-inline`, true, {
                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                    lineNumber: 1762,
+                                                    lineNumber: 1916,
                                                     columnNumber: 29
                                                 }, this);
                                             }
@@ -2294,18 +2582,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                             children: "Xem"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1781,
+                                                            lineNumber: 1935,
                                                             columnNumber: 31
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 1780,
+                                                        lineNumber: 1934,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, `notify-${msg._id}-poll`, true, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1778,
+                                                lineNumber: 1932,
                                                 columnNumber: 27
                                             }, this);
                                         }
@@ -2330,23 +2618,23 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                             highlighted: highlightedMsgId === msg._id
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 1803,
+                                                            lineNumber: 1957,
                                                             columnNumber: 31
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 1802,
+                                                        lineNumber: 1956,
                                                         columnNumber: 29
                                                     }, this)
                                                 }, msg._id, false, {
                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                    lineNumber: 1801,
+                                                    lineNumber: 1955,
                                                     columnNumber: 27
                                                 }, this)
                                             ]
                                         }, `reminder-${msg._id}-frag`, true, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1799,
+                                            lineNumber: 1953,
                                             columnNumber: 25
                                         }, this);
                                     }
@@ -2375,12 +2663,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                             children: msg.content || msg.pollQuestion || 'Bình chọn'
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                            lineNumber: 1837,
+                                                                            lineNumber: 1991,
                                                                             columnNumber: 35
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1836,
+                                                                        lineNumber: 1990,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2394,18 +2682,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                             children: msg.isPinned ? 'Bỏ ghim' : 'Ghim'
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                            lineNumber: 1843,
+                                                                            lineNumber: 1997,
                                                                             columnNumber: 35
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1841,
+                                                                        lineNumber: 1995,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1835,
+                                                                lineNumber: 1989,
                                                                 columnNumber: 31
                                                             }, this),
                                                             locked && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2417,7 +2705,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1857,
+                                                                lineNumber: 2011,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2431,14 +2719,14 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     className: "w-3.5 h-3.5 flex-shrink-0"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 1866,
+                                                                                    lineNumber: 2020,
                                                                                     columnNumber: 39
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                                     children: "Chọn nhiều phương án"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 1867,
+                                                                                    lineNumber: 2021,
                                                                                     columnNumber: 39
                                                                                 }, this)
                                                                             ]
@@ -2448,21 +2736,21 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     className: "w-3.5 h-3.5 flex-shrink-0"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 1871,
+                                                                                    lineNumber: 2025,
                                                                                     columnNumber: 39
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                                     children: "Chọn 1 phương án"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 1872,
+                                                                                    lineNumber: 2026,
                                                                                     columnNumber: 39
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1863,
+                                                                        lineNumber: 2017,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     msg.pollHideVoters && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2472,20 +2760,20 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 className: "w-3.5 h-3.5 flex-shrink-0"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1878,
+                                                                                lineNumber: 2032,
                                                                                 columnNumber: 37
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                                 children: "Ẩn người bình chọn"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1879,
+                                                                                lineNumber: 2033,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1877,
+                                                                        lineNumber: 2031,
                                                                         columnNumber: 35
                                                                     }, this),
                                                                     msg.pollAllowAddOptions && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2495,20 +2783,20 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 className: "w-3.5 h-3.5 flex-shrink-0"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1884,
+                                                                                lineNumber: 2038,
                                                                                 columnNumber: 37
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                                 children: "Cho phép thêm phương án"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1885,
+                                                                                lineNumber: 2039,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1883,
+                                                                        lineNumber: 2037,
                                                                         columnNumber: 35
                                                                     }, this),
                                                                     msg.pollHideResultsUntilVote && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2518,26 +2806,26 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 className: "w-3.5 h-3.5 flex-shrink-0"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1890,
+                                                                                lineNumber: 2044,
                                                                                 columnNumber: 37
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                                 children: "Ẩn kết quả khi chưa bình chọn"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 1891,
+                                                                                lineNumber: 2045,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 1889,
+                                                                        lineNumber: 2043,
                                                                         columnNumber: 35
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1862,
+                                                                lineNumber: 2016,
                                                                 columnNumber: 31
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2562,7 +2850,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                 })()
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1895,
+                                                                lineNumber: 2049,
                                                                 columnNumber: 31
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2599,7 +2887,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     }
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 1948,
+                                                                                    lineNumber: 2102,
                                                                                     columnNumber: 41
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2610,7 +2898,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                             children: opt
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 1953,
+                                                                                            lineNumber: 2107,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2618,26 +2906,26 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                             children: showResults ? count : ''
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 1954,
+                                                                                            lineNumber: 2108,
                                                                                             columnNumber: 43
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 1952,
+                                                                                    lineNumber: 2106,
                                                                                     columnNumber: 41
                                                                                 }, this)
                                                                             ]
                                                                         }, `${String(msg._id)}-${idx}`, true, {
                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                            lineNumber: 1937,
+                                                                            lineNumber: 2091,
                                                                             columnNumber: 39
                                                                         }, this);
                                                                     });
                                                                 })()
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1918,
+                                                                lineNumber: 2072,
                                                                 columnNumber: 31
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2651,29 +2939,29 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                     children: locked ? 'Xem lựa chọn' : 'Đổi lựa chọn'
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                    lineNumber: 1962,
+                                                                    lineNumber: 2116,
                                                                     columnNumber: 33
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 1961,
+                                                                lineNumber: 2115,
                                                                 columnNumber: 31
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 1831,
+                                                        lineNumber: 1985,
                                                         columnNumber: 29
                                                     }, this)
                                                 }, msg._id, false, {
                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                    lineNumber: 1826,
+                                                    lineNumber: 1980,
                                                     columnNumber: 27
                                                 }, this)
                                             ]
                                         }, `poll-${msg._id}-frag`, true, {
                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                            lineNumber: 1824,
+                                            lineNumber: 1978,
                                             columnNumber: 25
                                         }, this);
                                     }
@@ -2709,12 +2997,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                 className: "w-full h-full object-cover"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 2007,
+                                                                lineNumber: 2161,
                                                                 columnNumber: 35
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 2006,
+                                                            lineNumber: 2160,
                                                             columnNumber: 33
                                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                             className: "w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold",
@@ -2726,17 +3014,17 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                 className: "w-full h-full rounded-full object-cover"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 2017,
+                                                                lineNumber: 2171,
                                                                 columnNumber: 35
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                            lineNumber: 2016,
+                                                            lineNumber: 2170,
                                                             columnNumber: 33
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 2004,
+                                                        lineNumber: 2158,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2749,18 +3037,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                     children: "Ẩn chỉnh sửa"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                    lineNumber: 2036,
+                                                                    lineNumber: 2190,
                                                                     columnNumber: 67
                                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                     children: "Đã chỉnh sửa"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                    lineNumber: 2036,
+                                                                    lineNumber: 2190,
                                                                     columnNumber: 89
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 2032,
+                                                                lineNumber: 2186,
                                                                 columnNumber: 31
                                                             }, this),
                                                             repliedToMsg && (()=>{
@@ -2777,7 +3065,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                             children: msg.replyToMessageName || senderName
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                            lineNumber: 2070,
+                                                                            lineNumber: 2224,
                                                                             columnNumber: 37
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2792,7 +3080,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     unoptimized: String(url).includes('mega.nz')
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2077,
+                                                                                    lineNumber: 2231,
                                                                                     columnNumber: 43
                                                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                     className: "relative w-10 h-10 bg-black rounded-md overflow-hidden border border-blue-200",
@@ -2805,7 +3093,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                             preload: "metadata"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 2087,
+                                                                                            lineNumber: 2241,
                                                                                             columnNumber: 45
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2820,28 +3108,28 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                         fill: "currentColor"
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 2097,
+                                                                                                        lineNumber: 2251,
                                                                                                         columnNumber: 51
                                                                                                     }, this)
                                                                                                 }, void 0, false, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 2096,
+                                                                                                    lineNumber: 2250,
                                                                                                     columnNumber: 49
                                                                                                 }, this)
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 2095,
+                                                                                                lineNumber: 2249,
                                                                                                 columnNumber: 47
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 2094,
+                                                                                            lineNumber: 2248,
                                                                                             columnNumber: 45
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2086,
+                                                                                    lineNumber: 2240,
                                                                                     columnNumber: 43
                                                                                 }, this)),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2849,30 +3137,30 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     children: label
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2103,
+                                                                                    lineNumber: 2257,
                                                                                     columnNumber: 39
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                            lineNumber: 2073,
+                                                                            lineNumber: 2227,
                                                                             columnNumber: 37
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                    lineNumber: 2066,
+                                                                    lineNumber: 2220,
                                                                     columnNumber: 35
                                                                 }, this);
                                                             })(),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                 className: `  
                   px-4 py-2 rounded-lg shadow-md max-w-[70vw] ${!isRecalled && msg.type === 'text' && isSidebarOpen && !isMobile ? 'sm:max-w-[26rem] lg:max-w-[32rem]' : 'sm:max-w-[34rem] lg:max-w-[38rem]'} break-words mt-1
-                  ${!isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image') ? '!bg-transparent shadow-none' : isMe ? 'bg-blue-100 text-white' : 'bg-white text-gray-800 '}
+                  ${!isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image' || msg.type === 'contact') ? '!bg-transparent shadow-none' : isMe ? 'bg-blue-100 text-white' : 'bg-white text-gray-800 '}
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
                       ${!isGrouped && !isMe ? 'rounded-tl-md' : ''}
                       ${isRecalled ? '!bg-gray-200 !text-gray-500 italic !px-4 !py-2 !max-w-[92vw] sm:!max-w-[34rem] lg:!max-w-[44rem]' : ''}
-                      ${!isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image') ? '!p-0 !shadow-none ' : ''}
+                      ${!isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image' || msg.type === 'contact') ? '!p-0 !shadow-none ' : ''}
                     ${!isRecalled && msg.type === 'image' ? '!p-0' : ''}
                     ${!isRecalled && msg.type === 'file' ? '!p-0' : ''}
                   relative ${hasReactions ? 'mb-4' : ''}
@@ -3012,12 +3300,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     className: "w-4 h-4 text-indigo-600"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2240,
+                                                                                    lineNumber: 2399,
                                                                                     columnNumber: 39
                                                                                 }, this)
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2231,
+                                                                                lineNumber: 2390,
                                                                                 columnNumber: 37
                                                                             }, this),
                                                                             isMobile && swipeState.id === msg._id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3031,23 +3319,23 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         className: "w-5 h-5 text-blue-600"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2250,
+                                                                                        lineNumber: 2409,
                                                                                         columnNumber: 43
                                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["HiArrowUturnRight"], {
                                                                                         className: "w-5 h-5 text-blue-600"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2252,
+                                                                                        lineNumber: 2411,
                                                                                         columnNumber: 43
                                                                                     }, this)
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2248,
+                                                                                    lineNumber: 2407,
                                                                                     columnNumber: 39
                                                                                 }, this)
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2244,
+                                                                                lineNumber: 2403,
                                                                                 columnNumber: 37
                                                                             }, this),
                                                                             !isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -3064,12 +3352,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                             className: "w-4 h-4 text-gray-600"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 2268,
+                                                                                            lineNumber: 2427,
                                                                                             columnNumber: 41
                                                                                         }, this)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2259,
+                                                                                        lineNumber: 2418,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$components$2f$ReactionButton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -3082,7 +3370,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         className: `absolute top-1/2 -translate-y-1/2  ${isMe ? 'right-full mr-18' : 'left-full ml-18'} ${activeMoreId === msg._id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none sm:group-hover:opacity-100 sm:group-hover:pointer-events-auto'} transition-opacity duration-200`
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2270,
+                                                                                        lineNumber: 2429,
                                                                                         columnNumber: 39
                                                                                     }, this)
                                                                                 ]
@@ -3129,7 +3417,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: it.emoji
                                                                                                             }, void 0, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 2327,
+                                                                                                                lineNumber: 2486,
                                                                                                                 columnNumber: 47
                                                                                                             }, this),
                                                                                                             it.count > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3137,13 +3425,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: it.count
                                                                                                             }, void 0, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 2329,
+                                                                                                                lineNumber: 2488,
                                                                                                                 columnNumber: 49
                                                                                                             }, this)
                                                                                                         ]
                                                                                                     }, `${msg._id}-react-${idx}`, true, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 2309,
+                                                                                                        lineNumber: 2468,
                                                                                                         columnNumber: 45
                                                                                                     }, this)),
                                                                                                 items.length > 3 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3154,26 +3442,26 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                     ]
                                                                                                 }, void 0, true, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 2338,
+                                                                                                    lineNumber: 2497,
                                                                                                     columnNumber: 45
                                                                                                 }, this)
                                                                                             ]
                                                                                         }, void 0, true, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 2307,
+                                                                                            lineNumber: 2466,
                                                                                             columnNumber: 41
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                             className: "absolute inset-0 -z-10 bg-white/60 backdrop-blur-sm rounded-full scale-0 group-hover:scale-100 transition-transform duration-300"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 2344,
+                                                                                            lineNumber: 2503,
                                                                                             columnNumber: 41
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2300,
+                                                                                    lineNumber: 2459,
                                                                                     columnNumber: 39
                                                                                 }, this);
                                                                             })(),
@@ -3184,7 +3472,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         onClick: ()=>setReactionDetail(null)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2351,
+                                                                                        lineNumber: 2510,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3226,7 +3514,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: reactionDetail.emoji
                                                                                                             }, void 0, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 2389,
+                                                                                                                lineNumber: 2548,
                                                                                                                 columnNumber: 49
                                                                                                             }, this),
                                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3237,13 +3525,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 ]
                                                                                                             }, void 0, true, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 2390,
+                                                                                                                lineNumber: 2549,
                                                                                                                 columnNumber: 49
                                                                                                             }, this)
                                                                                                         ]
                                                                                                     }, void 0, true, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 2388,
+                                                                                                        lineNumber: 2547,
                                                                                                         columnNumber: 47
                                                                                                     }, this),
                                                                                                     users.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -3253,31 +3541,31 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                                 children: name
                                                                                                             }, `${msg._id}-user-${idx}`, false, {
                                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                                lineNumber: 2397,
+                                                                                                                lineNumber: 2556,
                                                                                                                 columnNumber: 53
                                                                                                             }, this))
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 2395,
+                                                                                                        lineNumber: 2554,
                                                                                                         columnNumber: 49
                                                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                                         className: "text-sm text-gray-500 py-1",
                                                                                                         children: "Chưa có ai"
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 2406,
+                                                                                                        lineNumber: 2565,
                                                                                                         columnNumber: 49
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 2387,
+                                                                                                lineNumber: 2546,
                                                                                                 columnNumber: 45
                                                                                             }, this);
                                                                                         })()
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2353,
+                                                                                        lineNumber: 2512,
                                                                                         columnNumber: 39
                                                                                     }, this)
                                                                                 ]
@@ -3289,7 +3577,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         children: senderName
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2418,
+                                                                        lineNumber: 2577,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     msg.type === 'text' && !isRecalled && !isEditing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3307,7 +3595,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         className: "absolute inset-x-0 bottom-8 h-16 bg-gradient-to-t from-white/95 to-transparent"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2446,
+                                                                                        lineNumber: 2605,
                                                                                         columnNumber: 41
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3323,13 +3611,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         children: "Xem thêm"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2447,
+                                                                                        lineNumber: 2606,
                                                                                         columnNumber: 41
                                                                                     }, this)
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2445,
+                                                                                lineNumber: 2604,
                                                                                 columnNumber: 39
                                                                             }, this),
                                                                             (()=>{
@@ -3356,12 +3644,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                     className: "w-5 h-5"
                                                                                                 }, void 0, false, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 2481,
+                                                                                                    lineNumber: 2640,
                                                                                                     columnNumber: 45
                                                                                                 }, this)
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 2480,
+                                                                                                lineNumber: 2639,
                                                                                                 columnNumber: 43
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3372,7 +3660,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                         children: raw
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 2484,
+                                                                                                        lineNumber: 2643,
                                                                                                         columnNumber: 45
                                                                                                     }, this),
                                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3380,31 +3668,31 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                         children: hostname
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 2485,
+                                                                                                        lineNumber: 2644,
                                                                                                         columnNumber: 45
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 2483,
+                                                                                                lineNumber: 2642,
                                                                                                 columnNumber: 43
                                                                                             }, this)
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2476,
+                                                                                        lineNumber: 2635,
                                                                                         columnNumber: 41
                                                                                     }, this)
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2473,
+                                                                                    lineNumber: 2632,
                                                                                     columnNumber: 39
                                                                                 }, this);
                                                                             })()
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2427,
+                                                                        lineNumber: 2586,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     msg.type === 'text' && !isRecalled && isEditing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3417,7 +3705,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 rows: 3
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2496,
+                                                                                lineNumber: 2655,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3432,7 +3720,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         children: "Hủy"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2503,
+                                                                                        lineNumber: 2662,
                                                                                         columnNumber: 37
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3444,23 +3732,31 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         children: "Lưu"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2512,
+                                                                                        lineNumber: 2671,
                                                                                         columnNumber: 37
                                                                                     }, this)
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2502,
+                                                                                lineNumber: 2661,
                                                                                 columnNumber: 35
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2495,
+                                                                        lineNumber: 2654,
+                                                                        columnNumber: 33
+                                                                    }, this),
+                                                                    msg.type === 'contact' && !isRecalled && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ContactCardBubble, {
+                                                                        currentUserId: String(currentUser._id || ''),
+                                                                        contact: msg.contactCard
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
+                                                                        lineNumber: 2686,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     msg.type === 'image' && msg.fileUrl && !isRecalled && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                                        className: "  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[50vw] sm:max-w-[10rem] select-none lg:select-auto",
+                                                                        className: "  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[50vw] sm:max-w-[16rem] select-none lg:select-auto",
                                                                         onClick: ()=>!isUploading && onOpenMedia(String(msg.fileUrl), 'image'),
                                                                         style: {
                                                                             WebkitTouchCallout: 'none'
@@ -3475,7 +3771,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 draggable: false
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2534,
+                                                                                lineNumber: 2711,
                                                                                 columnNumber: 37
                                                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                                                                 src: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getProxyUrl"])(msg.fileUrl),
@@ -3487,7 +3783,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 draggable: false
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2543,
+                                                                                lineNumber: 2720,
                                                                                 columnNumber: 37
                                                                             }, this),
                                                                             isUploading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3514,7 +3810,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                     fill: "none"
                                                                                                 }, void 0, false, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 2565,
+                                                                                                    lineNumber: 2742,
                                                                                                     columnNumber: 47
                                                                                                 }, this),
                                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
@@ -3530,30 +3826,30 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                     transform: `rotate(-90 ${size / 2} ${size / 2})`
                                                                                                 }, void 0, false, {
                                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                    lineNumber: 2573,
+                                                                                                    lineNumber: 2750,
                                                                                                     columnNumber: 47
                                                                                                 }, this)
                                                                                             ]
                                                                                         }, void 0, true, {
                                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                            lineNumber: 2564,
+                                                                                            lineNumber: 2741,
                                                                                             columnNumber: 45
                                                                                         }, this)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2563,
+                                                                                        lineNumber: 2740,
                                                                                         columnNumber: 43
                                                                                     }, this);
                                                                                 })()
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2555,
+                                                                                lineNumber: 2732,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2528,
+                                                                        lineNumber: 2705,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     msg.type === 'image' && !isRecalled && msg.content && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3561,7 +3857,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         children: renderMessageContent(msg.content || '', msg.mentions, isMe)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2595,
+                                                                        lineNumber: 2772,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     isVideo && msg.fileUrl && !isRecalled && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3578,7 +3874,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 preload: "metadata"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2607,
+                                                                                lineNumber: 2784,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3589,17 +3885,17 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         className: "w-7 h-7 text-blue-600 ml-1"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2617,
+                                                                                        lineNumber: 2794,
                                                                                         columnNumber: 39
                                                                                     }, this)
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2616,
+                                                                                    lineNumber: 2793,
                                                                                     columnNumber: 37
                                                                                 }, this)
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2615,
+                                                                                lineNumber: 2792,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             isUploading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3613,18 +3909,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     className: "w-6 h-6 border-2 border-white/60 border-t-transparent rounded-full animate-spin"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2626,
+                                                                                    lineNumber: 2803,
                                                                                     columnNumber: 41
                                                                                 }, this)
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2622,
+                                                                                lineNumber: 2799,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2602,
+                                                                        lineNumber: 2779,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     isVideo && !isRecalled && msg.content && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3632,7 +3928,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         children: renderMessageContent(msg.content || '', msg.mentions, isMe)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2634,
+                                                                        lineNumber: 2811,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     msg.type === 'file' && msg.fileUrl && !isVideo && !isRecalled && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -3656,12 +3952,12 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                     className: "w-6 h-6 text-white"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                    lineNumber: 2655,
+                                                                                    lineNumber: 2832,
                                                                                     columnNumber: 37
                                                                                 }, this)
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2654,
+                                                                                lineNumber: 2831,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3672,7 +3968,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         children: msg.fileName || 'Tệp đính kèm'
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2659,
+                                                                                        lineNumber: 2836,
                                                                                         columnNumber: 37
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3680,13 +3976,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                         children: "Nhấn để tải xuống"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2662,
+                                                                                        lineNumber: 2839,
                                                                                         columnNumber: 37
                                                                                     }, this)
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2658,
+                                                                                lineNumber: 2835,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             isUploading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3714,7 +4010,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                         fill: "none"
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 2675,
+                                                                                                        lineNumber: 2852,
                                                                                                         columnNumber: 47
                                                                                                     }, this),
                                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
@@ -3730,13 +4026,13 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                         transform: `rotate(-90 ${size / 2} ${size / 2})`
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                        lineNumber: 2683,
+                                                                                                        lineNumber: 2860,
                                                                                                         columnNumber: 47
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 2674,
+                                                                                                lineNumber: 2851,
                                                                                                 columnNumber: 45
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3747,25 +4043,25 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                                lineNumber: 2696,
+                                                                                                lineNumber: 2873,
                                                                                                 columnNumber: 45
                                                                                             }, this)
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                        lineNumber: 2673,
+                                                                                        lineNumber: 2850,
                                                                                         columnNumber: 43
                                                                                     }, this);
                                                                                 })()
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2665,
+                                                                                lineNumber: 2842,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2641,
+                                                                        lineNumber: 2818,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     msg.type === 'file' && !isRecalled && msg.content && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3773,7 +4069,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         children: renderMessageContent(msg.content || '', msg.mentions, isMe)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2705,
+                                                                        lineNumber: 2882,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     isRecalled && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3781,7 +4077,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                         children: "đã thu hồi tin nhắn"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2710,
+                                                                        lineNumber: 2887,
                                                                         columnNumber: 46
                                                                     }, this),
                                                                     isEdited && !isRecalled && msg.originalContent && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3793,17 +4089,17 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                                 children: msg.originalContent
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                                lineNumber: 2717,
+                                                                                lineNumber: 2894,
                                                                                 columnNumber: 39
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                            lineNumber: 2716,
+                                                                            lineNumber: 2893,
                                                                             columnNumber: 37
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2714,
+                                                                        lineNumber: 2891,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     isEndOfGroup && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3813,18 +4109,18 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                             children: formatTimestamp(Number(msg.serverTimestamp ?? msg.timestamp) || 0)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                            lineNumber: 2728,
+                                                                            lineNumber: 2905,
                                                                             columnNumber: 35
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                        lineNumber: 2727,
+                                                                        lineNumber: 2904,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 2110,
+                                                                lineNumber: 2264,
                                                                 columnNumber: 29
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$components$2f$ReadStatus$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -3846,25 +4142,25 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                                                                 })()
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                                lineNumber: 2743,
+                                                                lineNumber: 2920,
                                                                 columnNumber: 29
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                        lineNumber: 2030,
+                                                        lineNumber: 2184,
                                                         columnNumber: 27
                                                     }, this)
                                                 ]
                                             }, msg._id, true, {
                                                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                                lineNumber: 1986,
+                                                lineNumber: 2140,
                                                 columnNumber: 25
                                             }, this)
                                         ]
                                     }, `${msg._id}-frag`, true, {
                                         fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                                        lineNumber: 1983,
+                                        lineNumber: 2137,
                                         columnNumber: 23
                                     }, this);
                                 })
@@ -3873,7 +4169,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                     ]
                 }, dateKey, true, {
                     fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                    lineNumber: 219,
+                    lineNumber: 372,
                     columnNumber: 11
                 }, this);
             }),
@@ -3883,7 +4179,7 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                 onClose: ()=>setDetailMsg(null)
             }, void 0, false, {
                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                lineNumber: 2773,
+                lineNumber: 2950,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$components$2f$PollDetailModal$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -3893,16 +4189,17 @@ function MessageList({ messagesGrouped, messages, currentUser, allUsersMap, uplo
                 onRefresh: onRefresh
             }, void 0, false, {
                 fileName: "[project]/src/components/(chatPopup)/MessageList.tsx",
-                lineNumber: 2774,
+                lineNumber: 2951,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true);
 }
-_s(MessageList, "TKpj53WFkpxmgIHqUQObRyZ1Vjw=");
-_c = MessageList;
-var _c;
-__turbopack_context__.k.register(_c, "MessageList");
+_s1(MessageList, "TKpj53WFkpxmgIHqUQObRyZ1Vjw=");
+_c1 = MessageList;
+var _c, _c1;
+__turbopack_context__.k.register(_c, "ContactCardBubble");
+__turbopack_context__.k.register(_c1, "MessageList");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }

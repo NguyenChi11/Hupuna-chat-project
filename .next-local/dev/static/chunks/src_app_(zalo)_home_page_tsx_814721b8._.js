@@ -17,7 +17,7 @@
   "static/chunks/node_modules_react-icons_lu_index_mjs_9c1f52d1._.js",
   "static/chunks/node_modules_react-icons_ai_index_mjs_9504e8ee._.js",
   "static/chunks/node_modules_swiper_7f6525a2._.js",
-  "static/chunks/node_modules_e9caa556._.js",
+  "static/chunks/node_modules_7cedf408._.js",
   "static/chunks/node_modules_swiper_a2b46751._.css"
 ],
     source: "dynamic"

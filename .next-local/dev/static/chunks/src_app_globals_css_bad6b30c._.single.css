@@ -2016,6 +2016,14 @@
     width: 14rem;
   }
 
+  .w-\[20rem\] {
+    width: 20rem;
+  }
+
+  .w-\[22rem\] {
+    width: 22rem;
+  }
+
   .w-\[88vw\] {
     width: 88vw;
   }
@@ -2138,6 +2146,10 @@
 
   .max-w-\[31\.25rem\] {
     max-width: 31.25rem;
+  }
+
+  .max-w-\[46rem\] {
+    max-width: 46rem;
   }
 
   .max-w-\[50vw\] {
@@ -7478,6 +7490,12 @@
   }
 
   @media (min-width: 40rem) {
+    .sm\:h-\[8rem\] {
+      height: 8rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
     .sm\:h-\[10rem\] {
       height: 10rem;
     }
@@ -7486,6 +7504,12 @@
   @media (min-width: 40rem) {
     .sm\:h-\[40rem\] {
       height: 40rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sm\:h-\[rem\] {
+      height: rem;
     }
   }
 
@@ -7556,6 +7580,12 @@
   }
 
   @media (min-width: 40rem) {
+    .sm\:w-\[8rem\] {
+      width: 8rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
     .sm\:w-\[10rem\] {
       width: 10rem;
     }
@@ -7564,6 +7594,12 @@
   @media (min-width: 40rem) {
     .sm\:w-\[21\.875rem\] {
       width: 21.875rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sm\:w-\[rem\] {
+      width: rem;
     }
   }
 
@@ -7592,6 +7628,12 @@
   }
 
   @media (min-width: 40rem) {
+    .sm\:max-w-\[1rem\] {
+      max-width: 1rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
     .sm\:max-w-\[6rem\] {
       max-width: 6rem;
     }
@@ -7600,6 +7642,24 @@
   @media (min-width: 40rem) {
     .sm\:max-w-\[10rem\] {
       max-width: 10rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sm\:max-w-\[12rem\] {
+      max-width: 12rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sm\:max-w-\[14rem\] {
+      max-width: 14rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sm\:max-w-\[16rem\] {
+      max-width: 16rem;
     }
   }
 
@@ -7700,8 +7760,32 @@
   }
 
   @media (min-width: 40rem) {
+    .sm\:grid-cols-\[8rem_6rem\] {
+      grid-template-columns: 8rem 6rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sm\:grid-cols-\[8rem_8rem\] {
+      grid-template-columns: 8rem 8rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sm\:grid-cols-\[8rem_rem\] {
+      grid-template-columns: 8rem rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
     .sm\:grid-cols-\[10rem_10rem\] {
       grid-template-columns: 10rem 10rem;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .sm\:grid-cols-\[rem_6rem\] {
+      grid-template-columns: rem 6rem;
     }
   }
 
@@ -8076,6 +8160,12 @@
   }
 
   @media (min-width: 48rem) {
+    .md\:max-h-\[90vh\] {
+      max-height: 90vh;
+    }
+  }
+
+  @media (min-width: 48rem) {
     .md\:max-h-\[100vh\] {
       max-height: 100vh;
     }
@@ -8186,6 +8276,12 @@
   @media (min-width: 48rem) {
     .md\:max-w-\[40vw\] {
       max-width: 40vw;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .md\:max-w-\[46rem\] {
+      max-width: 46rem;
     }
   }
 

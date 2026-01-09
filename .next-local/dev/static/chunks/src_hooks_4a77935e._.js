@@ -1872,6 +1872,40 @@ function useHomePage(config) {
             }
         }
     }["useHomePage.useCallback[handleSelectChat]"], []);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "useHomePage.useEffect": ()=>{
+            const handler = {
+                "useHomePage.useEffect.handler": (e)=>{
+                    const d = e.detail || {};
+                    const userId = String(d.userId || d._id || '');
+                    if (!userId) return;
+                    const found = allUsersRef.current.find({
+                        "useHomePage.useEffect.handler": (u)=>String(u._id) === userId
+                    }["useHomePage.useEffect.handler"]) || null;
+                    const name = typeof d.name === 'string' ? d.name : found?.name || found?.username || 'Người dùng';
+                    const username = typeof d.username === 'string' ? d.username : found?.username || '';
+                    const avatar = typeof d.avatar === 'string' ? d.avatar : found?.avatar;
+                    if (found) {
+                        handleSelectChat(found);
+                        return;
+                    }
+                    const fallbackUser = {
+                        _id: userId,
+                        name: String(name || 'Người dùng'),
+                        username: String(username || userId)
+                    };
+                    if (avatar) fallbackUser.avatar = String(avatar);
+                    handleSelectChat(fallbackUser);
+                }
+            }["useHomePage.useEffect.handler"];
+            window.addEventListener('openDirectChat', handler);
+            return ({
+                "useHomePage.useEffect": ()=>window.removeEventListener('openDirectChat', handler)
+            })["useHomePage.useEffect"];
+        }
+    }["useHomePage.useEffect"], [
+        handleSelectChat
+    ]);
     const handleSelectContact = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
         "useHomePage.useCallback[handleSelectContact]": (contact)=>{
             setShowGlobalSearchModal(false);
@@ -2680,7 +2714,7 @@ function useHomePage(config) {
         setSelectedChat
     };
 }
-_s(useHomePage, "shy43tJ7VvbOKn+/Yq2qTpEHOm0=", false, function() {
+_s(useHomePage, "ibVSVNezylWpfCPx2pEY2KjyBos=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$useChatNotifications$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useChatNotifications"]

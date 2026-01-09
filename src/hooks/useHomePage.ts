@@ -141,6 +141,35 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
     }
   }, []);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const d = (e as CustomEvent).detail || {};
+      const userId = String(d.userId || d._id || '');
+      if (!userId) return;
+
+      const found = allUsersRef.current.find((u) => String(u._id) === userId) || null;
+      const name = typeof d.name === 'string' ? d.name : found?.name || found?.username || 'Người dùng';
+      const username = typeof d.username === 'string' ? d.username : found?.username || '';
+      const avatar = typeof d.avatar === 'string' ? d.avatar : found?.avatar;
+
+      if (found) {
+        handleSelectChat(found);
+        return;
+      }
+
+      const fallbackUser: User = {
+        _id: userId,
+        name: String(name || 'Người dùng'),
+        username: String(username || userId),
+      };
+      if (avatar) fallbackUser.avatar = String(avatar);
+      handleSelectChat(fallbackUser);
+    };
+
+    window.addEventListener('openDirectChat', handler as EventListener);
+    return () => window.removeEventListener('openDirectChat', handler as EventListener);
+  }, [handleSelectChat]);
+
   const handleSelectContact = useCallback(
     (contact: GlobalSearchContact) => {
       setShowGlobalSearchModal(false);

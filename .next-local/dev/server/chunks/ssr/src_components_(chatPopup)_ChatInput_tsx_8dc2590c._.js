@@ -23,6 +23,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatP
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$fetch$2f$messages$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/fetch/messages.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$base$2f$toast$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/base/toast.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$ConfirmModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/ConfirmModal.tsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/utils.ts [app-ssr] (ecmascript)");
 'use client';
 ;
 ;
@@ -40,8 +41,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$C
 ;
 ;
 ;
-function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, editableRef, onInputEditable, onKeyDownEditable, onPasteEditable, onFocusEditable, onSendMessage, onSelectImage, onSelectFile, onAttachFromFolder, attachments, onRemoveAttachment, onClearAttachments, isUploading = false, uploadingCount = 0, overallUploadPercent = 0 }) {
-    const { currentUser, selectedChat, isGroup } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$context$2f$ChatContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useChatContext"])();
+;
+function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, editableRef, onInputEditable, onKeyDownEditable, onPasteEditable, onFocusEditable, onSendMessage, onSendMessageData, onSelectImage, onSelectFile, onAttachFromFolder, attachments, onRemoveAttachment, onClearAttachments, isUploading = false, uploadingCount = 0, overallUploadPercent = 0 }) {
+    const { currentUser, selectedChat, isGroup, allUsers } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$context$2f$ChatContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useChatContext"])();
     const showToast = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$base$2f$toast$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useToast"])();
     const myRole = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>{
         if (!isGroup) return 'MEMBER';
@@ -270,6 +272,164 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
     const [showUpdatingPopup, setShowUpdatingPopup] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [showConfirmClear, setShowConfirmClear] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [showReportConfirm, setShowReportConfirm] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [showContactCardModal, setShowContactCardModal] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [contactCardSearch, setContactCardSearch] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+    const [activeContactCategory, setActiveContactCategory] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('all');
+    const [selectedContactCardIds, setSelectedContactCardIds] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const contactCategoryBarRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const contactCategoryDragRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])({
+        active: false,
+        startX: 0,
+        startScrollLeft: 0,
+        moved: false
+    });
+    const myId = String(currentUser._id || '');
+    const [categoryTags, setCategoryTags] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const loadCategoryTags = async ()=>{
+            if (!currentUser?._id) return;
+            if (Array.isArray(currentUser.categoryTags)) {
+                setCategoryTags(currentUser.categoryTags.filter((x)=>!!x && typeof x.id === 'string'));
+            }
+            try {
+                const res = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'getById',
+                        _id: String(currentUser._id)
+                    })
+                });
+                const data = await res.json();
+                const row = data && data.row || (Array.isArray(data?.data) ? data.data[0] : null);
+                if (row && Array.isArray(row.categoryTags)) {
+                    setCategoryTags(row.categoryTags.filter((x)=>!!x && typeof x === 'object' && typeof x.id === 'string'));
+                }
+            } catch  {}
+        };
+        loadCategoryTags();
+        const handleUserCategoryTagsUpdated = (e)=>{
+            const ev = e;
+            if (ev.detail && String(ev.detail.userId) === String(currentUser?._id)) {
+                setCategoryTags(Array.isArray(ev.detail.tags) ? ev.detail.tags : []);
+            }
+        };
+        window.addEventListener('userCategoryTagsUpdated', handleUserCategoryTagsUpdated);
+        return ()=>window.removeEventListener('userCategoryTagsUpdated', handleUserCategoryTagsUpdated);
+    }, [
+        currentUser?._id,
+        currentUser?.categoryTags
+    ]);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if (activeContactCategory === 'all') return;
+        if (categoryTags.some((t)=>t.id === activeContactCategory)) return;
+        setActiveContactCategory('all');
+    }, [
+        activeContactCategory,
+        categoryTags
+    ]);
+    const handleContactCategoryPointerDown = (e)=>{
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        const el = contactCategoryBarRef.current;
+        if (!el) return;
+        contactCategoryDragRef.current = {
+            active: true,
+            startX: e.clientX,
+            startScrollLeft: el.scrollLeft,
+            moved: false
+        };
+        try {
+            el.setPointerCapture(e.pointerId);
+        } catch  {}
+    };
+    const handleContactCategoryPointerMove = (e)=>{
+        const el = contactCategoryBarRef.current;
+        const drag = contactCategoryDragRef.current;
+        if (!el || !drag.active) return;
+        const dx = e.clientX - drag.startX;
+        if (!drag.moved && Math.abs(dx) > 4) {
+            contactCategoryDragRef.current = {
+                ...drag,
+                moved: true
+            };
+        }
+        el.scrollLeft = drag.startScrollLeft - dx;
+    };
+    const handleContactCategoryPointerEnd = (e)=>{
+        const el = contactCategoryBarRef.current;
+        const drag = contactCategoryDragRef.current;
+        if (!drag.active) return;
+        contactCategoryDragRef.current = {
+            ...drag,
+            active: false
+        };
+        try {
+            el?.releasePointerCapture(e.pointerId);
+        } catch  {}
+    };
+    const handleContactCategoryClickCapture = (e)=>{
+        if (!contactCategoryDragRef.current.moved) return;
+        e.preventDefault();
+        e.stopPropagation();
+        contactCategoryDragRef.current = {
+            ...contactCategoryDragRef.current,
+            moved: false
+        };
+    };
+    const getContactDisplayName = (u)=>{
+        const nick = u.nicknames && typeof u.nicknames === 'object' ? u.nicknames[myId] : '';
+        return String(nick || u.name || u.username || 'Người dùng').trim();
+    };
+    const getContactCategories = (u)=>{
+        const by = u.categoriesBy?.[myId] || u.categories || [];
+        if (!Array.isArray(by)) return [];
+        return by.filter((x)=>typeof x === 'string' && x.length > 0);
+    };
+    const filteredContactUsers = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>{
+        const term = String(contactCardSearch || '').trim();
+        const active = activeContactCategory;
+        const base = Array.isArray(allUsers) ? allUsers : [];
+        const filtered = base.filter((u)=>{
+            if (!u || typeof u !== 'object') return false;
+            if (u.isHidden) return false;
+            if (active !== 'all') {
+                const cats = getContactCategories(u);
+                if (!cats.includes(active)) return false;
+            }
+            if (!term) return true;
+            const displayName = getContactDisplayName(u);
+            const username = String(u.username || '');
+            return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["accentAwareIncludes"])(displayName, term) || (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["accentAwareIncludes"])(username, term);
+        });
+        filtered.sort((a, b)=>getContactDisplayName(a).localeCompare(getContactDisplayName(b), 'vi'));
+        return filtered;
+    }, [
+        allUsers,
+        contactCardSearch,
+        activeContactCategory,
+        myId
+    ]);
+    const groupedContactUsers = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>{
+        const map = new Map();
+        filteredContactUsers.forEach((u)=>{
+            const name = getContactDisplayName(u);
+            const keyRaw = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["normalizeNoAccent"])(name || '').trim();
+            const ch = keyRaw ? keyRaw[0].toUpperCase() : '#';
+            const key = /[A-Z]/.test(ch) ? ch : '#';
+            const arr = map.get(key) || [];
+            arr.push(u);
+            map.set(key, arr);
+        });
+        const keys = Array.from(map.keys()).sort((a, b)=>a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b));
+        return keys.map((k)=>({
+                key: k,
+                users: map.get(k) || []
+            }));
+    }, [
+        filteredContactUsers
+    ]);
     // --- TAGS LOGIC ---
     const TAG_COLORS = {
         'bg-red-500': '#ef4444',
@@ -442,6 +602,58 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
         // Optimistically update state as parent usually clears input
         setHasContent(false);
         setTimeout(checkContent, 100); // Double check
+    };
+    const handleSendContactCard = async ()=>{
+        const ids = selectedContactCardIds.map((x)=>String(x)).filter(Boolean);
+        if (ids.length === 0) return;
+        const base = Array.isArray(allUsers) ? allUsers : [];
+        const selectedUsers = ids.map((id)=>base.find((u)=>String(u._id) === String(id))).filter((u)=>!!u);
+        if (selectedUsers.length === 0) return;
+        try {
+            for (const selectedUser of selectedUsers){
+                const payload = {
+                    roomId,
+                    sender: String(currentUser._id),
+                    type: 'contact',
+                    timestamp: Date.now(),
+                    contactCard: {
+                        _id: String(selectedUser._id),
+                        name: getContactDisplayName(selectedUser),
+                        username: selectedUser.username,
+                        avatar: selectedUser.avatar
+                    }
+                };
+                if (onSendMessageData) {
+                    await onSendMessageData(payload);
+                } else {
+                    const createRes = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$fetch$2f$messages$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createMessageApi"])(payload);
+                    if (createRes?.success) {
+                        const receiver = isGroup ? null : String(selectedChat._id);
+                        const members = isGroup ? selectedChat.members || [] : [];
+                        const sockBase = {
+                            roomId,
+                            sender: String(currentUser._id),
+                            senderName: currentUser.name,
+                            isGroup,
+                            receiver,
+                            members
+                        };
+                        if (typeof createRes._id === 'string') {
+                            socket?.emit('send_message', {
+                                ...sockBase,
+                                ...payload,
+                                _id: createRes._id
+                            });
+                        }
+                    }
+                }
+            }
+        } finally{
+            setShowContactCardModal(false);
+            setSelectedContactCardIds([]);
+            setContactCardSearch('');
+            setActiveContactCategory('all');
+        }
     };
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (!showMobileActions) return;
@@ -631,7 +843,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 731,
+                                lineNumber: 944,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -640,13 +852,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Xóa tất cả"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 734,
+                                lineNumber: 947,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 730,
+                        lineNumber: 943,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -664,7 +876,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         priority: true
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 742,
+                                        lineNumber: 955,
                                         columnNumber: 19
                                     }, this) : att.type === 'video' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("video", {
                                         src: att.previewUrl,
@@ -673,7 +885,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "jsx-820bcd66933fca31" + " " + "w-full h-full object-cover"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 744,
+                                        lineNumber: 957,
                                         columnNumber: 19
                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + " rounded-xl bg-gray-50 hover:bg-gray-100 transition-all duration-200 group cursor-pointer border border-gray-200 hover:border-blue-300",
@@ -684,12 +896,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                     className: "w-3 h-3"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                    lineNumber: 748,
+                                                    lineNumber: 961,
                                                     columnNumber: 23
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                lineNumber: 747,
+                                                lineNumber: 960,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -700,7 +912,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                         children: att.fileName || 'Tệp'
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                        lineNumber: 751,
+                                                        lineNumber: 964,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -711,19 +923,19 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                        lineNumber: 754,
+                                                        lineNumber: 967,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                lineNumber: 750,
+                                                lineNumber: 963,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 746,
+                                        lineNumber: 959,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -734,12 +946,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                             className: "w-3 h-3"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                            lineNumber: 765,
+                                            lineNumber: 978,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 760,
+                                        lineNumber: 973,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -750,12 +962,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                             className: "w-7 h-7 text-gray-500 group-hover:text-red-600 transition-colors"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                            lineNumber: 772,
+                                            lineNumber: 985,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 767,
+                                        lineNumber: 980,
                                         columnNumber: 17
                                     }, this),
                                     canClearHistory && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -766,29 +978,29 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                             className: "w-7 h-7 text-gray-500"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                            lineNumber: 782,
+                                            lineNumber: 995,
                                             columnNumber: 21
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 775,
+                                        lineNumber: 988,
                                         columnNumber: 19
                                     }, this)
                                 ]
                             }, idx, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 740,
+                                lineNumber: 953,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 738,
+                        lineNumber: 951,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 729,
+                lineNumber: 942,
                 columnNumber: 9
             }, this) : null,
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -807,12 +1019,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                             className: "w-6 h-6"
                         }, void 0, false, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 801,
+                            lineNumber: 1014,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 791,
+                        lineNumber: 1004,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -823,7 +1035,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 className: "w-6 h-6"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 807,
+                                lineNumber: 1020,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -838,13 +1050,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 className: "jsx-820bcd66933fca31" + " " + "sr-only"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 808,
+                                lineNumber: 1021,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 803,
+                        lineNumber: 1016,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -855,7 +1067,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 className: "w-6 h-6"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 824,
+                                lineNumber: 1037,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -869,29 +1081,29 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 className: "jsx-820bcd66933fca31" + " " + "sr-only"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 825,
+                                lineNumber: 1038,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 820,
+                        lineNumber: 1033,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        onClick: handleShowUpdatingPopup,
-                        "aria-label": "Nhập bằng giọng nói",
+                        onClick: ()=>setShowContactCardModal(true),
+                        "aria-label": "Gửi danh thiếp",
                         className: "jsx-820bcd66933fca31" + " " + `rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`,
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$ci$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CiCreditCard2"], {
                             className: "w-6 h-6"
                         }, void 0, false, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 841,
+                            lineNumber: 1054,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 836,
+                        lineNumber: 1049,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -902,12 +1114,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                             className: "w-6 h-6"
                         }, void 0, false, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 848,
+                            lineNumber: 1061,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 843,
+                        lineNumber: 1056,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -918,12 +1130,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                             className: "w-6 h-6"
                         }, void 0, false, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 855,
+                            lineNumber: 1068,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 850,
+                        lineNumber: 1063,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -934,12 +1146,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                             className: "w-6 h-6"
                         }, void 0, false, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 862,
+                            lineNumber: 1075,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 857,
+                        lineNumber: 1070,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -950,18 +1162,18 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                             className: "w-6 h-6"
                         }, void 0, false, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 869,
+                            lineNumber: 1082,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 864,
+                        lineNumber: 1077,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 790,
+                lineNumber: 1003,
                 columnNumber: 7
             }, this),
             userTags.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -988,13 +1200,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                         children: tag.label
                     }, tag.id, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 886,
+                        lineNumber: 1099,
                         columnNumber: 15
                     }, this);
                 })
             }, void 0, false, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 874,
+                lineNumber: 1087,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1013,12 +1225,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                             className: "w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors"
                         }, void 0, false, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 918,
+                            lineNumber: 1131,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 908,
+                        lineNumber: 1121,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1125,7 +1337,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 className: "jsx-820bcd66933fca31" + " " + "min-h-10 max-h-40 px-2 py-2 bg-white/90   focus:outline-none  transition-all duration-300 text-[0.875rem] md:text-[1rem] text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 922,
+                                lineNumber: 1135,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1135,18 +1347,18 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                     children: "Nhập tin nhắn..."
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1022,
+                                    lineNumber: 1235,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1021,
+                                lineNumber: 1234,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 921,
+                        lineNumber: 1134,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1183,12 +1395,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1056,
+                                        lineNumber: 1269,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1029,
+                                    lineNumber: 1242,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1221,12 +1433,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1085,
+                                        lineNumber: 1298,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1058,
+                                    lineNumber: 1271,
                                     columnNumber: 15
                                 }, this)
                             ]
@@ -1248,12 +1460,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                 className: "w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                lineNumber: 1101,
+                                                lineNumber: 1314,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                            lineNumber: 1091,
+                                            lineNumber: 1304,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1274,18 +1486,18 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                 className: "w-7 h-7"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                lineNumber: 1116,
+                                                lineNumber: 1329,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                            lineNumber: 1103,
+                                            lineNumber: 1316,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1090,
+                                    lineNumber: 1303,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1300,12 +1512,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                 className: "w-11 h-11"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                lineNumber: 1126,
+                                                lineNumber: 1339,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                            lineNumber: 1120,
+                                            lineNumber: 1333,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1316,12 +1528,12 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                 className: "w-11 h-11 text-black"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                lineNumber: 1135,
+                                                lineNumber: 1348,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                            lineNumber: 1128,
+                                            lineNumber: 1341,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -1332,7 +1544,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                     className: "w-11 h-11"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                    lineNumber: 1141,
+                                                    lineNumber: 1354,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1347,32 +1559,32 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                     className: "jsx-820bcd66933fca31" + " " + "sr-only"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                    lineNumber: 1142,
+                                                    lineNumber: 1355,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                            lineNumber: 1137,
+                                            lineNumber: 1350,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1119,
+                                    lineNumber: 1332,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1026,
+                        lineNumber: 1239,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 907,
+                lineNumber: 1120,
                 columnNumber: 7
             }, this),
             showMobileActions && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1390,20 +1602,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-blue-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1168,
+                                        lineNumber: 1381,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1170,
+                                        lineNumber: 1383,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1167,
+                                lineNumber: 1380,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1411,7 +1623,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Ảnh/Video"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1174,
+                                lineNumber: 1387,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1434,13 +1646,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 className: "jsx-820bcd66933fca31" + " " + "sr-only"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1176,
+                                lineNumber: 1389,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1165,
+                        lineNumber: 1378,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -1454,20 +1666,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-green-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200 rotate-12"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1194,
+                                        lineNumber: 1407,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1195,
+                                        lineNumber: 1408,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1193,
+                                lineNumber: 1406,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1475,7 +1687,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "File"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1197,
+                                lineNumber: 1410,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1497,13 +1709,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 className: "jsx-820bcd66933fca31" + " " + "sr-only"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1198,
+                                lineNumber: 1411,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1192,
+                        lineNumber: 1405,
                         columnNumber: 11
                     }, this),
                     isGroup && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1528,20 +1740,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-blue-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1226,
+                                        lineNumber: 1439,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1227,
+                                        lineNumber: 1440,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1225,
+                                lineNumber: 1438,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1549,13 +1761,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Bình chọn"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1229,
+                                lineNumber: 1442,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1214,
+                        lineNumber: 1427,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1580,20 +1792,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-white drop-shadow-md group-hover:scale-110 transition-transform duration-200"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1245,
+                                        lineNumber: 1458,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1246,
+                                        lineNumber: 1459,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1244,
+                                lineNumber: 1457,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1601,13 +1813,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Nhắc hẹn"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1248,
+                                lineNumber: 1461,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1233,
+                        lineNumber: 1446,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1632,20 +1844,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: `w-6 h-6 ${isListening ? 'text-white' : 'text-gray-700'} drop-shadow-md group-hover:scale-110 transition-transform duration-200`
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1269,
+                                        lineNumber: 1482,
                                         columnNumber: 15
                                     }, this),
                                     isListening && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full bg-red-500/30 animate-ping"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1274,
+                                        lineNumber: 1487,
                                         columnNumber: 31
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1262,
+                                lineNumber: 1475,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1653,13 +1865,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Voice"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1276,
+                                lineNumber: 1489,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1251,
+                        lineNumber: 1464,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1679,20 +1891,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-yellow-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1286,
+                                        lineNumber: 1499,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1287,
+                                        lineNumber: 1500,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1285,
+                                lineNumber: 1498,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1700,13 +1912,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Chat nhanh"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1289,
+                                lineNumber: 1502,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1278,
+                        lineNumber: 1491,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1726,20 +1938,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-red-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1299,
+                                        lineNumber: 1512,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1300,
+                                        lineNumber: 1513,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1298,
+                                lineNumber: 1511,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1747,13 +1959,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Báo xấu"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1302,
+                                lineNumber: 1515,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1291,
+                        lineNumber: 1504,
                         columnNumber: 11
                     }, this),
                     canClearHistory && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1773,20 +1985,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-gray-700 drop-shadow-md group-hover:scale-110 transition-transform duration-200"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1313,
+                                        lineNumber: 1526,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1314,
+                                        lineNumber: 1527,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1312,
+                                lineNumber: 1525,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1794,13 +2006,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Xóa lịch sử"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1316,
+                                lineNumber: 1529,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1305,
+                        lineNumber: 1518,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1818,20 +2030,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-rose-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1325,
+                                        lineNumber: 1538,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1326,
+                                        lineNumber: 1539,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1324,
+                                lineNumber: 1537,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1839,20 +2051,27 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Vị trí"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1328,
+                                lineNumber: 1541,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1319,
+                        lineNumber: 1532,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        onClick: ()=>showToast({
-                                type: 'info',
-                                message: 'Chức năng đang hoàn thiện'
-                            }),
+                        onClick: ()=>{
+                            setShowMobileActions(false);
+                            try {
+                                window.dispatchEvent(new CustomEvent('mobileActionsToggle', {
+                                    detail: {
+                                        open: false
+                                    }
+                                }));
+                            } catch  {}
+                            setShowContactCardModal(true);
+                        },
                         "aria-label": "Danh thiếp",
                         className: "jsx-820bcd66933fca31" + " " + "group relative cursor-pointer flex flex-col items-center",
                         children: [
@@ -1863,20 +2082,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-teal-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1337,
+                                        lineNumber: 1556,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1338,
+                                        lineNumber: 1557,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1336,
+                                lineNumber: 1555,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1884,13 +2103,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Danh thiếp"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1340,
+                                lineNumber: 1559,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1331,
+                        lineNumber: 1544,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1908,20 +2127,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-6 h-6 text-purple-600 drop-shadow-md group-hover:scale-110 transition-transform duration-200"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1348,
+                                        lineNumber: 1567,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1349,
+                                        lineNumber: 1568,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1347,
+                                lineNumber: 1566,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1929,13 +2148,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Vẽ hình"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1351,
+                                lineNumber: 1570,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1342,
+                        lineNumber: 1561,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1954,20 +2173,20 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         children: "@GIF"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1359,
+                                        lineNumber: 1578,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 rounded-full shadow-inner shadow-white/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1362,
+                                        lineNumber: 1581,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1358,
+                                lineNumber: 1577,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1975,19 +2194,19 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "@GIF"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1364,
+                                lineNumber: 1583,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1353,
+                        lineNumber: 1572,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 1161,
+                lineNumber: 1374,
                 columnNumber: 9
             }, this),
             showConfirmClear && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$ConfirmModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ConfirmModal"], {
@@ -2036,7 +2255,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                 variant: "danger"
             }, void 0, false, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 1370,
+                lineNumber: 1589,
                 columnNumber: 9
             }, this),
             showReportConfirm && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$ConfirmModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ConfirmModal"], {
@@ -2076,7 +2295,308 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                 variant: "warning"
             }, void 0, false, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 1399,
+                lineNumber: 1618,
+                columnNumber: 9
+            }, this),
+            showContactCardModal && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                onClick: ()=>{
+                    setShowContactCardModal(false);
+                    setSelectedContactCardIds([]);
+                    setContactCardSearch('');
+                    setActiveContactCategory('all');
+                },
+                className: "jsx-820bcd66933fca31" + " " + "fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-0 md:px-4",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    onClick: (e)=>e.stopPropagation(),
+                    className: "jsx-820bcd66933fca31" + " " + "w-full  md:max-w-[46rem] bg-white md:rounded-2xl shadow-2xl overflow-hidden h-full md:max-h-[90vh] flex flex-col",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "jsx-820bcd66933fca31" + " " + "px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    className: "jsx-820bcd66933fca31" + " " + "text-lg font-bold text-gray-900",
+                                    children: "Gửi danh thiếp"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                    lineNumber: 1662,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: ()=>{
+                                        setShowContactCardModal(false);
+                                        setSelectedContactCardIds([]);
+                                        setContactCardSearch('');
+                                        setActiveContactCategory('all');
+                                    },
+                                    "aria-label": "Đóng",
+                                    className: "jsx-820bcd66933fca31" + " " + "p-2 rounded-full cursor-pointer hover:bg-gray-100 text-gray-600",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["HiX"], {
+                                        className: "w-5 h-5"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                        lineNumber: 1673,
+                                        columnNumber: 17
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                    lineNumber: 1663,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                            lineNumber: 1661,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "jsx-820bcd66933fca31" + " " + "px-4 sm:px-6 py-4 border-b border-gray-100",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "jsx-820bcd66933fca31" + " " + "flex items-center gap-2 px-4 py-3 rounded-full border border-gray-200 bg-white",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["HiSearch"], {
+                                            className: "w-5 h-5 text-gray-400"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                            lineNumber: 1679,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                            value: contactCardSearch,
+                                            onChange: (e)=>setContactCardSearch(e.target.value),
+                                            placeholder: "Tìm danh thiếp theo tên",
+                                            className: "jsx-820bcd66933fca31" + " " + "w-full outline-none text-sm text-gray-800"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                            lineNumber: 1680,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                    lineNumber: 1678,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    ref: contactCategoryBarRef,
+                                    onPointerDown: handleContactCategoryPointerDown,
+                                    onPointerMove: handleContactCategoryPointerMove,
+                                    onPointerUp: handleContactCategoryPointerEnd,
+                                    onPointerCancel: handleContactCategoryPointerEnd,
+                                    onLostPointerCapture: handleContactCategoryPointerEnd,
+                                    onClickCapture: handleContactCategoryClickCapture,
+                                    style: {
+                                        touchAction: 'pan-x',
+                                        WebkitOverflowScrolling: 'touch'
+                                    },
+                                    className: "jsx-820bcd66933fca31" + " " + "mt-4 flex items-center gap-2 overflow-x-auto w-full whitespace-nowrap custom-scrollbar select-none",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: ()=>setActiveContactCategory('all'),
+                                            className: "jsx-820bcd66933fca31" + " " + `px-4 py-2 mb-2 rounded-full text-sm font-semibold cursor-pointer transition-colors ${activeContactCategory === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`,
+                                            children: "Tất cả"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                            lineNumber: 1699,
+                                            columnNumber: 17
+                                        }, this),
+                                        categoryTags.map((t)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: ()=>setActiveContactCategory(t.id),
+                                                className: "jsx-820bcd66933fca31" + " " + `px-4 py-2 mb-2 rounded-full text-sm font-semibold cursor-pointer transition-colors ${activeContactCategory === t.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`,
+                                                children: t.label
+                                            }, t.id, false, {
+                                                fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                lineNumber: 1710,
+                                                columnNumber: 19
+                                            }, this))
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                    lineNumber: 1688,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                            lineNumber: 1677,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "jsx-820bcd66933fca31" + " " + "flex-1 overflow-y-auto",
+                            children: groupedContactUsers.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "jsx-820bcd66933fca31" + " " + "py-12 text-center text-sm text-gray-500",
+                                children: "Không tìm thấy liên hệ phù hợp"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                lineNumber: 1727,
+                                columnNumber: 17
+                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "jsx-820bcd66933fca31" + " " + "py-2",
+                                children: groupedContactUsers.map((g)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "jsx-820bcd66933fca31",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "jsx-820bcd66933fca31" + " " + "px-4 sm:px-6 py-2 text-sm font-bold text-gray-700",
+                                                children: g.key
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                lineNumber: 1732,
+                                                columnNumber: 23
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "jsx-820bcd66933fca31" + " " + "space-y-1 px-2 sm:px-4 pb-2",
+                                                children: g.users.map((u)=>{
+                                                    const idStr = String(u._id || '');
+                                                    const isSelected = selectedContactCardIds.includes(idStr);
+                                                    const displayName = getContactDisplayName(u);
+                                                    const sub = String(u.username || '');
+                                                    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                        onClick: ()=>{
+                                                            if (!idStr) return;
+                                                            setSelectedContactCardIds((prev)=>prev.includes(idStr) ? prev.filter((x)=>x !== idStr) : [
+                                                                    ...prev,
+                                                                    idStr
+                                                                ]);
+                                                        },
+                                                        className: "jsx-820bcd66933fca31" + " " + "w-full flex items-center gap-3 px-2 py-2 rounded-xl cursor-pointer hover:bg-gray-50 active:scale-[0.99] transition",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                className: "jsx-820bcd66933fca31" + " " + `w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? 'border-blue-600' : 'border-gray-300'}`,
+                                                                children: isSelected && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "jsx-820bcd66933fca31" + " " + "w-3 h-3 rounded-full bg-blue-600"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                                    lineNumber: 1755,
+                                                                    columnNumber: 48
+                                                                }, this)
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                                lineNumber: 1750,
+                                                                columnNumber: 31
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                className: "jsx-820bcd66933fca31" + " " + "w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shrink-0",
+                                                                children: u.avatar ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                                                    src: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getProxyUrl"])(u.avatar),
+                                                                    alt: "",
+                                                                    width: 40,
+                                                                    height: 40,
+                                                                    className: "w-full h-full object-cover"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                                    lineNumber: 1760,
+                                                                    columnNumber: 35
+                                                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                                                    src: "/logo/avata.webp",
+                                                                    alt: "",
+                                                                    width: 40,
+                                                                    height: 40,
+                                                                    className: "w-full h-full object-cover"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                                    lineNumber: 1768,
+                                                                    columnNumber: 35
+                                                                }, this)
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                                lineNumber: 1758,
+                                                                columnNumber: 31
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                className: "jsx-820bcd66933fca31" + " " + "flex-1 min-w-0 text-left",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                        className: "jsx-820bcd66933fca31" + " " + "text-sm font-semibold text-gray-900 truncate",
+                                                                        children: displayName
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                                        lineNumber: 1779,
+                                                                        columnNumber: 33
+                                                                    }, this),
+                                                                    sub ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                        className: "jsx-820bcd66933fca31" + " " + "text-sm text-gray-500 truncate",
+                                                                        children: sub
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                                        lineNumber: 1780,
+                                                                        columnNumber: 40
+                                                                    }, this) : null
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                                lineNumber: 1778,
+                                                                columnNumber: 31
+                                                            }, this)
+                                                        ]
+                                                    }, String(u._id), true, {
+                                                        fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                        lineNumber: 1740,
+                                                        columnNumber: 29
+                                                    }, this);
+                                                })
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                                lineNumber: 1733,
+                                                columnNumber: 23
+                                            }, this)
+                                        ]
+                                    }, g.key, true, {
+                                        fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                        lineNumber: 1731,
+                                        columnNumber: 21
+                                    }, this))
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                lineNumber: 1729,
+                                columnNumber: 17
+                            }, this)
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                            lineNumber: 1725,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "jsx-820bcd66933fca31" + " " + "px-4 sm:px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 bg-white",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: ()=>{
+                                        setShowContactCardModal(false);
+                                        setSelectedContactCardIds([]);
+                                        setContactCardSearch('');
+                                        setActiveContactCategory('all');
+                                    },
+                                    className: "jsx-820bcd66933fca31" + " " + "px-5 py-2 rounded-xl bg-gray-100 text-gray-800 font-semibold cursor-pointer hover:bg-gray-200 transition",
+                                    children: "Hủy"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                    lineNumber: 1793,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: handleSendContactCard,
+                                    disabled: selectedContactCardIds.length === 0,
+                                    className: "jsx-820bcd66933fca31" + " " + `px-5 py-2 rounded-xl font-semibold transition ${selectedContactCardIds.length > 0 ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700' : 'bg-blue-200 text-white cursor-not-allowed'}`,
+                                    children: `Gửi danh thiếp${selectedContactCardIds.length > 0 ? ` (${selectedContactCardIds.length})` : ''}`
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                                    lineNumber: 1804,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                            lineNumber: 1792,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                    lineNumber: 1657,
+                    columnNumber: 11
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
+                lineNumber: 1648,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2091,7 +2611,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                         children: "Gợi ý Chat nhanh"
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1444,
+                        lineNumber: 1835,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2125,7 +2645,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1471,
+                                        lineNumber: 1862,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2133,24 +2653,24 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         children: it.value
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1472,
+                                        lineNumber: 1863,
                                         columnNumber: 19
                                     }, this)
                                 ]
                             }, it.key, true, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1449,
+                                lineNumber: 1840,
                                 columnNumber: 17
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1445,
+                        lineNumber: 1836,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 1443,
+                lineNumber: 1834,
                 columnNumber: 9
             }, this),
             showFlashPicker && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2166,7 +2686,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                     children: "Chọn thư mục ChatFlash"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1483,
+                                    lineNumber: 1874,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2176,18 +2696,18 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1488,
+                                        lineNumber: 1879,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1484,
+                                    lineNumber: 1875,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 1482,
+                            lineNumber: 1873,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2197,7 +2717,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                 children: "Chưa có thư mục"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1493,
+                                lineNumber: 1884,
                                 columnNumber: 17
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "jsx-820bcd66933fca31" + " " + "space-y-2",
@@ -2209,7 +2729,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                 className: "w-4 h-4 text-indigo-600"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                lineNumber: 1502,
+                                                lineNumber: 1893,
                                                 columnNumber: 23
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2217,7 +2737,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                 children: f.name
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                lineNumber: 1503,
+                                                lineNumber: 1894,
                                                 columnNumber: 23
                                             }, this),
                                             selectedFlashFolder?.id === f.id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2225,34 +2745,34 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                                 children: "Đang chọn"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                                lineNumber: 1505,
+                                                lineNumber: 1896,
                                                 columnNumber: 25
                                             }, this)
                                         ]
                                     }, f.id, true, {
                                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                        lineNumber: 1497,
+                                        lineNumber: 1888,
                                         columnNumber: 21
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                lineNumber: 1495,
+                                lineNumber: 1886,
                                 columnNumber: 17
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 1491,
+                            lineNumber: 1882,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                    lineNumber: 1481,
+                    lineNumber: 1872,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 1480,
+                lineNumber: 1871,
                 columnNumber: 9
             }, this),
             showUpdatingPopup && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2263,7 +2783,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                         className: "jsx-820bcd66933fca31" + " " + "absolute inset-0 bg-black/40"
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1518,
+                        lineNumber: 1909,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2276,7 +2796,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                     children: "Đang cập nhật"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1521,
+                                    lineNumber: 1912,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2284,7 +2804,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                     children: "Tính năng đang được cập nhật."
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1522,
+                                    lineNumber: 1913,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2293,24 +2813,24 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                                     children: "Đóng"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                                    lineNumber: 1523,
+                                    lineNumber: 1914,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                            lineNumber: 1520,
+                            lineNumber: 1911,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                        lineNumber: 1519,
+                        lineNumber: 1910,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 1517,
+                lineNumber: 1908,
                 columnNumber: 9
             }, this),
             showCreatePoll && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$components$2f$CreatePollModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2319,7 +2839,7 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                 onCreate: handleCreatePoll
             }, void 0, false, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 1535,
+                lineNumber: 1926,
                 columnNumber: 9
             }, this),
             showCreateNote && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$components$2f$CreateReminderModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2329,13 +2849,13 @@ function ChatInput({ socket, onToggleEmojiPicker, isListening, onVoiceInput, edi
                 createLoading: createLoading
             }, void 0, false, {
                 fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-                lineNumber: 1539,
+                lineNumber: 1930,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/(chatPopup)/ChatInput.tsx",
-        lineNumber: 724,
+        lineNumber: 937,
         columnNumber: 5
     }, this);
 }

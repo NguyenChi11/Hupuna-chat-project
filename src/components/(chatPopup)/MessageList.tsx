@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import type { Message } from '@/types/Message';
 import type { User } from '@/types/User';
 import { isVideoFile, getProxyUrl } from '@/utils/utils';
+import QRCode from 'qrcode';
 
 // Icons
 import {
@@ -27,6 +29,7 @@ import {
   HiEyeSlash,
   HiPlus,
   HiLockClosed,
+  HiChatBubbleLeftRight,
 } from 'react-icons/hi2';
 import { HiPhone, HiVideoCamera, HiArrowDown, HiArrowUp } from 'react-icons/hi2';
 import { HiLink, HiOutlineLogout } from 'react-icons/hi';
@@ -73,6 +76,156 @@ interface MessageListProps {
   isMobile?: boolean;
   onShareMessage: (msg: Message) => void;
   onOpenChatInfoSection?: (section: 'reminder' | 'poll') => void;
+}
+
+function ContactCardBubble({
+  contact,
+  currentUserId,
+}: {
+  contact: { _id?: string; name?: string; username?: string; avatar?: string } | undefined;
+  currentUserId: string;
+}) {
+  const router = useRouter();
+  const contactId = String(contact?._id || '');
+  const name = String(contact?.name || 'Người dùng');
+  const username = String(contact?.username || '');
+  const avatar = String(contact?.avatar || '');
+
+  const profilePath = useMemo(() => {
+    const slug = String(username || contactId || '').trim();
+    if (!slug) return '';
+    return `/profile/${encodeURIComponent(slug)}`;
+  }, [contactId, username]);
+
+  const qrValue = useMemo(() => {
+    if (!profilePath) return '';
+    if (typeof window === 'undefined') return '';
+    const origin = window.location.origin;
+    return `${origin}${profilePath}`;
+  }, [profilePath]);
+
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!qrValue) {
+      setQrDataUrl('');
+      return;
+    }
+    QRCode.toDataURL(qrValue, { errorCorrectionLevel: 'M', margin: 1, width: 240 })
+      .then((url: string) => {
+        if (!cancelled) setQrDataUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setQrDataUrl('');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [qrValue]);
+
+  const oneToOneRoomId = useMemo(() => {
+    if (!currentUserId || !contactId) return '';
+    return [String(currentUserId), String(contactId)].sort().join('_');
+  }, [currentUserId, contactId]);
+
+  const handleVoiceCall = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!contactId || !oneToOneRoomId) return;
+    try {
+      window.dispatchEvent(
+        new CustomEvent('startCall', {
+          detail: {
+            type: 'voice',
+            roomId: oneToOneRoomId,
+            isGroup: false,
+            selectedChat: { _id: contactId, name, username, avatar: avatar || undefined },
+          },
+        }),
+      );
+    } catch {}
+  };
+
+  const handleOpenChat = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!contactId) return;
+    try {
+      window.dispatchEvent(
+        new CustomEvent('openDirectChat', {
+          detail: { userId: contactId, name, username, avatar: avatar || undefined },
+        }),
+      );
+    } catch {}
+  };
+
+  const handleOpenProfile = (e: React.MouseEvent) => {
+    if (!profilePath) return;
+    e.preventDefault();
+    router.push(profilePath);
+  };
+
+  return (
+    <div
+      role={profilePath ? 'button' : undefined}
+      tabIndex={profilePath ? 0 : undefined}
+      onClick={handleOpenProfile}
+      onKeyDown={(e) => {
+        if (!profilePath) return;
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        router.push(profilePath);
+      }}
+      className={`max-w-[70vw] w-[22rem] sm:max-w-[22rem] bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm select-none lg:select-text ${
+        profilePath ? 'cursor-pointer hover:border-gray-300' : ''
+      }`}
+    >
+      <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-600">
+        Danh thiếp
+      </div>
+      <div className="p-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-200 shrink-0">
+            {avatar ? (
+              <Image src={getProxyUrl(avatar)} alt="" width={44} height={44} className="w-full h-full object-cover" />
+            ) : (
+              <Image src="/logo/avata.webp" alt="" width={44} height={44} className="w-full h-full object-cover" />
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+            {username ? <p className="text-sm text-gray-500 truncate">{username}</p> : null}
+          </div>
+        </div>
+
+        <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center border border-gray-200 shrink-0">
+          {qrDataUrl ? (
+            <Image width={240} height={240} src={qrDataUrl} alt="Mã QR" className="w-full h-full rounded-xl" />
+          ) : (
+            <span className="text-[10px] text-gray-400">QR</span>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-100 bg-gray-50 grid grid-cols-2">
+        <button
+          onClick={handleVoiceCall}
+          className="cursor-pointer flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 active:scale-[0.99] transition"
+        >
+          <HiPhone className="w-4 h-4 text-blue-600" />
+          Gọi điện
+        </button>
+        <button
+          onClick={handleOpenChat}
+          className="cursor-pointer flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 active:scale-[0.99] transition border-l border-gray-200"
+        >
+          <HiChatBubbleLeftRight className="w-4 h-4 text-emerald-600" />
+          Nhắn tin
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function MessageList({
@@ -1395,7 +1548,8 @@ export default function MessageList({
                         // Group consecutive call notify messages and collapse if many
                         const prev = index > 0 ? msgs[index - 1] : null;
                         const prevIsNotify = prev?.type === 'notify';
-                        const prevIsCall = prevIsNotify && !!(prev as Message & { callType?: 'voice' | 'video' }).callType;
+                        const prevIsCall =
+                          prevIsNotify && !!(prev as Message & { callType?: 'voice' | 'video' }).callType;
                         if (!prevIsCall) {
                           const callGroup = [msg];
                           for (let k = index + 1; k < msgs.length; k++) {
@@ -2115,7 +2269,12 @@ export default function MessageList({
                       : 'sm:max-w-[34rem] lg:max-w-[38rem]'
                   } break-words mt-1
                   ${
-                    !isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image')
+                    !isRecalled &&
+                    (isVideo ||
+                      msg.type === 'sticker' ||
+                      msg.type === 'file' ||
+                      msg.type === 'image' ||
+                      msg.type === 'contact')
                       ? '!bg-transparent shadow-none'
                       : isMe
                         ? 'bg-blue-100 text-white'
@@ -2124,7 +2283,7 @@ export default function MessageList({
                       ${!isGrouped && isMe ? 'rounded-tr-md' : ''}
                       ${!isGrouped && !isMe ? 'rounded-tl-md' : ''}
                       ${isRecalled ? '!bg-gray-200 !text-gray-500 italic !px-4 !py-2 !max-w-[92vw] sm:!max-w-[34rem] lg:!max-w-[44rem]' : ''}
-                      ${!isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image') ? '!p-0 !shadow-none ' : ''}
+                      ${!isRecalled && (isVideo || msg.type === 'sticker' || msg.type === 'file' || msg.type === 'image' || msg.type === 'contact') ? '!p-0 !shadow-none ' : ''}
                     ${!isRecalled && msg.type === 'image' ? '!p-0' : ''}
                     ${!isRecalled && msg.type === 'file' ? '!p-0' : ''}
                   relative ${hasReactions ? 'mb-4' : ''}
@@ -2523,10 +2682,28 @@ export default function MessageList({
                                 </div>
                               )}
 
+                              {msg.type === 'contact' && !isRecalled && (
+                                <ContactCardBubble
+                                  currentUserId={String(currentUser._id || '')}
+                                  contact={
+                                    (
+                                      msg as Message & {
+                                        contactCard?: {
+                                          _id?: string;
+                                          name?: string;
+                                          username?: string;
+                                          avatar?: string;
+                                        };
+                                      }
+                                    ).contactCard
+                                  }
+                                />
+                              )}
+
                               {/* IMAGE – FIX SIZE MOBILE */}
                               {msg.type === 'image' && msg.fileUrl && !isRecalled && (
                                 <div
-                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[50vw] sm:max-w-[10rem] select-none lg:select-auto"
+                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[50vw] sm:max-w-[16rem] select-none lg:select-auto"
                                   onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
                                   style={{ WebkitTouchCallout: 'none' }}
                                 >

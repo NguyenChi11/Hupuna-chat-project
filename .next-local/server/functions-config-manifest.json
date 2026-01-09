@@ -1,12 +1,12 @@
 {
   "version": 1,
   "functions": {
-    "/api/sso/consume": {},
     "/api/auth/refresh": {},
     "/api/livekit/token": {},
     "/api/sso/issue": {},
-    "/api/users/me": {},
+    "/api/sso/consume": {},
     "/api/upload": {},
+    "/api/users/me": {},
     "/api/users": {}
   }
 }
