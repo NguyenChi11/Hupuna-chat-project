@@ -171,6 +171,30 @@ export default function ChatItem({
     });
   };
 
+  const [activeGroupCall, setActiveGroupCall] = useState(false);
+  useEffect(() => {
+    if (!isGroup) {
+      setActiveGroupCall(false);
+      return;
+    }
+    try {
+      const raw = localStorage.getItem('ACTIVE_GROUP_CALL_ROOMS');
+      const arr = raw ? (JSON.parse(raw) as string[]) : [];
+      const has = Array.isArray(arr) && arr.map(String).includes(String(item._id));
+      setActiveGroupCall(!!has);
+    } catch {
+      setActiveGroupCall(false);
+    }
+    const handler = (e: Event) => {
+      const d = (e as unknown as { detail?: { rooms?: string[] } }).detail || {};
+      const rooms = Array.isArray(d.rooms) ? d.rooms.map(String) : [];
+      const has = rooms.includes(String(item._id));
+      setActiveGroupCall(!!has);
+    };
+    window.addEventListener('activeGroupCallsUpdated', handler as EventListener);
+    return () => window.removeEventListener('activeGroupCallsUpdated', handler as EventListener);
+  }, [isGroup, item._id]);
+
   const toggleCategory = (id: string) => {
     setChatCategories((prev) => {
       const next = prev.includes(id) ? [] : [id];
@@ -455,14 +479,21 @@ export default function ChatItem({
             </div>
 
             <div className="flex items-center justify-between">
-              <p
-                className={`
+              <div>
+                <p
+                  className={`
                   text-[0.875rem] md:text-[1rem] truncate max-w-[14rem]
                   ${unreadCount > 0 ? 'font-semibold text-gray-800' : 'text-gray-600'}
                 `}
-              >
-                {item.isRecall ? 'Tin nhắn đã được thu hồi' : formatMessagePreview(lastMessage)}
-              </p>
+                >
+                  {item.isRecall ? 'Tin nhắn đã được thu hồi' : formatMessagePreview(lastMessage)}
+                </p>
+                {activeGroupCall && isGroup && (
+                  <span className="bg-green-500 text-xs rounded-md px-1.5 py-0.5 text-white inline-block mt-1">
+                    Cuộc gọi đang diễn ra
+                  </span>
+                )}
+              </div>
 
               {/* Unread Badge – đẹp hơn Zalo */}
               {unreadCount > 0 && (
@@ -472,7 +503,6 @@ export default function ChatItem({
                   </div>
                 </div>
               )}
-            
             </div>
             {(chatTags.length > 0 || showTagSelector) && (
               <div className="flex flex-wrap items-center gap-1 mt-2 relative z-10 w-full">

@@ -758,6 +758,45 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     window.addEventListener('hideCallOverlay', hide as EventListener);
     return () => window.removeEventListener('hideCallOverlay', hide as EventListener);
   }, []);
+  useEffect(() => {
+    const rid = String(normalizedRoomId || '');
+    if (!rid) return;
+    if (!normalizedIsGroup) return;
+    const nowActive = !!callActive || !!roomCallActive;
+    const prev = new Map(activeGroupCallRooms);
+    const prevEntry =
+      prev.get(rid) || { active: false, type: null, participants: [], startAt: null as number | null };
+    const parts = Array.isArray(roomParticipants) ? roomParticipants.map((x) => String(x)) : [];
+    const nextParts = parts.length > 0 ? parts : nowActive ? [String(currentUser?._id || '')] : [];
+    const nextType = (callType as string) || prevEntry.type || null;
+    const nextStartAt = typeof callStartAt === 'number' ? callStartAt : prevEntry.startAt;
+    const changed =
+      prevEntry.active !== nowActive ||
+      String(prevEntry.type || '') !== String(nextType || '') ||
+      (prevEntry.startAt || null) !== (nextStartAt || null);
+    if (changed) {
+      prev.set(rid, { active: nowActive, type: nextType, participants: nextParts, startAt: nextStartAt || null });
+      setActiveGroupCallRooms(prev);
+      const activeRooms = Array.from(prev.entries())
+        .filter(([, v]) => v.active)
+        .map(([k]) => k);
+      try {
+        localStorage.setItem('ACTIVE_GROUP_CALL_ROOMS', JSON.stringify(activeRooms));
+      } catch {}
+      const ev = new CustomEvent('activeGroupCallsUpdated', { detail: { rooms: activeRooms } });
+      window.dispatchEvent(ev as unknown as Event);
+    }
+  }, [
+    callActive,
+    roomCallActive,
+    normalizedIsGroup,
+    normalizedRoomId,
+    callType,
+    roomParticipants,
+    callStartAt,
+    activeGroupCallRooms,
+    currentUser,
+  ]);
   React.useEffect(() => {
     const handler = (e: Event) => {
       const d = (e as unknown as { detail?: { roomId?: string } }).detail;
