@@ -51,6 +51,7 @@ export default function ProfileByIdPage() {
   );
 
   const {
+    viewingUserId,
     overviewData,
     setOverviewData,
     displayName,
@@ -66,6 +67,8 @@ export default function ProfileByIdPage() {
     setAvatar,
     setBackground,
   } = useViewingUser(viewingId, !!isOwner, currentUser);
+
+  const profileIdForQr = viewingUserId || (isOwner ? String(currentUser?._id || '') || viewingId : viewingId);
 
   const { handleUpload, isUploadingAvatar, isUploadingBackground } = useUploadImage(
     currentId,
@@ -709,6 +712,7 @@ export default function ProfileByIdPage() {
               isOwner={!!isOwner}
               overviewData={overviewData}
               handleOverviewData={handleProfileUpdate}
+              profileIdForQr={profileIdForQr}
             />
           )}
         </MobileProfileSheet>

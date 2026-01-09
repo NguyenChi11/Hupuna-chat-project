@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 
 export function useViewingUser(viewingId: string, isOwner: boolean, currentUser: Record<string, unknown> | null) {
+  const [viewingUserId, setViewingUserId] = useState('');
   const [overviewData, setOverviewData] = useState({
     phone: '',
     gender: '',
@@ -24,6 +25,7 @@ export function useViewingUser(viewingId: string, isOwner: boolean, currentUser:
   const fillFrom = useCallback(
     (u: Record<string, unknown> | null) => {
       if (!u) return;
+      setViewingUserId(String(u['_id'] || ''));
       const myId = String((currentUser as Record<string, unknown> | null)?.['_id'] || '');
       const nickMap = (u['nicknames'] as Record<string, unknown> | undefined) || undefined;
       const nick = !isOwner && myId && nickMap ? String((nickMap[myId] as unknown) || '').trim() : '';
@@ -76,6 +78,7 @@ export function useViewingUser(viewingId: string, isOwner: boolean, currentUser:
   }, [isOwner, viewingId, currentUser, fillFrom]);
 
   return {
+    viewingUserId,
     overviewData,
     displayName,
     setDisplayName,

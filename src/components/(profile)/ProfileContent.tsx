@@ -13,11 +13,13 @@ export default function ProfileContent({
   isOwner,
   overviewData,
   handleOverviewData,
+  profileIdForQr,
 }: {
   tab: string;
   isOwner: boolean;
   overviewData: Record<string, unknown>;
   handleOverviewData: (data: Record<string, unknown>) => void;
+  profileIdForQr: string;
 }) {
   return (
     <div className="">
@@ -54,7 +56,7 @@ export default function ProfileContent({
             <h3 className="text-lg font-bold text-gray-900 mb-4">Mã QR</h3>
             <div className="flex justify-center py-6">
               <div className=" p-2  ">
-                <ProfileQR />
+                <ProfileQR profilePath={profileIdForQr ? `/profile/${encodeURIComponent(profileIdForQr)}` : ''} />
               </div>
             </div>
           </div>

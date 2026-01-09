@@ -1,0 +1,3 @@
+{
+  "/(zalo)/profile/[user]/page": "app/(zalo)/profile/[user]/page.js"
+}

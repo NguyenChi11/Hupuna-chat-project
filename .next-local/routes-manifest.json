@@ -1,0 +1,233 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/groups/invite/[code]",
+      "regex": "^/api/groups/invite/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcode": "nxtPcode"
+      },
+      "namedRegex": "^/api/groups/invite/(?<nxtPcode>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/invite/[code]",
+      "regex": "^/invite/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcode": "nxtPcode"
+      },
+      "namedRegex": "^/invite/(?<nxtPcode>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/moments/[id]",
+      "regex": "^/moments/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/moments/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/profile/[user]",
+      "regex": "^/profile/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPuser": "nxtPuser"
+      },
+      "namedRegex": "^/profile/(?<nxtPuser>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/auth/refresh",
+      "regex": "^/api/auth/refresh(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/refresh(?:/)?$"
+    },
+    {
+      "page": "/api/groups",
+      "regex": "^/api/groups(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/groups(?:/)?$"
+    },
+    {
+      "page": "/api/groups/invite",
+      "regex": "^/api/groups/invite(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/groups/invite(?:/)?$"
+    },
+    {
+      "page": "/api/groups/join",
+      "regex": "^/api/groups/join(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/groups/join(?:/)?$"
+    },
+    {
+      "page": "/api/livekit/token",
+      "regex": "^/api/livekit/token(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/livekit/token(?:/)?$"
+    },
+    {
+      "page": "/api/messages",
+      "regex": "^/api/messages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/messages(?:/)?$"
+    },
+    {
+      "page": "/api/posts",
+      "regex": "^/api/posts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/posts(?:/)?$"
+    },
+    {
+      "page": "/api/sso/consume",
+      "regex": "^/api/sso/consume(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sso/consume(?:/)?$"
+    },
+    {
+      "page": "/api/sso/issue",
+      "regex": "^/api/sso/issue(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sso/issue(?:/)?$"
+    },
+    {
+      "page": "/api/upload",
+      "regex": "^/api/upload(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/upload(?:/)?$"
+    },
+    {
+      "page": "/api/upload/progress",
+      "regex": "^/api/upload/progress(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/upload/progress(?:/)?$"
+    },
+    {
+      "page": "/api/users",
+      "regex": "^/api/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/users(?:/)?$"
+    },
+    {
+      "page": "/api/users/me",
+      "regex": "^/api/users/me(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/users/me(?:/)?$"
+    },
+    {
+      "page": "/chat-iframe",
+      "regex": "^/chat\\-iframe(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/chat\\-iframe(?:/)?$"
+    },
+    {
+      "page": "/directory",
+      "regex": "^/directory(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/directory(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/group",
+      "regex": "^/group(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/group(?:/)?$"
+    },
+    {
+      "page": "/home",
+      "regex": "^/home(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/home(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/mini",
+      "regex": "^/mini(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/mini(?:/)?$"
+    },
+    {
+      "page": "/mini/sso/callback",
+      "regex": "^/mini/sso/callback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/mini/sso/callback(?:/)?$"
+    },
+    {
+      "page": "/moments",
+      "regex": "^/moments(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/moments(?:/)?$"
+    },
+    {
+      "page": "/setting",
+      "regex": "^/setting(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/setting(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

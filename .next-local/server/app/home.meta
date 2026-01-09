@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(zalo)/layout,_N_T_/(zalo)/home/layout,_N_T_/(zalo)/home/page,_N_T_/home"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KHphbG8p/home/__PAGE__",
+    "/!KHphbG8p/home",
+    "/!KHphbG8p",
+    "/_index",
+    "/_head"
+  ]
+}

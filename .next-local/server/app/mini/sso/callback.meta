@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/mini/layout,_N_T_/mini/sso/layout,_N_T_/mini/sso/callback/layout,_N_T_/mini/sso/callback/page,_N_T_/mini/sso/callback"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/mini/sso/callback/__PAGE__",
+    "/mini/sso/callback",
+    "/mini/sso",
+    "/mini",
+    "/_index",
+    "/_head"
+  ]
+}
