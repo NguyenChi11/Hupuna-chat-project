@@ -9,12 +9,15 @@ import {
   VideoTrack,
   ParticipantName,
   useIsMuted,
+  useRoomContext,
+  useLocalParticipant,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { CiPhone } from 'react-icons/ci';
 import Image from 'next/image';
 import type { TrackReference, TrackReferenceOrPlaceholder } from '@livekit/components-core';
-import { HiEye, HiEyeSlash, HiChevronLeft, HiChevronRight, HiCamera, HiFaceSmile, HiHeart } from 'react-icons/hi2';
+import { HiEye, HiEyeSlash, HiChevronLeft } from 'react-icons/hi2';
+import { BiRefresh } from 'react-icons/bi';
 
 type Props = {
   serverUrl: string;
@@ -32,6 +35,7 @@ type Props = {
   onParticipantsChanged?: (participants: Array<{ id: string; name?: string }>) => void;
   callMode?: 'voice' | 'video';
   uiVariant?: 'full' | 'mini';
+  isGroup?: boolean;
 };
 
 function CustomTrackTile({
@@ -127,8 +131,11 @@ function CallTiles({
   mini?: boolean;
 }) {
   const cameraTracks = useTracks([Track.Source.Camera]);
+  const screenShareTracks = useTracks([Track.Source.ScreenShare]);
   const remoteTracks = cameraTracks.filter((t) => !t.participant?.isLocal);
   const localTrack = cameraTracks.find((t) => t.participant?.isLocal);
+  const remoteScreenShares = screenShareTracks.filter((t) => !t.participant?.isLocal);
+  const localScreenShare = screenShareTracks.find((t) => t.participant?.isLocal);
 
   const remoteIds = React.useMemo(() => {
     return remoteTracks
@@ -213,13 +220,17 @@ function CallTiles({
   const rows = Math.ceil(totalTiles / cols);
 
   if (mini) {
-    const picked = miniPickId
-      ? remoteTracks.find(
-          (tr) =>
-            String(((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim()) ===
-            miniPickId,
-        )
-      : undefined;
+    const screenRef = localScreenShare || remoteScreenShares[0];
+    const picked = screenRef
+      ? screenRef
+      : miniPickId
+        ? remoteTracks.find(
+            (tr) =>
+              String(
+                ((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim(),
+              ) === miniPickId,
+          )
+        : undefined;
     const trackToShow = picked || localTrack;
     if (callMode === 'voice') {
       return (
@@ -292,6 +303,14 @@ function CallTiles({
               <div className="text-white/90 text-lg">{titleName || ''}</div>
             </div>
           </div>
+        ) : localScreenShare || remoteScreenShares[0] ? (
+          <div className="w-full h-full">
+            <CustomTrackTile
+              trackRef={(localScreenShare || remoteScreenShares[0]) as TrackReferenceOrPlaceholder}
+              offMinHeight={offMinHeight}
+              contain
+            />
+          </div>
         ) : displayTracks.length > 0 ? (
           <div
             className="grid w-full h-full gap-2 p-2"
@@ -359,6 +378,14 @@ function CallTiles({
               )}
               <div className="text-white/90 text-xl font-bold">{titleName || ''}</div>
             </div>
+          </div>
+        ) : localScreenShare || remoteScreenShares[0] ? (
+          <div className="w-full h-full">
+            <CustomTrackTile
+              trackRef={(localScreenShare || remoteScreenShares[0]) as TrackReferenceOrPlaceholder}
+              offMinHeight={offMinHeight}
+              contain
+            />
           </div>
         ) : displayTracks.length > 0 ? (
           <div
@@ -492,6 +519,7 @@ export default function LiveKitCall({
   onParticipantsChanged,
   callMode = 'video',
   uiVariant = 'full',
+  isGroup = false,
 }: Props) {
   const isMini = uiVariant === 'mini';
   const [showLocalPreview, setShowLocalPreview] = React.useState(true);
@@ -655,7 +683,7 @@ export default function LiveKitCall({
 
           {!isMini && (
             <div
-              className={`fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-6 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}
+              className={`fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-3 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}
             >
               <div className="flex flex-col items-center gap-2">
                 {callMode === 'video' && (
@@ -664,16 +692,18 @@ export default function LiveKitCall({
                       source={Track.Source.Camera}
                       className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
                     />
-                    <span className="text-white text-xs">Camera</span>
                   </>
                 )}
               </div>
               <div className="flex flex-col items-center gap-2">
-                <TrackToggle
-                  source={Track.Source.Microphone}
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-                />
-                <span className="text-white text-xs">Mic</span>
+                {callMode === 'video' && (
+                  <>
+                    <TrackToggle
+                      source={Track.Source.ScreenShare}
+                      className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                    />
+                  </>
+                )}
               </div>
               <div className="flex flex-col items-center gap-2">
                 <button
@@ -685,27 +715,94 @@ export default function LiveKitCall({
                 >
                   <CiPhone className="w-6 h-6" />
                 </button>
-                <span className="text-white text-xs">Kết thúc</span>
               </div>
               <div className="flex flex-col items-center gap-2">
-                {callMode === 'video' && (
-                  <>
+                <TrackToggle
+                  source={Track.Source.Microphone}
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                />
+              </div>
+
+              {callMode === 'video' && !isGroup && (
+                <>
+                  <div className="flex flex-col items-center gap-2">
                     <button
                       className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
                       onClick={() => setShowLocalPreview((v) => !v)}
-                      title={showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi'}
+                      title={showLocalPreview ? 'Ẩn cam' : 'Hiện cam'}
                     >
                       {showLocalPreview ? <HiEyeSlash className="w-6 h-6" /> : <HiEye className="w-6 h-6" />}
                     </button>
-                    <span className="text-white text-xs">{showLocalPreview ? 'Ẩn cam tôi' : 'Hiện cam tôi'}</span>
-                  </>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
+              {callMode === 'video' && (
+                <div className="flex flex-col items-center gap-2 md:hidden">
+                  <CameraSwitchButtonMobile />
+                </div>
+              )}
             </div>
           )}
         </div>
       </LiveKitRoom>
     </div>
+  );
+}
+
+function CameraSwitchButtonMobile() {
+  const room = useRoomContext();
+  const local = useLocalParticipant();
+  const [facing, setFacing] = React.useState<'user' | 'environment'>('user');
+
+  const switchCamera = async () => {
+    try {
+      const pub = (local as unknown as { cameraTrack?: unknown }).cameraTrack as
+        | {
+            videoTrack?: { restartTrack?: (opts: { facingMode?: 'user' | 'environment' }) => Promise<void> | void };
+            track?: { restartTrack?: (opts: { facingMode?: 'user' | 'environment' }) => Promise<void> | void };
+          }
+        | undefined;
+      const vtrack = pub?.videoTrack || pub?.track;
+      const nextFacing = facing === 'user' ? 'environment' : 'user';
+      if (vtrack && typeof vtrack.restartTrack === 'function') {
+        await vtrack.restartTrack({ facingMode: nextFacing });
+        setFacing(nextFacing);
+        return;
+      }
+      const anyRoom = room as unknown as {
+        switchActiveDevice?: (kind: 'videoinput', deviceId: string) => Promise<void>;
+      };
+      let devices: MediaDeviceInfo[] = [];
+      try {
+        const lkGet = (room as unknown as { getLocalDevices?: (kind: MediaDeviceKind) => Promise<MediaDeviceInfo[]> })
+          .getLocalDevices;
+        devices = lkGet ? await lkGet('videoinput') : await navigator.mediaDevices.enumerateDevices();
+      } catch {
+        devices = await navigator.mediaDevices.enumerateDevices();
+      }
+      const target = devices.find(
+        (d) =>
+          d.kind === 'videoinput' &&
+          (((d as unknown as { facing?: string }).facing || '').toLowerCase() === nextFacing ||
+            String(d.label || '')
+              .toLowerCase()
+              .includes(nextFacing)),
+      );
+      if (target && anyRoom.switchActiveDevice) {
+        await anyRoom.switchActiveDevice('videoinput', target.deviceId);
+        setFacing(nextFacing);
+      }
+    } catch {}
+  };
+
+  return (
+    <button
+      className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+      onClick={() => void switchCamera()}
+      title="Đổi camera trước/sau"
+    >
+      <BiRefresh className="w-6 h-6" />
+    </button>
   );
 }
 

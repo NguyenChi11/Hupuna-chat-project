@@ -466,28 +466,35 @@ export default function ChatItem({
             <div className="flex items-center justify-between mb-1">
               <h4
                 className={`
-                 text-[1rem] md:text-[1.125rem] font-medium truncate max-w-[11rem]
+                 text-[1rem] md:text-[1.125rem] font-medium truncate max-w-[9rem]
                   ${unreadCount > 0 ? 'text-gray-900' : 'text-gray-500'}
                 `}
               >
                 {displayName}
               </h4>
-              <span className="text-sm text-gray-500 flex items-center gap-1">
-                <HiCheck className="w-4 h-4 text-indigo-500" />
-                {timeDisplay}
-              </span>
+              <span className="text-sm text-gray-500 flex items-center gap-1">{timeDisplay}</span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <p
-                  className={`
-                  text-[0.875rem] md:text-[1rem] truncate max-w-[13rem]
+            <div className="flex items-center justify-between w-full">
+              <div className="w-full">
+                <div className="flex items-center justify-between w-full">
+                  <p
+                    className={`
+                  text-[0.875rem] md:text-[1rem] truncate max-w-[12rem]
                   ${unreadCount > 0 ? 'font-semibold text-gray-800' : 'text-gray-600'}
                 `}
-                >
-                  {item.isRecall ? 'Tin nhắn đã được thu hồi' : formatMessagePreview(lastMessage)}
-                </p>
+                  >
+                    {item.isRecall ? 'Tin nhắn đã được thu hồi' : formatMessagePreview(lastMessage)}
+                  </p>
+                  {unreadCount > 0 && (
+                    <div className="relative">
+                      <div className="relative w-6 h-6 flex items-center justify-center bg-gradient-to-r from-red-500 to-pink-600 rounded-full shadow-xl">
+                        <span className="text-sm font-bold text-white">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {activeGroupCall && isGroup && (
                   <span className="bg-green-500 text-xs rounded-md px-1.5 py-0.5 text-white inline-block mt-1">
                     Cuộc gọi đang diễn ra
@@ -496,13 +503,6 @@ export default function ChatItem({
               </div>
 
               {/* Unread Badge – đẹp hơn Zalo */}
-              {unreadCount > 0 && (
-                <div className="relative">
-                  <div className="relative w-6 h-6 flex items-center justify-center bg-gradient-to-r from-red-500 to-pink-600 rounded-full shadow-xl">
-                    <span className="text-sm font-bold text-white">{unreadCount > 99 ? '99+' : unreadCount}</span>
-                  </div>
-                </div>
-              )}
             </div>
             {(chatTags.length > 0 || showTagSelector) && (
               <div className="flex flex-wrap items-center gap-1 mt-2 relative z-10 w-full">
