@@ -31,6 +31,7 @@ type Props = {
   offMinHeight?: number;
   onParticipantsChanged?: (participants: Array<{ id: string; name?: string }>) => void;
   callMode?: 'voice' | 'video';
+  uiVariant?: 'full' | 'mini';
 };
 
 function CustomTrackTile({
@@ -72,7 +73,7 @@ function CustomTrackTile({
       (trackRef as unknown as { participant?: { identity?: string } })?.participant?.identity ||
       '');
   return (
-    <div className={`relative w-full  h-full bg-black`}>
+    <div className={`relative w-full  h-full bg-black overflow-hidden rounded-md`}>
       {showVideo ? (
         <VideoTrack
           trackRef={trackRef as TrackReference}
@@ -80,8 +81,8 @@ function CustomTrackTile({
             contain
               ? 'w-full h-full object-contain'
               : cover || !portrait
-                ? 'w-full  object-cover'
-                : 'w-full  object-contain'
+                ? 'w-full h-full object-cover'
+                : 'w-full h-full object-contain'
           }
           onLoadedMetadata={handleMeta}
           muted
@@ -115,6 +116,7 @@ function CallTiles({
   myName,
   myAvatarUrl,
   callMode,
+  mini,
 }: {
   titleName?: string | null;
   avatarUrl?: string;
@@ -122,10 +124,32 @@ function CallTiles({
   myName?: string;
   myAvatarUrl?: string;
   callMode?: 'voice' | 'video';
+  mini?: boolean;
 }) {
   const cameraTracks = useTracks([Track.Source.Camera]);
   const remoteTracks = cameraTracks.filter((t) => !t.participant?.isLocal);
   const localTrack = cameraTracks.find((t) => t.participant?.isLocal);
+
+  const remoteIds = React.useMemo(() => {
+    return remoteTracks
+      .map((tr) =>
+        String(((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim()),
+      )
+      .filter((id) => !!id);
+  }, [remoteTracks]);
+
+  const [miniPickId, setMiniPickId] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    if (!mini) return;
+    if (remoteIds.length === 0) {
+      setMiniPickId(null);
+      return;
+    }
+    if (miniPickId && remoteIds.includes(miniPickId)) return;
+    const next = remoteIds[Math.floor(Math.random() * remoteIds.length)];
+    setMiniPickId(next);
+  }, [mini, remoteIds, miniPickId]);
+
   const isGridMode = cameraTracks.length >= 3;
   const gridTracks = isGridMode ? cameraTracks : remoteTracks;
   const [avatarsMap, setAvatarsMap] = React.useState<Record<string, string>>({});
@@ -178,10 +202,72 @@ function CallTiles({
     }
     return s;
   }, [gridTracks, spotlightId]);
-  const displayTracks = sortedTracks.slice(0, 8);
-  const moreCount = Math.max(0, sortedTracks.length - displayTracks.length);
-  const cols = displayTracks.length <= 1 ? 1 : displayTracks.length <= 4 ? 2 : displayTracks.length <= 9 ? 3 : 4;
-  const rows = Math.ceil(displayTracks.length / cols);
+  const maxTiles = 9;
+  const total = sortedTracks.length;
+  const showMore = total > maxTiles;
+  const displayLimit = showMore ? maxTiles - 1 : maxTiles;
+  const displayTracks = sortedTracks.slice(0, displayLimit);
+  const moreCount = Math.max(0, total - displayTracks.length);
+  const totalTiles = displayTracks.length + (moreCount > 0 ? 1 : 0);
+  const cols = totalTiles <= 1 ? 1 : totalTiles <= 4 ? 2 : totalTiles <= 9 ? 3 : 4;
+  const rows = Math.ceil(totalTiles / cols);
+
+  if (mini) {
+    const picked = miniPickId
+      ? remoteTracks.find(
+          (tr) =>
+            String(((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim()) ===
+            miniPickId,
+        )
+      : undefined;
+    const trackToShow = picked || localTrack;
+    if (callMode === 'voice') {
+      return (
+        <div
+          className={`relative w-full h-full overflow-hidden ${callMode === 'voice' ? 'bg-blue-500' : 'bg-black'}`}
+          style={{ minHeight: offMinHeight ?? 120 }}
+        >
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={titleName || 'avatar'}
+                  width={96}
+                  height={96}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-white/10" />
+              )}
+              <div className="text-white/90 text-sm">{titleName || ''}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative w-full h-full overflow-hidden bg-black" style={{ minHeight: offMinHeight ?? 120 }}>
+        {trackToShow ? (
+          <CustomTrackTile
+            trackRef={trackToShow}
+            offMinHeight={offMinHeight}
+            avatarUrl={
+              (trackToShow as unknown as { participant?: { isLocal?: boolean } })?.participant?.isLocal
+                ? myAvatarUrl
+                : avatarUrl
+            }
+            contain
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="text-white/80 text-xs">Đang chờ camera...</div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -208,7 +294,7 @@ function CallTiles({
           </div>
         ) : displayTracks.length > 0 ? (
           <div
-            className="grid w-full h-full"
+            className="grid w-full h-full gap-2 p-2"
             style={{
               gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
@@ -345,7 +431,7 @@ function CallTiles({
           </div>
           <div className="flex-1 overflow-auto p-3">
             <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
-              {sortedTracks.slice(8).map((tr, i) => {
+              {sortedTracks.slice(displayTracks.length).map((tr, i) => {
                 const id = String(
                   ((tr as unknown as { participant?: { identity?: string } })?.participant?.identity || '').trim(),
                 );
@@ -405,7 +491,9 @@ export default function LiveKitCall({
   offMinHeight,
   onParticipantsChanged,
   callMode = 'video',
+  uiVariant = 'full',
 }: Props) {
+  const isMini = uiVariant === 'mini';
   const [showLocalPreview, setShowLocalPreview] = React.useState(true);
   const [showControls, setShowControls] = React.useState(false);
   const [tick, setTick] = React.useState(0);
@@ -475,7 +563,10 @@ export default function LiveKitCall({
         onDisconnected={onDisconnected}
       >
         <RoomAudioRenderer />
-        <div className="relative w-full h-full group" onClick={toggleControls}>
+        <div
+          className={`relative w-full h-full ${isMini ? '' : 'group'}`}
+          onClick={isMini ? undefined : toggleControls}
+        >
           <CallTiles
             titleName={titleName}
             avatarUrl={avatarUrl}
@@ -483,129 +574,135 @@ export default function LiveKitCall({
             myName={myName}
             myAvatarUrl={myAvatarUrl}
             callMode={callMode}
+            mini={isMini}
           />
 
-          {/* Timer */}
-          <div className="absolute md:block hidden top-3 left-3 text-xs font-semibold bg-green-600 text-white px-2 py-1 rounded">
-            {formatTime(callStartAt)}
-          </div>
-          <div className="absolute md:hidden block top-3 left-1/2 -translate-x-1/2 text-xs font-semibold  text-white px-2 py-1 rounded">
-            <p className="text-green-500 text-[1rem]">{formatTime(callStartAt)}</p>
-          </div>
-          {/* Mobile top actions */}
-          <div className="absolute top-3 left-3 md:hidden">
-            <button
-              className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-50"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                try {
-                  window.dispatchEvent(new CustomEvent('minimizeCallOverlay'));
-                  window.dispatchEvent(new CustomEvent('hideCallOverlay'));
-                } catch {}
-              }}
-              title="Quay lại"
-            >
-              <HiChevronLeft className="w-5 h-5" />
-            </button>
-          </div>
+          {!isMini && (
+            <>
+              <div className="absolute md:block hidden top-3 left-3 text-xs font-semibold bg-green-600 text-white px-2 py-1 rounded">
+                {formatTime(callStartAt)}
+              </div>
+              <div className="absolute md:hidden block top-3 left-1/2 -translate-x-1/2 text-xs font-semibold  text-white px-2 py-1 rounded">
+                <p className="text-green-500 text-[1rem]">{formatTime(callStartAt)}</p>
+              </div>
+              <div className="absolute top-3 left-3 md:hidden">
+                <button
+                  className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-50"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    try {
+                      window.dispatchEvent(new CustomEvent('minimizeCallOverlay'));
+                      window.dispatchEvent(new CustomEvent('hideCallOverlay'));
+                    } catch {}
+                  }}
+                  title="Quay lại"
+                >
+                  <HiChevronLeft className="w-5 h-5" />
+                </button>
+              </div>
+            </>
+          )}
 
           {/* <ParticipantsCounter /> */}
           <ParticipantsWatcher onChanged={onParticipantsChanged} />
 
           {/* Local preview (toggleable) */}
-          {showLocalPreview && callMode === 'video' && (
+          {!isMini && showLocalPreview && callMode === 'video' && (
             <LocalPreview myName={myName} myAvatarUrl={myAvatarUrl} size={initialPreview} />
           )}
 
-          <div className="absolute left-0 right-0 bottom-4 md:flex hidden justify-center">
-            <div className="flex items-center gap-3 bg-black/40 text-white px-4 py-2 rounded-full backdrop-blur-md transition-opacity duration-300 opacity-0 group-hover:opacity-100">
-              {callMode === 'video' && (
-                <>
-                  <TrackToggle
-                    source={Track.Source.ScreenShare}
-                    className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
-                  />
-                  <TrackToggle
-                    source={Track.Source.Camera}
-                    className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
-                  />
-                </>
-              )}
-              <button
-                className="cursor-pointer p-2 rounded-full bg-red-600 hover:bg-red-700 transition text-white"
-                onClick={() => {
-                  if (onRequestEnd) onRequestEnd();
-                }}
-                title="Kết thúc"
-              >
-                <CiPhone className="w-5 h-5" />
-              </button>
-              <TrackToggle
-                source={Track.Source.Microphone}
-                className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
-              />
-              {callMode === 'video' && (
+          {!isMini && (
+            <div className="absolute left-0 right-0 bottom-4 md:flex hidden justify-center">
+              <div className="flex items-center gap-3 bg-black/40 text-white px-4 py-2 rounded-full backdrop-blur-md transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                {callMode === 'video' && (
+                  <>
+                    <TrackToggle
+                      source={Track.Source.ScreenShare}
+                      className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                    />
+                    <TrackToggle
+                      source={Track.Source.Camera}
+                      className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                    />
+                  </>
+                )}
                 <button
-                  className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
-                  onClick={() => setShowLocalPreview((v) => !v)}
-                  title={showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi'}
+                  className="cursor-pointer p-2 rounded-full bg-red-600 hover:bg-red-700 transition text-white"
+                  onClick={() => {
+                    if (onRequestEnd) onRequestEnd();
+                  }}
+                  title="Kết thúc"
                 >
-                  {showLocalPreview ? <HiEyeSlash className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
+                  <CiPhone className="w-5 h-5" />
                 </button>
-              )}
-            </div>
-          </div>
-          {/* Mobile controls – ẩn mặc định, hiện khi chạm */}
-          <div
-            className={`fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-6 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}
-          >
-            <div className="flex flex-col items-center gap-2">
-              {callMode === 'video' && (
-                <>
-                  <TrackToggle
-                    source={Track.Source.Camera}
-                    className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-                  />
-                  <span className="text-white text-xs">Camera</span>
-                </>
-              )}
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <TrackToggle
-                source={Track.Source.Microphone}
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-              />
-              <span className="text-white text-xs">Mic</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <button
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition"
-                onClick={() => {
-                  if (onRequestEnd) onRequestEnd();
-                }}
-                title="Kết thúc"
-              >
-                <CiPhone className="w-6 h-6" />
-              </button>
-              <span className="text-white text-xs">Kết thúc</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              {callMode === 'video' && (
-                <>
+                <TrackToggle
+                  source={Track.Source.Microphone}
+                  className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                />
+                {callMode === 'video' && (
                   <button
-                    className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                    className="cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
                     onClick={() => setShowLocalPreview((v) => !v)}
                     title={showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi'}
                   >
-                    {showLocalPreview ? <HiEyeSlash className="w-6 h-6" /> : <HiEye className="w-6 h-6" />}
+                    {showLocalPreview ? <HiEyeSlash className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
                   </button>
-                  <span className="text-white text-xs">{showLocalPreview ? 'Ẩn cam tôi' : 'Hiện cam tôi'}</span>
-                </>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-          {/* Mobile right-side quick actions */}
+          )}
+
+          {!isMini && (
+            <div
+              className={`fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-6 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}
+            >
+              <div className="flex flex-col items-center gap-2">
+                {callMode === 'video' && (
+                  <>
+                    <TrackToggle
+                      source={Track.Source.Camera}
+                      className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                    />
+                    <span className="text-white text-xs">Camera</span>
+                  </>
+                )}
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <TrackToggle
+                  source={Track.Source.Microphone}
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                />
+                <span className="text-white text-xs">Mic</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition"
+                  onClick={() => {
+                    if (onRequestEnd) onRequestEnd();
+                  }}
+                  title="Kết thúc"
+                >
+                  <CiPhone className="w-6 h-6" />
+                </button>
+                <span className="text-white text-xs">Kết thúc</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                {callMode === 'video' && (
+                  <>
+                    <button
+                      className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                      onClick={() => setShowLocalPreview((v) => !v)}
+                      title={showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi'}
+                    >
+                      {showLocalPreview ? <HiEyeSlash className="w-6 h-6" /> : <HiEye className="w-6 h-6" />}
+                    </button>
+                    <span className="text-white text-xs">{showLocalPreview ? 'Ẩn cam tôi' : 'Hiện cam tôi'}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </LiveKitRoom>
     </div>
