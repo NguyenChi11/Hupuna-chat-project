@@ -473,7 +473,6 @@ export default function ChatItem({
                 {displayName}
               </h4>
               <span className="text-sm text-gray-500 flex items-center gap-1">
-                <HiCheck className="w-4 h-4 text-indigo-500" />
                 {timeDisplay}
               </span>
             </div>

@@ -1454,6 +1454,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
                       myName={currentUser.name}
                       myAvatarUrl={currentUser.avatar}
                       callMode={callType === 'video' ? 'video' : 'voice'}
+                      isGroup={normalizedIsGroup}
                       localPreviewSize={
                         globalCallMin
                           ? { w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))), h: 90 }
