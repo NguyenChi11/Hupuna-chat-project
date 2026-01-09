@@ -8,7 +8,7 @@ import IconSH from '@/public/icons/search.svg';
 import IconAR from '@/public/icons/arrow1.svg';
 import IconDot from '@/public/icons/dot.svg';
 import IconAR2 from '@/public/icons/arrow2.svg';
-import { normalizeNoAccent } from '@/utils/utils';
+import { normalizeNoAccent, hasDiacritics, accentAwareIncludes } from '@/utils/utils';
 
 // Dữ liệu giả định
 const friends = [
@@ -70,9 +70,9 @@ export default function FriendsList() {
 
   // Lọc + sắp xếp bạn bè
   const filteredFriends = useMemo(() => {
-    let result = friends.filter((friend) =>
-      normalizeNoAccent(friend.name).includes(normalizeNoAccent(searchTerm)),
-    );
+    const norm = normalizeNoAccent(searchTerm);
+    const hasDia = hasDiacritics(searchTerm);
+    let result = friends.filter((friend) => accentAwareIncludes(friend.name || '', searchTerm));
     result = result.sort((a, b) => {
       if (sortOrder === 'asc') return a.name.localeCompare(b.name, 'vi');
       return b.name.localeCompare(a.name, 'vi');

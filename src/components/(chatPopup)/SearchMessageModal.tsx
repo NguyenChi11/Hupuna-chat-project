@@ -6,7 +6,7 @@ import { Message } from '@/types/Message';
 import { User } from '@/types/User';
 import Image from 'next/image';
 import ArrowRightICon from '@/public/icons/arrow-right-icon.svg'; // Reuse existing icon
-import { getProxyUrl, normalizeNoAccent, buildAccentInsensitiveRegex, hasDiacritics } from '@/utils/utils';
+import { getProxyUrl, normalizeNoAccent, buildAccentInsensitiveRegex, hasDiacritics, accentAwareIncludes } from '@/utils/utils';
 import MediaPreviewModal from '@/components/(chatPopup)/MediaPreviewModal';
 import { IoReload } from 'react-icons/io5';
 import { HiPlay } from 'react-icons/hi2';
@@ -54,6 +54,26 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
       setIsSearching(true);
 
       try {
+        const buildTsRange = (): Record<string, number> | undefined => {
+          let fromMs: number | undefined;
+          let toMs: number | undefined;
+          if (startDate) {
+            const d = new Date(`${startDate}T00:00:00`);
+            if (!Number.isNaN(d.getTime())) fromMs = d.getTime();
+          }
+          if (endDate) {
+            const d = new Date(`${endDate}T23:59:59`);
+            if (!Number.isNaN(d.getTime())) toMs = d.getTime();
+          }
+          if (fromMs !== undefined || toMs !== undefined) {
+            const range: Record<string, number> = {};
+            if (fromMs !== undefined) range.$gte = fromMs;
+            if (toMs !== undefined) range.$lte = toMs;
+            return range;
+          }
+          return undefined;
+        };
+        const tsRange = buildTsRange();
         const res = await fetch('/api/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -65,6 +85,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
               isRecalled: { $ne: true },
               isDeleted: { $ne: true },
               type: { $ne: 'notify' },
+              ...(tsRange ? { timestamp: tsRange } : {}),
             },
             limit: 500,
             sort: { field: 'timestamp', order: 'desc' },
@@ -72,8 +93,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
         });
         const data = await res.json();
         const raw: Message[] = Array.isArray(data?.data) ? (data.data as Message[]) : [];
-        const term = normalizeNoAccent(query);
-        const hasDia = hasDiacritics(query);
         const filtered = raw.filter((m) => {
           const text =
             m.type === 'file'
@@ -81,12 +100,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
               : m.type === 'sticker'
                 ? ''
                 : String(m.content || '');
-          const accentInsensitive = normalizeNoAccent(text).includes(term);
-          if (!accentInsensitive) return false;
-          if (!hasDia) return true;
-          const exactAccent = String(text || '').toLowerCase().includes(String(query || '').toLowerCase());
-          const textHasDia = hasDiacritics(text);
-          return exactAccent || textHasDia;
+          return accentAwareIncludes(text, query);
         });
         const results: Message[] = filtered.slice().sort((a: Message, b: Message) => Number(b.timestamp) - Number(a.timestamp));
         setSearchResults(results);
@@ -248,7 +262,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
       <>
         {parts.map((part, i) =>
           regex.test(part) ? (
-            <mark key={i} className="bg-yellow-200 text-yellow-900 px-0.5 rounded font-medium">
+            <mark key={i} className=" text-blue-900 px-0.5 rounded font-medium">
               {part}
             </mark>
           ) : (

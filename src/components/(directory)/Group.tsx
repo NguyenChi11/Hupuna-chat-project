@@ -8,7 +8,7 @@ import IconAR from '@/public/icons/arrow1.svg';
 import IconSH from '@/public/icons/search.svg';
 import IconDot from '@/public/icons/dot.svg';
 import IconTick from '@/public/icons/tick.svg';
-import { normalizeNoAccent } from '@/utils/utils';
+import { normalizeNoAccent, hasDiacritics, accentAwareIncludes } from '@/utils/utils';
 
 const groups = [
   { name: 'Xác xuất thống kê_125215', members: 26, avatar: '/imgs/img1.jpeg' },
@@ -40,7 +40,9 @@ export default function GroupsList() {
 
   // Lọc + sắp xếp
   const filteredGroups = useMemo(() => {
-    let result = groups.filter((g) => normalizeNoAccent(g.name).includes(normalizeNoAccent(search)));
+    const norm = normalizeNoAccent(search);
+    const hasDia = hasDiacritics(search);
+    let result = groups.filter((g) => accentAwareIncludes(g.name || '', search));
 
     switch (sortBy) {
       case 'name-asc':

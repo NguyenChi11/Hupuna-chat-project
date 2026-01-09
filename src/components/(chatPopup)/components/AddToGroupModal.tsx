@@ -4,7 +4,7 @@ import { HiPlus, HiChevronRight } from 'react-icons/hi2';
 import Image from 'next/image';
 import { User } from '@/types/User';
 import { GroupConversation } from '@/types/Group';
-import { getProxyUrl, resolveSocketUrl, normalizeNoAccent } from '@/utils/utils';
+import { getProxyUrl, resolveSocketUrl, normalizeNoAccent, hasDiacritics, accentAwareIncludes } from '@/utils/utils';
 import SuccessModal from '@/components/modal/SuccessModal';
 import io from 'socket.io-client';
 
@@ -59,7 +59,8 @@ export default function AddToGroupModal({
   const filteredGroups = useMemo(() => {
     const q = normalizeNoAccent(groupSearch.trim());
     if (!q) return myGroupsQuick;
-    return myGroupsQuick.filter((g) => normalizeNoAccent(String(g.name || '')).includes(q));
+    const hasDia = hasDiacritics(groupSearch.trim());
+    return myGroupsQuick.filter((g) => accentAwareIncludes(String(g.name || ''), groupSearch.trim()));
   }, [groupSearch, myGroupsQuick]);
 
   const toggleSelectGroup = useCallback(

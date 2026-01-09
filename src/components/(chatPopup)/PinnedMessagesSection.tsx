@@ -18,7 +18,7 @@ import {
   HiTrash,
   HiMagnifyingGlass,
 } from 'react-icons/hi2';
-import { getProxyUrl, normalizeNoAccent, hasDiacritics } from '@/utils/utils';
+import { getProxyUrl, normalizeNoAccent, hasDiacritics, accentAwareIncludes } from '@/utils/utils';
 
 interface PinnedMessagesSectionProps {
   allPinnedMessages: Message[];
@@ -130,18 +130,9 @@ export default function PinnedMessagesSection({
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredPinnedMessages = allPinnedMessages.filter((msg) => {
-    const queryNorm = normalizeNoAccent(searchQuery);
-    const hasDia = hasDiacritics(searchQuery);
     const rawContent = String(msg.content || '');
     const rawTitle = String(msg.pinnedTitle || '');
-    const contentNorm = normalizeNoAccent(rawContent);
-    const titleNorm = normalizeNoAccent(rawTitle);
-    const basicMatch = contentNorm.includes(queryNorm) || titleNorm.includes(queryNorm);
-    if (!basicMatch) return false;
-    if (!hasDia) return true;
-    const exactAccent = rawContent.toLowerCase().includes(searchQuery.toLowerCase()) || rawTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    const anyDia = hasDiacritics(rawContent) || hasDiacritics(rawTitle);
-    return exactAccent || anyDia;
+    return accentAwareIncludes(rawContent, searchQuery) || accentAwareIncludes(rawTitle, searchQuery);
   });
   const [optionsPosition, setOptionsPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement | null>(null);

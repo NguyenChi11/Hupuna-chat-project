@@ -7,7 +7,7 @@ import ChatItem from './ChatItem';
 import SearchResults from '@/components/(chatPopup)/SearchResults';
 import { User } from '../../types/User';
 import type { GroupConversation, ChatItem as ChatItemType } from '../../types/Group';
-import { getProxyUrl, normalizeNoAccent, computeMatchScore, hasDiacritics } from '../../utils/utils';
+import { getProxyUrl, normalizeNoAccent, computeMatchScore, hasDiacritics, accentAwareIncludes } from '../../utils/utils';
 import MessageFilter, { FilterType } from '../(chatPopup)/MessageFilter';
 import SidebarMobileMenu from './SidebarMobileMenu';
 
@@ -306,15 +306,7 @@ export default function Sidebar({
       }
 
       const contactResults = allChats
-        .filter((c) => {
-          const name = getChatDisplayName(c, String(currentUserId));
-          const accentInsensitive = normalizeNoAccent(name).includes(normalizedTerm);
-          if (!accentInsensitive) return false;
-          if (!hasDia) return true;
-          const exactAccent = String(name || '').toLowerCase().includes(String(term || '').toLowerCase());
-          const nameHasDia = hasDiacritics(name);
-          return exactAccent || nameHasDia;
-        })
+        .filter((c) => accentAwareIncludes(getChatDisplayName(c, String(currentUserId)), term))
         .map((c) => ({
           item: c,
           score: computeMatchScore(getChatDisplayName(c, String(currentUserId)), term),
@@ -355,15 +347,7 @@ export default function Sidebar({
           return m.content || '';
         };
 
-        messages = messages.filter((m) => {
-          const text = getMessageSearchText(m);
-          const accentInsensitive = normalizeNoAccent(text).includes(normalizedTerm);
-          if (!accentInsensitive) return false;
-          if (!hasDia) return true;
-          const exactAccent = String(text || '').toLowerCase().includes(String(term || '').toLowerCase());
-          const textHasDia = hasDiacritics(text);
-          return exactAccent || textHasDia;
-        });
+        messages = messages.filter((m) => accentAwareIncludes(getMessageSearchText(m), term));
 
         messages = [...messages].sort((a, b) => {
           const sa = computeMatchScore(getMessageSearchText(a), term);
@@ -506,9 +490,7 @@ export default function Sidebar({
     let filtered = mixedChats.filter((chat: ChatItemType) => {
       const isHidden = chat.isHidden;
       const displayName = getChatDisplayName(chat, String(currentUserId));
-      const matchesSearch = isSearchActive
-        ? normalizeNoAccent(displayName).includes(normalizeNoAccent(searchTerm))
-        : true;
+      const matchesSearch = isSearchActive ? accentAwareIncludes(displayName, searchTerm) : true;
 
       if (isSearchActive) return matchesSearch;
       if (filterType === 'hidden') return isHidden && matchesSearch;
@@ -621,7 +603,7 @@ export default function Sidebar({
           <div className="flex items-center gap-4 lg:gap-3">
             <div className="relative flex-1 group">
               {/* Icon kính lúp */}
-              <HiMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 lg:text-gray-500 pointer-events-none z-10 transition-colors duration-300 group-focus-within:text-[#0068ff] group-focus-within:opacity-100" />
+              <HiMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 lg:text-gray-500 pointer-events-none  transition-colors duration-300 group-focus-within:text-[#0068ff] group-focus-within:opacity-100" />
 
               <input
                 ref={searchInputRef}

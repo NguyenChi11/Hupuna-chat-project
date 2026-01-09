@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Message } from '@/types/Message';
 import { User } from '@/types/User';
 import type { GlobalSearchMessage } from '@/components/(home)/HomeOverlays';
-import { getProxyUrl, normalizeNoAccent, buildAccentInsensitiveRegex, hasDiacritics } from '@/utils/utils';
+import { getProxyUrl, normalizeNoAccent, buildAccentInsensitiveRegex, hasDiacritics, accentAwareIncludes } from '@/utils/utils';
 import { HiArrowLeft, HiPlay, HiXMark } from 'react-icons/hi2';
 import { IoReload, IoReloadCircle } from 'react-icons/io5';
 
@@ -126,12 +126,7 @@ export default function RoomSearchResultsModal({
                 : m.type === 'sticker'
                   ? ''
                   : String(m.content || '');
-            const accentInsensitive = normalizeNoAccent(text).includes(term);
-            if (!accentInsensitive) return false;
-            if (!hasDia) return true;
-            const exactAccent = String(text || '').toLowerCase().includes(String(keyword || '').toLowerCase());
-            const textHasDia = hasDiacritics(text);
-            return exactAccent || textHasDia;
+            return accentAwareIncludes(text, keyword);
           });
           const sorted = filtered.slice().sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
           setMessages(sorted);

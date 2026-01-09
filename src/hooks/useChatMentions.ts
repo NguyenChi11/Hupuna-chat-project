@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { normalizeNoAccent } from '@/utils/utils';
+import { normalizeNoAccent, hasDiacritics, accentAwareIncludes } from '@/utils/utils';
 
 import type { User } from '@/types/User';
 import type { MemberInfo } from '@/types/Group';
@@ -122,11 +122,8 @@ export function useChatMentions({ allUsers, activeMembers, currentUser, allUsers
     if (!mentionQuery) return finalUsersList;
 
     const query = normalizeNoAccent(mentionQuery);
-
-    return finalUsersList.filter((user) => {
-      const name = getName(user);
-      return name && normalizeNoAccent(name).includes(query);
-    });
+    const hasDia = hasDiacritics(mentionQuery);
+    return finalUsersList.filter((user) => accentAwareIncludes(getName(user) || '', mentionQuery));
   }, [mentionQuery, activeMembers, allUsers, currentUser, allUsersMap]);
 
   const handleInputChangeEditable = () => {

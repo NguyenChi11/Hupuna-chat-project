@@ -88,9 +88,20 @@ export const resolveSocketUrl = (): string => {
 };
 
 export const normalizeNoAccent = (str: string): string => {
-  const s = String(str || '');
-  const n = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  return n.replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase();
+};
+
+const normalizeNoAccentKeepDHook = (str: string): string => {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFC')
+    .toLowerCase();
 };
 
 export const buildAccentInsensitiveRegex = (term: string): RegExp => {
@@ -115,8 +126,9 @@ export const buildAccentInsensitiveRegex = (term: string): RegExp => {
 
 export const hasDiacritics = (str: string): boolean => {
   const s = String(str || '');
-  const n = normalizeNoAccent(s);
-  return s.toLowerCase() !== n;
+  const sNFD = s.normalize('NFD');
+  if (/[\u0300-\u036f]/.test(sNFD)) return true;
+  return /[đĐ]/.test(s);
 };
 
 export const computeMatchScore = (text: string, term: string): number => {
@@ -149,4 +161,49 @@ export const computeMatchScore = (text: string, term: string): number => {
   const lengthBoost = Math.min(10, Math.floor((nQ.length / Math.max(1, nTxt.length)) * 10));
   score += lengthBoost;
   return score;
+};
+
+const hasToneMarks = (str: string): boolean => {
+  const s = String(str || '').normalize('NFD');
+  return /[\u0300\u0301\u0303\u0309\u0323]/.test(s);
+};
+
+const stripToneMarks = (str: string): string => {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300\u0301\u0303\u0309\u0323]/g, '')
+    .normalize('NFC')
+    .toLowerCase();
+};
+
+const stripBaseMarks = (str: string): string => {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0302\u0306\u031B]/g, '')
+    .normalize('NFC')
+    .toLowerCase();
+};
+
+export const accentAwareIncludes = (text: string, keyword: string): boolean => {
+  const t = String(text || '');
+  const k = String(keyword || '');
+  if (!k.trim()) return true;
+  const tNFC = t.normalize('NFC');
+  const kNFC = k.normalize('NFC');
+  const kHasDia = hasDiacritics(kNFC);
+  if (kHasDia) {
+    if (hasToneMarks(kNFC)) {
+      const tBase = stripBaseMarks(tNFC);
+      const kBase = stripBaseMarks(kNFC);
+      return tBase.includes(kBase);
+    }
+    const tNoTone = stripToneMarks(tNFC);
+    const kNoTone = stripToneMarks(kNFC);
+    const tNoAccent = normalizeNoAccentKeepDHook(tNoTone);
+    const kNoAccent = normalizeNoAccentKeepDHook(kNoTone);
+    return tNoAccent.includes(kNoAccent);
+  }
+  const tNo = normalizeNoAccentKeepDHook(tNFC);
+  const kNo = normalizeNoAccentKeepDHook(kNFC);
+  return tNo.includes(kNo);
 };
