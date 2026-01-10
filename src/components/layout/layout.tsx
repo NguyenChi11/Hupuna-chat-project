@@ -680,11 +680,29 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   const openBtnRef = useRef<HTMLDivElement | null>(null);
   const openBtnDraggingRef = useRef<boolean>(false);
   useEffect(() => {
+    const handleResize = () => {
+      try {
+        const W = typeof window !== 'undefined' ? window.innerWidth : 360;
+        const H = typeof window !== 'undefined' ? window.innerHeight : 640;
+        setOpenBtnPos((prev) => {
+          const w = 240; // max width
+          const h = 160; // max height
+          const maxX = Math.max(8, W - w - 8);
+          const maxY = Math.max(8, H - h - 8);
+          return { x: Math.min(prev.x, maxX), y: Math.min(prev.y, maxY) };
+        });
+      } catch {}
+    };
+
     try {
       const W = typeof window !== 'undefined' ? window.innerWidth : 360;
       const H = typeof window !== 'undefined' ? window.innerHeight : 640;
-      setOpenBtnPos({ x: Math.max(8, W - 140), y: Math.max(8, H - 80) });
+      // Default position: bottom-right, considering max size 240x160
+      setOpenBtnPos({ x: Math.max(8, W - 240 - 16), y: Math.max(8, H - 160 - 16) });
     } catch {}
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   const handleOpenBtnDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
