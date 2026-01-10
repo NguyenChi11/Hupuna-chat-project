@@ -1056,13 +1056,6 @@ export default function ChatInput({
         <button
           onClick={handleShowUpdatingPopup}
           className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
-          aria-label="Chọn Zalo"
-        >
-          <CiInstagram className="w-6 h-6" />
-        </button>
-        <button
-          onClick={handleShowUpdatingPopup}
-          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Chỉnh sửa Zalo"
         >
           <CiEdit className="w-6 h-6" />
