@@ -579,7 +579,7 @@ export default function BaseManagerModal({
                         <div className="flex items-center gap-2 overflow-hidden">
                           <div className="relative w-6 h-6 flex-none">
                             <Image
-                              src={getProxyUrl(chat.avatar || '/placeholder-user.jpg')}
+                              src={getProxyUrl(chat.avatar || '/logo/avata.webp')}
                               alt=""
                               fill
                               className="rounded-full object-cover"

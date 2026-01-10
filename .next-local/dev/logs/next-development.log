@@ -2857,3 +2857,161 @@ Import trace:
 [01:26:57.803] Browser WARN    Image with src "/imgs/banner2.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
 [01:27:19.683] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[01:28:42.126] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:28:42.128] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:28:42.129] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:28:42.131] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:28:42.132] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[01:28:42.133] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:28:46.113] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:28:46.125] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:28:46.126] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:28:46.127] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:28:46.128] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[01:28:46.133] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:28:52.853] Browser WARN    Image with src "/logo/avata.webp" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:28:53.632] Browser ERROR   uncaughtError: Error: Invalid src prop (/placeholder-user.jpg) on `next/image` does not match `images.localPatterns` configured in your `next.config.js`
+See more info: https://nextjs.org/docs/messages/next-image-unconfigured-localpatterns
+[01:28:53.681] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:28:53.692] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:28:53.700] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:28:53.758] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:28:53.759] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[01:28:53.760] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:28:53.947] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:29:06.004] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:29:08.073] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[01:29:08.125] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:29:08.125] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:29:08.125] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:29:08.125] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[01:29:08.334] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:29:08.743] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:29:08.752] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:29:08.767] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:29:08.943] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:29:08.944] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:29:15.595] Browser WARN    Image with src "/logo/avata.webp" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:29:16.545] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:29:16.552] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:29:16.557] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:29:16.571] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:29:16.572] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[01:29:16.573] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:29:16.725] Browser WARN    Image with src "https://files.hupuna.vn/api/files/pbc_3446931122/mx01u9qf9dps9t0/z7398291088859_bd5225935cfd83641324ce2cff127b97_mey9wnc4yp.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:29:16.725] Browser WARN    Image with src "https://files.hupuna.vn/api/files/pbc_3446931122/0jvu5n197algmch/z7406839799067_6dbeefb12d3fd07d8830f693f63cd6ca_kn1nbd5sy4.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:29:16.725] Browser WARN    Image with src "http://117.4.242.30:8090/api/files/pbc_3446931122/pjnrk58sgjlfp1p/img_1077_1h4pvzl299.JPG" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:29:16.725] Browser WARN    Image with src "https://files.hupuna.vn/api/files/pbc_3446931122/or5ea6frktiyyx8/img_4224_jrxwq9pnmp.JPG" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:29:16.841] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:29:17.618] Browser ERROR   uncaughtError: Error: Invalid src prop (/placeholder-user.jpg) on `next/image` does not match `images.localPatterns` configured in your `next.config.js`
+See more info: https://nextjs.org/docs/messages/next-image-unconfigured-localpatterns
+[01:30:06.574] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:30:06.582] Server  LOG      ✓ Compiled in 1033ms
+[01:30:09.163] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:30:11.291] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[01:30:11.521] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:30:11.945] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:30:11.945] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:30:11.945] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:30:11.945] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[01:30:12.042] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:30:12.044] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:30:12.045] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:30:12.291] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:30:12.292] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:30:16.646] Browser WARN    Image with src "/logo/avata.webp" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:30:17.219] Browser ERROR   uncaughtError: Error: Image with src "/placeholder-user.jpg" has both "width" and "fill" properties. Only one should be used.
+[01:30:17.573] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:30:17.574] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[01:30:17.575] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:30:17.576] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:30:17.578] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:30:17.861] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:30:18.528] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:30:40.788] Server  LOG      ✓ Compiled in 1038ms
+[01:30:40.790] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:30:43.263] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:30:45.207] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[01:30:45.486] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:30:45.486] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:30:45.486] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:30:45.486] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[01:30:45.625] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:30:46.397] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:30:46.402] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:30:46.406] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:30:46.410] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:30:46.416] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:30:46.658] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:30:49.460] Browser WARN    Image with src "/imgs/banner5.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:30:49.863] Browser WARN    Image with src "/logo/avata.webp" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:30:49.971] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[01:30:49.979] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:30:49.979] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:30:49.982] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:30:49.990] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:30:50.142] Browser WARN    Image with src "https://files.hupuna.vn/api/files/pbc_3446931122/mx01u9qf9dps9t0/z7398291088859_bd5225935cfd83641324ce2cff127b97_mey9wnc4yp.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:30:50.142] Browser WARN    Image with src "https://files.hupuna.vn/api/files/pbc_3446931122/0jvu5n197algmch/z7406839799067_6dbeefb12d3fd07d8830f693f63cd6ca_kn1nbd5sy4.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:30:50.142] Browser WARN    Image with src "http://117.4.242.30:8090/api/files/pbc_3446931122/pjnrk58sgjlfp1p/img_1077_1h4pvzl299.JPG" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:30:50.142] Browser WARN    Image with src "https://files.hupuna.vn/api/files/pbc_3446931122/or5ea6frktiyyx8/img_4224_jrxwq9pnmp.JPG" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:30:50.211] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:30:50.430] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:30:50.528] Browser ERROR   uncaughtError: Error: Image with src "/avata.webp" has both "width" and "fill" properties. Only one should be used.
+[01:31:54.478] Server  LOG      ✓ Compiled in 1183ms
+[01:31:54.489] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:31:56.767] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:31:58.799] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[01:31:58.909] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:31:58.909] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:31:58.909] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:31:58.909] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[01:31:59.033] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:31:59.486] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:31:59.489] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:31:59.492] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:31:59.494] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:31:59.505] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:32:00.283] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:32:02.704] Browser WARN    Image with src "/logo/avata.webp" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:32:02.934] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:32:02.935] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:32:02.936] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:32:02.937] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[01:32:02.938] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:32:02.939] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:32:03.118] Browser WARN    Image with src "https://files.hupuna.vn/api/files/pbc_3446931122/mx01u9qf9dps9t0/z7398291088859_bd5225935cfd83641324ce2cff127b97_mey9wnc4yp.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:32:03.118] Browser WARN    Image with src "https://files.hupuna.vn/api/files/pbc_3446931122/0jvu5n197algmch/z7406839799067_6dbeefb12d3fd07d8830f693f63cd6ca_kn1nbd5sy4.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:32:03.118] Browser WARN    Image with src "http://117.4.242.30:8090/api/files/pbc_3446931122/pjnrk58sgjlfp1p/img_1077_1h4pvzl299.JPG" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:32:03.118] Browser WARN    Image with src "https://files.hupuna.vn/api/files/pbc_3446931122/or5ea6frktiyyx8/img_4224_jrxwq9pnmp.JPG" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:32:03.118] Browser WARN    Image with src "/imgs/banner5.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:32:03.381] Browser ERROR   uncaughtError: Error: Image with src "/logo/avata.webp" has both "width" and "fill" properties. Only one should be used.
+[01:32:03.384] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:32:43.013] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:32:43.029] Server  LOG      ✓ Compiled in 1290ms
+[01:32:45.286] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:32:47.339] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:32:47.339] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:32:47.339] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:32:47.738] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:32:47.738] Browser WARN    Image with src "/imgs/banner5.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:32:47.986] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[01:32:48.495] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[01:32:48.523] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:32:48.750] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:32:48.959] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:32:48.968] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:32:48.969] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:32:49.109] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:32:54.445] Browser WARN    Image with src "/logo/avata.webp" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[01:32:55.279] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[01:32:55.281] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:32:55.282] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:32:55.283] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:32:55.284] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:32:55.285] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:32:55.564] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
