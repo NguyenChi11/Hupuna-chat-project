@@ -1301,7 +1301,10 @@ const getChatDisplayName = (chat, currentUserId)=>{
 };
 const formatMessagePreview = (content, maxLength = 50)=>{
     if (!content) return '';
-    const formatted = content.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1');
+    // 1. Strip HTML first (nếu là tin nhắn rich text)
+    const plain = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["stripHtml"])(content);
+    // 2. Handle mentions
+    const formatted = plain.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1');
     if (formatted.length > maxLength) {
         return formatted.slice(0, maxLength) + '...';
     }
@@ -1817,7 +1820,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                             className: "absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 lg:text-gray-500 pointer-events-none  transition-colors duration-300 group-focus-within:text-[#0068ff] group-focus-within:opacity-100"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                            lineNumber: 606,
+                                            lineNumber: 616,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1829,7 +1832,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                             className: "w-full pl-11 pr-10 py-1 bg-transparent rounded-xl focus:outline-none focus:bg-white transition-all duration-300 text-base text-white placeholder-white/70 focus:text-gray-800 focus:placeholder-gray-500 lg:pl-10 lg:py-2 lg:bg-[#EAEDF0] lg:rounded-md lg:text-sm lg:text-gray-900 lg:placeholder-gray-500 lg:focus:ring-1 lg:focus:ring-[#0068ff]"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                            lineNumber: 608,
+                                            lineNumber: 618,
                                             columnNumber: 15
                                         }, this),
                                         searchTerm && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1845,18 +1848,18 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                 className: "w-4 h-4 text-white group-focus-within:text-gray-600 lg:text-gray-500 transition-colors duration-300"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                lineNumber: 626,
+                                                lineNumber: 636,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                            lineNumber: 619,
+                                            lineNumber: 629,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/base/Sidebar.tsx",
-                                    lineNumber: 604,
+                                    lineNumber: 614,
                                     columnNumber: 13
                                 }, this),
                                 !isWidgetIframe && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1871,7 +1874,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                     className: "w-4 h-4 text-white lg:hidden"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                    lineNumber: 640,
+                                                    lineNumber: 650,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1881,7 +1884,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                             className: "w-5 h-5 text-gray-600 group-hover:text-[#0068ff] transition-colors"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                            lineNumber: 643,
+                                                            lineNumber: 653,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1889,19 +1892,19 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                             children: "+"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                            lineNumber: 644,
+                                                            lineNumber: 654,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                    lineNumber: 642,
+                                                    lineNumber: 652,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                            lineNumber: 634,
+                                            lineNumber: 644,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1916,20 +1919,20 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                             className: "w-5 h-5 text-white text-sm lg:hidden"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                            lineNumber: 656,
+                                                            lineNumber: 666,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$fa6$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FaPlus"], {
                                                             className: "hidden lg:block w-5 h-5 text-gray-600 group-hover:text-[#0068ff] transition-colors"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                            lineNumber: 658,
+                                                            lineNumber: 668,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                    lineNumber: 650,
+                                                    lineNumber: 660,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$base$2f$SidebarMobileMenu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1945,30 +1948,30 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                     onlyPersonal: onlyPersonal
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                    lineNumber: 661,
+                                                    lineNumber: 671,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                            lineNumber: 649,
+                                            lineNumber: 659,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/base/Sidebar.tsx",
-                                    lineNumber: 632,
+                                    lineNumber: 642,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                            lineNumber: 603,
+                            lineNumber: 613,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                        lineNumber: 602,
+                        lineNumber: 612,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1986,13 +1989,13 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                 className: "absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                lineNumber: 694,
+                                                lineNumber: 704,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                        lineNumber: 680,
+                                        lineNumber: 690,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2004,19 +2007,19 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                 className: "absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                lineNumber: 705,
+                                                lineNumber: 715,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                        lineNumber: 697,
+                                        lineNumber: 707,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 679,
+                                lineNumber: 689,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2035,13 +2038,13 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                         className: `w-4 h-4 transition-transform duration-200 ${showTagFilterDropdown ? 'rotate-180' : ''}`
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                        lineNumber: 719,
+                                                        lineNumber: 729,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                lineNumber: 712,
+                                                lineNumber: 722,
                                                 columnNumber: 15
                                             }, this),
                                             showTagFilterDropdown && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2052,7 +2055,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                         children: "Theo thẻ tags"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                        lineNumber: 725,
+                                                        lineNumber: 735,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2072,7 +2075,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                                         className: `inline-block w-3.5 h-3.5 rounded-sm ${tag.color} border border-white shadow-sm`
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                                        lineNumber: 737,
+                                                                        lineNumber: 747,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2080,7 +2083,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                                         children: tag.label
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                                        lineNumber: 740,
+                                                                        lineNumber: 750,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -2090,19 +2093,19 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                                         className: "w-4 h-4"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                                        lineNumber: 741,
+                                                                        lineNumber: 751,
                                                                         columnNumber: 27
                                                                     }, this)
                                                                 ]
                                                             }, tag.id, true, {
                                                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                                lineNumber: 730,
+                                                                lineNumber: 740,
                                                                 columnNumber: 25
                                                             }, this);
                                                         })
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                        lineNumber: 726,
+                                                        lineNumber: 736,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2116,24 +2119,24 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                             children: "Quản lý thẻ tags"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                            lineNumber: 747,
+                                                            lineNumber: 757,
                                                             columnNumber: 21
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                        lineNumber: 746,
+                                                        lineNumber: 756,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                lineNumber: 724,
+                                                lineNumber: 734,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                        lineNumber: 711,
+                                        lineNumber: 721,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2149,13 +2152,13 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                         className: `w-4 h-4 transition-transform duration-200 ${showFilterDropdown ? 'rotate-180' : ''}`
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                        lineNumber: 769,
+                                                        lineNumber: 779,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                lineNumber: 762,
+                                                lineNumber: 772,
                                                 columnNumber: 15
                                             }, this),
                                             showFilterDropdown && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2166,7 +2169,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                         children: "Theo thẻ phân loại"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                        lineNumber: 776,
+                                                        lineNumber: 786,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2186,7 +2189,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                                         className: `inline-block w-3.5 h-3.5 rounded-sm ${cat.color} border border-white shadow-sm`
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                                        lineNumber: 790,
+                                                                        lineNumber: 800,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2194,7 +2197,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                                         children: cat.label
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                                        lineNumber: 793,
+                                                                        lineNumber: 803,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -2204,19 +2207,19 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                                         className: "w-4 h-4"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                                        lineNumber: 794,
+                                                                        lineNumber: 804,
                                                                         columnNumber: 27
                                                                     }, this)
                                                                 ]
                                                             }, cat.id, true, {
                                                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                                lineNumber: 781,
+                                                                lineNumber: 791,
                                                                 columnNumber: 25
                                                             }, this);
                                                         })
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                        lineNumber: 777,
+                                                        lineNumber: 787,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2230,42 +2233,42 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                                             children: "Quản lý thẻ phân loại"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                            lineNumber: 800,
+                                                            lineNumber: 810,
                                                             columnNumber: 21
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                        lineNumber: 799,
+                                                        lineNumber: 809,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                                lineNumber: 775,
+                                                lineNumber: 785,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                                        lineNumber: 761,
+                                        lineNumber: 771,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 710,
+                                lineNumber: 720,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                        lineNumber: 678,
+                        lineNumber: 688,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                lineNumber: 601,
+                lineNumber: 611,
                 columnNumber: 7
             }, this),
             onlyGroups && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2283,7 +2286,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                 className: "w-6 h-6"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 833,
+                                lineNumber: 843,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2291,13 +2294,13 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                 children: "Lịch"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 834,
+                                lineNumber: 844,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                        lineNumber: 819,
+                        lineNumber: 829,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2312,7 +2315,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                 className: "w-6 h-6"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 850,
+                                lineNumber: 860,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2320,13 +2323,13 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                 children: "Nhắc hẹn"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 851,
+                                lineNumber: 861,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                        lineNumber: 836,
+                        lineNumber: 846,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2341,7 +2344,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                 className: "w-6 h-6"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 867,
+                                lineNumber: 877,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2349,19 +2352,19 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                 children: "Nhóm Offline"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 868,
+                                lineNumber: 878,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                        lineNumber: 853,
+                        lineNumber: 863,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                lineNumber: 818,
+                lineNumber: 828,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2390,7 +2393,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                         })
                 }, void 0, false, {
                     fileName: "[project]/src/components/base/Sidebar.tsx",
-                    lineNumber: 876,
+                    lineNumber: 886,
                     columnNumber: 11
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
                     children: filteredAndSortedChats.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2402,12 +2405,12 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                     className: "w-16 h-16 text-gray-300"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/base/Sidebar.tsx",
-                                    lineNumber: 901,
+                                    lineNumber: 911,
                                     columnNumber: 19
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 900,
+                                lineNumber: 910,
                                 columnNumber: 17
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2420,7 +2423,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 903,
+                                lineNumber: 913,
                                 columnNumber: 17
                             }, this),
                             filterType === 'all' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2428,13 +2431,13 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                 children: "Nhấn vào nút tạo nhóm để bắt đầu"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 909,
+                                lineNumber: 919,
                                 columnNumber: 42
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                        lineNumber: 899,
+                        lineNumber: 909,
                         columnNumber: 15
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: `space-y-1 pb-20 ${styleWidget}`,
@@ -2452,26 +2455,26 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                                 onOpenTagManager: ()=>setShowTagManager(true)
                             }, item._id, false, {
                                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                                lineNumber: 916,
+                                lineNumber: 926,
                                 columnNumber: 21
                             }, this);
                         })
                     }, void 0, false, {
                         fileName: "[project]/src/components/base/Sidebar.tsx",
-                        lineNumber: 912,
+                        lineNumber: 922,
                         columnNumber: 15
                     }, this)
                 }, void 0, false)
             }, void 0, false, {
                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                lineNumber: 874,
+                lineNumber: 884,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-100 to-transparent pointer-events-none"
             }, void 0, false, {
                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                lineNumber: 937,
+                lineNumber: 947,
                 columnNumber: 7
             }, this),
             roomResultsModal && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$search$292f$RoomSearchResultsModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2490,7 +2493,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                 }
             }, void 0, false, {
                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                lineNumber: 940,
+                lineNumber: 950,
                 columnNumber: 9
             }, this),
             showComingSoon.isOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$modal$2f$ComingSoonModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2503,7 +2506,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                 description: showComingSoon.desc
             }, void 0, false, {
                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                lineNumber: 957,
+                lineNumber: 967,
                 columnNumber: 9
             }, this),
             showCategoryManager && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$modal$2f$CategoryManagerModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2515,7 +2518,7 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                 allUsers: allUsers
             }, void 0, false, {
                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                lineNumber: 965,
+                lineNumber: 975,
                 columnNumber: 9
             }, this),
             showTagManager && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$modal$2f$TagManagerModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2527,13 +2530,13 @@ function Sidebar({ currentUser, groups, allUsers, searchTerm, setSearchTerm, set
                 allUsers: allUsers
             }, void 0, false, {
                 fileName: "[project]/src/components/base/Sidebar.tsx",
-                lineNumber: 975,
+                lineNumber: 985,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/base/Sidebar.tsx",
-        lineNumber: 596,
+        lineNumber: 606,
         columnNumber: 5
     }, this);
 }

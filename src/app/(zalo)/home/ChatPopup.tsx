@@ -2837,6 +2837,19 @@ export default function ChatWindow({
   ) => {
     if (!content) return null;
 
+    // Check if content looks like HTML (from Rich Text Editor)
+    // ReactQuill typically wraps content in <p>, <div>, <ul>, <ol>, etc.
+    const isHtml = /<[a-z][\s\S]*>/i.test(content);
+
+    if (isHtml) {
+      return (
+        <div
+          className="rich-text-content [&>p]:mb-1 [&>p]:mt-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      );
+    }
+
     const highlightKeyword = (text: string, keyword: string | null | undefined) => {
       if (!keyword || !keyword.trim() || !text) return text;
       const regex = buildAccentInsensitiveRegex(keyword);

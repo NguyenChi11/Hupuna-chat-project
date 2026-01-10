@@ -61,7 +61,9 @@ export const resolveSocketUrl = (): string => {
     const proto = isSecure ? 'https:' : 'http:';
     return `${proto}//${finalUrl}`;
   } else if (process.env.NODE_ENV === 'production') {
-    console.warn('⚠️ WARNING: NEXT_PUBLIC_SOCKET_URL is not defined. Socket connection may fail if the fallback logic is incorrect for your deployment.');
+    console.warn(
+      '⚠️ WARNING: NEXT_PUBLIC_SOCKET_URL is not defined. Socket connection may fail if the fallback logic is incorrect for your deployment.',
+    );
   }
 
   // 2. Logic fallback (tự động đoán)
@@ -206,4 +208,15 @@ export const accentAwareIncludes = (text: string, keyword: string): boolean => {
   const tNo = normalizeNoAccentKeepDHook(tNFC);
   const kNo = normalizeNoAccentKeepDHook(kNFC);
   return tNo.includes(kNo);
+};
+
+export const stripHtml = (html: string) => {
+  if (!html) return '';
+  // Check if it's HTML-like
+  if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+  // Strip tags
+  return html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 };

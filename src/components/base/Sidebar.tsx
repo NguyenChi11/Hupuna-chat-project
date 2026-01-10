@@ -7,7 +7,14 @@ import ChatItem from './ChatItem';
 import SearchResults from '@/components/(chatPopup)/SearchResults';
 import { User } from '../../types/User';
 import type { GroupConversation, ChatItem as ChatItemType } from '../../types/Group';
-import { getProxyUrl, normalizeNoAccent, computeMatchScore, hasDiacritics, accentAwareIncludes } from '../../utils/utils';
+import {
+  getProxyUrl,
+  normalizeNoAccent,
+  computeMatchScore,
+  hasDiacritics,
+  accentAwareIncludes,
+  stripHtml,
+} from '../../utils/utils';
 import MessageFilter, { FilterType } from '../(chatPopup)/MessageFilter';
 import SidebarMobileMenu from './SidebarMobileMenu';
 
@@ -87,7 +94,10 @@ const getChatDisplayName = (chat: ChatItemType, currentUserId?: string): string 
 
 export const formatMessagePreview = (content: string | undefined, maxLength: number = 50): string => {
   if (!content) return '';
-  const formatted = content.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1');
+  // 1. Strip HTML first (nếu là tin nhắn rich text)
+  const plain = stripHtml(content);
+  // 2. Handle mentions
+  const formatted = plain.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1');
   if (formatted.length > maxLength) {
     return formatted.slice(0, maxLength) + '...';
   }
