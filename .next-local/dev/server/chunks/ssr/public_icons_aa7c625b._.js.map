@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/ching/OneDrive/Desktop/Chat-Hupuna/hupuna-chat/public/icons/arrow-right-icon.svg.mjs%20%28structured%20image%20object%20with%20data%20url%29"],"sourcesContent":["import src from \"IMAGE\";\nexport default { src, width: 24, height: 24, blurWidth: 0, blurHeight: 0};\n"],"names":[],"mappings":";;;;AAAA;;uCACe;IAAE,KAAA,8JAAG;IAAE,OAAO;IAAI,QAAQ;IAAI,WAAW;IAAG,YAAY;AAAC"}}]
-}

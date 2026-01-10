@@ -3,7 +3,6 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
   // Các cấu hình khác giữ nguyên ở đây nếu có
-  distDir: '.next-local',
   images: {
     localPatterns: [
       {
