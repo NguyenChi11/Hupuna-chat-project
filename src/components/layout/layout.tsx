@@ -727,7 +727,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     window.addEventListener('mouseup', onUp);
   };
   const handleOpenBtnTouchDragStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     const rect = openBtnRef.current?.getBoundingClientRect();
     const bw = rect?.width ?? 140;
     const bh = rect?.height ?? 48;
@@ -735,6 +735,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     const st = { sx: t.clientX, sy: t.clientY, ox: openBtnPos.x, oy: openBtnPos.y };
     const onMove = (ev: TouchEvent) => {
       openBtnDraggingRef.current = true;
+      if (ev.cancelable) ev.preventDefault();
       const tt = ev.touches[0];
       const dx = tt.clientX - st.sx;
       const dy = tt.clientY - st.sy;
