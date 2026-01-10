@@ -1,118 +1,2250 @@
-[00:00:19.400] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:00:23.048] Server  LOG      ✓ Ready in 15.5s
-[00:00:46.252] Server  LOG      ○ Compiling /home ...
-[00:01:12.119] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:16.172] Server  LOG      ○ Compiling /api/auth/refresh ...
-[00:01:18.323] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[00:01:18.323] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[00:01:19.195] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[00:01:19.195] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[00:01:19.195] Browser WARN    Image with src "/imgs/banner5.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[00:01:19.347] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[00:01:19.567] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
-[00:01:19.789] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
-[00:01:19.794] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
-[00:01:20.013] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
-[00:01:20.042] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
-[00:01:20.108] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
-[00:01:20.248] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
-[00:01:24.188] Browser WARN    Image with src "/imgs/banner2.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+[00:00:06.932] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:07.319] Server  LOG      ✓ Ready in 4.6s
+[00:04:59.346] Server  LOG      ○ Compiling /home ...
+[00:05:09.284] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:05:15.284] Server  LOG      ○ Compiling /api/auth/refresh ...
+[00:05:17.819] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:05:17.819] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:05:17.819] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:05:17.819] Browser WARN    Image with src "/imgs/banner5.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:05:17.819] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:05:17.819] Browser WARN    Image with src "/imgs/banner3.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
-[00:15:06.793] Server  LOG      ✓ Compiled in 1747ms
-[00:15:30.182] Server  LOG      ✓ Compiled in 1048ms
-[00:15:40.264] Server  LOG      ✓ Compiled in 555ms
-[00:16:23.047] Server  LOG      ✓ Compiled in 579ms
-[00:16:57.753] Server  LOG      ✓ Compiled in 592ms
-[00:19:15.374] Server  LOG      ✓ Compiled in 887ms
-[00:19:46.588] Server  LOG      ✓ Compiled in 934ms
-[00:20:49.493] Server  LOG      ✓ Compiled in 1036ms
-[00:22:11.023] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[00:22:11.623] Server  LOG      ✓ Compiled in 997ms
-[00:22:33.821] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
-[00:24:04.852] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[00:24:29.550] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[00:24:44.790] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[00:24:51.450] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[00:25:05.682] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
-[00:44:39.122] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[00:55:04.740] Server  LOG      ✓ Compiled in 2.2s
-[00:55:14.906] Server  LOG      ✓ Compiled in 623ms
-[00:55:16.855] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[00:55:17.720] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
-[00:55:17.962] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
-[00:55:18.145] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
-[00:55:18.182] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
-[00:55:18.284] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
-[00:55:18.361] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
-[00:55:18.403] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
-[00:59:46.285] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[00:59:54.791] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
-[01:00:02.606] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[01:00:03.828] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
-[01:00:12.236] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
-[01:00:22.405] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:00:23.860] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:00:23.860] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:00:23.860] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:00:23.860] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+[00:05:18.026] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:05:18.531] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[00:05:18.553] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[00:05:18.554] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[00:05:18.555] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[00:05:19.048] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[00:05:19.049] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[00:06:01.244] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:06:07.479] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:06:07.889] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:07:07.559] Server  LOG      ✓ Compiled in 1141ms
+[00:09:12.828] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[00:12:01.050] Server  LOG      ✓ Compiled in 1205ms
+[00:13:08.670] Server  LOG      ✓ Compiled in 1368ms
+[00:13:09.011] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1366:8
+Parsing ecmascript source code failed
+  1364 |         </div>
+  1365 |       </div>
+> 1366 |       )}
+       |        ^
+  1367 |
+  1368 |       {showMobileActions && (
+  1369 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:13:28.447] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1366:8
+Parsing ecmascript source code failed
+  1364 |         </div>
+  1365 |       </div>
+> 1366 |       )}
+       |        ^
+  1367 |
+  1368 |       {showMobileActions && (
+  1369 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:13:28.447] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1366:8
+Parsing ecmascript source code failed
+  1364 |         </div>
+  1365 |       </div>
+> 1366 |       )}
+       |        ^
+  1367 |
+  1368 |       {showMobileActions && (
+  1369 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:13:28.447] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1366:8
+Parsing ecmascript source code failed
+  1364 |         </div>
+  1365 |       </div>
+> 1366 |       )}
+       |        ^
+  1367 |
+  1368 |       {showMobileActions && (
+  1369 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:13:28.907] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1366:8
+Parsing ecmascript source code failed
+  1364 |         </div>
+  1365 |       </div>
+> 1366 |       )}
+       |        ^
+  1367 |
+  1368 |       {showMobileActions && (
+  1369 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:13:28.907] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1366:8
+Parsing ecmascript source code failed
+  1364 |         </div>
+  1365 |       </div>
+> 1366 |       )}
+       |        ^
+  1367 |
+  1368 |       {showMobileActions && (
+  1369 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:13:32.907] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1373:8
+Parsing ecmascript source code failed
+  1371 |         </div>
+  1372 |       </div>
+> 1373 |       )}
+       |        ^
+  1374 |
+  1375 |       {showMobileActions && (
+  1376 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:14:16.699] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1373:8
+Parsing ecmascript source code failed
+  1371 |         </div>
+  1372 |       </div>
+> 1373 |       )}
+       |        ^
+  1374 |
+  1375 |       {showMobileActions && (
+  1376 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:14:16.699] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1373:8
+Parsing ecmascript source code failed
+  1371 |         </div>
+  1372 |       </div>
+> 1373 |       )}
+       |        ^
+  1374 |
+  1375 |       {showMobileActions && (
+  1376 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:14:16.699] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1373:8
+Parsing ecmascript source code failed
+  1371 |         </div>
+  1372 |       </div>
+> 1373 |       )}
+       |        ^
+  1374 |
+  1375 |       {showMobileActions && (
+  1376 |         <div
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:14:40.601] Server  LOG      ✓ Compiled in 1053ms
+[00:15:43.493] Server  LOG      ✓ Compiled in 1042ms
+[00:16:09.300] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:17:30.986] Server  LOG      ✓ Compiled in 1135ms
+[00:17:31.907] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:7
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 |       {showMobileActions && (
+       |       ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:18:07.907] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:7
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 |       {showMobileActions && (
+       |       ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:18:07.907] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:7
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 |       {showMobileActions && (
+       |       ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:18:33.907] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:1
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 | {showMobileActions && (
+       | ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:18:44.907] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:7
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 |       {showMobileActions && (
+       |       ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:19:07.915] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:7
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 |       {showMobileActions && (
+       |       ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:19:07.915] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:7
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 |       {showMobileActions && (
+       |       ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:19:07.915] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:7
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 |       {showMobileActions && (
+       |       ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:20:25.908] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:7
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 |       {showMobileActions && (
+       |       ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:20:25.908] Browser ERROR   ./src/components/(chatPopup)/ChatInput.tsx:1405:7
+Parsing ecmascript source code failed
+  1403 |         </div>
+  1404 |       </div>
+> 1405 |       {showMobileActions && (
+       |       ^
+  1406 |         <div
+  1407 |           ref={mobileActionsRef}
+  1408 |           className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+
+Expected '</', got '{'
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[00:21:20.505] Server  LOG      ✓ Compiled in 1711ms
+[00:26:05.680] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:26:08.008] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:26:08.008] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:26:08.008] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:26:08.017] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:26:08.285] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[00:26:08.694] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[00:26:08.707] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[00:26:08.721] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[00:26:08.756] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[00:26:08.806] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[00:26:09.456] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:26:10.739] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:26:12.257] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:26:12.780] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:26:12.780] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:26:12.780] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:26:12.780] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
-[01:00:24.615] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[01:00:24.868] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
-[01:00:24.970] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
-[01:00:24.974] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
-[01:00:24.983] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
-[01:00:24.989] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
-[01:00:24.993] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
-[01:01:24.210] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
-[01:03:35.413] Server  LOG      ✓ Compiled in 992ms
-[01:03:46.375] Server  LOG      ✓ Compiled in 917ms
-[01:05:00.174] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[01:05:08.189] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
-[01:05:09.168] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:05:09.629] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:05:09.629] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:05:09.629] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:05:09.850] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+[00:26:12.960] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[00:26:13.000] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[00:26:13.006] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[00:26:13.008] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[00:26:13.009] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[00:26:13.010] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[00:26:29.140] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:27:13.783] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[00:28:07.459] Server  LOG      ✓ Compiled in 1055ms
+[00:28:44.602] Browser ERROR   uncaughtError: TypeError: react_dom_1.default.findDOMNode is not a function
+[00:28:56.857] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:28:57.625] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:28:57.625] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:28:57.625] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:28:57.625] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
-[01:05:10.292] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[01:05:10.493] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
-[01:05:10.523] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
-[01:05:10.526] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
-[01:05:10.528] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
-[01:05:10.529] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
-[01:05:10.743] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
-[01:05:12.054] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:05:43.998] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[01:05:44.227] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/KNtWQYDD#B21xOvJXlsNX9lZJsvhYWS-ZojG3nQsAdcpZDNg-b2A" "received" null
-[01:05:44.396] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
-[01:05:44.400] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
-[01:05:44.405] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
-[01:05:44.434] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/CE0HVDrL#driTZNVwGGjY6E1ytGoTvJ3bEJRgrdpFo07hh_DprM4" "received" null
-[01:05:44.497] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
-[01:05:44.957] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:05:44.957] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:05:44.957] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:05:44.957] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+[00:28:58.676] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:28:58.678] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[00:28:58.679] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[00:28:58.680] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[00:28:58.681] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[00:28:58.921] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[00:28:59.426] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[00:29:00.846] Browser ERROR   uncaughtError: TypeError: react_dom_1.default.findDOMNode is not a function
+[00:30:23.171] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.181] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.202] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.210] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.227] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.234] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.238] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.242] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.246] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.251] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.252] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.261] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.279] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.286] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.290] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.291] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.296] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.299] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.303] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.307] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.308] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.314] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.316] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.320] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.324] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.327] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.332] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.335] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.339] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.344] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.346] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.348] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.350] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.354] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.357] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.358] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.359] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.362] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.364] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.366] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.367] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx
+Module not found: Can't resolve 'react-quill-new'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.369] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.371] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.374] Server  ERROR    ⨯ ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:30:23.378] Server  LOG      ✓ Compiled in 1307ms
+[00:30:23.913] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:30:23.913] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:36.930] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:36.930] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:38.907] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:38.907] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:38.907] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:38.907] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:39.920] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:39.920] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:39.920] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:11:34
+Module not found: Can't resolve 'react-quill-new'
+   9 |
+  10 | // Dynamic import to avoid SSR issues
+> 11 | const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  12 |
+  13 | interface RichTextEditorProps {
+  14 |   value: string;
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:39.920] Browser ERROR   ./src/components/(chatPopup)/components/RichTextEditor.tsx:5:1
+Module not found: Can't resolve 'react-quill-new/dist/quill.snow.css'
+  3 | import React, { useMemo } from 'react';
+  4 | import dynamic from 'next/dynamic';
+> 5 | import 'react-quill-new/dist/quill.snow.css';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { HiX } from 'react-icons/hi';
+  7 | import { CiFaceSmile } from 'react-icons/ci';
+  8 | import { AiTwotoneLike } from 'react-icons/ai';
+
+Import traces:
+  Client Component Browser:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component Browser]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component Browser]
+    ./src/components/(home)/HomeMobile.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/(chatPopup)/components/RichTextEditor.tsx [Client Component SSR]
+    ./src/components/(chatPopup)/ChatInput.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/ChatPopup.tsx [Client Component SSR]
+    ./src/components/(home)/HomeMobile.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:42.625] Server  LOG      ✓ Compiled in 2.8s
+[00:31:44.781] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:31:45.043] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:31:46.807] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:31:46.911] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:31:46.912] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:31:46.912] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:31:46.912] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:31:46.912] Browser WARN    Image with src "/imgs/banner5.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:31:47.039] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[00:31:47.199] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[00:31:47.267] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[00:31:47.288] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[00:31:47.428] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[00:31:47.500] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[00:31:47.522] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[00:31:56.181] Browser WARN    Image with src "/imgs/banner2.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
-[01:07:17.069] Server  LOG      ✓ Compiled in 1485ms
-[01:07:37.865] Server  LOG      ✓ Compiled in 1078ms
-[01:08:01.599] Server  LOG      ✓ Compiled in 926ms
-[01:09:58.122] Server  LOG      ✓ Compiled in 982ms
-[01:11:12.062] Server  LOG      ✓ Compiled in 3s
-[01:11:20.495] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:11:22.334] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
-[01:11:22.856] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
-[01:11:23.215] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
-[01:11:23.281] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
-[01:11:23.297] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
-[01:11:23.319] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
-[01:12:03.459] Server  LOG      ✓ Compiled in 1323ms
-[01:12:14.922] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:12:15.507] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:12:15.507] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:12:15.507] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[01:12:15.792] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+[00:33:30.644] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:33.077] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:33.995] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:34.835] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:35.092] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:35.323] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:35.555] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:36.302] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:36.956] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:37.218] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:37.458] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:37.923] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:38.458] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:38.939] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:39.219] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:39.443] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:33:39.691] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:41:45.495] Server  LOG      ✓ Compiled in 1244ms
+[00:41:56.863] Server  LOG      ✓ Compiled in 1104ms
+[00:42:13.000] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:42:14.951] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:42:14.951] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:42:14.951] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:42:15.076] Browser WARN    Image with src "/imgs/banner1.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+<<<<<<< HEAD
 [01:12:16.526] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
 [01:12:16.539] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
 [01:12:16.818] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
@@ -355,3 +2487,373 @@ Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allow
 [01:24:46.711] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
 [01:24:47.029] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
 [01:24:47.030] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+=======
+[00:42:15.338] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:42:15.658] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[00:42:15.952] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[00:42:15.965] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[00:42:15.966] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[00:42:15.968] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[00:42:15.974] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[00:42:16.527] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:42:19.339] Browser WARN    Image with src "/imgs/banner5.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:42:37.410] Server  LOG      ✓ Compiled in 1030ms
+[00:43:43.539] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:43:45.972] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[00:43:46.017] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:43:46.017] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:43:46.017] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:43:46.191] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[00:43:46.683] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[00:43:46.692] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[00:43:46.694] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[00:43:46.695] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[00:43:46.696] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[00:43:47.239] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:44:31.517] Server  LOG      ✓ Compiled in 856ms
+[00:45:00.189] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:45:05.121] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:45:22.939] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:47:46.421] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:47:53.777] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:49:46.727] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
+[00:56:31.243] Server  LOG      ✓ Compiled in 975ms
+[00:57:22.331] Server  LOG      ✓ Compiled in 1247ms
+[00:57:59.913] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:58:00.273] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:58:01.374] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:20.861] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:21.870] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:28.174] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:58:28.871] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:30.309] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:31.853] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:32.655] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:32.855] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:33.071] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:33.286] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:33.852] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:34.062] Browser ERROR   uncaughtError: TypeError: Cannot read properties of null (reading 'index')
+[00:58:58.880] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[00:59:23.879] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[01:01:08.680] Server  LOG      ✓ Compiled in 1179ms
+[01:01:09.199] Browser ERROR   ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import traces:
+  #1 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/components/layout/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/hooks/useHomePage.ts [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/components/layout/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #4 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/hooks/useHomePage.ts [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[01:01:18.444] Server  LOG      ✓ Compiled in 1378ms
+[01:01:18.908] Browser ERROR   ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import traces:
+  #1 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/components/layout/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/hooks/useHomePage.ts [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/components/layout/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #4 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/hooks/useHomePage.ts [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[01:01:22.019] Server  ERROR    ⨯ ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import trace:
+  App Route:
+    ./src/utils/utils.ts
+    ./src/app/api/messages/route.ts
+
+
+[01:01:22.908] Browser ERROR   ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import traces:
+  #1 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/components/layout/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/hooks/useHomePage.ts [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/components/layout/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #4 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/hooks/useHomePage.ts [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[01:01:22.908] Browser ERROR   ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import traces:
+  #1 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/components/layout/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/hooks/useHomePage.ts [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/components/layout/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #4 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/hooks/useHomePage.ts [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[01:01:26.701] Server  LOG      ✓ Compiled in 1318ms
+[01:01:27.907] Browser ERROR   ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import traces:
+  #1 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/components/layout/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/hooks/useHomePage.ts [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/components/layout/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #4 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/hooks/useHomePage.ts [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[01:01:41.690] Server  LOG      ✓ Compiled in 1263ms
+[01:01:41.914] Browser ERROR   ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import traces:
+  #1 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/components/layout/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/hooks/useHomePage.ts [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/components/layout/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #4 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/hooks/useHomePage.ts [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[01:02:21.929] Server  ERROR    ⨯ ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import trace:
+  App Route:
+    ./src/utils/utils.ts
+    ./src/app/api/messages/route.ts
+
+
+[01:02:22.911] Browser ERROR   ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import traces:
+  #1 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/components/layout/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Client Component Browser]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./src/utils/utils.ts [Client Component Browser]
+    ./src/hooks/useHomePage.ts [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Client Component Browser]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/components/layout/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Client Component SSR]
+    ./src/app/(zalo)/layout.tsx [Server Component]
+
+  #4 [Client Component SSR]:
+    ./src/utils/utils.ts [Client Component SSR]
+    ./src/hooks/useHomePage.ts [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Client Component SSR]
+    ./src/app/(zalo)/home/page.tsx [Server Component]
+[01:02:56.242] Server  LOG      ✓ Compiled in 796ms
+[01:02:56.908] Browser ERROR   ./src/utils/utils.ts:224:14
+Ecmascript file had an error
+  222 | };
+  223 |
+> 224 | export const stripHtml = (html: string) => {
+      |              ^^^^^^^^^
+  225 |   if (!html) return '';
+  226 |   // Check if it's HTML-like
+  227 |   if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+
+the name `stripHtml` is defined multiple times
+
+Import trace:
+  App Route:
+    ./src/utils/utils.ts
+    ./src/app/api/messages/route.ts
+[01:03:46.059] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[01:04:05.082] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[01:21:33.016] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[01:21:54.863] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[01:22:04.393] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+[01:22:34.486] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[01:22:39.951] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"
+>>>>>>> NguyenChi-function
+[01:25:50.464] Server  LOG      ✓ Compiled in 1916ms
+[01:26:57.803] Browser WARN    Image with src "/imgs/banner2.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[01:27:19.683] Server  ERROR   sendPushOnMessage:onesignal 403 "{\"errors\": [\"Access denied.  Please include an 'Authorization: ...' header with a valid API key (https://documentation.onesignal.com/docs/en/keys-and-ids#api-keys).\"]}\n"

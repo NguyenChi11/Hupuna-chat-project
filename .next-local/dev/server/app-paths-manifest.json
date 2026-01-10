@@ -1,13 +1,9 @@
 {
   "/(zalo)/home/page": "app/(zalo)/home/page.js",
-  "/(zalo)/moments/page": "app/(zalo)/moments/page.js",
-  "/(zalo)/profile/[user]/page": "app/(zalo)/profile/[user]/page.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/api/auth/refresh/route": "app/api/auth/refresh/route.js",
   "/api/groups/route": "app/api/groups/route.js",
   "/api/messages/route": "app/api/messages/route.js",
-  "/api/posts/route": "app/api/posts/route.js",
   "/api/users/me/route": "app/api/users/me/route.js",
-  "/api/users/route": "app/api/users/route.js",
-  "/login/page": "app/login/page.js"
+  "/api/users/route": "app/api/users/route.js"
 }

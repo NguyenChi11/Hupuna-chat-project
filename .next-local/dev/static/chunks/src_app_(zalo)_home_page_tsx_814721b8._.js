@@ -1,8 +1,9 @@
 (globalThis.TURBOPACK_CHUNK_LISTS || (globalThis.TURBOPACK_CHUNK_LISTS = [])).push({
     script: typeof document === "object" ? document.currentScript : undefined,
     chunks: [
+  "static/chunks/node_modules_react-quill-new_lib_index_c4b40ca2.js",
   "static/chunks/src_components_base_6e94d747._.js",
-  "static/chunks/src_components_(chatPopup)_components_74cc4bb8._.js",
+  "static/chunks/src_components_(chatPopup)_components_e8a2e468._.js",
   "static/chunks/src_components_(chatPopup)_ChatInput_tsx_e3ee3b58._.js",
   "static/chunks/src_components_(chatPopup)_MessageList_tsx_02088d1d._.js",
   "static/chunks/src_components_(chatPopup)_57143da7._.js",
@@ -17,8 +18,8 @@
   "static/chunks/node_modules_react-icons_lu_index_mjs_9c1f52d1._.js",
   "static/chunks/node_modules_react-icons_ai_index_mjs_9504e8ee._.js",
   "static/chunks/node_modules_swiper_7f6525a2._.js",
-  "static/chunks/node_modules_7cedf408._.js",
-  "static/chunks/node_modules_swiper_a2b46751._.css"
+  "static/chunks/node_modules_031ebaa2._.js",
+  "static/chunks/node_modules_1a793e0b._.css"
 ],
     source: "dynamic"
 });

@@ -401,7 +401,9 @@ function getSocketInstance() {
     "normalizeNoAccent",
     ()=>normalizeNoAccent,
     "resolveSocketUrl",
-    ()=>resolveSocketUrl
+    ()=>resolveSocketUrl,
+    "stripHtml",
+    ()=>stripHtml
 ]);
 const getProxyUrl = (url, download)=>{
     if (!url) return '';
@@ -537,6 +539,13 @@ const accentAwareIncludes = (text, keyword)=>{
     const tNo = normalizeNoAccentKeepDHook(tNFC);
     const kNo = normalizeNoAccentKeepDHook(kNFC);
     return tNo.includes(kNo);
+};
+const stripHtml = (html)=>{
+    if (!html) return '';
+    // Check if it's HTML-like
+    if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+    // Strip tags
+    return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 };
 }),
 "[project]/src/app/api/messages/route.ts [app-route] (ecmascript)", ((__turbopack_context__) => {

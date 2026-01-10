@@ -50,6 +50,7 @@ import ICFolder from '@/components/svg/ICFolder';
 import { AiTwotoneLike } from 'react-icons/ai';
 import CreatePollModal from './components/CreatePollModal';
 import CreateReminderModal from './components/CreateReminderModal';
+import RichTextEditor from './components/RichTextEditor';
 import { createMessageApi } from '@/fetch/messages';
 import { Socket } from 'socket.io-client';
 import { GroupConversation, GroupRole } from '@/types/Group';
@@ -136,6 +137,8 @@ export default function ChatInput({
 
   const [showCreatePoll, setShowCreatePoll] = useState(false);
   const [showCreateNote, setShowCreateNote] = useState(false);
+  const [showRichText, setShowRichText] = useState(false);
+  const [richTextContent, setRichTextContent] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
   const tagsContainerRef = useRef<HTMLDivElement | null>(null);
   const tagsDragRef = useRef<{ active: boolean; startX: number; startScroll: number; pid?: number }>({
@@ -1054,15 +1057,8 @@ export default function ChatInput({
           <CiCreditCard2 className="w-6 h-6" />
         </button>
         <button
-          onClick={handleShowUpdatingPopup}
-          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
-          aria-label="Chọn Zalo"
-        >
-          <CiInstagram className="w-6 h-6" />
-        </button>
-        <button
-          onClick={handleShowUpdatingPopup}
-          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+          onClick={() => setShowRichText(!showRichText)}
+          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${showRichText ? 'text-blue-500 bg-blue-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Chỉnh sửa Zalo"
         >
           <CiEdit className="w-6 h-6" />
@@ -1117,259 +1113,296 @@ export default function ChatInput({
       )}
 
       {/* Input Area + Send Button */}
-      <div className="flex items-end gap-2">
-        <button
-          onClick={() => {
-            try {
-              editableRef.current?.blur?.();
-            } catch {}
-            setTimeout(() => onToggleEmojiPicker(), 100);
-          }}
-          className="md:hidden group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
-          aria-label="Chọn emoji"
-        >
-          <HiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
-        </button>
-        {/* Input contentEditable – Đẹp như iMessage */}
-        <div className="relative flex-1 min-w-0">
-          <div
-            ref={editableRef}
-            contentEditable
-            inputMode="text"
-            role="textbox"
-            aria-multiline="true"
+      {showRichText ? (
+        <div className="flex-1 h-64 min-h-[16rem] mb-2">
+          <RichTextEditor
+            value={richTextContent}
+            onChange={setRichTextContent}
+            onClose={() => setShowRichText(false)}
+            onSend={() => {
+              if (onSendMessageData && richTextContent.trim()) {
+                onSendMessageData({
+                  roomId,
+                  sender: String(currentUser._id),
+                  type: 'text',
+                  content: richTextContent,
+                  timestamp: Date.now(),
+                }).then(() => {
+                  setRichTextContent('');
+                  setShowRichText(false);
+                });
+              } else if (!onSendMessageData && richTextContent.trim()) {
+                if (editableRef.current) {
+                  editableRef.current.innerHTML = richTextContent;
+                  onSendMessage();
+                  setRichTextContent('');
+                  setShowRichText(false);
+                }
+              }
+            }}
+          />
+        </div>
+      ) : (
+        <div className="flex items-end gap-2">
+          <button
             onClick={() => {
-              setShowMobileActions(false);
               try {
-                window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                editableRef.current?.blur?.();
               } catch {}
-              // Keep caret at the click position by letting browser handle selection
+              setTimeout(() => onToggleEmojiPicker(), 100);
             }}
-            onInput={() => {
-              onInputEditable();
-              updateSlashState();
-              checkContent();
-            }}
-            onKeyDown={(e) => {
-              const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
-              const suggestions = kvItems.filter((it) =>
-                it.key.toLowerCase().startsWith((slashQuery || '').toLowerCase()),
-              );
+            className="md:hidden group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
+            aria-label="Chọn emoji"
+          >
+            <HiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
+          </button>
+          {/* Input contentEditable – Đẹp như iMessage */}
+          <div className="relative flex-1 min-w-0">
+            <div
+              ref={editableRef}
+              contentEditable
+              inputMode="text"
+              role="textbox"
+              aria-multiline="true"
+              onClick={() => {
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+                // Keep caret at the click position by letting browser handle selection
+              }}
+              onInput={() => {
+                onInputEditable();
+                updateSlashState();
+                checkContent();
+              }}
+              onKeyDown={(e) => {
+                if (e.ctrlKey && e.shiftKey && (e.key === 'x' || e.key === 'X')) {
+                  e.preventDefault();
+                  const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
+                  setRichTextContent(text);
+                  setShowRichText(true);
+                  return;
+                }
+                const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
+                const suggestions = kvItems.filter((it) =>
+                  it.key.toLowerCase().startsWith((slashQuery || '').toLowerCase()),
+                );
 
-              if (slashOpen && suggestions.length > 0) {
-                if (e.key === 'ArrowDown') {
-                  e.preventDefault();
-                  setSlashSelectedIndex((prev) => (prev + 1) % suggestions.length);
-                  return;
+                if (slashOpen && suggestions.length > 0) {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setSlashSelectedIndex((prev) => (prev + 1) % suggestions.length);
+                    return;
+                  }
+                  if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setSlashSelectedIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+                    return;
+                  }
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const chosen = suggestions[Math.max(0, Math.min(slashSelectedIndex, suggestions.length - 1))];
+                    if (chosen && editableRef.current) {
+                      const replaced = text.replace(/\/\s*[\w-]*$/, chosen.value);
+                      editableRef.current.innerText = replaced;
+                      try {
+                        const range = document.createRange();
+                        range.selectNodeContents(editableRef.current);
+                        range.collapse(false);
+                        const sel = window.getSelection();
+                        sel?.removeAllRanges();
+                        sel?.addRange(range);
+                      } catch {}
+                      setSlashOpen(false);
+                      setSlashSelectedIndex(0);
+                      onInputEditable();
+                      return;
+                    }
+                  }
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setSlashOpen(false);
+                    setSlashSelectedIndex(0);
+                    return;
+                  }
                 }
-                if (e.key === 'ArrowUp') {
-                  e.preventDefault();
-                  setSlashSelectedIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
-                  return;
-                }
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  const chosen = suggestions[Math.max(0, Math.min(slashSelectedIndex, suggestions.length - 1))];
-                  if (chosen && editableRef.current) {
-                    const replaced = text.replace(/\/\s*[\w-]*$/, chosen.value);
-                    editableRef.current.innerText = replaced;
-                    try {
+                // if (e.key === 'Enter' && !e.shiftKey && isUploading) {
+                //   e.preventDefault();
+                //   return;
+                // }
+                onKeyDownEditable(e);
+                updateSlashState();
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  if (attachments && attachments.length > 0) return;
+                  try {
+                    const el = editableRef.current;
+                    if (el) {
+                      el.focus();
                       const range = document.createRange();
-                      range.selectNodeContents(editableRef.current);
+                      range.selectNodeContents(el);
                       range.collapse(false);
                       const sel = window.getSelection();
                       sel?.removeAllRanges();
                       sel?.addRange(range);
-                    } catch {}
-                    setSlashOpen(false);
-                    setSlashSelectedIndex(0);
-                    onInputEditable();
-                    return;
-                  }
+                    }
+                  } catch {}
                 }
-                if (e.key === 'Escape') {
-                  e.preventDefault();
-                  setSlashOpen(false);
-                  setSlashSelectedIndex(0);
-                  return;
-                }
-              }
-              // if (e.key === 'Enter' && !e.shiftKey && isUploading) {
-              //   e.preventDefault();
-              //   return;
-              // }
-              onKeyDownEditable(e);
-              updateSlashState();
-              if (e.key === 'Enter' && !e.shiftKey) {
-                if (attachments && attachments.length > 0) return;
-                try {
-                  const el = editableRef.current;
-                  if (el) {
-                    el.focus();
-                    const range = document.createRange();
-                    range.selectNodeContents(el);
-                    range.collapse(false);
-                    const sel = window.getSelection();
-                    sel?.removeAllRanges();
-                    sel?.addRange(range);
-                  }
-                } catch {}
-              }
-            }}
-            onFocus={() => {
-              onFocusEditable();
-              updateSlashState();
-              setShowMobileActions(false);
-            }}
-            onPaste={(e) => {
-              onPasteEditable(e);
-              updateSlashState();
-            }}
-            style={{ overscrollBehavior: 'contain' }}
-            className="min-h-10 max-h-40 px-2 py-2 bg-white/90   focus:outline-none  transition-all duration-300 text-[0.875rem] md:text-[1rem] text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
-            data-placeholder="Nhập tin nhắn..."
-          />
+              }}
+              onFocus={() => {
+                onFocusEditable();
+                updateSlashState();
+                setShowMobileActions(false);
+              }}
+              onPaste={(e) => {
+                onPasteEditable(e);
+                updateSlashState();
+              }}
+              style={{ overscrollBehavior: 'contain' }}
+              className="min-h-10 max-h-40 px-2 py-2 bg-white/90   focus:outline-none  transition-all duration-300 text-[0.875rem] md:text-[1rem] text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
+              data-placeholder="Nhập tin nhắn..."
+            />
 
-          {/* Placeholder đẹp hơn */}
-          <div className="pointer-events-none absolute inset-0 flex items-center px-2 py-4 text-gray-400 select-none text-[0.875rem] md:text-[1rem]">
-            <span className="flex items-center gap-2">Nhập tin nhắn...</span>
+            {/* Placeholder đẹp hơn */}
+            <div className="pointer-events-none absolute inset-0 flex items-center px-2 py-4 text-gray-400 select-none text-[0.875rem] md:text-[1rem]">
+              <span className="flex items-center gap-2">Nhập tin nhắn...</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1">
+            {hasContent || (attachments && attachments.length > 0) ? (
+              <>
+                <button
+                  onMouseDown={(e) => e.preventDefault()}
+                  onTouchStart={(e) => e.preventDefault()}
+                  onClick={() => {
+                    handleSendWrapper();
+                    if (attachments && attachments.length > 0) return;
+                    if (!document.hidden && allowFocusRef.current) {
+                      allowFocusRef.current = true;
+                      try {
+                        requestAnimationFrame(() => {
+                          const el = editableRef.current;
+                          if (el) {
+                            el.focus();
+                            const range = document.createRange();
+                            range.selectNodeContents(el);
+                            range.collapse(false);
+                            const sel = window.getSelection();
+                            sel?.removeAllRanges();
+                            sel?.addRange(range);
+                          }
+                        });
+                      } catch {}
+                    }
+                  }}
+                  className={`lg:hidden p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
+                  aria-label="Gửi tin nhắn"
+                >
+                  <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
+                </button>
+                <button
+                  onMouseDown={(e) => e.preventDefault()}
+                  onTouchStart={(e) => e.preventDefault()}
+                  onClick={() => {
+                    handleSendWrapper();
+                    if (attachments && attachments.length > 0) return;
+                    if (!document.hidden && allowFocusRef.current) {
+                      allowFocusRef.current = true;
+                      try {
+                        requestAnimationFrame(() => {
+                          const el = editableRef.current;
+                          if (el) {
+                            el.focus();
+                            const range = document.createRange();
+                            range.selectNodeContents(el);
+                            range.collapse(false);
+                            const sel = window.getSelection();
+                            sel?.removeAllRanges();
+                            sel?.addRange(range);
+                          }
+                        });
+                      } catch {}
+                    }
+                  }}
+                  className={`hidden lg:block p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
+                  aria-label="Gửi tin nhắn"
+                >
+                  <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="hidden md:flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      try {
+                        editableRef.current?.blur?.();
+                      } catch {}
+                      setTimeout(() => onToggleEmojiPicker(), 100);
+                    }}
+                    className="group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                    aria-label="Chọn emoji"
+                  >
+                    <CiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      const el = editableRef.current;
+                      if (!el) return;
+                      el.innerText = '👍';
+                      onInputEditable();
+                      handleSendWrapper();
+                    }}
+                    className={`p-2 rounded-full cursor-pointer text-gray-700  ${
+                      isUploading ? 'opacity-50 pointer-events-none grayscale' : ''
+                    }`}
+                    aria-label="Gửi like"
+                  >
+                    <Image src="/imgs/like.png" width={24} height={24} alt="Like Zalo" className="w-7 h-7" />
+                  </button>
+                </div>
+                <div className="md:hidden flex items-center gap-2">
+                  <button
+                    ref={toggleMobileActionsBtnRef}
+                    onClick={handleToggleMobileActions}
+                    className="block rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                    aria-label="Mở thêm hành động"
+                  >
+                    <ICIcon1 className="w-11 h-11" />
+                  </button>
+                  <button
+                    onClick={onVoiceInput}
+                    className={` rounded-full cursor-pointer transition-all duration-300 active:scale-90 ${
+                      isListening ? 'text-red-500 animate-pulse bg-red-50' : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                    aria-label="Nhập bằng giọng nói"
+                  >
+                    <MicIcon className="w-11 h-11 text-black" />
+                  </button>
+                  <label
+                    className=" rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
+                    aria-label="Gửi ảnh hoặc video"
+                  >
+                    <ImageIconZalo className="w-11 h-11" />
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const files = e.target.files ? Array.from(e.target.files) : [];
+                        files.forEach((f) => onSelectImage(f));
+                        e.target.value = '';
+                      }}
+                      multiple
+                    />
+                  </label>
+                </div>
+              </>
+            )}
           </div>
         </div>
-
-        <div className="flex items-center gap-1">
-          {hasContent || (attachments && attachments.length > 0) ? (
-            <>
-              <button
-                onMouseDown={(e) => e.preventDefault()}
-                onTouchStart={(e) => e.preventDefault()}
-                onClick={() => {
-                  handleSendWrapper();
-                  if (attachments && attachments.length > 0) return;
-                  if (!document.hidden && allowFocusRef.current) {
-                    allowFocusRef.current = true;
-                    try {
-                      requestAnimationFrame(() => {
-                        const el = editableRef.current;
-                        if (el) {
-                          el.focus();
-                          const range = document.createRange();
-                          range.selectNodeContents(el);
-                          range.collapse(false);
-                          const sel = window.getSelection();
-                          sel?.removeAllRanges();
-                          sel?.addRange(range);
-                        }
-                      });
-                    } catch {}
-                  }
-                }}
-                className={`lg:hidden p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
-                aria-label="Gửi tin nhắn"
-              >
-                <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
-              </button>
-              <button
-                onMouseDown={(e) => e.preventDefault()}
-                onTouchStart={(e) => e.preventDefault()}
-                onClick={() => {
-                  handleSendWrapper();
-                  if (attachments && attachments.length > 0) return;
-                  if (!document.hidden && allowFocusRef.current) {
-                    allowFocusRef.current = true;
-                    try {
-                      requestAnimationFrame(() => {
-                        const el = editableRef.current;
-                        if (el) {
-                          el.focus();
-                          const range = document.createRange();
-                          range.selectNodeContents(el);
-                          range.collapse(false);
-                          const sel = window.getSelection();
-                          sel?.removeAllRanges();
-                          sel?.addRange(range);
-                        }
-                      });
-                    } catch {}
-                  }
-                }}
-                className={`hidden lg:block p-2 rounded-full cursor-pointer text-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-90 group`}
-                aria-label="Gửi tin nhắn"
-              >
-                <HiPaperAirplane className="w-7 h-7 -rotate-12 group-hover:rotate-0 transition-transform duration-300" />
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="hidden md:flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    try {
-                      editableRef.current?.blur?.();
-                    } catch {}
-                    setTimeout(() => onToggleEmojiPicker(), 100);
-                  }}
-                  className="group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
-                  aria-label="Chọn emoji"
-                >
-                  <CiFaceSmile className="w-7 h-7 text-gray-500 group-hover:text-yellow-500 transition-colors" />
-                </button>
-                <button
-                  onClick={() => {
-                    const el = editableRef.current;
-                    if (!el) return;
-                    el.innerText = '👍';
-                    onInputEditable();
-                    handleSendWrapper();
-                  }}
-                  className={`p-2 rounded-full cursor-pointer text-gray-700  ${
-                    isUploading ? 'opacity-50 pointer-events-none grayscale' : ''
-                  }`}
-                  aria-label="Gửi like"
-                >
-                  <Image src="/imgs/like.png" width={24} height={24} alt="Like Zalo" className="w-7 h-7" />
-                </button>
-              </div>
-              <div className="md:hidden flex items-center gap-2">
-                <button
-                  ref={toggleMobileActionsBtnRef}
-                  onClick={handleToggleMobileActions}
-                  className="block rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
-                  aria-label="Mở thêm hành động"
-                >
-                  <ICIcon1 className="w-11 h-11" />
-                </button>
-                <button
-                  onClick={onVoiceInput}
-                  className={` rounded-full cursor-pointer transition-all duration-300 active:scale-90 ${
-                    isListening ? 'text-red-500 animate-pulse bg-red-50' : 'text-gray-500 hover:bg-gray-100'
-                  }`}
-                  aria-label="Nhập bằng giọng nói"
-                >
-                  <MicIcon className="w-11 h-11 text-black" />
-                </button>
-                <label
-                  className=" rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
-                  aria-label="Gửi ảnh hoặc video"
-                >
-                  <ImageIconZalo className="w-11 h-11" />
-                  <input
-                    type="file"
-                    accept="image/*,video/*"
-                    className="sr-only"
-                    onChange={(e) => {
-                      const files = e.target.files ? Array.from(e.target.files) : [];
-                      files.forEach((f) => onSelectImage(f));
-                      e.target.value = '';
-                    }}
-                    multiple
-                  />
-                </label>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
+      )}
       {showMobileActions && (
         <div
           ref={mobileActionsRef}

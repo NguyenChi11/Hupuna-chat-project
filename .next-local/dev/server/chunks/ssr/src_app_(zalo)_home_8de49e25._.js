@@ -6485,6 +6485,21 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
     // Render tin nhắn với highlight mentions + link clickable + search keyword
     const renderMessageContent = (content, mentionedUserIds, isMe, searchKeyword)=>{
         if (!content) return null;
+        // Check if content looks like HTML (from Rich Text Editor)
+        // ReactQuill typically wraps content in <p>, <div>, <ul>, <ol>, etc.
+        const isHtml = /<[a-z][\s\S]*>/i.test(content);
+        if (isHtml) {
+            return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "rich-text-content [&>p]:mb-1 [&>p]:mt-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4",
+                dangerouslySetInnerHTML: {
+                    __html: content
+                }
+            }, void 0, false, {
+                fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
+                lineNumber: 2846,
+                columnNumber: 9
+            }, this);
+        }
         const highlightKeyword = (text, keyword)=>{
             if (!keyword || !keyword.trim() || !text) return text;
             const regex = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["buildAccentInsensitiveRegex"])(keyword);
@@ -6495,13 +6510,13 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                         children: part
                     }, i, false, {
                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                        lineNumber: 2848,
+                        lineNumber: 2861,
                         columnNumber: 15
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                         children: part
                     }, i, false, {
                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                        lineNumber: 2852,
+                        lineNumber: 2865,
                         columnNumber: 15
                     }, this))
             }, void 0, false);
@@ -6520,7 +6535,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                     ]
                 }, `m-${index}`, true, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 2868,
+                    lineNumber: 2881,
                     columnNumber: 11
                 }, this);
             }
@@ -6538,7 +6553,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                         children: highlightKeyword(beforeLink, searchKeyword)
                     }, `t-${index}-${lastIndex}`, false, {
                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                        lineNumber: 2893,
+                        lineNumber: 2906,
                         columnNumber: 22
                     }, this));
                 }
@@ -6552,7 +6567,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                     children: highlightKeyword(url, searchKeyword)
                 }, `a-${index}-${start}`, false, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 2898,
+                    lineNumber: 2911,
                     columnNumber: 11
                 }, this));
                 lastIndex = end;
@@ -6563,7 +6578,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                     children: highlightKeyword(remaining, searchKeyword)
                 }, `t-${index}-${lastIndex}-end`, false, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 2912,
+                    lineNumber: 2925,
                     columnNumber: 20
                 }, this));
             }
@@ -6571,7 +6586,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                 children: nodes
             }, `p-${index}`, false, {
                 fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                lineNumber: 2914,
+                lineNumber: 2927,
                 columnNumber: 14
             }, this);
         });
@@ -6967,7 +6982,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                             }
                         }, void 0, false, {
                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                            lineNumber: 3288,
+                            lineNumber: 3301,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$PinnedMessagesSection$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -6984,7 +6999,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                             isSidebarOpen: showPopup || !isMobile && showSearchSidebar
                         }, void 0, false, {
                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                            lineNumber: 3345,
+                            lineNumber: 3358,
                             columnNumber: 11
                         }, this),
                         isGroup && roomCallActiveLocal && !globalIncoming && !globalCallConnecting && !globalCallActive && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7000,7 +7015,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                                 children: "Cuộc gọi nhóm đang diễn ra"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                lineNumber: 3370,
+                                                lineNumber: 3383,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -7008,13 +7023,13 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                                 children: roomCallTypeLocal === 'video' ? 'Video' : 'Thoại'
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                lineNumber: 3371,
+                                                lineNumber: 3384,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                        lineNumber: 3369,
+                                        lineNumber: 3382,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7027,7 +7042,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                                     children: "Cuộc gọi nhóm đang diễn ra"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                    lineNumber: 3375,
+                                                    lineNumber: 3388,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -7036,29 +7051,29 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                                     children: "Tham gia lại"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                    lineNumber: 3376,
+                                                    lineNumber: 3389,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                            lineNumber: 3374,
+                                            lineNumber: 3387,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                        lineNumber: 3373,
+                                        lineNumber: 3386,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                lineNumber: 3368,
+                                lineNumber: 3381,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                            lineNumber: 3367,
+                            lineNumber: 3380,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7072,7 +7087,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                             className: "h-4 w-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin mr-2"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                            lineNumber: 3395,
+                                            lineNumber: 3408,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -7080,13 +7095,13 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                             children: initialLoading ? 'Đang tải tin nhắn...' : 'Đang tải thêm...'
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                            lineNumber: 3396,
+                                            lineNumber: 3409,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                    lineNumber: 3394,
+                                    lineNumber: 3407,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$MessageList$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -7127,7 +7142,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                     }
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                    lineNumber: 3401,
+                                    lineNumber: 3414,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7135,13 +7150,13 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                     className: "h-8 sm:h-10"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                    lineNumber: 3437,
+                                    lineNumber: 3450,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                            lineNumber: 3389,
+                            lineNumber: 3402,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -7155,7 +7170,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                         className: "w-6 h-6 text-gray-700"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                        lineNumber: 3448,
+                                        lineNumber: 3461,
                                         columnNumber: 15
                                     }, this),
                                     pendingNewCount > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -7163,18 +7178,18 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                         children: pendingNewCount
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                        lineNumber: 3450,
+                                        lineNumber: 3463,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                lineNumber: 3447,
+                                lineNumber: 3460,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                            lineNumber: 3440,
+                            lineNumber: 3453,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7192,7 +7207,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                     onSelectSticker: handleSendSticker
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                    lineNumber: 3460,
+                                    lineNumber: 3473,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$ReplyBanner$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -7201,7 +7216,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                     onCancel: ()=>setReplyingTo(null)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                    lineNumber: 3469,
+                                    lineNumber: 3482,
                                     columnNumber: 13
                                 }, this),
                                 isGroup && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$MentionMenu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -7212,7 +7227,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                     onSelectMention: selectMention
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                    lineNumber: 3473,
+                                    lineNumber: 3486,
                                     columnNumber: 15
                                 }, this),
                                 isMobile && mobileSearchResults.length > 0 && mobileSearchTerm.trim() && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7233,12 +7248,12 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                                         d: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                        lineNumber: 3486,
+                                                        lineNumber: 3499,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                    lineNumber: 3485,
+                                                    lineNumber: 3498,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -7251,13 +7266,13 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                    lineNumber: 3493,
+                                                    lineNumber: 3506,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                            lineNumber: 3484,
+                                            lineNumber: 3497,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7279,17 +7294,17 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                                             d: "M15 19l-7-7 7-7"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                            lineNumber: 3505,
+                                                            lineNumber: 3518,
                                                             columnNumber: 23
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                        lineNumber: 3504,
+                                                        lineNumber: 3517,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                    lineNumber: 3499,
+                                                    lineNumber: 3512,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -7308,29 +7323,29 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                                             d: "M9 5l7 7-7 7"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                            lineNumber: 3514,
+                                                            lineNumber: 3527,
                                                             columnNumber: 23
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                        lineNumber: 3513,
+                                                        lineNumber: 3526,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                                    lineNumber: 3508,
+                                                    lineNumber: 3521,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                            lineNumber: 3498,
+                                            lineNumber: 3511,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                    lineNumber: 3483,
+                                    lineNumber: 3496,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$ChatInput$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -7487,19 +7502,19 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                                     overallUploadPercent: overallUploadPercent
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                                    lineNumber: 3520,
+                                    lineNumber: 3533,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                            lineNumber: 3458,
+                            lineNumber: 3471,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 3283,
+                    lineNumber: 3296,
                     columnNumber: 9
                 }, this),
                 showPopup && isLgOnly && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7511,7 +7526,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                     }
                 }, void 0, false, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 3639,
+                    lineNumber: 3652,
                     columnNumber: 11
                 }, this),
                 showPopup && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7538,12 +7553,12 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                         groups: groups
                     }, void 0, false, {
                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                        lineNumber: 3653,
+                        lineNumber: 3666,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 3649,
+                    lineNumber: 3662,
                     columnNumber: 11
                 }, this),
                 showSearchSidebar && !isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7563,12 +7578,12 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                         }
                     }, void 0, false, {
                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                        lineNumber: 3678,
+                        lineNumber: 3691,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 3677,
+                    lineNumber: 3690,
                     columnNumber: 11
                 }, this),
                 showPinTitleModal && messageToPin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$base$2f$PinMessageTitleModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -7583,7 +7598,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                     }
                 }, void 0, false, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 3696,
+                    lineNumber: 3709,
                     columnNumber: 11
                 }, this),
                 showShareModal && messageToShare && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f28$chatPopup$292f$ShareMessageModal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -7599,7 +7614,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                     onShare: handleShareToRooms
                 }, void 0, false, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 3710,
+                    lineNumber: 3723,
                     columnNumber: 11
                 }, this),
                 openMember && isGroup && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$base$2f$ModalMembers$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -7618,7 +7633,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                     lastUpdated: nicknamesStamp
                 }, void 0, false, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 3725,
+                    lineNumber: 3738,
                     columnNumber: 11
                 }, this),
                 contextMenu && contextMenu.visible && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -7635,7 +7650,7 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                         onShareMessage: handleShareMessage
                     }, void 0, false, {
                         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                        lineNumber: 3745,
+                        lineNumber: 3758,
                         columnNumber: 15
                     }, this) : /*#__PURE__*/ "TURBOPACK unreachable"
                 }, void 0, false),
@@ -7648,18 +7663,18 @@ function ChatWindow({ selectedChat, currentUser, allUsers, onShowCreateGroup, re
                     onShareMessage: handleShareMessage
                 }, void 0, false, {
                     fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-                    lineNumber: 3775,
+                    lineNumber: 3788,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-            lineNumber: 3279,
+            lineNumber: 3292,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/(zalo)/home/ChatPopup.tsx",
-        lineNumber: 3278,
+        lineNumber: 3291,
         columnNumber: 5
     }, this);
 }

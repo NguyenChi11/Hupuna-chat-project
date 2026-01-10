@@ -84,7 +84,9 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
     "normalizeNoAccent",
     ()=>normalizeNoAccent,
     "resolveSocketUrl",
-    ()=>resolveSocketUrl
+    ()=>resolveSocketUrl,
+    "stripHtml",
+    ()=>stripHtml
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 const getProxyUrl = (url, download)=>{
@@ -256,6 +258,13 @@ const accentAwareIncludes = (text, keyword)=>{
     const tNo = normalizeNoAccentKeepDHook(tNFC);
     const kNo = normalizeNoAccentKeepDHook(kNFC);
     return tNo.includes(kNo);
+};
+const stripHtml = (html)=>{
+    if (!html) return '';
+    // Check if it's HTML-like
+    if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+    // Strip tags
+    return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 };
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
