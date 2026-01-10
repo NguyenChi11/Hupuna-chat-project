@@ -5116,10 +5116,14 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__T__as__TrackToggle$3e$__ = __turbopack_context__.i("[project]/node_modules/@livekit/components-react/dist/components-DuRBtGp8.mjs [app-ssr] (ecmascript) <export T as TrackToggle>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__V__as__VideoTrack$3e$__ = __turbopack_context__.i("[project]/node_modules/@livekit/components-react/dist/components-DuRBtGp8.mjs [app-ssr] (ecmascript) <export V as VideoTrack>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$hooks$2d$yU$2d$srrIO$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__G__as__useIsMuted$3e$__ = __turbopack_context__.i("[project]/node_modules/@livekit/components-react/dist/hooks-yU-srrIO.mjs [app-ssr] (ecmascript) <export G as useIsMuted>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$contexts$2d$CsO1QZ3r$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__f__as__useRoomContext$3e$__ = __turbopack_context__.i("[project]/node_modules/@livekit/components-react/dist/contexts-CsO1QZ3r.mjs [app-ssr] (ecmascript) <export f as useRoomContext>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$hooks$2d$yU$2d$srrIO$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__C__as__useLocalParticipant$3e$__ = __turbopack_context__.i("[project]/node_modules/@livekit/components-react/dist/hooks-yU-srrIO.mjs [app-ssr] (ecmascript) <export C as useLocalParticipant>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$livekit$2d$client$2f$dist$2f$livekit$2d$client$2e$esm$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/livekit-client/dist/livekit-client.esm.mjs [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$ci$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react-icons/ci/index.mjs [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/image.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react-icons/hi2/index.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$bi$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react-icons/bi/index.mjs [app-ssr] (ecmascript)");
+;
 ;
 ;
 ;
@@ -5152,7 +5156,7 @@ function CustomTrackTile({ trackRef, title, avatarUrl, offMinHeight, cover, cont
                 autoPlay: true
             }, void 0, false, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 78,
+                lineNumber: 82,
                 columnNumber: 9
             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "w-full h-full flex items-center justify-center bg-black",
@@ -5164,18 +5168,18 @@ function CustomTrackTile({ trackRef, title, avatarUrl, offMinHeight, cover, cont
                     className: "w-14 h-14 rounded-full object-cover"
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 95,
+                    lineNumber: 99,
                     columnNumber: 13
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "w-14 h-14 rounded-full bg-white/10"
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 103,
+                    lineNumber: 107,
                     columnNumber: 13
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 93,
+                lineNumber: 97,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5183,13 +5187,13 @@ function CustomTrackTile({ trackRef, title, avatarUrl, offMinHeight, cover, cont
                 children: displayName
             }, void 0, false, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 107,
+                lineNumber: 111,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-        lineNumber: 76,
+        lineNumber: 80,
         columnNumber: 5
     }, this);
 }
@@ -5197,8 +5201,13 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
     const cameraTracks = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$hooks$2d$yU$2d$srrIO$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__t__as__useTracks$3e$__["useTracks"])([
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$livekit$2d$client$2f$dist$2f$livekit$2d$client$2e$esm$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Track"].Source.Camera
     ]);
+    const screenShareTracks = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$hooks$2d$yU$2d$srrIO$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__t__as__useTracks$3e$__["useTracks"])([
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$livekit$2d$client$2f$dist$2f$livekit$2d$client$2e$esm$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Track"].Source.ScreenShare
+    ]);
     const remoteTracks = cameraTracks.filter((t)=>!t.participant?.isLocal);
     const localTrack = cameraTracks.find((t)=>t.participant?.isLocal);
+    const remoteScreenShares = screenShareTracks.filter((t)=>!t.participant?.isLocal);
+    const localScreenShare = screenShareTracks.find((t)=>t.participant?.isLocal);
     const remoteIds = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useMemo(()=>{
         return remoteTracks.map((tr)=>String((tr?.participant?.identity || '').trim())).filter((id)=>!!id);
     }, [
@@ -5285,7 +5294,8 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
     const cols = totalTiles <= 1 ? 1 : totalTiles <= 4 ? 2 : totalTiles <= 9 ? 3 : 4;
     const rows = Math.ceil(totalTiles / cols);
     if (mini) {
-        const picked = miniPickId ? remoteTracks.find((tr)=>String((tr?.participant?.identity || '').trim()) === miniPickId) : undefined;
+        const screenRef = localScreenShare || remoteScreenShares[0];
+        const picked = screenRef ? screenRef : miniPickId ? remoteTracks.find((tr)=>String((tr?.participant?.identity || '').trim()) === miniPickId) : undefined;
         const trackToShow = picked || localTrack;
         if (callMode === 'voice') {
             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5306,13 +5316,13 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                 className: "w-16 h-16 rounded-full object-cover"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 233,
+                                lineNumber: 244,
                                 columnNumber: 17
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "w-16 h-16 rounded-full bg-white/10"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 241,
+                                lineNumber: 252,
                                 columnNumber: 17
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5320,23 +5330,23 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                 children: titleName || ''
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 243,
+                                lineNumber: 254,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                        lineNumber: 231,
+                        lineNumber: 242,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 230,
+                    lineNumber: 241,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 226,
+                lineNumber: 237,
                 columnNumber: 9
             }, this);
         }
@@ -5352,7 +5362,7 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                 contain: true
             }, void 0, false, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 253,
+                lineNumber: 264,
                 columnNumber: 11
             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "w-full h-full flex items-center justify-center",
@@ -5361,17 +5371,17 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                     children: "Đang chờ camera..."
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 265,
+                    lineNumber: 276,
                     columnNumber: 13
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 264,
+                lineNumber: 275,
                 columnNumber: 11
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-            lineNumber: 251,
+            lineNumber: 262,
             columnNumber: 7
         }, this);
     }
@@ -5396,13 +5406,13 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                 className: "w-32 h-32 rounded-full object-cover"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 282,
+                                lineNumber: 293,
                                 columnNumber: 17
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "w-32 h-32 rounded-full bg-white/10"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 290,
+                                lineNumber: 301,
                                 columnNumber: 17
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5410,18 +5420,33 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                 children: titleName || ''
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 292,
+                                lineNumber: 303,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                        lineNumber: 280,
+                        lineNumber: 291,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 279,
+                    lineNumber: 290,
+                    columnNumber: 11
+                }, this) : localScreenShare || remoteScreenShares[0] ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "w-full h-full",
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(CustomTrackTile, {
+                        trackRef: localScreenShare || remoteScreenShares[0],
+                        offMinHeight: offMinHeight,
+                        contain: true
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                        lineNumber: 308,
+                        columnNumber: 13
+                    }, this)
+                }, void 0, false, {
+                    fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                    lineNumber: 307,
                     columnNumber: 11
                 }, this) : displayTracks.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "grid w-full h-full gap-2 p-2",
@@ -5438,12 +5463,12 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                     avatarUrl: (tr?.participant?.isLocal ? myAvatarUrl : avatarsMap[String((tr?.participant?.identity || '').trim())]) || (isGridMode ? undefined : avatarUrl)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 308,
+                                    lineNumber: 327,
                                     columnNumber: 17
                                 }, this)
                             }, `${String(tr?.participant?.identity || '')}-${i}`, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 304,
+                                lineNumber: 323,
                                 columnNumber: 15
                             }, this)),
                         moreCount > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5456,13 +5481,13 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                            lineNumber: 326,
+                            lineNumber: 345,
                             columnNumber: 15
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 296,
+                    lineNumber: 315,
                     columnNumber: 11
                 }, this) : localTrack ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "w-full h-full",
@@ -5473,12 +5498,12 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                         offMinHeight: offMinHeight
                     }, void 0, false, {
                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                        lineNumber: 337,
+                        lineNumber: 356,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 336,
+                    lineNumber: 355,
                     columnNumber: 11
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "w-full h-full flex items-center justify-center",
@@ -5487,17 +5512,17 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                         children: "Đang chờ đối phương bật camera..."
                     }, void 0, false, {
                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                        lineNumber: 341,
+                        lineNumber: 360,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 340,
+                    lineNumber: 359,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 277,
+                lineNumber: 288,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5515,13 +5540,13 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                 className: "w-28 h-28 rounded-full object-cover"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 350,
+                                lineNumber: 369,
                                 columnNumber: 17
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "w-28 h-28 rounded-full bg-white/10"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 358,
+                                lineNumber: 377,
                                 columnNumber: 17
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5529,18 +5554,33 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                 children: titleName || ''
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 360,
+                                lineNumber: 379,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                        lineNumber: 348,
+                        lineNumber: 367,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 347,
+                    lineNumber: 366,
+                    columnNumber: 11
+                }, this) : localScreenShare || remoteScreenShares[0] ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "w-full h-full",
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(CustomTrackTile, {
+                        trackRef: localScreenShare || remoteScreenShares[0],
+                        offMinHeight: offMinHeight,
+                        contain: true
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                        lineNumber: 384,
+                        columnNumber: 13
+                    }, this)
+                }, void 0, false, {
+                    fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                    lineNumber: 383,
                     columnNumber: 11
                 }, this) : displayTracks.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "grid w-full h-full",
@@ -5558,12 +5598,12 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                     avatarUrl: (tr?.participant?.isLocal ? myAvatarUrl : avatarsMap[String((tr?.participant?.identity || '').trim())]) || (isGridMode ? undefined : avatarUrl)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 376,
+                                    lineNumber: 403,
                                     columnNumber: 17
                                 }, this)
                             }, `${String(tr?.participant?.identity || '')}-${i}`, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 372,
+                                lineNumber: 399,
                                 columnNumber: 15
                             }, this)),
                         moreCount > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5576,13 +5616,13 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                            lineNumber: 395,
+                            lineNumber: 422,
                             columnNumber: 15
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 364,
+                    lineNumber: 391,
                     columnNumber: 11
                 }, this) : localTrack ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "w-full h-[85vh] mt-4",
@@ -5594,12 +5634,12 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                         contain: true
                     }, void 0, false, {
                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                        lineNumber: 406,
+                        lineNumber: 433,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 405,
+                    lineNumber: 432,
                     columnNumber: 11
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "w-full h-full flex items-center justify-center",
@@ -5608,17 +5648,17 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                         children: "Đang chờ đối phương bật camera..."
                     }, void 0, false, {
                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                        lineNumber: 416,
+                        lineNumber: 443,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 415,
+                    lineNumber: 442,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 345,
+                lineNumber: 364,
                 columnNumber: 7
             }, this),
             showRoster && callMode === 'video' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5632,7 +5672,7 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                 children: "Người tham gia khác"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 423,
+                                lineNumber: 450,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5642,13 +5682,13 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                 children: "Đóng"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 424,
+                                lineNumber: 451,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                        lineNumber: 422,
+                        lineNumber: 449,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5674,35 +5714,35 @@ function CallTiles({ titleName, avatarUrl, offMinHeight, myName, myAvatarUrl, ca
                                         avatarUrl: (tr?.participant?.isLocal ? myAvatarUrl : avatarsMap[id]) || avatarUrl
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                        lineNumber: 448,
+                                        lineNumber: 475,
                                         columnNumber: 21
                                     }, this)
                                 }, `${id}-${i}`, false, {
                                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 439,
+                                    lineNumber: 466,
                                     columnNumber: 19
                                 }, this);
                             })
                         }, void 0, false, {
                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                            lineNumber: 433,
+                            lineNumber: 460,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                        lineNumber: 432,
+                        lineNumber: 459,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 421,
+                lineNumber: 448,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-        lineNumber: 273,
+        lineNumber: 284,
         columnNumber: 5
     }, this);
 }
@@ -5713,7 +5753,7 @@ function formatTime(startAt) {
     const r = (s % 60).toString().padStart(2, '0');
     return `${m}:${r}`;
 }
-function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className, titleName, callStartAt, avatarUrl, myName, myAvatarUrl, localPreviewSize, offMinHeight, onParticipantsChanged, callMode = 'video', uiVariant = 'full' }) {
+function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className, titleName, callStartAt, avatarUrl, myName, myAvatarUrl, localPreviewSize, offMinHeight, onParticipantsChanged, callMode = 'video', uiVariant = 'full', isGroup = false }) {
     const isMini = uiVariant === 'mini';
     const [showLocalPreview, setShowLocalPreview] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useState(true);
     const [showControls, setShowControls] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useState(false);
@@ -5787,7 +5827,7 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__R__as__RoomAudioRenderer$3e$__["RoomAudioRenderer"], {}, void 0, false, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 565,
+                    lineNumber: 593,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5804,7 +5844,7 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                             mini: isMini
                         }, void 0, false, {
                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                            lineNumber: 570,
+                            lineNumber: 598,
                             columnNumber: 11
                         }, this),
                         !isMini && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -5814,7 +5854,7 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                                     children: formatTime(callStartAt)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 582,
+                                    lineNumber: 610,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5824,12 +5864,12 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                                         children: formatTime(callStartAt)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                        lineNumber: 586,
+                                        lineNumber: 614,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 585,
+                                    lineNumber: 613,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5849,17 +5889,17 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                                             className: "w-5 h-5"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                            lineNumber: 601,
+                                            lineNumber: 629,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                        lineNumber: 589,
+                                        lineNumber: 617,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 588,
+                                    lineNumber: 616,
                                     columnNumber: 15
                                 }, this)
                             ]
@@ -5868,7 +5908,7 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                             onChanged: onParticipantsChanged
                         }, void 0, false, {
                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                            lineNumber: 608,
+                            lineNumber: 636,
                             columnNumber: 11
                         }, this),
                         !isMini && showLocalPreview && callMode === 'video' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(LocalPreview, {
@@ -5877,7 +5917,7 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                             size: initialPreview
                         }, void 0, false, {
                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                            lineNumber: 612,
+                            lineNumber: 640,
                             columnNumber: 13
                         }, this),
                         !isMini && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5892,7 +5932,7 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                                                 className: "cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                                lineNumber: 620,
+                                                lineNumber: 648,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__T__as__TrackToggle$3e$__["TrackToggle"], {
@@ -5900,7 +5940,7 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                                                 className: "cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                                lineNumber: 624,
+                                                lineNumber: 652,
                                                 columnNumber: 21
                                             }, this)
                                         ]
@@ -5915,12 +5955,12 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                                             className: "w-5 h-5"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                            lineNumber: 637,
+                                            lineNumber: 665,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                        lineNumber: 630,
+                                        lineNumber: 658,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__T__as__TrackToggle$3e$__["TrackToggle"], {
@@ -5928,7 +5968,7 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                                         className: "cursor-pointer p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                        lineNumber: 639,
+                                        lineNumber: 667,
                                         columnNumber: 17
                                     }, this),
                                     callMode === 'video' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5939,183 +5979,220 @@ function LiveKitCall({ serverUrl, token, onDisconnected, onRequestEnd, className
                                             className: "w-5 h-5"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                            lineNumber: 649,
+                                            lineNumber: 677,
                                             columnNumber: 41
                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["HiEye"], {
                                             className: "w-5 h-5"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                            lineNumber: 649,
+                                            lineNumber: 677,
                                             columnNumber: 78
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                        lineNumber: 644,
+                                        lineNumber: 672,
                                         columnNumber: 19
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                lineNumber: 617,
+                                lineNumber: 645,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                            lineNumber: 616,
+                            lineNumber: 644,
                             columnNumber: 13
                         }, this),
                         !isMini && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: `fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-6 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`,
+                            className: `fixed bottom-6 left-0 right-0 md:hidden flex justify-center gap-3 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`,
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "flex flex-col items-center gap-2",
                                     children: callMode === 'video' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                        children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__T__as__TrackToggle$3e$__["TrackToggle"], {
-                                                source: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$livekit$2d$client$2f$dist$2f$livekit$2d$client$2e$esm$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Track"].Source.Camera,
-                                                className: "w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                                lineNumber: 663,
-                                                columnNumber: 21
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                className: "text-white text-xs",
-                                                children: "Camera"
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                                lineNumber: 667,
-                                                columnNumber: 21
-                                            }, this)
-                                        ]
-                                    }, void 0, true)
-                                }, void 0, false, {
-                                    fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 660,
-                                    columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex flex-col items-center gap-2",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__T__as__TrackToggle$3e$__["TrackToggle"], {
-                                            source: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$livekit$2d$client$2f$dist$2f$livekit$2d$client$2e$esm$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Track"].Source.Microphone,
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__T__as__TrackToggle$3e$__["TrackToggle"], {
+                                            source: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$livekit$2d$client$2f$dist$2f$livekit$2d$client$2e$esm$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Track"].Source.Camera,
                                             className: "w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                            lineNumber: 672,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                            className: "text-white text-xs",
-                                            children: "Mic"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                            lineNumber: 676,
-                                            columnNumber: 17
+                                            lineNumber: 691,
+                                            columnNumber: 21
                                         }, this)
-                                    ]
-                                }, void 0, true, {
+                                    }, void 0, false)
+                                }, void 0, false, {
                                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 671,
-                                    columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex flex-col items-center gap-2",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                            className: "w-12 h-12 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition",
-                                            onClick: ()=>{
-                                                if (onRequestEnd) onRequestEnd();
-                                            },
-                                            title: "Kết thúc",
-                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$ci$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CiPhone"], {
-                                                className: "w-6 h-6"
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                                lineNumber: 686,
-                                                columnNumber: 19
-                                            }, this)
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                            lineNumber: 679,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                            className: "text-white text-xs",
-                                            children: "Kết thúc"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                            lineNumber: 688,
-                                            columnNumber: 17
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 678,
+                                    lineNumber: 688,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "flex flex-col items-center gap-2",
                                     children: callMode === 'video' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                        children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                                className: "w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition",
-                                                onClick: ()=>setShowLocalPreview((v)=>!v),
-                                                title: showLocalPreview ? 'Ẩn cam của tôi' : 'Hiện cam của tôi',
-                                                children: showLocalPreview ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["HiEyeSlash"], {
-                                                    className: "w-6 h-6"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                                    lineNumber: 698,
-                                                    columnNumber: 43
-                                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["HiEye"], {
-                                                    className: "w-6 h-6"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                                    lineNumber: 698,
-                                                    columnNumber: 80
-                                                }, this)
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                                lineNumber: 693,
-                                                columnNumber: 21
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                className: "text-white text-xs",
-                                                children: showLocalPreview ? 'Ẩn cam tôi' : 'Hiện cam tôi'
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                                lineNumber: 700,
-                                                columnNumber: 21
-                                            }, this)
-                                        ]
-                                    }, void 0, true)
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__T__as__TrackToggle$3e$__["TrackToggle"], {
+                                            source: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$livekit$2d$client$2f$dist$2f$livekit$2d$client$2e$esm$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Track"].Source.ScreenShare,
+                                            className: "w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                            lineNumber: 701,
+                                            columnNumber: 21
+                                        }, this)
+                                    }, void 0, false)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                                    lineNumber: 690,
+                                    lineNumber: 698,
                                     columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "flex flex-col items-center gap-2",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        className: "w-12 h-12 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition",
+                                        onClick: ()=>{
+                                            if (onRequestEnd) onRequestEnd();
+                                        },
+                                        title: "Kết thúc",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$ci$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CiPhone"], {
+                                            className: "w-6 h-6"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                            lineNumber: 716,
+                                            columnNumber: 19
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                        lineNumber: 709,
+                                        columnNumber: 17
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                    lineNumber: 708,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "flex flex-col items-center gap-2",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$components$2d$DuRBtGp8$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__T__as__TrackToggle$3e$__["TrackToggle"], {
+                                        source: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$livekit$2d$client$2f$dist$2f$livekit$2d$client$2e$esm$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Track"].Source.Microphone,
+                                        className: "w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                        lineNumber: 720,
+                                        columnNumber: 17
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                    lineNumber: 719,
+                                    columnNumber: 15
+                                }, this),
+                                callMode === 'video' && !isGroup && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "flex flex-col items-center gap-2",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            className: "w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition",
+                                            onClick: ()=>setShowLocalPreview((v)=>!v),
+                                            title: showLocalPreview ? 'Ẩn cam' : 'Hiện cam',
+                                            children: showLocalPreview ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["HiEyeSlash"], {
+                                                className: "w-6 h-6"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                                lineNumber: 734,
+                                                columnNumber: 43
+                                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi2$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["HiEye"], {
+                                                className: "w-6 h-6"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                                lineNumber: 734,
+                                                columnNumber: 80
+                                            }, this)
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                            lineNumber: 729,
+                                            columnNumber: 21
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                        lineNumber: 728,
+                                        columnNumber: 19
+                                    }, this)
+                                }, void 0, false),
+                                callMode === 'video' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "flex flex-col items-center gap-2 md:hidden",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(CameraSwitchButtonMobile, {}, void 0, false, {
+                                        fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                        lineNumber: 741,
+                                        columnNumber: 19
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+                                    lineNumber: 740,
+                                    columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                            lineNumber: 657,
+                            lineNumber: 685,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                    lineNumber: 566,
+                    lineNumber: 594,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-            lineNumber: 557,
+            lineNumber: 585,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-        lineNumber: 556,
+        lineNumber: 584,
+        columnNumber: 5
+    }, this);
+}
+function CameraSwitchButtonMobile() {
+    const room = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$contexts$2d$CsO1QZ3r$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__f__as__useRoomContext$3e$__["useRoomContext"])();
+    const local = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$livekit$2f$components$2d$react$2f$dist$2f$hooks$2d$yU$2d$srrIO$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__C__as__useLocalParticipant$3e$__["useLocalParticipant"])();
+    const [facing, setFacing] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useState('user');
+    const switchCamera = async ()=>{
+        try {
+            const pub = local.cameraTrack;
+            const vtrack = pub?.videoTrack || pub?.track;
+            const nextFacing = facing === 'user' ? 'environment' : 'user';
+            if (vtrack && typeof vtrack.restartTrack === 'function') {
+                await vtrack.restartTrack({
+                    facingMode: nextFacing
+                });
+                setFacing(nextFacing);
+                return;
+            }
+            const anyRoom = room;
+            let devices = [];
+            try {
+                const lkGet = room.getLocalDevices;
+                devices = lkGet ? await lkGet('videoinput') : await navigator.mediaDevices.enumerateDevices();
+            } catch  {
+                devices = await navigator.mediaDevices.enumerateDevices();
+            }
+            const target = devices.find((d)=>d.kind === 'videoinput' && ((d.facing || '').toLowerCase() === nextFacing || String(d.label || '').toLowerCase().includes(nextFacing)));
+            if (target && anyRoom.switchActiveDevice) {
+                await anyRoom.switchActiveDevice('videoinput', target.deviceId);
+                setFacing(nextFacing);
+            }
+        } catch  {}
+    };
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+        className: "w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition",
+        onClick: ()=>void switchCamera(),
+        title: "Đổi camera trước/sau",
+        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$bi$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["BiRefresh"], {
+            className: "w-6 h-6"
+        }, void 0, false, {
+            fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+            lineNumber: 804,
+            columnNumber: 7
+        }, this)
+    }, void 0, false, {
+        fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
+        lineNumber: 799,
         columnNumber: 5
     }, this);
 }
@@ -6222,7 +6299,7 @@ function LocalPreview({ myName, myAvatarUrl, size }) {
             avatarUrl: myAvatarUrl
         }, void 0, false, {
             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-            lineNumber: 795,
+            lineNumber: 892,
             columnNumber: 9
         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "w-full h-full flex items-center justify-center",
@@ -6231,17 +6308,17 @@ function LocalPreview({ myName, myAvatarUrl, size }) {
                 children: "Không có camera"
             }, void 0, false, {
                 fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-                lineNumber: 798,
+                lineNumber: 895,
                 columnNumber: 11
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-            lineNumber: 797,
+            lineNumber: 894,
             columnNumber: 9
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/(call)/LiveKitCall.tsx",
-        lineNumber: 788,
+        lineNumber: 885,
         columnNumber: 5
     }, this);
 }
@@ -8741,6 +8818,7 @@ const LayoutBase = ({ children })=>{
                                         myName: currentUser.name,
                                         myAvatarUrl: currentUser.avatar,
                                         callMode: callType === 'video' ? 'video' : 'voice',
+                                        isGroup: normalizedIsGroup,
                                         localPreviewSize: globalCallMin ? {
                                             w: Math.max(120, Math.min(160, Math.floor(globalCallSize.w / 3))),
                                             h: 90
@@ -8774,12 +8852,12 @@ const LayoutBase = ({ children })=>{
                                             children: "Tham gia"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/layout/layout.tsx",
-                                            lineNumber: 1478,
+                                            lineNumber: 1479,
                                             columnNumber: 25
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/layout/layout.tsx",
-                                        lineNumber: 1477,
+                                        lineNumber: 1478,
                                         columnNumber: 23
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     !globalCallFullscreen && !globalCallHidden && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -8788,7 +8866,7 @@ const LayoutBase = ({ children })=>{
                                         onTouchStart: handleResizeStart
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/layout/layout.tsx",
-                                        lineNumber: 1495,
+                                        lineNumber: 1496,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
@@ -8828,12 +8906,12 @@ const LayoutBase = ({ children })=>{
                     children: "Tham gia cuộc gọi"
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/layout.tsx",
-                    lineNumber: 1517,
+                    lineNumber: 1518,
                     columnNumber: 13
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/layout.tsx",
-                lineNumber: 1516,
+                lineNumber: 1517,
                 columnNumber: 11
             }, ("TURBOPACK compile-time value", void 0)),
             isAuthed && !(hideMobileFooter || isWidgetIframe) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -8869,7 +8947,7 @@ const LayoutBase = ({ children })=>{
                                                 className: `w-6 h-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/layout.tsx",
-                                                lineNumber: 1563,
+                                                lineNumber: 1564,
                                                 columnNumber: 23
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             tab.key === 'home' && totalUnread > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8877,7 +8955,7 @@ const LayoutBase = ({ children })=>{
                                                 children: totalUnread > 99 ? '99+' : totalUnread
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/layout.tsx",
-                                                lineNumber: 1565,
+                                                lineNumber: 1566,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             tab.key === 'group' && unreadGroups > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8885,7 +8963,7 @@ const LayoutBase = ({ children })=>{
                                                 children: unreadGroups > 99 ? '99+' : unreadGroups
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/layout.tsx",
-                                                lineNumber: 1570,
+                                                lineNumber: 1571,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             tab.key === 'directory' && unreadContacts > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8893,13 +8971,13 @@ const LayoutBase = ({ children })=>{
                                                 children: unreadContacts > 99 ? '99+' : unreadContacts
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/layout.tsx",
-                                                lineNumber: 1575,
+                                                lineNumber: 1576,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/layout/layout.tsx",
-                                        lineNumber: 1562,
+                                        lineNumber: 1563,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8907,36 +8985,36 @@ const LayoutBase = ({ children })=>{
                                         children: tab.label
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/layout/layout.tsx",
-                                        lineNumber: 1581,
+                                        lineNumber: 1582,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     active && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "absolute bottom-0 w-10 h-0.5 bg-indigo-600 rounded-full"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/layout/layout.tsx",
-                                        lineNumber: 1585,
+                                        lineNumber: 1586,
                                         columnNumber: 32
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, tab.key, true, {
                                 fileName: "[project]/src/components/layout/layout.tsx",
-                                lineNumber: 1544,
+                                lineNumber: 1545,
                                 columnNumber: 19
                             }, ("TURBOPACK compile-time value", void 0));
                         })
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/layout.tsx",
-                        lineNumber: 1538,
+                        lineNumber: 1539,
                         columnNumber: 13
                     }, ("TURBOPACK compile-time value", void 0))
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/layout.tsx",
-                    lineNumber: 1537,
+                    lineNumber: 1538,
                     columnNumber: 11
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/layout.tsx",
-                lineNumber: 1536,
+                lineNumber: 1537,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0))
         ]

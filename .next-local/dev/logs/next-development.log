@@ -341,3 +341,17 @@ Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allow
 [01:52:48.242] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
 [01:52:49.314] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/WNcFxJhY#VKT7gG8Knz2o7Aa33beKJSZGy8WfRe50Xt2WRr4vaP8" "received" null
 [01:52:49.320] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/OAlXWb4J#ruOJRvpLT9Mvb9-G-R5eNFWxnnG6dBHjyYWd96ukSiM" "received" null
+[01:24:39.874] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:24:43.969] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eNMRkIhS#9VczzRZQ0LuVwHk3xsqD1rGcW7vNQ3-8LjB0kUp9npA" "received" null
+[01:24:45.663] Browser WARN    Image with src "/imgs/banner1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:24:45.663] Browser WARN    Image with src "/imgs/banner2.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:24:45.663] Browser WARN    Image with src "/imgs/banner3.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:24:45.663] Browser WARN    Image with src "/imgs/banner4.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:24:45.663] Browser WARN    Image with src "/imgs/banner5.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:24:45.975] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/aZUHlZRK#9WrYuG2rPwy13TFuShGgcYXUTtGA_t44SPZGKFf-yJA" "received" null
+[01:24:46.403] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/zUtnDITa#BICLEEEp5IWYBnzgu9uOZXXD5aRsRceNlkuPEJ8TcEk" "received" null
+[01:24:46.708] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/rEdygCAb#01njleXgTtEoXSngFpo7vWo3lj-RNjGdlMBBN9isVOs" "received" null
+[01:24:46.710] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/eVVT2YxC#j3cHPXOY3SxiWqETeoyuyaOXoD07mcA6TmHPh_o03LA" "received" null
+[01:24:46.711] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/qANX2aoJ#F2uNrbdWzQgWfMHtUj8DKnowvY2IQpMWXsw7xCTBoyc" "received" null
+[01:24:47.029] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/XdcQibyY#TNq98l8L4hdJGl-yktDkVq4YZvSaY14sflQOcs1HmLY" "received" null
+[01:24:47.030] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "https://mega.nz/file/mUNi0YYa#fqE-v3vxjO7au_cpd1_rOT-nFwRVa1-aok3kxFPad_U" "received" null
