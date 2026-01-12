@@ -220,3 +220,25 @@ export const stripHtml = (html: string) => {
     .replace(/\s+/g, ' ')
     .trim();
 };
+
+export const normalizeId = (id: unknown): string => {
+  if (typeof id === 'string') return id;
+  if (typeof id === 'number') return String(id);
+  if (id && typeof id === 'object' && '_id' in id) {
+    return String((id as { _id: unknown })._id);
+  }
+  return String(id || '');
+};
+
+export const compareIds = (id1: unknown, id2: unknown): boolean => {
+  const normalized1 = normalizeId(id1);
+  const normalized2 = normalizeId(id2);
+
+  if (normalized1 === normalized2) return true;
+
+  const num1 = Number(normalized1);
+  const num2 = Number(normalized2);
+  if (!isNaN(num1) && !isNaN(num2) && num1 === num2) return true;
+
+  return false;
+};

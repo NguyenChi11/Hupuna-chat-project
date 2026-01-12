@@ -30,6 +30,7 @@ import { useChatUpload } from '@/hooks/useChatUpload';
 import { useChatVoiceInput } from '@/hooks/useChatVoiceInput';
 import { useChatMembers } from '@/hooks/useChatMembers';
 import { useChatNotifications } from '@/hooks/useChatNotifications';
+import { useChatSocket } from '@/hooks/chat/useChatSocket';
 import {
   createMessageApi,
   readMessagesApi,
@@ -148,6 +149,11 @@ export default function ChatWindow({
   const footerRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
+  useEffect(() => {
+    if (!socket) return;
+    socketRef.current = socket;
+    setSocketInstance(socket);
+  }, [socket]);
   const markedReadRef = useRef<string | null>(null);
   const initialScrolledRef = useRef(false);
   const jumpLoadingRef = useRef(false);
@@ -2010,485 +2016,37 @@ export default function ChatWindow({
     return () => window.removeEventListener('roomNicknamesUpdated', handler as EventListener);
   }, [roomId]);
 
-  useEffect(() => {
-    if (!roomId) return;
-    if (!socketRef.current || !socketRef.current.connected) {
-      socketRef.current = io(resolveSocketUrl(), { transports: ['websocket'], withCredentials: false });
-      setSocketInstance(socketRef.current);
-    }
-
-    socketRef.current.on('receive_message', (data: Message) => {
-      if (String(data.roomId) !== String(roomId)) return;
-      setMessages((prev) => {
-        const id = String(data._id);
-        const exists = prev.some((m) => String(m._id) === id);
-        if (exists) {
-          const next = prev.map((m) => (String(m._id) === id ? { ...m, ...data } : m));
-          return sortMessagesAsc(next);
-        }
-        const map = new Map<string, Message>();
-        [...prev, data].forEach((m) => map.set(String(m._id), m));
-        const unique = Array.from(map.values()).sort((a: Message, b: Message) => {
-          const ta = Number(a.serverTimestamp ?? a.timestamp) || 0;
-          const tb = Number(b.serverTimestamp ?? b.timestamp) || 0;
-          if (ta !== tb) return ta - tb;
-          const ia = String(a._id || '');
-          const ib = String(b._id || '');
-          if (ia.startsWith('temp_') && !ib.startsWith('temp_')) return 1;
-          if (!ia.startsWith('temp_') && ib.startsWith('temp_')) return -1;
-          return ia.localeCompare(ib);
-        });
-        return unique;
-      });
-      if (data.type === 'poll') {
-        const endAt = data.pollEndAt;
-        const locked = !!data.isPollLocked;
-        if (typeof endAt === 'number' && !locked) {
-          schedulePollAutoLock(data);
-        }
-      }
-
-      if (data.sender !== currentUser._id && !roomMuted) {
-        playMessageSound();
-        showMessageNotification(data);
-        flashTabTitle();
-      }
-      const locked = !!scrollLockUntilRef.current && Date.now() < scrollLockUntilRef.current;
-      const elMeasure = messagesContainerRef.current;
-      const gap = elMeasure ? elMeasure.scrollHeight - elMeasure.scrollTop - elMeasure.clientHeight : 0;
-      const atBottomNow = gap <= SCROLL_BUMP_PX;
-      const iconShowingNow = !atBottomNow && gap > BUTTON_SHOW_THRESHOLD_PX;
-      const shouldScroll = !locked && (data.sender === currentUser._id || !iconShowingNow);
-      if (shouldScroll) {
-        scrollToBottom();
-        setTimeout(scrollToBottom, 0);
-        setTimeout(scrollToBottom, 150);
-        setTimeout(scrollToBottom, 300);
-        setPendingNewCount(0);
-        pendingNewCountRef.current = 0;
-        hasScrolledUpRef.current = false;
-        setShowScrollDown(false);
-        if (data.sender !== currentUser._id) {
-          void markAsReadApi(roomId, String(currentUser._id));
-          syncLocalReadBy();
-          try {
-            socketRef.current?.emit('messages_read', { roomId, userId: String(currentUser._id) });
-          } catch {}
-        }
-      } else {
-        if (data.sender !== currentUser._id) {
-          setPendingNewCount((c) => {
-            const next = c + 1;
-            pendingNewCountRef.current = next;
-            return next;
-          });
-          setShowScrollDown(hasScrolledUpRef.current || pendingNewCountRef.current > 0);
-          if (atBottomNow) {
-            void markAsReadApi(roomId, String(currentUser._id));
-            syncLocalReadBy();
-            try {
-              socketRef.current?.emit('messages_read', { roomId, userId: String(currentUser._id) });
-            } catch {}
-          }
-        }
-      }
-    });
-    socketRef.current.on(
-      'room_nickname_updated',
-      (payload: { roomId: string; targetUserId: string; nickname: string }) => {
-        if (String(payload.roomId) !== String(roomId)) return;
-        // 🔥 Reload data to get updated nicknames
-        reLoad?.();
-      },
-    );
-    socketRef.current.on('room_nicknames_state', (payload: { roomId: string; map: Record<string, string> }) => {
-      if (String(payload.roomId) !== String(roomId)) return;
-      try {
-        const myId = String(currentUser._id || '');
-        const key = `roomNicknames:${roomId}:${myId}`;
-        const incoming = payload.map || {};
-        localStorage.setItem(key, JSON.stringify(incoming));
-      } catch {}
-      setNicknamesStamp((s) => s + 1);
-    });
-
-    socketRef.current.on(
-      'reaction_updated',
-      (data: { _id: string; roomId: string; reactions: Record<string, string[]> }) => {
-        if (String(data.roomId) === String(roomId)) {
-          setMessages((prevMessages) =>
-            prevMessages.map((msg) =>
-              String(msg._id) === String(data._id)
-                ? {
-                    ...msg,
-                    reactions: data.reactions, // ✅ Update reactions
-                  }
-                : msg,
-            ),
-          );
-        }
-      },
-    );
-    socketRef.current.on('messages_read', (payload: { roomId: string; userId: string }) => {
-      if (String(payload.roomId) !== String(roomId)) return;
-      const viewerId = String(payload.userId || '');
-      const myId = String(currentUser._id || '');
-      if (!viewerId || compareIds(viewerId, myId)) return;
-      const lastMine = [...messagesRef.current]
-        .slice()
-        .reverse()
-        .find((m) => compareIds((m as Message).sender, myId) && !(m as Message).isRecalled);
-      if (!lastMine) return;
-      setMessages((prev) =>
-        prev.map((m) => {
-          if (String(m._id) !== String(lastMine._id)) return m;
-          const existing = new Set(((m.readBy || []) as string[]).map((x) => String(x)));
-          if (!existing.has(viewerId)) {
-            return { ...m, readBy: [...existing, viewerId] as unknown as string[] };
-          }
-          return m;
-        }),
-      );
-    });
-
-    // 🔥 Listener cho room_nickname_updated
-    socketRef.current.on(
-      'room_nickname_updated',
-      (data: { roomId: string; targetUserId: string; nickname: string }) => {
-        if (String(data.roomId) === String(roomId)) {
-          reLoad?.();
-          setNicknamesStamp(Date.now());
-        }
-      },
-    );
-
-    // 🔥 LISTENER CHO edit_message
-    socketRef.current.on(
-      'edit_message',
-      (data: {
-        _id: string;
-        roomId: string;
-        content?: string;
-        editedAt: number;
-        originalContent?: string;
-        reminderAt?: number;
-        reminderNote?: string;
-        pollQuestion?: string;
-        pollOptions?: string[];
-        pollVotes?: Record<string, string[]>;
-        isPollLocked?: boolean;
-        pollLockedAt?: number;
-        timestamp?: number;
-        isPinned?: boolean;
-        pinnedTitle?: string;
-        pinnedAt?: number | null;
-        reactions?: Record<string, string[]>;
-        pollAllowMultiple?: boolean;
-        pollAllowAddOptions?: boolean;
-        pollHideVoters?: boolean;
-        pollHideResultsUntilVote?: boolean;
-        pollEndAt?: number | null;
-      }) => {
-        if (String(data.roomId) === String(roomId)) {
-          setMessages((prevMessages) => {
-            const updated = prevMessages.map((msg) =>
-              String(msg._id) === String(data._id)
-                ? {
-                    ...msg,
-                    content: data.content ?? msg.content,
-                    editedAt: data.editedAt,
-                    originalContent: data.originalContent || msg.originalContent || msg.content,
-                    reminderAt: data.reminderAt ?? msg.reminderAt,
-                    reminderNote: data.reminderNote ?? msg.reminderNote,
-                    pollQuestion: data.pollQuestion ?? msg.pollQuestion,
-                    pollOptions: data.pollOptions ?? msg.pollOptions,
-                    pollVotes: data.pollVotes ?? msg.pollVotes,
-                    isPollLocked: data.isPollLocked ?? msg.isPollLocked,
-                    pollLockedAt: data.pollLockedAt ?? msg.pollLockedAt,
-                    pollAllowMultiple: data.pollAllowMultiple ?? msg.pollAllowMultiple,
-                    pollAllowAddOptions: data.pollAllowAddOptions ?? msg.pollAllowAddOptions,
-                    pollHideVoters: data.pollHideVoters ?? msg.pollHideVoters,
-                    pollHideResultsUntilVote: data.pollHideResultsUntilVote ?? msg.pollHideResultsUntilVote,
-                    pollEndAt: data.pollEndAt !== undefined ? data.pollEndAt : msg.pollEndAt,
-                    timestamp: data.timestamp ?? msg.timestamp,
-                    isPinned: typeof data.isPinned === 'boolean' ? data.isPinned : msg.isPinned,
-                    pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : msg.pinnedAt,
-                    reactions: data.reactions ?? msg.reactions,
-                  }
-                : msg,
-            );
-            const sorted = [...updated].sort((a: Message, b: Message) => {
-              const ta = Number(a.serverTimestamp ?? a.timestamp) || 0;
-              const tb = Number(b.serverTimestamp ?? b.timestamp) || 0;
-              if (ta !== tb) return ta - tb;
-              const ia = String(a._id || '');
-              const ib = String(b._id || '');
-              if (ia.startsWith('temp_') && !ib.startsWith('temp_')) return 1;
-              if (!ia.startsWith('temp_') && ib.startsWith('temp_')) return -1;
-              return ia.localeCompare(ib);
-            });
-            return sorted;
-          });
-          if (typeof data.isPinned === 'boolean') {
-            setAllPinnedMessages((prev) => {
-              const latest = messagesRef.current.find((m) => String(m._id) === String(data._id));
-              const updatedMsg = latest
-                ? ({
-                    ...latest,
-                    content: data.content ?? latest.content,
-                    pollQuestion: data.pollQuestion ?? latest.pollQuestion,
-                    pollOptions: data.pollOptions ?? latest.pollOptions,
-                    pollVotes: data.pollVotes ?? latest.pollVotes,
-                    isPollLocked: data.isPollLocked ?? latest.isPollLocked,
-                    pollLockedAt: data.pollLockedAt ?? latest.pollLockedAt,
-                    timestamp: data.timestamp ?? latest.timestamp,
-                    editedAt: data.editedAt ?? latest.editedAt,
-                    isPinned: data.isPinned,
-                    pinnedTitle: data.pinnedTitle ?? latest.pinnedTitle,
-                    pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : latest.pinnedAt,
-                  } as Message)
-                : ({
-                    _id: data._id as unknown as string,
-                    roomId,
-                    sender: currentUser._id as unknown as string,
-                    content: data.content || '',
-                    type: 'text',
-                    timestamp: data.timestamp || Date.now(),
-                    editedAt: data.editedAt || Date.now(),
-                    isPinned: data.isPinned,
-                    pinnedTitle: data.pinnedTitle,
-                    pinnedAt: typeof data.pinnedAt !== 'undefined' ? data.pinnedAt : Date.now(),
-                  } as Message);
-              const withoutDup = prev.filter((m) => String(m._id) !== String(data._id));
-              const next = data.isPinned ? [updatedMsg, ...withoutDup] : withoutDup;
-              return next.sort((a, b) => Number(b.pinnedAt ?? 0) - Number(a.pinnedAt ?? 0));
-            });
-          }
-          const idStr = String(data._id);
-          const t = reminderTimersByIdRef.current.get(idStr);
-          if (t) {
-            clearTimeout(t);
-            reminderTimersByIdRef.current.delete(idStr);
-            reminderScheduledIdsRef.current.delete(idStr);
-          }
-          const now = Date.now();
-          const at = typeof data.reminderAt === 'number' ? (data.reminderAt as number) : undefined;
-          if (typeof at === 'number') {
-            const delay = Math.max(0, at - now);
-            const timerId = window.setTimeout(async () => {
-              const latest = messagesRef.current.find((x) => String(x._id) === idStr);
-              if (!latest || latest.isRecalled) {
-                reminderScheduledIdsRef.current.delete(idStr);
-                const old = reminderTimersByIdRef.current.get(idStr);
-                if (old) {
-                  clearTimeout(old);
-                  reminderTimersByIdRef.current.delete(idStr);
-                }
-                return;
-              }
-              let latestAt = (latest as Message & { reminderAt?: number }).reminderAt || latest.timestamp;
-              try {
-                const r = await fetch('/api/messages', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'getById', _id: latest._id }),
-                });
-                const j = await r.json();
-                const srv = (j && (j.row?.row || j.row)) as Message | undefined;
-                const srvAt = srv && (srv as Message & { reminderAt?: number }).reminderAt;
-                if (typeof srvAt === 'number') {
-                  latestAt = srvAt;
-                }
-              } catch {}
-              const now3 = Date.now();
-              if (latestAt > now3) {
-                const newDelay = Math.max(0, latestAt - now3);
-                const newTimer = window.setTimeout(async () => {
-                  const latest2 = messagesRef.current.find((x) => String(x._id) === idStr);
-                  if (!latest2 || latest2.isRecalled) {
-                    reminderScheduledIdsRef.current.delete(idStr);
-                    const t2 = reminderTimersByIdRef.current.get(idStr);
-                    if (t2) {
-                      clearTimeout(t2);
-                      reminderTimersByIdRef.current.delete(idStr);
-                    }
-                    return;
-                  }
-                  const latestAt2 = (latest2 as Message & { reminderAt?: number }).reminderAt || latest2.timestamp;
-                  const timeStr2 = new Date(latestAt2).toLocaleString('vi-VN');
-                  try {
-                    const res2 = await fetch('/api/messages', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        action: 'update',
-                        field: '_id',
-                        value: latest2._id,
-                        data: { reminderFired: true },
-                      }),
-                    });
-                    const json2 = await res2.json();
-                    if (json2?.success) {
-                      await sendNotifyMessage(
-                        `Đến giờ lịch hẹn: "${latest2.content || ''}" lúc ${timeStr2}`,
-                        String(latest2._id),
-                      );
-                    }
-                  } catch {}
-                  reminderScheduledIdsRef.current.delete(idStr);
-                  reminderTimersByIdRef.current.delete(idStr);
-                }, newDelay);
-                reminderTimersByIdRef.current.set(idStr, newTimer);
-                return;
-              }
-              const timeStr = new Date(latestAt).toLocaleString('vi-VN');
-              try {
-                const res = await fetch('/api/messages', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    action: 'update',
-                    field: '_id',
-                    value: latest._id,
-                    data: { reminderFired: true },
-                  }),
-                });
-                const json = await res.json();
-                if (json?.success) {
-                  await sendNotifyMessage(
-                    `Đến giờ lịch hẹn: "${latest.content || ''}" lúc ${timeStr}`,
-                    String(latest._id),
-                  );
-                }
-              } catch {}
-              reminderScheduledIdsRef.current.delete(idStr);
-              reminderTimersByIdRef.current.delete(idStr);
-            }, delay);
-            reminderTimersByIdRef.current.set(idStr, timerId);
-            reminderScheduledIdsRef.current.add(idStr);
-          }
-          const tPoll = pollTimersByIdRef.current.get(idStr);
-          if (tPoll) {
-            clearTimeout(tPoll);
-            pollTimersByIdRef.current.delete(idStr);
-            pollScheduledIdsRef.current.delete(idStr);
-          }
-          const endAt = data.pollEndAt;
-          const shouldSchedule = typeof endAt === 'number' && !data.isPollLocked;
-          if (shouldSchedule) {
-            const existingMsg = messagesRef.current.find((m) => String(m._id) === idStr);
-            const composed = existingMsg
-              ? { ...existingMsg, pollEndAt: endAt, isPollLocked: data.isPollLocked }
-              : ({
-                  _id: data._id,
-                  roomId: data.roomId,
-                  pollEndAt: endAt,
-                  isPollLocked: data.isPollLocked,
-                } as unknown as Message);
-            schedulePollAutoLock(composed);
-          }
-          // Không re-fetch để tránh reload, cập nhật cục bộ qua socket
-        }
-      },
-    );
-
-    socketRef.current.on(
-      'edit_message',
-      (data: {
-        _id: string;
-        roomId: string;
-        newContent?: string;
-        content?: string;
-        editedAt: number;
-        originalContent?: string;
-        timestamp?: number;
-      }) => {
-        if (String(data.roomId) === String(roomId)) {
-          setMessages((prevMessages) => {
-            const updated = prevMessages.map((msg) =>
-              String(msg._id) === String(data._id)
-                ? {
-                    ...msg,
-                    content: data.newContent ?? data.content ?? msg.content,
-                    editedAt: data.editedAt,
-                    originalContent: data.originalContent || msg.originalContent || msg.content,
-                    timestamp: typeof data.timestamp === 'number' ? data.timestamp : msg.timestamp,
-                  }
-                : msg,
-            );
-            return updated;
-          });
-          const idStr = String(data._id);
-          const t = reminderTimersByIdRef.current.get(idStr);
-          if (t) {
-            clearTimeout(t);
-            reminderTimersByIdRef.current.delete(idStr);
-            reminderScheduledIdsRef.current.delete(idStr);
-          }
-          // Không re-fetch để tránh reload, cập nhật cục bộ qua socket
-        }
-      },
-    );
-
-    socketRef.current.on('message_recalled', (data: { _id: string; roomId: string }) => {
-      if (data.roomId === roomId) {
-        setMessages((prevMessages) =>
-          prevMessages.map((msg) => (msg._id === data._id ? { ...msg, isRecalled: true } : msg)),
-        );
-        const idStr = String(data._id);
-        const t = reminderTimersByIdRef.current.get(idStr);
-        if (t) {
-          clearTimeout(t);
-          reminderTimersByIdRef.current.delete(idStr);
-          reminderScheduledIdsRef.current.delete(idStr);
-        }
-        const tp = pollTimersByIdRef.current.get(idStr);
-        if (tp) {
-          clearTimeout(tp);
-          pollTimersByIdRef.current.delete(idStr);
-        }
-        pollScheduledIdsRef.current.delete(idStr);
-        // Không re-fetch để tránh reload, cập nhật cục bộ qua socket
-      }
-    });
-
-    socketRef.current.on('message_deleted', (data: { _id: string; roomId: string }) => {
-      if (data.roomId === roomId) {
-        setMessages((prevMessages) => prevMessages.filter((msg) => msg._id !== data._id));
-        const idStr = String(data._id);
-        const t = reminderTimersByIdRef.current.get(idStr);
-        if (t) {
-          clearTimeout(t);
-          reminderTimersByIdRef.current.delete(idStr);
-        }
-        reminderScheduledIdsRef.current.delete(idStr);
-        const tp = pollTimersByIdRef.current.get(idStr);
-        if (tp) {
-          clearTimeout(tp);
-          pollTimersByIdRef.current.delete(idStr);
-        }
-        pollScheduledIdsRef.current.delete(idStr);
-        void fetchMessages();
-      }
-    });
-
-    socketRef.current.emit('join_room', roomId);
-    socketRef.current.emit('join_user', { userId: String(currentUser._id) });
-
-    return () => {
-      try {
-        socketRef.current?.off('receive_message');
-        socketRef.current?.off('room_nickname_updated');
-        socketRef.current?.off('room_nicknames_state');
-        socketRef.current?.off('reaction_updated');
-        socketRef.current?.off('messages_read');
-        socketRef.current?.off('edit_message');
-        socketRef.current?.off('message_recalled');
-        socketRef.current?.off('message_deleted');
-      } catch {}
-      setSocketInstance(null);
-    };
-  }, [roomId, currentUser._id, playMessageSound, showMessageNotification, fetchMessages, sendNotifyMessage, socket]);
+  useChatSocket({
+    roomId,
+    currentUser,
+    socketRef,
+    setSocketInstance,
+    setMessages,
+    messagesRef,
+    sortMessagesAsc,
+    schedulePollAutoLock,
+    scrollToBottom,
+    scrollLockUntilRef,
+    messagesContainerRef,
+    roomMuted,
+    playMessageSound,
+    showMessageNotification,
+    flashTabTitle,
+    setPendingNewCount,
+    pendingNewCountRef,
+    hasScrolledUpRef,
+    setShowScrollDown,
+    syncLocalReadBy,
+    reLoad,
+    setNicknamesStamp,
+    setAllPinnedMessages,
+    reminderTimersByIdRef,
+    reminderScheduledIdsRef,
+    pollTimersByIdRef,
+    pollScheduledIdsRef,
+    fetchMessages,
+    sendNotifyMessage,
+  });
 
   // Socket call events và ring tone được xử lý ở HomePage
 
@@ -3198,19 +2756,6 @@ export default function ChatWindow({
     window.addEventListener('shareMessage', handler as EventListener);
     return () => window.removeEventListener('shareMessage', handler as EventListener);
   }, [messages, handleShareMessage, roomId]);
-
-  // 🔥 Listen for local nickname updates and emit to socket
-  useEffect(() => {
-    const handleLocalNicknameUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      if (detail && String(detail.roomId) === String(roomId)) {
-        socketRef.current?.emit('room_nickname_updated', detail);
-      }
-    };
-
-    window.addEventListener('roomNicknamesUpdated', handleLocalNicknameUpdate);
-    return () => window.removeEventListener('roomNicknamesUpdated', handleLocalNicknameUpdate);
-  }, [roomId]);
 
   const viewportRef = useRef<HTMLElement>(null);
   const applyViewport = useCallback(() => {
