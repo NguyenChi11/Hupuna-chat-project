@@ -141,35 +141,68 @@ export default function ChatInput({
   const [richTextContent, setRichTextContent] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
   const tagsContainerRef = useRef<HTMLDivElement | null>(null);
-  const tagsDragRef = useRef<{ active: boolean; startX: number; startScroll: number; pid?: number }>({
+  const tagsDragRef = useRef<{ active: boolean; startX: number; startScroll: number; pid?: number; moved: boolean }>({
     active: false,
     startX: 0,
     startScroll: 0,
+    moved: false,
   });
   const onTagsPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     const el = tagsContainerRef.current;
     if (!el) return;
-    tagsDragRef.current.active = true;
-    tagsDragRef.current.startX = e.clientX;
-    tagsDragRef.current.startScroll = el.scrollLeft;
-    tagsDragRef.current.pid = e.pointerId;
-    el.setPointerCapture(e.pointerId);
+    tagsDragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startScroll: el.scrollLeft,
+      pid: e.pointerId,
+      moved: false,
+    };
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {}
   };
   const onTagsPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tagsDragRef.current.active) return;
     const el = tagsContainerRef.current;
     if (!el) return;
     const dx = e.clientX - tagsDragRef.current.startX;
-    el.scrollLeft = tagsDragRef.current.startScroll - dx;
-    e.preventDefault();
+
+    if (!tagsDragRef.current.moved && Math.abs(dx) > 5) {
+      tagsDragRef.current.moved = true;
+    }
+
+    if (tagsDragRef.current.moved) {
+      el.scrollLeft = tagsDragRef.current.startScroll - dx;
+      e.preventDefault();
+    }
   };
   const onTagsPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = tagsContainerRef.current;
+
+    // Handle Click if not moved
+    if (tagsDragRef.current.active && !tagsDragRef.current.moved) {
+      const target = document.elementFromPoint(e.clientX, e.clientY);
+      const tagEl = target?.closest('[data-tag-id]');
+      if (tagEl) {
+        const id = tagEl.getAttribute('data-tag-id');
+        if (id) handleToggleTag(id);
+      }
+    }
+
     tagsDragRef.current.active = false;
     if (el && typeof tagsDragRef.current.pid === 'number') {
       try {
         el.releasePointerCapture(tagsDragRef.current.pid);
       } catch {}
+    }
+  };
+
+  const handleTagsClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (tagsDragRef.current.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      tagsDragRef.current.moved = false;
     }
   };
 
@@ -662,6 +695,20 @@ export default function ChatInput({
       }),
     );
 
+    // Emit socket
+    if (socket) {
+      const receiver = isGroup ? null : String((selectedChat as User)._id);
+      const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
+      socket.emit('chat_tags_updated', {
+        roomId,
+        sender: String(currentUser._id),
+        isGroup,
+        receiver,
+        members,
+        tags: newTags,
+      });
+    }
+
     // API Update
     try {
       const isGroupChat = isGroup;
@@ -1086,6 +1133,8 @@ export default function ChatInput({
           onPointerMove={onTagsPointerMove}
           onPointerUp={onTagsPointerUp}
           onPointerCancel={onTagsPointerUp}
+          onLostPointerCapture={onTagsPointerUp}
+          onClickCapture={handleTagsClickCapture}
           className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full p-1 whitespace-nowrap overscroll-x-contain x-scroll-touch select-none cursor-grab active:cursor-grabbing"
         >
           {userTags.map((tag) => {
@@ -1094,7 +1143,7 @@ export default function ChatInput({
             return (
               <div
                 key={tag.id}
-                onClick={() => handleToggleTag(tag.id)}
+                data-tag-id={tag.id}
                 className={`
                   cursor-pointer flex-none px-2.5 py-1 rounded-[0.25rem] text-xs font-semibold border transition-all duration-200 shadow-sm active:scale-95
                   ${isSelected ? 'shadow-md' : 'hover:shadow'}
