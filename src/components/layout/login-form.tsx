@@ -181,7 +181,7 @@ export default function LoginForm() {
               >
                 {/* Username */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                     <HiUser className="w-5 h-5 text-blue-600" />
                     Tên đăng nhập
                   </label>
@@ -189,7 +189,7 @@ export default function LoginForm() {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-2 bg-gray-50 rounded-[0.75rem] border border-gray-200  focus:ring-blue-100 focus:border-blue-500 transition"
+                    className="w-full p-2 bg-gray-50 rounded-[0.25rem] border border-gray-200  focus:ring-blue-100 focus:border-blue-500 transition"
                     placeholder="Nhập tên đăng nhập"
                     required
                   />
@@ -197,7 +197,7 @@ export default function LoginForm() {
 
                 {/* Password */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                     <HiLockClosed className="w-5 h-5 text-blue-600" />
                     Mật khẩu
                   </label>
@@ -205,7 +205,7 @@ export default function LoginForm() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-2 bg-gray-50 rounded-[0.75rem] border border-gray-200  focus:ring-blue-100 focus:border-blue-500 transition"
+                    className="w-full p-2 bg-gray-50 rounded-[0.25rem] border border-gray-200  focus:ring-blue-100 focus:border-blue-500 transition"
                     placeholder="Nhập mật khẩu"
                     required
                   />
@@ -231,7 +231,7 @@ export default function LoginForm() {
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full  cursor-pointer py-2 bg-blue-500 rounded-[0.75rem] text-white font-bold text-sm shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2"
+                  className="w-full  cursor-pointer py-2 bg-blue-500 rounded-[0.25rem] text-white font-bold text-sm shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2"
                 >
                   Đăng nhập ngay
                   <HiArrowRight className="w-4 h-4" />
@@ -240,7 +240,7 @@ export default function LoginForm() {
                 <button
                   type="button"
                   onClick={register}
-                  className="w-full cursor-pointer py-2 rounded-[0.75rem] text-sm border border-blue-500 text-blue-600 font-bold hover:bg-blue-50"
+                  className="w-full cursor-pointer py-2 rounded-[0.25rem] text-sm border border-blue-500 text-blue-600 font-bold hover:bg-blue-50"
                 >
                   Tạo tài khoản mới
                 </button>

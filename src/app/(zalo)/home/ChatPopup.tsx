@@ -3109,7 +3109,7 @@ export default function ChatWindow({
                     if (f) {
                       const isVid = f.type.startsWith('video/') || isVideoFile(f.name);
                       const isImg = f.type.startsWith('image/');
-                      const t = isVid ? 'video' : isImg ? 'image' : 'file';
+                      const t = (isVid ? 'video' : isImg ? 'image' : 'file') as 'video' | 'image' | 'file';
                       const url = URL.createObjectURL(f);
                       setAttachments((prev) => {
                         const next = [...prev, { file: f, type: t, previewUrl: url, fileName: f.name }];
@@ -3129,7 +3129,7 @@ export default function ChatWindow({
               onSendMessage={handleSendMessage}
               onSelectImage={(file) => {
                 const isVideo = file.type.startsWith('video/') || isVideoFile(file.name);
-                const msgType = isVideo ? 'video' : 'image';
+                const msgType = (isVideo ? 'video' : 'image') as 'video' | 'image';
                 const url = URL.createObjectURL(file);
                 setAttachments((prev) => {
                   const next = [...prev, { file, type: msgType, previewUrl: url, fileName: file.name }];
@@ -3140,7 +3140,7 @@ export default function ChatWindow({
               }}
               onSelectFile={(file) => {
                 const isVideo = file.type.startsWith('video/') || isVideoFile(file.name);
-                const msgType = isVideo ? 'video' : 'file';
+                const msgType = (isVideo ? 'video' : 'file') as 'video' | 'file';
                 const url = URL.createObjectURL(file);
                 setAttachments((prev) => {
                   const next = [...prev, { file, type: msgType, previewUrl: url, fileName: file.name }];
