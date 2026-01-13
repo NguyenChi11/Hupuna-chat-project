@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { formatTimeAgo } from '@/utils/dateUtils';
 const PRESENCE_THRESHOLD_MS = 5 * 60 * 1000;
 import io, { Socket } from 'socket.io-client';
@@ -160,6 +160,8 @@ export default function ChatWindow({
   const initialScrolledRef = useRef(false);
   const jumpLoadingRef = useRef(false);
   const isAtBottomRef = useRef(true);
+  const prevScrollHeightRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pickerTab, setPickerTab] = useState<'emoji' | 'sticker'>('emoji');
   const [highlightedMsgId, setHighlightedMsgId] = useState<string | null>(null);
@@ -1598,6 +1600,9 @@ export default function ChatWindow({
     setLoadingMore(true);
     setShowScrollDown(true);
     const prevHeight = container ? container.scrollHeight : 0;
+    if (container) {
+      prevScrollHeightRef.current = prevHeight;
+    }
     let added = false;
     try {
       const LIMIT = 20;
@@ -1611,15 +1616,9 @@ export default function ChatWindow({
         const newOldest = toAddAsc[0]?.timestamp ?? oldestTs;
         setOldestTs(newOldest ?? oldestTs);
         added = true;
+        isRestoringScrollRef.current = true;
       }
       setHasMore(raw.length === LIMIT);
-      if (container && !jumpLoadingRef.current) {
-        setTimeout(() => {
-          const newHeight = container.scrollHeight;
-          const delta = newHeight - prevHeight;
-          container.scrollTop = delta + SCROLL_BUMP_PX;
-        }, 0);
-      }
     } catch (e) {
       console.error('Load more messages error:', e);
       setHasMore(false);
@@ -1628,6 +1627,18 @@ export default function ChatWindow({
     }
     return added;
   }, [roomId, loadingMore, hasMore, oldestTs, messages]);
+
+  useLayoutEffect(() => {
+    if (isRestoringScrollRef.current && messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      const newHeight = container.scrollHeight;
+      const delta = newHeight - prevScrollHeightRef.current;
+      if (delta > 0 && !jumpLoadingRef.current) {
+        container.scrollTop = delta + SCROLL_BUMP_PX;
+      }
+      isRestoringScrollRef.current = false;
+    }
+  }, [messages]);
 
   useEffect(() => {
     const el = messagesContainerRef.current;
@@ -1774,53 +1785,10 @@ export default function ChatWindow({
   const fetchMessages = useCallback(async () => {
     try {
       setInitialLoading(true);
-      const targetCount = 20;
-      const batchSize = 50;
-      let beforeTs: number | undefined = undefined;
-      let lastBatchLen = 0;
-      const map = new Map<string, Message>();
-      const isContent = (t: unknown) => {
-        const s = String(t || '');
-        return s === 'text' || s === 'image' || s === 'video';
-      };
-      while (true) {
-        const resp = await readMessagesApi(roomId, { limit: batchSize, sortOrder: 'desc', before: beforeTs });
-        const raw = Array.isArray(resp.data) ? (resp.data as Message[]) : [];
-        lastBatchLen = raw.length;
-        if (raw.length === 0) break;
-        raw.forEach((m) => {
-          const id = String(m._id);
-          if (!map.has(id)) map.set(id, m);
-        });
-        const descProbe = Array.from(map.values()).sort((a: Message, b: Message) => {
-          const ta = Number(a.serverTimestamp ?? a.timestamp) || 0;
-          const tb = Number(b.serverTimestamp ?? b.timestamp) || 0;
-          if (tb !== ta) return tb - ta;
-          const ia = String(a._id || '');
-          const ib = String(b._id || '');
-          return ib.localeCompare(ia);
-        });
-        const contentCount = descProbe.reduce((acc, m) => acc + (isContent(m.type) ? 1 : 0), 0);
-        const minBatchTs = raw.reduce(
-          (min, m) => {
-            const ts = Number(m.serverTimestamp ?? m.timestamp) || 0;
-            return min === null || ts < (min as number) ? ts : (min as number);
-          },
-          null as number | null,
-        );
-        beforeTs = typeof minBatchTs === 'number' ? minBatchTs : undefined;
-        if (contentCount >= targetCount) break;
-        if (raw.length < batchSize) break;
-      }
-      const desc = Array.from(map.values()).sort((a: Message, b: Message) => {
-        const ta = Number(a.serverTimestamp ?? a.timestamp) || 0;
-        const tb = Number(b.serverTimestamp ?? b.timestamp) || 0;
-        if (tb !== ta) return tb - ta;
-        const ia = String(a._id || '');
-        const ib = String(b._id || '');
-        return ib.localeCompare(ia);
-      });
-      const asc = desc.slice().reverse();
+      const LIMIT = 20;
+      const resp = await readMessagesApi(roomId, { limit: LIMIT, sortOrder: 'desc' });
+      const raw = Array.isArray(resp.data) ? (resp.data as Message[]) : [];
+      const asc = raw.slice().reverse();
       setMessages(asc);
       try {
         const rawPending = localStorage.getItem(`pendingUploads:${roomId}`);
@@ -1862,7 +1830,7 @@ export default function ChatWindow({
       } catch {}
       const first = asc[0]?.timestamp ?? null;
       setOldestTs(first ?? null);
-      setHasMore(lastBatchLen >= batchSize || asc.length > 0);
+      setHasMore(raw.length === LIMIT || asc.length > 0);
       setInitialLoading(false);
     } catch (error) {
       console.error('Fetch messages error:', error);

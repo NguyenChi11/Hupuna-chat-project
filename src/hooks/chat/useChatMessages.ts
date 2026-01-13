@@ -61,53 +61,10 @@ export function useChatMessages({
   const fetchMessages = useCallback(async () => {
     try {
       setInitialLoading(true);
-      const targetCount = 20;
-      const batchSize = 50;
-      let beforeTs: number | undefined = undefined;
-      let lastBatchLen = 0;
-      const map = new Map<string, Message>();
-      const isContent = (t: unknown) => {
-        const s = String(t || '');
-        return s === 'text' || s === 'image' || s === 'video';
-      };
-      while (true) {
-        const resp = await readMessagesApi(roomId, { limit: batchSize, sortOrder: 'desc', before: beforeTs });
-        const raw = Array.isArray(resp.data) ? (resp.data as Message[]) : [];
-        lastBatchLen = raw.length;
-        if (raw.length === 0) break;
-        raw.forEach((m) => {
-          const id = String(m._id);
-          if (!map.has(id)) map.set(id, m);
-        });
-        const descProbe = Array.from(map.values()).sort((a: Message, b: Message) => {
-          const ta = Number(a.serverTimestamp ?? a.timestamp) || 0;
-          const tb = Number(b.serverTimestamp ?? b.timestamp) || 0;
-          if (tb !== ta) return tb - ta;
-          const ia = String(a._id || '');
-          const ib = String(b._id || '');
-          return ib.localeCompare(ia);
-        });
-        const contentCount = descProbe.reduce((acc, m) => acc + (isContent(m.type) ? 1 : 0), 0);
-        const minBatchTs = raw.reduce(
-          (min, m) => {
-            const ts = Number(m.serverTimestamp ?? m.timestamp) || 0;
-            return min === null || ts < (min as number) ? ts : (min as number);
-          },
-          null as number | null,
-        );
-        beforeTs = typeof minBatchTs === 'number' ? minBatchTs : undefined;
-        if (contentCount >= targetCount) break;
-        if (raw.length < batchSize) break;
-      }
-      const desc = Array.from(map.values()).sort((a: Message, b: Message) => {
-        const ta = Number(a.serverTimestamp ?? a.timestamp) || 0;
-        const tb = Number(b.serverTimestamp ?? b.timestamp) || 0;
-        if (tb !== ta) return tb - ta;
-        const ia = String(a._id || '');
-        const ib = String(b._id || '');
-        return ib.localeCompare(ia);
-      });
-      const asc = desc.slice().reverse();
+      const LIMIT = 20;
+      const resp = await readMessagesApi(roomId, { limit: LIMIT, sortOrder: 'desc' });
+      const raw = Array.isArray(resp.data) ? (resp.data as Message[]) : [];
+      const asc = raw.slice().reverse();
       setMessages(asc);
       try {
         const rawPending = localStorage.getItem(`pendingUploads:${roomId}`);
@@ -149,7 +106,7 @@ export function useChatMessages({
       } catch {}
       const first = asc[0]?.timestamp ?? null;
       setOldestTs(first ?? null);
-      setHasMore(lastBatchLen >= batchSize || asc.length > 0);
+      setHasMore(raw.length === LIMIT || asc.length > 0);
       setInitialLoading(false);
     } catch (error) {
       console.error('Fetch messages error:', error);
