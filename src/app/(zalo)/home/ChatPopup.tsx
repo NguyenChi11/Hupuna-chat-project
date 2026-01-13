@@ -211,6 +211,10 @@ export default function ChatWindow({
       } | null;
     }[]
   >([]);
+  const attachmentsRef = useRef<typeof attachments>([]);
+  useEffect(() => {
+    attachmentsRef.current = attachments;
+  }, [attachments]);
   const reminderScheduledIdsRef = useRef<Set<string>>(new Set());
   const reminderTimersByIdRef = useRef<Map<string, number>>(new Map());
   const pollScheduledIdsRef = useRef<Set<string>>(new Set());
@@ -2219,7 +2223,7 @@ export default function ChatWindow({
     if (!editableRef.current) return;
 
     const plainText = getPlainTextFromEditable().trim();
-    const hasAtt = attachments.length > 0;
+    const hasAtt = attachmentsRef.current.length > 0;
     if (!plainText && !hasAtt) return;
 
     const { mentions, displayText } = parseMentions(plainText);
@@ -2270,8 +2274,9 @@ export default function ChatWindow({
     // 🔥 Clear attachments ngay lập tức để tránh upload trùng nếu user ấn gửi tiếp
     let currentAttachments: typeof attachments = [];
     if (hasAtt) {
-      currentAttachments = [...attachments];
+      currentAttachments = [...attachmentsRef.current];
       setAttachments([]);
+      attachmentsRef.current = [];
     }
 
     if (plainText) {
@@ -3106,7 +3111,11 @@ export default function ChatWindow({
                       const isImg = f.type.startsWith('image/');
                       const t = isVid ? 'video' : isImg ? 'image' : 'file';
                       const url = URL.createObjectURL(f);
-                      setAttachments((prev) => [...prev, { file: f, type: t, previewUrl: url, fileName: f.name }]);
+                      setAttachments((prev) => {
+                        const next = [...prev, { file: f, type: t, previewUrl: url, fileName: f.name }];
+                        attachmentsRef.current = next;
+                        return next;
+                      });
                     }
                   });
                   dismissKeyboardAndScroll();
@@ -3122,14 +3131,22 @@ export default function ChatWindow({
                 const isVideo = file.type.startsWith('video/') || isVideoFile(file.name);
                 const msgType = isVideo ? 'video' : 'image';
                 const url = URL.createObjectURL(file);
-                setAttachments((prev) => [...prev, { file, type: msgType, previewUrl: url, fileName: file.name }]);
+                setAttachments((prev) => {
+                  const next = [...prev, { file, type: msgType, previewUrl: url, fileName: file.name }];
+                  attachmentsRef.current = next;
+                  return next;
+                });
                 dismissKeyboardAndScroll();
               }}
               onSelectFile={(file) => {
                 const isVideo = file.type.startsWith('video/') || isVideoFile(file.name);
                 const msgType = isVideo ? 'video' : 'file';
                 const url = URL.createObjectURL(file);
-                setAttachments((prev) => [...prev, { file, type: msgType, previewUrl: url, fileName: file.name }]);
+                setAttachments((prev) => {
+                  const next = [...prev, { file, type: msgType, previewUrl: url, fileName: file.name }];
+                  attachmentsRef.current = next;
+                  return next;
+                });
                 dismissKeyboardAndScroll();
               }}
               onAttachFromFolder={async (att) => {
@@ -3138,7 +3155,11 @@ export default function ChatWindow({
                   att.fileName || (att.type === 'image' ? 'image.jpg' : att.type === 'video' ? 'video.mp4' : 'file');
                 const placeholder = new File([new Blob([])], name, { type: 'application/octet-stream' });
                 const placeholderItem = { file: placeholder, type: att.type, previewUrl: remoteUrl, fileName: name };
-                setAttachments((prev) => [...prev, placeholderItem]);
+                setAttachments((prev) => {
+                  const next = [...prev, placeholderItem];
+                  attachmentsRef.current = next;
+                  return next;
+                });
                 dismissKeyboardAndScroll();
                 try {
                   const res = await fetch(remoteUrl);
@@ -3152,13 +3173,15 @@ export default function ChatWindow({
                         : 'application/octet-stream');
                   const realFile = new File([blob], name, { type: mime });
                   const previewUrl = URL.createObjectURL(blob);
-                  setAttachments((prev) =>
-                    prev.map((item) =>
+                  setAttachments((prev) => {
+                    const next = prev.map((item) =>
                       item.previewUrl === remoteUrl
                         ? { file: realFile, type: att.type, previewUrl, fileName: name }
                         : item,
-                    ),
-                  );
+                    );
+                    attachmentsRef.current = next;
+                    return next;
+                  });
                 } catch {}
               }}
               onFocusEditable={() => {
@@ -3180,6 +3203,7 @@ export default function ChatWindow({
                       URL.revokeObjectURL(removed.previewUrl);
                     } catch {}
                   }
+                  attachmentsRef.current = next;
                   return next;
                 });
               }}
@@ -3190,6 +3214,7 @@ export default function ChatWindow({
                       URL.revokeObjectURL(a.previewUrl);
                     } catch {}
                   });
+                  attachmentsRef.current = [];
                   return [];
                 });
               }}
