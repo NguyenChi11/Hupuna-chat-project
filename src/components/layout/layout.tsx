@@ -1109,16 +1109,16 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
     return () => window.removeEventListener('startCall', handler as EventListener);
   }, [startCall, pathname]);
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      // Show toast
-      toast({ type: 'warning', message: 'Người này đang có cuộc gọi' });
-      // End call
-      endCall('local');
-    };
-    window.addEventListener('callBusy', handler as EventListener);
-    return () => window.removeEventListener('callBusy', handler as EventListener);
-  }, [endCall]);
+  // useEffect(() => {
+  //   const handler = (e: Event) => {
+  //     // Show toast
+  //     toast({ type: 'warning', message: 'Người này đang có cuộc gọi' });
+  //     // End call
+  //     endCall('local');
+  //   };
+  //   window.addEventListener('callBusy', handler as EventListener);
+  //   return () => window.removeEventListener('callBusy', handler as EventListener);
+  // }, [endCall]);
 
   const outgoingRef = React.useRef<boolean>(false);
   const prevCallActiveRef = React.useRef<boolean>(false);
