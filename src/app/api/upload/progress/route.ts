@@ -14,6 +14,8 @@ export async function GET(req: NextRequest) {
     start(controller) {
       let interval: ReturnType<typeof setInterval> | null = null;
       let cleaned = false;
+      let notFoundCount = 0;
+      const MAX_NOT_FOUND = 20; // 60 * 250ms = 15 seconds
 
       const cleanup = () => {
         if (cleaned) return;
@@ -35,8 +37,32 @@ export async function GET(req: NextRequest) {
 
       interval = setInterval(() => {
         const raw = getProgress(id);
-        const percent = raw;
-        const done = percent >= 100 || percent < 0 || percent === -1;
+        let percent = raw;
+        let done = false;
+
+        // Logic xử lý các trạng thái đặc biệt
+        if (percent === -1) {
+          // -1: Không tìm thấy (chưa bắt đầu hoặc đã bị xóa)
+          // Chờ một khoảng thời gian trước khi kết luận là done
+          notFoundCount++;
+          if (notFoundCount > MAX_NOT_FOUND) {
+            done = true; // Timeout
+          } else {
+            percent = 0; // Giả lập đang chờ (0%)
+            done = false;
+          }
+        } else if (percent === -2) {
+          // -2: Lỗi (đã được set từ API upload)
+          done = true;
+        } else if (percent >= 100) {
+          // 100: Hoàn thành
+          done = true;
+        } else {
+          // Có tiến trình (0-99)
+          notFoundCount = 0; // Reset counter
+          done = false;
+        }
+
         const payload = { id, percent, formattedPercent: `${Math.round(Math.max(0, percent))}%`, done };
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
         if (done) {

@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: unknown) {
     console.error('❌ Lỗi API Upload:', error);
-    setProgress(uploadId, -1);
+    setProgress(uploadId, -2); // -2 báo hiệu lỗi
 
     let errorMessage = 'Lỗi server nội bộ';
     let statusCode = 500;

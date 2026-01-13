@@ -761,6 +761,8 @@ export default function ChatWindow({
     setTimeout(scrollToBottom, 0);
     setTimeout(scrollToBottom, 100);
     setTimeout(scrollToBottom, 300);
+    setTimeout(scrollToBottom, 800);
+    setTimeout(scrollToBottom, 2000);
   }, [scrollToBottom]);
 
   const sendMessageProcess = useCallback(
@@ -1015,7 +1017,7 @@ export default function ChatWindow({
     isGroup,
     sendMessageProcess,
     setMessages,
-    onScrollBottom: scrollToBottom,
+    onScrollBottom: ensureBottom,
   });
   const uploadingValues = Object.values(uploadingFiles);
   const hasUploading = uploadingValues.length > 0;

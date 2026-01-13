@@ -208,8 +208,11 @@ export function useChatUpload({
 
       let success = false;
       let lastMessage = '';
-      const useSW = !!(await ensureServiceWorker());
-      if (useSW) {
+      await ensureServiceWorker();
+      const hasController =
+        typeof navigator !== 'undefined' && 'serviceWorker' in navigator && navigator.serviceWorker.controller;
+
+      if (hasController) {
         const es =
           typeof window !== 'undefined'
             ? new EventSource(`/api/upload/progress?id=${encodeURIComponent(uploadId)}`)
@@ -281,6 +284,9 @@ export function useChatUpload({
                 messageTag,
               } as unknown as MessageCreate;
               await sendMessageProcess(socketData);
+              try {
+                onScrollBottom?.();
+              } catch {}
             } else {
               lastMessage = res.message || 'Không xác định';
             }
@@ -328,6 +334,9 @@ export function useChatUpload({
                 messageTag,
               } as unknown as MessageCreate;
               await sendMessageProcess(socketData);
+              try {
+                onScrollBottom?.();
+              } catch {}
             } else {
               lastMessage = res.message || 'Không xác định';
             }
@@ -417,6 +426,9 @@ export function useChatUpload({
                         const exists = prev.some((mm) => String(mm._id) === String(match._id));
                         return exists ? prev : [...prev, match];
                       });
+                      try {
+                        onScrollBottom?.();
+                      } catch {}
                     }
                   } catch {}
                 })();
@@ -523,6 +535,7 @@ export function useChatUpload({
           } as unknown as MessageCreate;
           try {
             await sendMessageProcess(socketData);
+            onScrollBottom?.();
           } catch {}
         } else {
           setUploadingFiles((prev) => {

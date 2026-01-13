@@ -328,6 +328,12 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           data.type === 'video' ||
           data.type === 'notify';
         if (isMsgType) {
+          setTotalUnread((prev) => prev + 1);
+          if (data.isGroup) {
+            setUnreadGroups((prev) => prev + 1);
+          } else {
+            setUnreadContacts((prev) => prev + 1);
+          }
           // Update unread count when new message arrives
           fetchUnreadTotal();
 
