@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       let interval: ReturnType<typeof setInterval> | null = null;
       let cleaned = false;
       let notFoundCount = 0;
-      const MAX_NOT_FOUND = 20; // 60 * 250ms = 15 seconds
+      const MAX_NOT_FOUND = 60;
 
       const cleanup = () => {
         if (cleaned) return;

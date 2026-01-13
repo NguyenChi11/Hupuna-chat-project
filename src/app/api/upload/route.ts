@@ -79,7 +79,10 @@ export async function POST(req: NextRequest) {
     pbFormData.append('title', title);
 
     // Các field khác nếu cần
-    if (formData.has('folder')) {
+    const folderName = (formData.get('folderName') as string) || '';
+    if (folderName) {
+      pbFormData.append('folder', folderName);
+    } else if (formData.has('folder')) {
       pbFormData.append('folder', formData.get('folder') as string);
     }
 
