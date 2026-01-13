@@ -223,7 +223,11 @@ export default function LoginForm() {
                     <span className="text-sm font-medium text-gray-700">Duy trì đăng nhập</span>
                   </label>
 
-                  <button type="button" className="cursor-pointer text-blue-600 text-sm hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => router.push('/forgot-password')}
+                    className="cursor-pointer text-blue-600 text-sm hover:underline"
+                  >
                     Quên mật khẩu?
                   </button>
                 </div>
