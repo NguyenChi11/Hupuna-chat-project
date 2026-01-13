@@ -2,7 +2,17 @@ import { User } from '@/types/User';
 
 export const MESSAGES_COLLECTION_NAME = 'Messages';
 
-export type MessageType = 'text' | 'image' | 'file' | 'notify' | 'sticker' | 'video' | 'reminder' | 'poll' | 'contact';
+export type MessageType =
+  | 'text'
+  | 'image'
+  | 'file'
+  | 'notify'
+  | 'sticker'
+  | 'video'
+  | 'reminder'
+  | 'poll'
+  | 'contact'
+  | 'note';
 
 export interface Message {
   [key: string]: unknown;

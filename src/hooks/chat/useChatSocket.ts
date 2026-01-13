@@ -483,6 +483,16 @@ export function useChatSocket({
     socket.on('message_recalled', handleMessageRecalled);
     socket.on('message_deleted', handleMessageDeleted);
 
+    const handleLocalReceiveMessage = (e: Event) => {
+      const ev = e as CustomEvent<Message>;
+      const data = ev.detail;
+      if (!data || String(data.roomId) !== String(roomId)) return;
+      handleReceiveMessage(data);
+    };
+    try {
+      window.addEventListener('local_receive_message', handleLocalReceiveMessage as EventListener);
+    } catch {}
+
     socket.emit('join_room', roomId);
     socket.emit('join_user', { userId: String(currentUser._id) });
 
@@ -495,6 +505,9 @@ export function useChatSocket({
       socket.off('edit_message', handleEditMessage);
       socket.off('message_recalled', handleMessageRecalled);
       socket.off('message_deleted', handleMessageDeleted);
+      try {
+        window.removeEventListener('local_receive_message', handleLocalReceiveMessage as EventListener);
+      } catch {}
       setSocketInstance(null);
     };
   }, [

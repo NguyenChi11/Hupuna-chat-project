@@ -9,9 +9,9 @@ import ICPin from '@/components/svg/ICPin';
 import Image from 'next/image';
 import { getProxyUrl, resolveSocketUrl } from '@/utils/utils';
 import PollList from './PollList';
-import ReminderList from './ReminderList';
+import NotesList from './NotesList';
 import CreatePollModal from './CreatePollModal';
-import CreateReminderModal from './CreateReminderModal';
+import CreateNoteModal from './CreateNoteModal';
 import { io } from 'socket.io-client';
 
 interface PinnedMessagesListProps {
@@ -177,91 +177,60 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
     }
   };
 
-  const handleCreateNote = async ({
-    content,
-    dateTime,
-    note,
-    repeat,
-  }: {
-    content: string;
-    dateTime: string;
-    note?: string;
-    repeat?: 'none' | 'daily' | 'weekly' | 'monthly';
-  }) => {
+  const handleCreateNote = async ({ content, pinned }: { content: string; pinned: boolean }) => {
     setCreateLoading(true);
-    const dt = Date.parse(dateTime);
-    if (!content.trim() || Number.isNaN(dt)) {
-      alert('Vui lòng nhập đầy đủ thông tin hợp lệ');
+    const trimmed = content.trim();
+    if (!trimmed) {
+      alert('Vui lòng nhập nội dung ghi chú');
       setCreateLoading(false);
       return;
     }
 
     try {
-      const createRes = await createMessageApi({
+      const notify = await createMessageApi({
         roomId,
         sender: String(currentUser._id),
-        type: 'reminder',
-        content: content.trim(),
+        type: 'notify',
+        content: `${currentUser.name} đã tạo ghi chú: "${trimmed}"`,
         timestamp: Date.now(),
-        reminderAt: dt,
-        reminderNote: note?.trim() || '',
-        reminderFired: false,
-        reminderRepeat: repeat || 'none',
+        isPinned: pinned,
       });
-
-      if (createRes?.success) {
-        const receiver = isGroup ? null : String((selectedChat as User)._id);
-        const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
-        const sockBase = {
-          roomId,
-          sender: String(currentUser._id),
-          senderName: currentUser.name,
-          isGroup,
-          receiver,
-          members,
-        };
-
-        if (typeof createRes._id === 'string') {
-          socketRef.current?.emit('send_message', {
-            ...sockBase,
-            _id: createRes._id,
-            type: 'reminder',
-            content: content.trim(),
-            timestamp: Date.now(),
-            reminderAt: dt,
-            reminderNote: note?.trim() || '',
-            reminderFired: false,
-            reminderRepeat: repeat || 'none',
-          });
-        }
-
-        // Notify
-        const timeStr = new Date(dt).toLocaleString('vi-VN');
-        const notifyRes = await createMessageApi({
-          roomId,
-          sender: String(currentUser._id),
-          type: 'notify',
-          content: `${currentUser.name} đã tạo lịch hẹn: "${content.trim()}" lúc ${timeStr}`,
-          timestamp: Date.now(),
-        });
-
-        if (notifyRes?.success && typeof notifyRes._id === 'string') {
-          socketRef.current?.emit('send_message', {
-            ...sockBase,
-            _id: notifyRes._id,
+      if (notify?.success) {
+        try {
+          const payload: Message = {
+            _id: String(notify._id),
+            roomId,
+            sender: String(currentUser._id),
+            content: `${currentUser.name} đã tạo ghi chú: "${trimmed}"`,
             type: 'notify',
-            content: `${currentUser.name} đã tạo lịch hẹn: "${content.trim()}" lúc ${timeStr}`,
             timestamp: Date.now(),
+            isPinned: pinned,
+          } as Message;
+          window.dispatchEvent(new CustomEvent('local_receive_message', { detail: payload }));
+        } catch {}
+        try {
+          const receiver = isGroup ? null : String((selectedChat as User)._id);
+          const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
+          socketRef.current?.emit('send_message', {
+            _id: notify._id,
+            roomId,
+            sender: String(currentUser._id),
+            senderName: currentUser.name,
+            isGroup,
+            receiver,
+            members,
+            type: 'notify',
+            content: `${currentUser.name} đã tạo ghi chú: "${trimmed}"`,
+            timestamp: Date.now(),
+            isPinned: pinned,
           });
-        }
-        setShowCreateNote(false);
-        if (activeTab !== 'note') setActiveTab('note');
-      } else {
-        alert('Tạo lịch hẹn thất bại. Vui lòng kiểm tra kết nối máy chủ.');
+        } catch {}
       }
+      setShowCreateNote(false);
+      if (activeTab !== 'note') setActiveTab('note');
     } catch (error) {
-      console.error('❌ Lỗi khi tạo lịch hẹn:', error);
-      alert('Không thể tạo lịch hẹn. Vui lòng thử lại.');
+      console.error('❌ Lỗi khi tạo ghi chú:', error);
+      alert('Không thể tạo ghi chú. Vui lòng thử lại.');
     } finally {
       setCreateLoading(false);
     }
@@ -305,15 +274,15 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
           {showCreateMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 text-gray-800 z-50 animate-fade-in">
               {isGroup && (
-              <button
-                onClick={() => {
-                  setShowCreateMenu(false);
-                  setShowCreatePoll(true);
-                }}
-                className="cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-              >
-                Tạo bình chọn
-              </button>
+                <button
+                  onClick={() => {
+                    setShowCreateMenu(false);
+                    setShowCreatePoll(true);
+                  }}
+                  className="cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                >
+                  Tạo bình chọn
+                </button>
               )}
               <button
                 onClick={() => {
@@ -341,17 +310,19 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
         >
           Tin nhắn đã ghim
         </div>
-       
-       {isGroup && (
-        <div
-          onClick={() => setActiveTab('poll')}
-          className={`flex-1 text-center py-3 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
-            activeTab === 'poll' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:bg-gray-50'
-          }`}
-        >
-          Bình chọn
-        </div>
-       )}
+
+        {isGroup && (
+          <div
+            onClick={() => setActiveTab('poll')}
+            className={`flex-1 text-center py-3 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
+              activeTab === 'poll'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            Bình chọn
+          </div>
+        )}
         <div
           onClick={() => setActiveTab('note')}
           className={`flex-1 text-center py-3 border-b-2 font-medium text-sm cursor-pointer transition-colors ${
@@ -509,12 +480,12 @@ export default function PinnedMessagesList({ onClose, onJumpToMessage }: PinnedM
 
         {activeTab === 'poll' && <PollList embedded onClose={onClose} />}
 
-        {activeTab === 'note' && <ReminderList embedded onClose={onClose} />}
+        {activeTab === 'note' && <NotesList embedded onClose={onClose} />}
       </div>
 
       {/* Modals */}
       <CreatePollModal isOpen={showCreatePoll} onClose={() => setShowCreatePoll(false)} onCreate={handleCreatePoll} />
-      <CreateReminderModal
+      <CreateNoteModal
         isOpen={showCreateNote}
         onClose={() => setShowCreateNote(false)}
         onCreate={handleCreateNote}

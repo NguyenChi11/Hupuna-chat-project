@@ -142,7 +142,9 @@ export default function ChatWindow({
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [showPopup, setShowPopup] = useState(false);
-  const [chatInfoInitialSection, setChatInfoInitialSection] = useState<'reminder' | 'poll' | 'members' | null>(null);
+  const [chatInfoInitialSection, setChatInfoInitialSection] = useState<'reminder' | 'poll' | 'members' | 'note' | null>(
+    null,
+  );
   const [openMember, setOpenMember] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);

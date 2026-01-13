@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HiX } from 'react-icons/hi';
-import { HiCalendarDays,  HiBellAlert, HiClock } from 'react-icons/hi2';
+import { HiCalendarDays, HiBellAlert, HiClock } from 'react-icons/hi2';
 
-interface CreateReminderModalProps {
+interface CreateNoteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (payload: {
@@ -15,13 +15,13 @@ interface CreateReminderModalProps {
   createLoading: boolean;
 }
 
-export default function CreateReminderModal({ isOpen, onClose, onCreate, createLoading }: CreateReminderModalProps) {
+export default function CreateNoteModal({ isOpen, onClose, onCreate, createLoading }: CreateNoteModalProps) {
   const [content, setContent] = useState('');
   const [dateTime, setDateTime] = useState('');
   const [repeat, setRepeat] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
   const [showRepeatSheet, setShowRepeatSheet] = useState(false);
   const [showDateSheet, setShowDateSheet] = useState(false);
-const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
   const defaultDateTime = useMemo(() => {
     const now = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -71,7 +71,7 @@ const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width
               <button onClick={onClose} className=" cursor-pointer top-3 left-3 p-2 ">
                 <HiX className="w-5 h-5" />
               </button>
-              <h3 className="text-xl ">Tạo nhắc hẹn mới</h3>
+              <h3 className="text-xl ">Tạo ghi chú mới</h3>
             </div>
 
             <button
@@ -104,7 +104,7 @@ const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="flex-1 bg-transparent outline-none text-lg"
-              placeholder="Nhập tiêu đề nhắc hẹn..."
+              placeholder="Nhập nội dung ghi chú..."
               type="text"
             />
           </div>
@@ -206,9 +206,9 @@ const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width
         )}
       </div>
     </div>
-  )
+  );
 
-const target =
+  const target =
     isDesktop && typeof document !== 'undefined' ? document.getElementById('right-sidebar-container') : null;
   return isDesktop && target ? createPortal(modalNode, target) : modalNode;
 }

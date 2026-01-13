@@ -14,12 +14,14 @@ import ChatQuickActions from '@/components/(chatPopup)/components/ChatQuickActio
 import GroupDangerZone from '@/components/(chatPopup)/components/GroupDangerZone';
 import GroupMembersSection from '@/components/(chatPopup)/components/GroupMembersSection';
 import ReminderSection from '@/components/(chatPopup)/components/ReminderSection';
+import NotesSection from '@/components/(chatPopup)/components/NotesSection';
 import PollSection from '@/components/(chatPopup)/components/PollSection';
 import ItemDropdownMenu from '@/components/(chatPopup)/components/ItemDropdownMenu';
 import RenameGroupModal from '@/components/(chatPopup)/components/RenameGroupModal';
 import ConfirmGroupActionModal from '@/components/(chatPopup)/components/ConfirmGroupActionModal';
 import { useChatContext } from '@/context/ChatContext';
 import ReminderList from '@/components/(chatPopup)/components/ReminderList';
+import NotesList from '@/components/(chatPopup)/components/NotesList';
 import PinnedMessagesList from '@/components/(chatPopup)/components/PinnedMessagesList';
 import PollList from '@/components/(chatPopup)/components/PollList';
 import io from 'socket.io-client';
@@ -75,7 +77,7 @@ interface ChatInfoPopupProps {
   onRefresh?: () => void;
   sendNotifyMessage?: (text: string, membersOverride?: string[]) => Promise<void> | void;
   lastUpdated?: number;
-  initialSection?: 'reminder' | 'poll' | 'members' | null;
+  initialSection?: 'reminder' | 'poll' | 'members' | 'note' | null;
   groups?: GroupConversation[];
 }
 
@@ -111,6 +113,7 @@ export default function ChatInfoPopup({
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [isPinnedMessagesOpen, setIsPinnedMessagesOpen] = useState(false);
   const [isPollOpen, setIsPollOpen] = useState(false);
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
@@ -181,6 +184,11 @@ export default function ChatInfoPopup({
       setIsPollOpen(false);
       if (isGroup) setOpenMember(true);
       else setOpenMember(false);
+    } else if (initialSection === 'note') {
+      setIsNotesOpen(true);
+      setIsReminderOpen(false);
+      setIsPollOpen(false);
+      setOpenMember(false);
     }
   }, [initialSection, isGroup]);
 
@@ -582,6 +590,8 @@ export default function ChatInfoPopup({
         <PinnedMessagesList onClose={() => setIsPinnedMessagesOpen(false)} onJumpToMessage={onJumpToMessage} />
       ) : isPollOpen ? (
         <PollList onClose={() => setIsPollOpen(false)} onRefresh={onRefresh} />
+      ) : isNotesOpen ? (
+        <NotesList onClose={() => setIsNotesOpen(false)} />
       ) : (
         <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
           {/* Header cố định */}
@@ -821,8 +831,9 @@ export default function ChatInfoPopup({
 
                 <div className="pt-2">
                   <ReminderSection onOpen={() => setIsReminderOpen(true)} />
-                  <PinnedMessagesSection onOpen={() => setIsPinnedMessagesOpen(true)} />
+                  <NotesSection onOpen={() => setIsNotesOpen(true)} />
                   {isGroup && <PollSection onOpen={() => setIsPollOpen(true)} />}
+                  <PinnedMessagesSection onOpen={() => setIsPinnedMessagesOpen(true)} />
                 </div>
               </div>
 

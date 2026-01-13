@@ -34,6 +34,7 @@ import {
 import { HiPhone, HiVideoCamera, HiArrowDown, HiArrowUp } from 'react-icons/hi2';
 import { HiLink, HiOutlineLogout } from 'react-icons/hi';
 import ReminderDetailModal from './components/ReminderDetailModal';
+import NoteDetailModal from './components/NoteDetailModal';
 import PollDetailModal from './components/PollDetailModal';
 import ReactionButton from './components/ReactionButton';
 import { ContextMenuState } from './MessageContextMenu';
@@ -75,7 +76,7 @@ interface MessageListProps {
   onMobileLongPress?: (msg: Message, el: HTMLElement, startX: number, startY: number) => void;
   isMobile?: boolean;
   onShareMessage: (msg: Message) => void;
-  onOpenChatInfoSection?: (section: 'reminder' | 'poll') => void;
+  onOpenChatInfoSection?: (section: 'reminder' | 'poll' | 'note') => void;
 }
 
 function ContactCardBubble({
@@ -262,6 +263,11 @@ export default function MessageList({
   const [expandedOriginalId, setExpandedOriginalId] = useState<string | null>(null);
   const [activeMoreId, setActiveMoreId] = useState<string | null>(null);
   const [detailMsg, setDetailMsg] = useState<Message | null>(null);
+  const [noteDetailData, setNoteDetailData] = useState<{
+    content: string;
+    creatorName: string;
+    timestamp: number | string | Date;
+  } | null>(null);
   const [reactionDetail, setReactionDetail] = useState<{ msgId: string; emoji: string } | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -1490,8 +1496,9 @@ export default function MessageList({
                       const rawContentLower = (msg.content || '').toLowerCase();
                       const isReminder =
                         rawContentLower.includes('đến giờ lịch hẹn') || rawContentLower.includes('đã tạo lịch hẹn');
+                      const isNote = rawContentLower.includes('đã tạo ghi chú');
 
-                      if (!isCall && !isReminder) {
+                      if (!isCall && !isReminder && !isNote) {
                         const prev = index > 0 ? msgs[index - 1] : null;
                         const prevIsNotify = prev?.type === 'notify';
                         const prevIsCall =
@@ -1501,8 +1508,9 @@ export default function MessageList({
                           prevIsNotify &&
                           (prevContentLower.includes('đến giờ lịch hẹn') ||
                             prevContentLower.includes('đã tạo lịch hẹn'));
+                        const prevIsNote = prevIsNotify && prevContentLower.includes('đã tạo ghi chú');
 
-                        if (prevIsNotify && !prevIsCall && !prevIsReminder) {
+                        if (prevIsNotify && !prevIsCall && !prevIsReminder && !prevIsNote) {
                           // Skip grouping check if previous was a non-call notify
                         } else {
                           const notifyGroup = [msg];
@@ -1514,8 +1522,9 @@ export default function MessageList({
                             const nextIsReminder =
                               nextContentLower.includes('đến giờ lịch hẹn') ||
                               nextContentLower.includes('đã tạo lịch hẹn');
+                            const nextIsNote = nextContentLower.includes('đã tạo ghi chú');
 
-                            if (nextIsCall || nextIsReminder) break;
+                            if (nextIsCall || nextIsReminder || nextIsNote) break;
                             notifyGroup.push(next);
                           }
 
@@ -1710,6 +1719,7 @@ export default function MessageList({
                       const isDelete = contentLower.includes('đã xóa') || contentLower.includes('xóa');
                       const isPoll = related?.type === 'poll' || contentLower.includes('bình chọn');
                       const isPin = contentLower.includes('ghim');
+                      const isNoteCreate = contentLower.includes('đã tạo ghi chú');
                       // Group actions
                       const isInvite =
                         contentLower.includes('đã thêm') ||
@@ -1730,6 +1740,8 @@ export default function MessageList({
                         <HiOutlineClock className="w-4 h-4 text-indigo-500" />
                       ) : isPoll ? (
                         <HiChartBar className="w-4 h-4 text-blue-500" />
+                      ) : isNoteCreate ? (
+                        <HiOutlineDocumentText className="w-4 h-4 text-blue-600" />
                       ) : isPin ? (
                         <HiMapPin className="w-4 h-4 text-orange-500" />
                       ) : isRenameGroup ? (
@@ -1770,11 +1782,50 @@ export default function MessageList({
                             {` ${tail}`}
                           </span>
                         );
+                      } else if (isNoteCreate) {
+                        const match = rawDisplay.match(/đã tạo ghi chú:\s*\"(.*)\"/i);
+                        const noteText = match ? match[1] : rawDisplay;
+                        displayNode = (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 truncate">{noteText}</span>
+                            <button
+                              onClick={() => {
+                                if (msg.replyToMessageId) {
+                                  onJumpToMessage(String(msg.replyToMessageId));
+                                } else {
+                                  setNoteDetailData({
+                                    content: noteText,
+                                    creatorName: senderInfo.name || 'Unknown',
+                                    timestamp: msg.timestamp || Date.now(),
+                                  });
+                                }
+                              }}
+                              className="text-xs text-blue-600 hover:underline cursor-pointer"
+                            >
+                              Xem
+                            </button>
+                          </div>
+                        );
+                      } else if (related?.type === 'poll') {
+                        displayNode = (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 truncate">{display}</span>
+                            <button
+                              onClick={() => {
+                                if (!isMobile) onOpenChatInfoSection?.('poll');
+                                setDetailMsg(related);
+                              }}
+                              className="text-xs text-blue-600 hover:underline cursor-pointer"
+                            >
+                              Xem
+                            </button>
+                          </div>
+                        );
                       }
                       const pillNode = (
                         <React.Fragment key={`pill-${msg._id}-frag`}>
                           {unreadDividerNode}
-                          {timeMarkerNode}
+                          {!isNoteCreate && timeMarkerNode}
                           <div
                             key={`pill-${msg._id}`}
                             id={`msg-${msg._id}`}
@@ -1926,24 +1977,6 @@ export default function MessageList({
                             </React.Fragment>
                           );
                         }
-                      }
-                      if (related?.type === 'poll') {
-                        return (
-                          <React.Fragment key={`notify-${msg._id}-poll`}>
-                            {pillNode}
-                            <div className="flex justify-center -mt-2 mb-2">
-                              <button
-                                onClick={() => {
-                                  if (!isMobile) onOpenChatInfoSection?.('poll');
-                                  setDetailMsg(related);
-                                }}
-                                className="text-xs text-blue-600 hover:underline hover:cursor-pointer"
-                              >
-                                Xem
-                              </button>
-                            </div>
-                          </React.Fragment>
-                        );
                       }
                       return pillNode;
                     }
@@ -2947,6 +2980,7 @@ export default function MessageList({
           </React.Fragment>
         );
       })}
+      <NoteDetailModal isOpen={!!noteDetailData} onClose={() => setNoteDetailData(null)} data={noteDetailData} />
       <ReminderDetailModal isOpen={!!detailMsg} message={detailMsg} onClose={() => setDetailMsg(null)} />
       <PollDetailModal
         isOpen={!!detailMsg && detailMsg.type === 'poll'}

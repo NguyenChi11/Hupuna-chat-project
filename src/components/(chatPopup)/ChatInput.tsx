@@ -35,6 +35,7 @@ import {
   CiImageOn,
   CiInstagram,
   CiPen,
+  CiSettings,
 } from 'react-icons/ci';
 import { HiDocumentText, HiLightningBolt, HiSearch, HiX } from 'react-icons/hi';
 import { IoIosAttach } from 'react-icons/io';
@@ -49,6 +50,7 @@ import IconFile from '@/components/svg/IConFile';
 import ICFolder from '@/components/svg/ICFolder';
 import { AiTwotoneLike } from 'react-icons/ai';
 import CreatePollModal from './components/CreatePollModal';
+import CreateNoteModal from './components/CreateNoteModal';
 import CreateReminderModal from './components/CreateReminderModal';
 import RichTextEditor from './components/RichTextEditor';
 import { createMessageApi } from '@/fetch/messages';
@@ -59,6 +61,7 @@ import type { MessageCreate } from '@/types/Message';
 import { useToast } from '@/components/base/toast';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { accentAwareIncludes, getProxyUrl, normalizeNoAccent } from '@/utils/utils';
+import { IoFlashOutline } from 'react-icons/io5';
 
 interface ChatInputProps {
   socket?: Socket | null;
@@ -136,7 +139,14 @@ export default function ChatInput({
   const roomId = isGroup ? getId(selectedChat) : [getId(currentUser), getId(selectedChat)].sort().join('_');
 
   const [showCreatePoll, setShowCreatePoll] = useState(false);
-  const [showCreateNote, setShowCreateNote] = useState(false);
+  const [showCreateReminder, setShowCreateReminder] = useState(false); // Renamed from showCreateNote for clarity (old logic was reminder)
+  const [showCreateNote, setShowCreateNote] = useState(false); // New dedicated Note modal
+  const [showQuickCreatePoll, setShowQuickCreatePoll] = useState(false);
+  const [quickPollQuestion, setQuickPollQuestion] = useState('');
+  const [quickPollOptions, setQuickPollOptions] = useState<string[]>(['', '']);
+  const [showQuickCreateNote, setShowQuickCreateNote] = useState(false);
+  const [quickNoteContent, setQuickNoteContent] = useState('');
+  const [quickNoteDateTime, setQuickNoteDateTime] = useState('');
   const [showRichText, setShowRichText] = useState(false);
   const [richTextContent, setRichTextContent] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
@@ -301,7 +311,7 @@ export default function ChatInput({
     }
   };
 
-  const handleCreateNote = async ({
+  const handleCreateReminder = async ({
     content,
     dateTime,
     note,
@@ -313,26 +323,24 @@ export default function ChatInput({
     repeat?: 'none' | 'daily' | 'weekly' | 'monthly';
   }) => {
     setCreateLoading(true);
+    const trimmed = content.trim();
     const dt = Date.parse(dateTime);
-    if (!content.trim() || Number.isNaN(dt)) {
-      alert('Vui lòng nhập đầy đủ thông tin hợp lệ');
+    if (!trimmed || Number.isNaN(dt)) {
       setCreateLoading(false);
       return;
     }
-
     try {
       const createRes = await createMessageApi({
         roomId,
         sender: String(currentUser._id),
         type: 'reminder',
-        content: content.trim(),
+        content: trimmed,
         timestamp: Date.now(),
         reminderAt: dt,
         reminderNote: note?.trim() || '',
         reminderFired: false,
         reminderRepeat: repeat || 'none',
       });
-
       if (createRes?.success) {
         const receiver = isGroup ? null : String((selectedChat as User)._id);
         const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
@@ -344,44 +352,65 @@ export default function ChatInput({
           receiver,
           members,
         };
-
         if (typeof createRes._id === 'string') {
           socket?.emit('send_message', {
             ...sockBase,
             _id: createRes._id,
             type: 'reminder',
-            content: content.trim(),
+            content: trimmed,
             timestamp: Date.now(),
             reminderAt: dt,
             reminderNote: note?.trim() || '',
             reminderFired: false,
             reminderRepeat: repeat || 'none',
           });
-
-          // Notify
-          const notify = await createMessageApi({
-            roomId,
-            sender: String(currentUser._id),
-            type: 'notify',
-            content: `${currentUser.name} tạo lịch hẹn mới: "${content.trim()}"`,
-            timestamp: Date.now(),
-            replyToMessageId: createRes._id,
-          });
-          if (notify?.success) {
-            socket?.emit('send_message', {
-              ...sockBase,
-              _id: notify._id,
-              type: 'notify',
-              content: `${currentUser.name} tạo lịch hẹn mới: "${content.trim()}"`,
-              timestamp: Date.now(),
-              replyToMessageId: createRes._id,
-            });
-          }
         }
-        setShowCreateNote(false);
+        setShowCreateReminder(false);
       }
     } catch (error) {
       console.error('Failed to create reminder:', error);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateNote = async ({ content, pinned }: { content: string; pinned: boolean }) => {
+    setCreateLoading(true);
+    const trimmed = content.trim();
+    if (!trimmed) {
+      setCreateLoading(false);
+      return;
+    }
+    try {
+      const msgData: MessageCreate = {
+        roomId,
+        sender: String(currentUser._id),
+        type: 'notify',
+        content: `${currentUser.name} đã tạo ghi chú: "${trimmed}"`,
+        timestamp: Date.now(),
+        isPinned: pinned,
+      };
+      if (typeof onSendMessageData === 'function') {
+        await onSendMessageData(msgData);
+      } else {
+        const createRes = await createMessageApi(msgData);
+        if (createRes?.success && typeof createRes._id === 'string') {
+          const receiver = isGroup ? null : String((selectedChat as User)._id);
+          const members = isGroup ? (selectedChat as GroupConversation).members || [] : [];
+          const sockBase = {
+            roomId,
+            sender: String(currentUser._id),
+            senderName: currentUser.name,
+            isGroup,
+            receiver,
+            members,
+          };
+          socket?.emit('send_message', { ...sockBase, ...msgData, _id: createRes._id });
+        }
+      }
+      setShowCreateNote(false);
+    } catch (error) {
+      console.error('Failed to create note:', error);
     } finally {
       setCreateLoading(false);
     }
@@ -412,6 +441,9 @@ export default function ChatInput({
   const allowFocusRef = useRef(true);
   const [hasContent, setHasContent] = useState(false);
   const [showUpdatingPopup, setShowUpdatingPopup] = useState(false);
+  const [showMoreActionsMenu, setShowMoreActionsMenu] = useState(false);
+  const moreActionsMenuRef = useRef<HTMLDivElement | null>(null);
+  const moreActionsMenuBtnRef = useRef<HTMLButtonElement | null>(null);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
   const [showContactCardModal, setShowContactCardModal] = useState(false);
@@ -740,6 +772,62 @@ export default function ChatInput({
     setShowUpdatingPopup(true);
     window.setTimeout(() => setShowUpdatingPopup(false), 1500);
   };
+
+  const resetQuickPoll = () => {
+    setQuickPollQuestion('');
+    setQuickPollOptions(['', '']);
+  };
+
+  const handleQuickPollCreate = async () => {
+    const q = quickPollQuestion.trim();
+    const raw = quickPollOptions.map((o) => o.trim()).filter((o) => o);
+    const lowerSet = Array.from(new Set(raw.map((o) => o.toLowerCase())));
+    const unique = lowerSet.map((lo) => raw.find((x) => x.toLowerCase() === lo) as string);
+    if (!q || unique.length < 2) return;
+
+    await handleCreatePoll({
+      question: q,
+      options: unique,
+      pollAllowMultiple: true,
+      pollAllowAddOptions: true,
+      pollHideVoters: false,
+      pollHideResultsUntilVote: false,
+      pollEndAt: null,
+    });
+    setShowQuickCreatePoll(false);
+    resetQuickPoll();
+  };
+
+  const handleQuickNoteCreate = async () => {
+    const c = quickNoteContent.trim();
+    const dt = quickNoteDateTime.trim();
+    if (!c || !dt) return;
+    await handleCreateReminder({ content: c, dateTime: dt, repeat: 'none' });
+    setShowQuickCreateNote(false);
+    setQuickNoteContent('');
+    setQuickNoteDateTime('');
+  };
+
+  useEffect(() => {
+    if (!showMoreActionsMenu) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (moreActionsMenuRef.current && moreActionsMenuRef.current.contains(target)) return;
+      if (moreActionsMenuBtnRef.current && moreActionsMenuBtnRef.current.contains(target)) return;
+      setShowMoreActionsMenu(false);
+    };
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setShowMoreActionsMenu(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showMoreActionsMenu]);
 
   const checkContent = () => {
     if (editableRef.current) {
@@ -1115,15 +1203,98 @@ export default function ChatInput({
           className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
           aria-label="Gửi Zalo"
         >
-          <CiPen className="w-6 h-6" />
+          <IoFlashOutline className="w-[1.375rem] h-[1.375rem]" />
         </button>
-        <button
-          onClick={handleShowUpdatingPopup}
-          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
-          aria-label="Chọn Zalo"
-        >
-          <CiCircleMore className="w-6 h-6" />
-        </button>
+        <div className="relative">
+          <button
+            ref={moreActionsMenuBtnRef}
+            onClick={() => setShowMoreActionsMenu((v) => !v)}
+            className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${showMoreActionsMenu ? 'text-blue-600 bg-blue-50' : isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
+            aria-label="Chọn Zalo"
+            aria-haspopup="menu"
+            aria-expanded={showMoreActionsMenu}
+          >
+            <CiCircleMore className="w-6 h-6" />
+          </button>
+
+          {showMoreActionsMenu && (
+            <div
+              ref={moreActionsMenuRef}
+              role="menu"
+              className="absolute left-0 bottom-full mb-2 w-[18rem] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-bottom-right"
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <div className="py-1">
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setShowMoreActionsMenu(false);
+                    setShowQuickCreatePoll(true);
+                  }}
+                  className="w-full cursor-pointer px-4 py-3 text-left text-[15px] text-gray-800 hover:bg-gray-50 transition flex items-center gap-3"
+                >
+                  <HiChartBar className="w-5 h-5 text-gray-700" />
+                  <span>Tạo bình chọn</span>
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setShowMoreActionsMenu(false);
+                    setShowCreateReminder(true);
+                  }}
+                  className="w-full cursor-pointer px-4 py-3 text-left text-[15px] text-gray-800 hover:bg-gray-50 transition flex items-center gap-3"
+                >
+                  <HiClock className="w-5 h-5 text-gray-700" />
+                  <span>Tạo nhắc hẹn</span>
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setShowMoreActionsMenu(false);
+                    setShowCreateNote(true);
+                  }}
+                  className="w-full cursor-pointer px-4 py-3 text-left text-[15px] text-gray-800 hover:bg-gray-50 transition flex items-center gap-3"
+                >
+                  <HiDocumentText className="w-5 h-5 text-gray-700" />
+                  <span>Tạo ghi chú</span>
+                </button>
+              </div>
+
+              <div className="h-px bg-gray-100" />
+
+              <div className="py-1">
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setShowMoreActionsMenu(false);
+                    handleShowUpdatingPopup();
+                  }}
+                  className="w-full cursor-pointer px-4 py-3 text-left text-[15px] text-gray-800 hover:bg-gray-50 transition flex items-center justify-between gap-3"
+                >
+                  <span className="flex items-center gap-3">
+                    <HiMapPin className="w-5 h-5 text-gray-700" />
+                    <span>Đánh dấu tin quan trọng</span>
+                  </span>
+                  <HiIdentification className="w-5 h-5 text-gray-400" />
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setShowMoreActionsMenu(false);
+                    handleShowUpdatingPopup();
+                  }}
+                  className="w-full cursor-pointer px-4 py-3 text-left text-[15px] text-gray-800 hover:bg-gray-50 transition flex items-center justify-between gap-3"
+                >
+                  <span className="flex items-center gap-3">
+                    <HiShieldCheck className="w-5 h-5 text-gray-700" />
+                    <span>Đánh dấu tin khẩn cấp</span>
+                  </span>
+                  <HiIdentification className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       {/* Tags List */}
       {userTags.length > 0 && (
@@ -2004,15 +2175,182 @@ export default function ChatInput({
         </div>
       )}
 
+      {showQuickCreatePoll &&
+        createPortal(
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Tạo bình chọn</h3>
+                <button
+                  onClick={() => {
+                    setShowQuickCreatePoll(false);
+                    resetQuickPoll();
+                  }}
+                  className="cursor-pointer p-2 rounded-full hover:bg-gray-100 text-gray-500"
+                >
+                  <HiX className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="px-6 py-4 space-y-4 flex-1 overflow-y-auto">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Chủ đề bình chọn</label>
+                  <textarea
+                    value={quickPollQuestion}
+                    onChange={(e) => setQuickPollQuestion(e.target.value)}
+                    rows={3}
+                    placeholder="Đặt câu hỏi bình chọn"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">
+                    {quickPollQuestion.length}
+                    /200
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Các lựa chọn</label>
+                  <div className="space-y-2">
+                    {quickPollOptions.map((opt, idx) => (
+                      <input
+                        key={idx}
+                        type="text"
+                        value={opt}
+                        onChange={(e) =>
+                          setQuickPollOptions((prev) => prev.map((o, i) => (i === idx ? e.target.value : o)))
+                        }
+                        placeholder={`Lựa chọn ${idx + 1}`}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white"
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setQuickPollOptions((prev) => (prev.length >= 10 ? prev : [...prev, '']))}
+                    disabled={quickPollOptions.length >= 10}
+                    className="mt-3 cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    + Thêm lựa chọn
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-6 py-3 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setShowQuickCreatePoll(false);
+                      resetQuickPoll();
+                    }}
+                    className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={handleQuickPollCreate}
+                    className="cursor-pointer px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={
+                      !quickPollQuestion.trim() ||
+                      new Set(
+                        quickPollOptions
+                          .map((o) => o.trim())
+                          .filter((o) => o)
+                          .map((o) => o.toLowerCase()),
+                      ).size < 2
+                    }
+                  >
+                    Tạo bình chọn
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {showQuickCreateNote &&
+        createPortal(
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Tạo nhắc hẹn</h3>
+                <button
+                  onClick={() => {
+                    setShowQuickCreateNote(false);
+                    setQuickNoteContent('');
+                    setQuickNoteDateTime('');
+                  }}
+                  className="cursor-pointer p-2 rounded-full hover:bg-gray-100 text-gray-500"
+                >
+                  <HiX className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="px-6 py-4 space-y-4 flex-1 overflow-y-auto">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nội dung nhắc hẹn</label>
+                  <textarea
+                    value={quickNoteContent}
+                    onChange={(e) => setQuickNoteContent(e.target.value)}
+                    rows={3}
+                    placeholder="Nhập tiêu đề nhắc hẹn..."
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Thời gian</label>
+                  <input
+                    type="datetime-local"
+                    value={quickNoteDateTime}
+                    onChange={(e) => setQuickNoteDateTime(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="px-6 py-3 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setShowQuickCreateNote(false);
+                      setQuickNoteContent('');
+                      setQuickNoteDateTime('');
+                    }}
+                    className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={handleQuickNoteCreate}
+                    className="cursor-pointer px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!quickNoteContent.trim() || !quickNoteDateTime.trim()}
+                  >
+                    Tạo nhắc hẹn
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
       {showCreatePoll && (
         <CreatePollModal isOpen={showCreatePoll} onClose={() => setShowCreatePoll(false)} onCreate={handleCreatePoll} />
       )}
 
       {showCreateNote && (
-        <CreateReminderModal
+        <CreateNoteModal
           isOpen={showCreateNote}
           onClose={() => setShowCreateNote(false)}
           onCreate={handleCreateNote}
+          createLoading={createLoading}
+        />
+      )}
+      {showCreateReminder && (
+        <CreateReminderModal
+          isOpen={showCreateReminder}
+          onClose={() => setShowCreateReminder(false)}
+          onCreate={handleCreateReminder}
           createLoading={createLoading}
         />
       )}
