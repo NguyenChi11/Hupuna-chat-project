@@ -1,6 +1,5 @@
 import type { NextConfig } from 'next';
 import path from 'path';
-import withPWA from 'next-pwa';
 
 const nextConfig: NextConfig = {
   // Các cấu hình khác giữ nguyên ở đây nếu có
@@ -46,10 +45,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  swSrc: 'public/sw-custom.js',
-})(nextConfig);
+export default nextConfig;

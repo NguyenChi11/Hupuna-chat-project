@@ -5,6 +5,7 @@ import './globals.css';
 import 'react-advanced-cropper/dist/style.css';
 import { ToastProvider } from '../components/base/toast';
 import OneSignalScript from '@/components/OneSignalScript';
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -82,6 +83,7 @@ export default function RootLayout({
       >
         <ToastProvider>{children}</ToastProvider>
         <OneSignalScript />
+        <ServiceWorkerRegister />
         {/* <Script src="/chat-widget.js" strategy="afterInteractive" /> */}
       </body>
     </html>
