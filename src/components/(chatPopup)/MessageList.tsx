@@ -41,6 +41,7 @@ import { ContextMenuState } from './MessageContextMenu';
 import ICShareMessage from '../svg/ICShareMessage';
 import ReadStatus from './components/ReadStatus';
 import ReminderCard from './components/ReminderCard';
+import { CiBellOn, CiLocationOn, CiWarning } from 'react-icons/ci';
 
 interface SenderInfo {
   _id: string;
@@ -228,6 +229,20 @@ function ContactCardBubble({
     </div>
   );
 }
+
+const RenderMessageTag = ({ tag }: { tag?: 'important' | 'urgent' }) => {
+  if (!tag) return null;
+  const isImportant = tag === 'important';
+  return (
+    <span
+      className={`flex gap-1 items-center text-[12px] font-bold  rounded uppercase tracking-wide text-red-500
+      }`}
+    >
+      <span>{isImportant ? <CiLocationOn className="w-4 h-4" /> : <CiWarning className="w-4 h-4" />}</span>
+      <span>{isImportant ? 'Quan trọng' : 'Khẩn cấp'}</span>
+    </span>
+  );
+};
 
 export default function MessageList({
   messagesGrouped,
@@ -799,6 +814,9 @@ export default function MessageList({
                                             } catch {}
                                           }}
                                         >
+                                          <div className="absolute top-1 left-1 z-20">
+                                            <RenderMessageTag tag={m.messageTag} />
+                                          </div>
                                           <video
                                             src={getProxyUrl(url)}
                                             className="w-full h-full object-cover"
@@ -895,6 +913,9 @@ export default function MessageList({
                                             } catch {}
                                           }}
                                         >
+                                          <div className="absolute top-1 left-1 z-20">
+                                            <RenderMessageTag tag={m.messageTag} />
+                                          </div>
                                           {String(url).startsWith('blob:') ? (
                                             <Image
                                               width={600}
@@ -1300,6 +1321,7 @@ export default function MessageList({
                                           <HiOutlineDocumentText className="w-5 h-5 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
+                                          <RenderMessageTag tag={m.messageTag} />
                                           <p className="text-sm font-semibold text-gray-800 truncate">
                                             {m.fileName || 'Tệp đính kèm'}
                                           </p>
@@ -1985,7 +2007,8 @@ export default function MessageList({
                       return (
                         <React.Fragment key={`reminder-${msg._id}-frag`}>
                           {timeMarkerNode}
-                          <div key={msg._id} id={`msg-${msg._id}`} className="flex justify-center mt-4">
+                          <div key={msg._id} id={`msg-${msg._id}`} className="flex flex-col items-center mt-4">
+                            <RenderMessageTag tag={msg.messageTag} />
                             <div onClick={() => setDetailMsg(msg)}>
                               <ReminderCard
                                 variant="message"
@@ -2019,6 +2042,7 @@ export default function MessageList({
                               className={`w-full max-w-[18rem] p-3 rounded-2xl border shadow-sm ${highlightedMsgId === msg._id ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}
                               onClick={() => setDetailMsg(msg)}
                             >
+                              <RenderMessageTag tag={msg.messageTag} />
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 min-w-0">
                                   <p className="text-base font-semibold text-gray-900 break-words truncate">
@@ -2617,7 +2641,7 @@ export default function MessageList({
                               {/* TEXT */}
                               {msg.type === 'text' && !isRecalled && !isEditing && (
                                 <div
-                                  className={`relative text-[0.875rem] ${
+                                  className={`relative text-[0.875rem] flex flex-col ${
                                     isSidebarOpen && !isMobile ? 'md:text-[0.875rem]' : 'md:text-[1rem]'
                                   } leading-relaxed text-black whitespace-pre-wrap select-none lg:select-text`}
                                   style={
@@ -2629,6 +2653,7 @@ export default function MessageList({
                                       : undefined
                                   }
                                 >
+                                  <RenderMessageTag tag={msg.messageTag} />
                                   {renderMessageContent(msg.content || '', msg.mentions, isMe)}
                                   {isMobile &&
                                     contextMenu?.visible &&
@@ -2716,30 +2741,38 @@ export default function MessageList({
                               )}
 
                               {msg.type === 'contact' && !isRecalled && (
-                                <ContactCardBubble
-                                  currentUserId={String(currentUser._id || '')}
-                                  contact={
-                                    (
-                                      msg as Message & {
-                                        contactCard?: {
-                                          _id?: string;
-                                          name?: string;
-                                          username?: string;
-                                          avatar?: string;
-                                        };
-                                      }
-                                    ).contactCard
-                                  }
-                                />
+                                <div className="relative">
+                                  <div className="absolute top-1 left-1 z-20">
+                                    <RenderMessageTag tag={msg.messageTag} />
+                                  </div>
+                                  <ContactCardBubble
+                                    currentUserId={String(currentUser._id || '')}
+                                    contact={
+                                      (
+                                        msg as Message & {
+                                          contactCard?: {
+                                            _id?: string;
+                                            name?: string;
+                                            username?: string;
+                                            avatar?: string;
+                                          };
+                                        }
+                                      ).contactCard
+                                    }
+                                  />
+                                </div>
                               )}
 
                               {/* IMAGE – FIX SIZE MOBILE */}
                               {msg.type === 'image' && msg.fileUrl && !isRecalled && (
                                 <div
-                                  className="  rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[50vw] sm:max-w-[16rem] select-none lg:select-auto"
+                                  className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-md max-w-[50vw] sm:max-w-[16rem] select-none lg:select-auto"
                                   onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl), 'image')}
                                   style={{ WebkitTouchCallout: 'none' }}
                                 >
+                                  <div className="absolute top-1 left-1 z-20">
+                                    <RenderMessageTag tag={msg.messageTag} />
+                                  </div>
                                   {String(msg.fileUrl).startsWith('blob:') ? (
                                     <Image
                                       width={600}

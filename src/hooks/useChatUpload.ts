@@ -137,6 +137,7 @@ export function useChatUpload({
       senderName?: string,
       batchId?: string,
       videoCropConfig?: Message['videoCropConfig'] | null,
+      messageTag?: 'important' | 'urgent',
     ) => {
       const sanitizeName = (name: string) => {
         return name
@@ -186,6 +187,7 @@ export function useChatUpload({
         timestamp: Date.now(),
         content: caption,
         isSending: true,
+        messageTag,
       };
 
       setMessages((prev) => sortMessagesAsc([...prev, tempMsg]));
@@ -276,6 +278,7 @@ export function useChatUpload({
                 mentions,
                 batchId,
                 videoCropConfig: type === 'video' ? (videoCropConfig ?? null) : null,
+                messageTag,
               } as unknown as MessageCreate;
               await sendMessageProcess(socketData);
             } else {
@@ -322,6 +325,7 @@ export function useChatUpload({
                 mentions,
                 batchId,
                 videoCropConfig: type === 'video' ? (videoCropConfig ?? null) : null,
+                messageTag,
               } as unknown as MessageCreate;
               await sendMessageProcess(socketData);
             } else {

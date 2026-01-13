@@ -2260,8 +2260,11 @@ export default function ChatWindow({
 
     const finalMentions = Array.from(expandedMentionIds);
 
+    const messageTag = editableRef.current.dataset.messageTag as 'important' | 'urgent' | undefined;
+
     if (editableRef.current) {
       editableRef.current.innerHTML = '';
+      delete editableRef.current.dataset.messageTag;
     }
 
     // 🔥 Clear attachments ngay lập tức để tránh upload trùng nếu user ấn gửi tiếp
@@ -2286,6 +2289,7 @@ export default function ChatWindow({
         replyToMessageId: replyingTo?._id,
         replyToMessageName: repliedUserName,
         mentions: finalMentions.length > 0 ? finalMentions : undefined,
+        messageTag,
       };
       await sendMessageProcess(textMsg);
     }
@@ -2304,6 +2308,7 @@ export default function ChatWindow({
           senderNick,
           batchId,
           att.videoCropConfig || null,
+          messageTag,
         ).then(() => {
           try {
             URL.revokeObjectURL(att.previewUrl);

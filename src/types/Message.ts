@@ -35,6 +35,7 @@ export interface Message {
   type: MessageType;
   timestamp: number;
   serverTimestamp?: number;
+  messageTag?: 'important' | 'urgent';
   pinnedAt?: number | null;
   readBy?: (string | number)[];
   isRecalled?: boolean;
@@ -137,4 +138,5 @@ export interface MessageCreate {
     username?: string;
     avatar?: string;
   };
+  messageTag?: 'important' | 'urgent';
 }

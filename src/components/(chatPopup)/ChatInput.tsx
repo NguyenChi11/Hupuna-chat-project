@@ -618,6 +618,7 @@ export default function ChatInput({
 
   const [userTags, setUserTags] = useState<Array<{ id: string; label: string; color: string }>>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [selectedTag, setSelectedTag] = useState<'important' | 'urgent' | null>(null);
   const tagStorageKey = useMemo(() => {
     if (!selectedChat?._id || !currentUser?._id) return '';
     return `chatTags:${currentUser._id}:${selectedChat._id}`;
@@ -842,11 +843,23 @@ export default function ChatInput({
     checkContent();
   }, []);
 
+  // Sync selectedTag to DOM for parent access
+  useEffect(() => {
+    if (editableRef.current) {
+      if (selectedTag) {
+        editableRef.current.dataset.messageTag = selectedTag;
+      } else {
+        delete editableRef.current.dataset.messageTag;
+      }
+    }
+  }, [selectedTag]);
+
   const handleSendWrapper = () => {
     // if (isUploading) return; // 🔥 Cho phép chat khi đang upload
     onSendMessage();
     // Optimistically update state as parent usually clears input
     setHasContent(false);
+    setSelectedTag(null);
     setTimeout(checkContent, 100); // Double check
   };
 
@@ -870,6 +883,7 @@ export default function ChatInput({
             username: selectedUser.username,
             avatar: selectedUser.avatar,
           },
+          messageTag: selectedTag || undefined,
         };
 
         if (onSendMessageData) {
@@ -899,6 +913,7 @@ export default function ChatInput({
       setSelectedContactCardIds([]);
       setContactCardSearch('');
       setActiveContactCategory('all');
+      setSelectedTag(null);
     }
   };
 
@@ -1267,7 +1282,7 @@ export default function ChatInput({
                   role="menuitem"
                   onClick={() => {
                     setShowMoreActionsMenu(false);
-                    handleShowUpdatingPopup();
+                    setSelectedTag('important');
                   }}
                   className="w-full cursor-pointer px-4 py-3 text-left text-[15px] text-gray-800 hover:bg-gray-50 transition flex items-center justify-between gap-3"
                 >
@@ -1281,7 +1296,7 @@ export default function ChatInput({
                   role="menuitem"
                   onClick={() => {
                     setShowMoreActionsMenu(false);
-                    handleShowUpdatingPopup();
+                    setSelectedTag('urgent');
                   }}
                   className="w-full cursor-pointer px-4 py-3 text-left text-[15px] text-gray-800 hover:bg-gray-50 transition flex items-center justify-between gap-3"
                 >
@@ -1378,114 +1393,131 @@ export default function ChatInput({
           </button>
           {/* Input contentEditable – Đẹp như iMessage */}
           <div className="relative flex-1 min-w-0">
-            <div
-              ref={editableRef}
-              contentEditable
-              inputMode="text"
-              role="textbox"
-              aria-multiline="true"
-              onClick={() => {
-                setShowMobileActions(false);
-                try {
-                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                } catch {}
-                // Keep caret at the click position by letting browser handle selection
-              }}
-              onInput={() => {
-                onInputEditable();
-                updateSlashState();
-                checkContent();
-              }}
-              onKeyDown={(e) => {
-                if (e.ctrlKey && e.shiftKey && (e.key === 'x' || e.key === 'X')) {
-                  e.preventDefault();
+            {selectedTag && (
+              <div className="flex my-2">
+                <div className="flex items-center gap-1 bg-red-50 text-red-600 px-2 py-1 rounded text-sm border border-red-100">
+                  {selectedTag === 'important' && <HiMapPin className="w-4 h-4" />}
+                  {selectedTag === 'urgent' && <HiShieldCheck className="w-4 h-4" />}
+                  <span className="font-medium">{selectedTag === 'important' ? 'Quan trọng' : 'Khẩn cấp'}</span>
+                  <button
+                    onClick={() => setSelectedTag(null)}
+                    className="ml-1 hover:bg-red-100 rounded-full p-0.5 cursor-pointer"
+                  >
+                    <HiX className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="relative">
+              <div
+                ref={editableRef}
+                contentEditable
+                inputMode="text"
+                role="textbox"
+                aria-multiline="true"
+                onClick={() => {
+                  setShowMobileActions(false);
+                  try {
+                    window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                  } catch {}
+                  // Keep caret at the click position by letting browser handle selection
+                }}
+                onInput={() => {
+                  onInputEditable();
+                  updateSlashState();
+                  checkContent();
+                }}
+                onKeyDown={(e) => {
+                  if (e.ctrlKey && e.shiftKey && (e.key === 'x' || e.key === 'X')) {
+                    e.preventDefault();
+                    const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
+                    setRichTextContent(text);
+                    setShowRichText(true);
+                    return;
+                  }
                   const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
-                  setRichTextContent(text);
-                  setShowRichText(true);
-                  return;
-                }
-                const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
-                const suggestions = kvItems.filter((it) =>
-                  it.key.toLowerCase().startsWith((slashQuery || '').toLowerCase()),
-                );
+                  const suggestions = kvItems.filter((it) =>
+                    it.key.toLowerCase().startsWith((slashQuery || '').toLowerCase()),
+                  );
 
-                if (slashOpen && suggestions.length > 0) {
-                  if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    setSlashSelectedIndex((prev) => (prev + 1) % suggestions.length);
-                    return;
+                  if (slashOpen && suggestions.length > 0) {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setSlashSelectedIndex((prev) => (prev + 1) % suggestions.length);
+                      return;
+                    }
+                    if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setSlashSelectedIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+                      return;
+                    }
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const chosen = suggestions[Math.max(0, Math.min(slashSelectedIndex, suggestions.length - 1))];
+                      if (chosen && editableRef.current) {
+                        const replaced = text.replace(/\/\s*[\w-]*$/, chosen.value);
+                        editableRef.current.innerText = replaced;
+                        try {
+                          const range = document.createRange();
+                          range.selectNodeContents(editableRef.current);
+                          range.collapse(false);
+                          const sel = window.getSelection();
+                          sel?.removeAllRanges();
+                          sel?.addRange(range);
+                        } catch {}
+                        setSlashOpen(false);
+                        setSlashSelectedIndex(0);
+                        onInputEditable();
+                        return;
+                      }
+                    }
+                    if (e.key === 'Escape') {
+                      e.preventDefault();
+                      setSlashOpen(false);
+                      setSlashSelectedIndex(0);
+                      return;
+                    }
                   }
-                  if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    setSlashSelectedIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
-                    return;
-                  }
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const chosen = suggestions[Math.max(0, Math.min(slashSelectedIndex, suggestions.length - 1))];
-                    if (chosen && editableRef.current) {
-                      const replaced = text.replace(/\/\s*[\w-]*$/, chosen.value);
-                      editableRef.current.innerText = replaced;
-                      try {
+                  // if (e.key === 'Enter' && !e.shiftKey && isUploading) {
+                  //   e.preventDefault();
+                  //   return;
+                  // }
+                  onKeyDownEditable(e);
+                  updateSlashState();
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    if (attachments && attachments.length > 0) return;
+                    try {
+                      const el = editableRef.current;
+                      if (el) {
+                        el.focus();
                         const range = document.createRange();
-                        range.selectNodeContents(editableRef.current);
+                        range.selectNodeContents(el);
                         range.collapse(false);
                         const sel = window.getSelection();
                         sel?.removeAllRanges();
                         sel?.addRange(range);
-                      } catch {}
-                      setSlashOpen(false);
-                      setSlashSelectedIndex(0);
-                      onInputEditable();
-                      return;
-                    }
+                      }
+                    } catch {}
                   }
-                  if (e.key === 'Escape') {
-                    e.preventDefault();
-                    setSlashOpen(false);
-                    setSlashSelectedIndex(0);
-                    return;
-                  }
-                }
-                // if (e.key === 'Enter' && !e.shiftKey && isUploading) {
-                //   e.preventDefault();
-                //   return;
-                // }
-                onKeyDownEditable(e);
-                updateSlashState();
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  if (attachments && attachments.length > 0) return;
-                  try {
-                    const el = editableRef.current;
-                    if (el) {
-                      el.focus();
-                      const range = document.createRange();
-                      range.selectNodeContents(el);
-                      range.collapse(false);
-                      const sel = window.getSelection();
-                      sel?.removeAllRanges();
-                      sel?.addRange(range);
-                    }
-                  } catch {}
-                }
-              }}
-              onFocus={() => {
-                onFocusEditable();
-                updateSlashState();
-                setShowMobileActions(false);
-              }}
-              onPaste={(e) => {
-                onPasteEditable(e);
-                updateSlashState();
-              }}
-              style={{ overscrollBehavior: 'contain' }}
-              className="min-h-10 max-h-40 px-2 py-2 bg-white/90   focus:outline-none  transition-all duration-300 text-[0.875rem] md:text-[1rem] text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
-              data-placeholder="Nhập tin nhắn..."
-            />
+                }}
+                onFocus={() => {
+                  onFocusEditable();
+                  updateSlashState();
+                  setShowMobileActions(false);
+                }}
+                onPaste={(e) => {
+                  onPasteEditable(e);
+                  updateSlashState();
+                }}
+                style={{ overscrollBehavior: 'contain' }}
+                className="min-h-10 max-h-40 px-2 py-2 bg-white/90   focus:outline-none  transition-all duration-300 text-[0.875rem] md:text-[1rem] text-gray-800 overflow-auto custom-scrollbar w-full max-w-full break-words whitespace-pre-wrap"
+                data-placeholder="Nhập tin nhắn..."
+              />
 
-            {/* Placeholder đẹp hơn */}
-            <div className="pointer-events-none absolute inset-0 flex items-center px-2 py-4 text-gray-400 select-none text-[0.875rem] md:text-[1rem]">
-              <span className="flex items-center gap-2">Nhập tin nhắn...</span>
+              {/* Placeholder đẹp hơn */}
+              <div className="pointer-events-none absolute inset-0 flex items-center px-2 py-4 text-gray-400 select-none text-[0.875rem] md:text-[1rem]">
+                <span className="flex items-center gap-2">Nhập tin nhắn...</span>
+              </div>
             </div>
           </div>
 

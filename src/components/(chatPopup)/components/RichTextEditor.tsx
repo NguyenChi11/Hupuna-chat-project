@@ -55,15 +55,6 @@ export default function RichTextEditor({ value, onChange, onClose, onSend }: Ric
           <button className="ql-strike" aria-label="Strike"></button>
         </span>
 
-        {/* <span className="ql-formats">
-          <select className="ql-color"></select>
-          <select className="ql-background"></select>
-        </span>
-
-        <span className="ql-formats">
-          <button className="ql-clean" aria-label="Clear Formatting"></button>
-        </span> */}
-
         <span className="ql-formats">
           <button className="ql-list" value="ordered" aria-label="Ordered List"></button>
           <button className="ql-list" value="bullet" aria-label="Bullet List"></button>

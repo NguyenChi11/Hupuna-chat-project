@@ -66,6 +66,20 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
     setMenuOpen(false);
   }, [message]);
 
+  const RenderMessageTag = ({ tag }: { tag?: 'important' | 'urgent' }) => {
+    if (!tag) return null;
+    const isImportant = tag === 'important';
+    return (
+      <span
+        className={`inline-block px-2 py-0.5 mb-1 text-[10px] font-bold text-white rounded uppercase tracking-wide ${
+          isImportant ? 'bg-red-500' : 'bg-orange-500'
+        }`}
+      >
+        {isImportant ? 'Quan trọng' : 'Khẩn cấp'}
+      </span>
+    );
+  };
+
   const dtLabel = useMemo(() => {
     const ms = Date.parse(dateTime);
     if (Number.isNaN(ms)) return '';
@@ -350,7 +364,10 @@ export default function ReminderDetailModal({ isOpen, message, onClose, onRefres
             <div className="divide-y divide-gray-200">
               <div className="flex items-start gap-3 px-4 py-4">
                 <HiBellAlert className="w-6 h-6 text-rose-600 shrink-0" />
-                <p className="flex-1 min-w-0 text-xl text-gray-800 whitespace-pre-wrap break-words">{content}</p>
+                <div className="flex-1 min-w-0">
+                  <RenderMessageTag tag={message?.messageTag} />
+                  <p className="text-xl text-gray-800 whitespace-pre-wrap break-words">{content}</p>
+                </div>
               </div>
               <div className="flex items-center gap-3 px-4 py-4">
                 <HiOutlineClock className="w-6 h-6 text-gray-700" />

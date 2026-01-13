@@ -109,6 +109,7 @@ export const useChatInput = ({
 
   const handleSendMessage = async () => {
     if (!editableRef.current) return;
+    const messageTag = editableRef.current.dataset.messageTag as 'important' | 'urgent' | undefined;
 
     const plainText = getPlainTextFromEditable().trim();
     const hasAtt = attachments.length > 0;
@@ -175,6 +176,7 @@ export const useChatInput = ({
         replyToMessageId: replyingTo?._id,
         replyToMessageName: repliedUserName,
         mentions: finalMentions.length > 0 ? finalMentions : undefined,
+        messageTag,
       };
       await sendMessageProcess(textMsg);
     }

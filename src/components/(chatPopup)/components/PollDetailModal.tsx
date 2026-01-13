@@ -109,6 +109,20 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
     setEditEndAt(message.pollEndAt ? Number(message.pollEndAt) : null);
   }, [message, mySelected]);
 
+  const RenderMessageTag = ({ tag }: { tag?: 'important' | 'urgent' }) => {
+    if (!tag) return null;
+    const isImportant = tag === 'important';
+    return (
+      <span
+        className={`inline-block px-2 py-0.5 mb-1 text-[10px] font-bold text-white rounded uppercase tracking-wide ${
+          isImportant ? 'bg-red-500' : 'bg-orange-500'
+        }`}
+      >
+        {isImportant ? 'Quan trọng' : 'Khẩn cấp'}
+      </span>
+    );
+  };
+
   const handleAddOption = () => {
     setAdding(true);
   };
@@ -549,6 +563,7 @@ export default function PollDetailModal({ isOpen, message, onClose, onRefresh }:
             const showResults = !(message?.pollHideResultsUntilVote && mySelected.length === 0);
             return !editing ? (
               <>
+                <RenderMessageTag tag={message?.messageTag} />
                 <p className="text-[1rem] text-gray-800 whitespace-pre-wrap break-words">{question}</p>
                 {isLocked && (
                   <p className="text-[1rem] text-gray-500 mt-1">
