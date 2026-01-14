@@ -150,6 +150,7 @@ export default function ChatInput({
   const [showRichText, setShowRichText] = useState(false);
   const [richTextContent, setRichTextContent] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
+  const toolbarRef = useRef<HTMLDivElement | null>(null);
   const tagsContainerRef = useRef<HTMLDivElement | null>(null);
   const tagsDragRef = useRef<{ active: boolean; startX: number; startScroll: number; pid?: number; moved: boolean }>({
     active: false,
@@ -923,6 +924,10 @@ export default function ChatInput({
       const target = e.target as Node | null;
       if (mobileActionsRef.current && target && mobileActionsRef.current.contains(target)) return;
       if (toggleMobileActionsBtnRef.current && target && toggleMobileActionsBtnRef.current.contains(target)) return;
+      // Nếu click vào vùng toolbar (input, emoji, mic, ảnh...) thì không đóng menu ở đây
+      // Vì onClick của các nút đó sẽ xử lý hành động + đóng menu sau
+      if (toolbarRef.current && target && toolbarRef.current.contains(target)) return;
+
       setShowMobileActions(false);
       try {
         window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
@@ -990,6 +995,21 @@ export default function ChatInput({
       try {
         window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
       } catch {}
+      // Focus lại input khi đóng menu thủ công
+      setTimeout(() => {
+        try {
+          const el = editableRef.current;
+          if (el) {
+            el.focus();
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            const sel = window.getSelection();
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+          }
+        } catch {}
+      }, 50);
       return;
     }
 
@@ -1378,13 +1398,21 @@ export default function ChatInput({
           />
         </div>
       ) : (
-        <div className="flex items-end gap-2">
+        <div ref={toolbarRef} className="flex items-end gap-2">
           <button
             onClick={() => {
               try {
                 editableRef.current?.blur?.();
               } catch {}
-              setTimeout(() => onToggleEmojiPicker(), 100);
+              // Thực hiện mở emoji ngay
+              setTimeout(() => onToggleEmojiPicker(), 0);
+              // Đóng menu mobile sau 1 chút để tránh conflict
+              setTimeout(() => {
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+              }, 100);
             }}
             className="md:hidden group p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-300 active:scale-90"
             aria-label="Chọn emoji"
@@ -1416,11 +1444,25 @@ export default function ChatInput({
                 role="textbox"
                 aria-multiline="true"
                 onClick={() => {
-                  setShowMobileActions(false);
-                  try {
-                    window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                  } catch {}
-                  // Keep caret at the click position by letting browser handle selection
+                  const el = editableRef.current;
+                  if (el) {
+                    try {
+                      el.focus();
+                      const range = document.createRange();
+                      range.selectNodeContents(el);
+                      range.collapse(false);
+                      const sel = window.getSelection();
+                      sel?.removeAllRanges();
+                      sel?.addRange(range);
+                    } catch {}
+                  }
+                  // Delay đóng menu để đảm bảo focus đã ăn
+                  setTimeout(() => {
+                    setShowMobileActions(false);
+                    try {
+                      window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                    } catch {}
+                  }, 150);
                 }}
                 onInput={() => {
                   onInputEditable();
@@ -1635,6 +1677,15 @@ export default function ChatInput({
                   <label
                     className=" rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
                     aria-label="Gửi ảnh hoặc video"
+                    onClick={() => {
+                      // Delay đóng menu để input file kịp mở dialog
+                      setTimeout(() => {
+                        setShowMobileActions(false);
+                        try {
+                          window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                        } catch {}
+                      }, 300);
+                    }}
                   >
                     <ImageIconZalo className="w-11 h-11" />
                     <input
@@ -1658,7 +1709,7 @@ export default function ChatInput({
       {showMobileActions && (
         <div
           ref={mobileActionsRef}
-          className="lg:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
+          className="md:hidden w-full grid grid-cols-4 gap-2 items-center justify-between mx-auto mt-4"
         >
           <label className="group relative cursor-pointer flex flex-col items-center" aria-label="Gửi ảnh hoặc video">
             {/* Background tròn bao quanh icon */}

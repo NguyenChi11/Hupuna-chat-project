@@ -330,6 +330,7 @@ export default function ChatWindow({
   }, [selectedChat, isGroup, currentUser]);
 
   const [showSearchSidebar, setShowSearchSidebar] = useState(false);
+  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const chatAvatar = (selectedChat as { avatar?: string }).avatar;
 
   const handleJumpToMessage = useCallback(
@@ -1692,13 +1693,16 @@ export default function ChatWindow({
   }, [showEmojiPicker, pickerTab, replyingTo, showMentionMenu, attachments.length, scrollToBottom]);
 
   useEffect(() => {
-    const handler = () => {
+    const handler = (e: Event) => {
+      const anyE = e as unknown as { detail?: { open?: boolean } };
+      const open = !!anyE.detail?.open;
+      setMobileActionsOpen(open);
       scrollToBottom();
       setTimeout(scrollToBottom, 50);
       setTimeout(scrollToBottom, 150);
     };
-    window.addEventListener('mobileActionsToggle', handler);
-    return () => window.removeEventListener('mobileActionsToggle', handler);
+    window.addEventListener('mobileActionsToggle', handler as EventListener);
+    return () => window.removeEventListener('mobileActionsToggle', handler as EventListener);
   }, [scrollToBottom]);
 
   useEffect(() => {
@@ -2925,6 +2929,7 @@ export default function ChatWindow({
             ref={messagesContainerRef}
             className="relative flex-1 overflow-y-auto overflow-x-hidden p-4 pb-0 bg-gray-100 flex flex-col custom-scrollbar overscroll-y-contain"
           >
+            {isMobile && mobileActionsOpen && <div className="absolute inset-0 z-10 bg-transparent" />}
             {(initialLoading || loadingMore) && (
               <div className="sticky top-0 z-20 flex items-center justify-center py-2">
                 <div className="h-4 w-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin mr-2" />
