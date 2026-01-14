@@ -12,6 +12,7 @@ import {
   buildUpdateTagsFields,
 } from '@/lib/chatUpdateFields';
 import bcrypt from 'bcryptjs';
+import nodemailer from 'nodemailer';
 
 export const runtime = 'nodejs';
 
@@ -45,7 +46,10 @@ interface UsersRequestBody {
     | 'logout'
     | 'changePassword'
     | 'updateNickname'
-    | 'updateTags';
+    | 'updateTags'
+    | 'forgotPasswordSendCode'
+    | 'forgotPasswordVerifyCode'
+    | 'forgotPasswordReset';
   collectionName?: string;
   data?: UsersRequestData;
   field?: keyof User;
@@ -63,7 +67,6 @@ interface UsersRequestBody {
   isHidden?: boolean;
 }
 
-// 🔥 Helper function để tạo query filter cho _id
 function createIdFilter(id: string | number): ObjectId | number {
   if (typeof id === 'number') {
     return id;
@@ -85,8 +88,57 @@ function createIdFilter(id: string | number): ObjectId | number {
   return idStr as unknown as number;
 }
 
-// 🔥 Type-safe filter cho User với _id
 type UserIdFilter = Filter<User> & { _id: ObjectId | number };
+
+async function sendResetCodeEmail(to: string, code: string, username: string) {
+  const user = process.env.EMAIL_USER || process.env.EMAIL_USERNAME || process.env.MAIL_USER || '';
+  const pass = process.env.EMAIL_KEY || process.env.EMAIL_PASSWORD || process.env.MAIL_PASSWORD || '';
+
+  if (!user || !pass) {
+    console.log('Missing email credentials for reset code', {
+      username,
+      to,
+      hasUser: Boolean(user),
+      hasPass: Boolean(pass),
+    });
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user,
+      pass,
+    },
+  });
+
+  const from = process.env.EMAIL_FROM || process.env.MAIL_FROM || `"Hupuna Chat" <${user}>`;
+
+  const subject = 'Mã xác thực đặt lại mật khẩu Hupuna Chat';
+  const text = `Xin chào ${username},
+
+Mã xác thực đặt lại mật khẩu của bạn là: ${code}
+
+Mã này có hiệu lực trong 10 phút.
+
+Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.`;
+
+  const html = `<p>Xin chào <strong>${username}</strong>,</p>
+<p>Mã xác thực đặt lại mật khẩu của bạn là:</p>
+<p style="font-size:20px;font-weight:bold;letter-spacing:4px">${code}</p>
+<p>Mã này có hiệu lực trong 10 phút.</p>
+<p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>`;
+
+  await transporter.sendMail({
+    from,
+    to,
+    subject,
+    text,
+    html,
+  });
+}
 
 export async function POST(req: NextRequest) {
   let body: UsersRequestBody = {};
@@ -461,6 +513,131 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           success: true,
           message: 'Đổi mật khẩu thành công',
+        });
+      }
+
+      case 'forgotPasswordSendCode': {
+        const payload = data as { username?: string; email?: string };
+        const username = String(payload?.username || '').trim();
+        const email = String(payload?.email || '').trim();
+
+        if (!username || !email) {
+          return NextResponse.json(
+            { success: false, message: 'Vui lòng nhập đầy đủ tên đăng nhập và email' },
+            { status: 400 },
+          );
+        }
+
+        const userCollection = await getCollection<User>(collectionName);
+        const user = await userCollection.findOne({ username, email } as Filter<User>);
+
+        if (!user) {
+          return NextResponse.json(
+            { success: false, message: 'Không tìm thấy tài khoản khớp với tên đăng nhập và email' },
+            { status: 404 },
+          );
+        }
+
+        const codeValue = Math.floor(100000 + Math.random() * 900000).toString();
+
+        await userCollection.updateOne({ _id: user._id } as Filter<User>, {
+          $set: {
+            resetCode: codeValue,
+            resetCodeExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          } as Partial<User> & { resetCode: string; resetCodeExpiresAt: Date },
+        });
+        await sendResetCodeEmail(email, codeValue, username || user.name || username);
+
+        return NextResponse.json({
+          success: true,
+          message: 'Đã gửi mã xác thực đến email',
+        });
+      }
+
+      case 'forgotPasswordVerifyCode': {
+        const payload = data as { username?: string; email?: string; code?: string };
+        const username = String(payload?.username || '').trim();
+        const email = String(payload?.email || '').trim();
+        const codeValue = String(payload?.code || '').trim();
+
+        if (!username || !email || !codeValue) {
+          return NextResponse.json({ success: false, message: 'Thiếu thông tin xác thực' }, { status: 400 });
+        }
+
+        if (!/^\d{6}$/.test(codeValue)) {
+          return NextResponse.json({ success: false, message: 'Mã xác thực không hợp lệ' }, { status: 400 });
+        }
+
+        const userCollection = await getCollection<User>(collectionName);
+        const now = new Date();
+
+        const user = await userCollection.findOne({
+          username,
+          email,
+          resetCode: codeValue,
+          resetCodeExpiresAt: { $gte: now },
+        } as Filter<User>);
+
+        if (!user) {
+          return NextResponse.json(
+            { success: false, message: 'Mã xác thực không đúng hoặc đã hết hạn' },
+            { status: 400 },
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Xác minh mã thành công',
+        });
+      }
+
+      case 'forgotPasswordReset': {
+        const payload = data as {
+          username?: string;
+          email?: string;
+          code?: string;
+          newPassword?: string;
+        };
+        const username = String(payload?.username || '').trim();
+        const email = String(payload?.email || '').trim();
+        const codeValue = String(payload?.code || '').trim();
+        const newPassword = String(payload?.newPassword || '');
+
+        if (!username || !email || !codeValue || !newPassword) {
+          return NextResponse.json({ success: false, message: 'Thiếu thông tin đặt lại mật khẩu' }, { status: 400 });
+        }
+
+        if (newPassword.length < 6) {
+          return NextResponse.json({ success: false, message: 'Mật khẩu phải có ít nhất 6 ký tự' }, { status: 400 });
+        }
+
+        const userCollection = await getCollection<User>(collectionName);
+        const now = new Date();
+
+        const user = await userCollection.findOne({
+          username,
+          email,
+          resetCode: codeValue,
+          resetCodeExpiresAt: { $gte: now },
+        } as Filter<User>);
+
+        if (!user) {
+          return NextResponse.json(
+            { success: false, message: 'Mã xác thực không đúng hoặc đã hết hạn' },
+            { status: 400 },
+          );
+        }
+
+        const hashed = await bcrypt.hash(String(newPassword), 12);
+
+        await userCollection.updateOne({ _id: user._id } as Filter<User>, {
+          $set: { password: hashed },
+          $unset: { resetCode: '', resetCodeExpiresAt: '' },
+        });
+
+        return NextResponse.json({
+          success: true,
+          message: 'Đặt lại mật khẩu thành công',
         });
       }
 
