@@ -90,7 +90,7 @@ export default function EditInfoView({
         </Field>
 
         {/* Email */}
-        <Field icon={<HiMail className="w-5 h-5 text-orange-600" />} label="Email">
+        <Field icon={<HiMail className="w-5 h-5 text-orange-600" />} label="Email" required>
           <input
             type="email"
             value={String(form.email ?? '')}

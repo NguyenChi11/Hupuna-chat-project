@@ -96,6 +96,59 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
     { value: '3', label: 'Nghỉ phép' },
   ];
 
+  const handleEditInfoSubmit = () => {
+    const name = String(form.name || '').trim();
+    const email = String(form.email || '').trim();
+    const phone = String(form.phone || '').trim();
+    const birthday = String(form.birthday || '').trim();
+
+    if (!name) {
+      toast({ type: 'error', message: 'Vui lòng nhập tên hiển thị' });
+      return;
+    }
+
+    if (!email) {
+      toast({ type: 'error', message: 'Vui lòng nhập email' });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({ type: 'error', message: 'Email không hợp lệ' });
+      return;
+    }
+
+    if (phone) {
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length < 8 || digits.length > 15) {
+        toast({ type: 'error', message: 'Số điện thoại không hợp lệ' });
+        return;
+      }
+    }
+
+    if (birthday) {
+      const d = new Date(birthday);
+      if (Number.isNaN(d.getTime())) {
+        toast({ type: 'error', message: 'Ngày sinh không hợp lệ' });
+        return;
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (d > today) {
+        toast({ type: 'error', message: 'Ngày sinh không được lớn hơn hôm nay' });
+        return;
+      }
+    }
+
+    void updateUser({
+      ...form,
+      name,
+      email,
+      phone,
+      birthday,
+    });
+  };
+
   if (!isOpen) return null;
 
   const displayName = user.name || user.username || 'Tài khoản';
@@ -238,7 +291,7 @@ export default function PopupProfile({ isOpen, onClose, user, onAvatarUpdated, o
                   value: String(item.value),
                   label: item.label,
                 }))}
-                onSubmit={() => updateUser(form)}
+                onSubmit={handleEditInfoSubmit}
                 onCancel={() => setViewMode('profile')}
               />
             )}

@@ -70,6 +70,59 @@ export function ProfileInfo({
 
   const handleSave = async () => {
     if (!isOwner) return;
+
+    const name = String(form.name || '').trim();
+    const email = String(form.email || '').trim();
+    const phone = String(form.phone || '').trim();
+    const birthday = String(form.birthday || '').trim();
+
+    if (!name) {
+      toast({ type: 'error', message: 'Vui lòng nhập tên hiển thị' });
+      return;
+    }
+
+    if (!email) {
+      toast({ type: 'error', message: 'Vui lòng nhập email' });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({ type: 'error', message: 'Email không hợp lệ' });
+      return;
+    }
+
+    if (phone) {
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length < 8 || digits.length > 15) {
+        toast({ type: 'error', message: 'Số điện thoại không hợp lệ' });
+        return;
+      }
+    }
+
+    if (birthday) {
+      const d = new Date(birthday);
+      if (Number.isNaN(d.getTime())) {
+        toast({ type: 'error', message: 'Ngày sinh không hợp lệ' });
+        return;
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (d > today) {
+        toast({ type: 'error', message: 'Ngày sinh không được lớn hơn hôm nay' });
+        return;
+      }
+    }
+
+    const nextForm = {
+      ...form,
+      name,
+      email,
+      phone,
+      birthday,
+    };
+
+    setForm(nextForm);
     setIsSaving(true);
     try {
       const res = await fetch('/api/users', {
@@ -79,14 +132,14 @@ export function ProfileInfo({
           action: 'update',
           field: currentUser?.['username'] ? 'username' : '_id',
           value: currentId,
-          data: form,
+          data: nextForm,
         }),
       });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || 'Lưu thất bại');
 
-      localStorage.setItem('info_user', JSON.stringify({ ...currentUser, ...form }));
-      onDataChange?.(form);
+      localStorage.setItem('info_user', JSON.stringify({ ...currentUser, ...nextForm }));
+      onDataChange?.(nextForm);
       toast({ type: 'success', message: 'Đã lưu thông tin!' });
       setIsEditing(false);
     } catch (err: unknown) {

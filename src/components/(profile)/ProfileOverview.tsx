@@ -13,6 +13,31 @@ export default function ProfileOverview({
     title: string;
   };
 }) {
+  const email = String(data.email || '').trim();
+  const phone = String(data.phone || '').trim();
+  const birthday = String(data.birthday || '').trim();
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = email && emailRegex.test(email);
+
+  const digits = phone.replace(/\D/g, '');
+  const isPhoneValid = !phone || (digits.length >= 8 && digits.length <= 15);
+
+  let birthdayDisplay = birthday;
+  if (birthday) {
+    const d = new Date(birthday);
+    const isValidDate = !Number.isNaN(d.getTime());
+    if (isValidDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (d > today) {
+        birthdayDisplay = '';
+      }
+    } else {
+      birthdayDisplay = '';
+    }
+  }
+
   const departmentOptions = [
     {
       id: 1,
@@ -70,13 +95,15 @@ export default function ProfileOverview({
 
         <div className="flex justify-between items-center py-2 border-b border-gray-100">
           <span className="text-gray-500 w-32">Ngày sinh</span>
-          <span className="text-gray-900 font-medium flex-1 text-right">{data.birthday || 'Chưa cập nhật'}</span>
+          <span className="text-gray-900 font-medium flex-1 text-right">{birthdayDisplay || 'Chưa cập nhật'}</span>
         </div>
 
         <div className="py-2 border-b border-gray-100">
           <div className="flex justify-between items-center">
             <span className="text-gray-500 w-32">Điện thoại</span>
-            <span className="text-gray-900 font-medium flex-1 text-right">{data.phone || 'Chưa cập nhật'}</span>
+            <span className="text-gray-900 font-medium flex-1 text-right">
+              {isPhoneValid && phone ? phone : 'Chưa cập nhật'}
+            </span>
           </div>
           <p className="text-xs text-gray-500 mt-2 pl-32">
             Số điện thoại chỉ hiển thị với người có lưu số bạn trong danh bạ máy
@@ -85,7 +112,7 @@ export default function ProfileOverview({
 
         <div className="flex justify-between items-center py-2 border-b border-gray-100">
           <span className="text-gray-500 w-32">Email</span>
-          <span className="text-gray-900 font-medium flex-1 text-right">{data.email || 'Chưa cập nhật'}</span>
+          <span className="text-gray-900 font-medium flex-1 text-right">{isEmailValid ? email : 'Chưa cập nhật'}</span>
         </div>
 
         <div className="flex justify-between items-center py-2 border-b border-gray-100">
