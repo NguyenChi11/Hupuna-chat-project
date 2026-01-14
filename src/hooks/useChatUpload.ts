@@ -298,7 +298,10 @@ export function useChatUpload({
           es?.close();
           if (es) delete activeSourcesRef.current[uploadId];
         } catch {}
-      } else {
+      }
+
+      // Nếu SW không có controller hoặc upload qua SW thất bại -> Fallback sang XHR
+      if (!success) {
         for (let attempt = 0; attempt < 2 && !success; attempt++) {
           try {
             const res = (await uploadFileWithProgress(

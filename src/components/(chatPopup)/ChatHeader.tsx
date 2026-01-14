@@ -177,7 +177,7 @@ export default function ChatHeader({
         )}
 
         {/* Avatar */}
-        <div className="relative flex-shrink-0 cursor-pointer" onClick={onOpenMembers}>
+        <div className="relative flex-shrink-0 cursor-pointer" onClick={onTogglePopup}>
           <div
             className={`
             w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md overflow-hidden ring-2 ring-white
@@ -215,7 +215,7 @@ export default function ChatHeader({
 
         {/* Tên + info */}
         <button
-          onClick={onOpenMembers}
+          onClick={onTogglePopup}
           className=" cursor-pointer text-left md:hover:bg-gray-50 rounded-xl px-3 py-2 -ml-2 transition-colors"
         >
           <h1 className="font-semibold text-white md:text-gray-900 truncate w-[150px] md:w-full md:max-w-[300px] text-base">
