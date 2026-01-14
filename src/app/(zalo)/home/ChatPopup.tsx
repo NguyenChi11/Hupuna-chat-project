@@ -2832,13 +2832,8 @@ export default function ChatWindow({
             showPopup={showPopup}
             onTogglePopup={() => setShowPopup((prev) => !prev)}
             onOpenMembers={() => {
-              if (isGroup) {
-                setChatInfoInitialSection('members');
-                setShowPopup(true);
-              } else {
-                const partnerId = getId(selectedChat);
-                if (partnerId) router.push(`/profile/${partnerId}`);
-              }
+              setChatInfoInitialSection('members');
+              setShowPopup(true);
             }}
             showSearchSidebar={showSearchSidebar}
             onToggleSearchSidebar={() =>
