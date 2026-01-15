@@ -114,6 +114,7 @@ export async function POST(req: NextRequest) {
       timestamp: Date.now(),
       batchId,
       uploadId,
+      readBy: [String(sender)],
     };
 
     let insertedId: string | undefined = undefined;

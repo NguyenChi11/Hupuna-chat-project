@@ -142,13 +142,11 @@ export default function MediaPreviewModal({
     const list = listRef.current;
     if (el && list) {
       try {
-        const isMobile = window.innerWidth < 768; // Simple check for mobile/tablet layout
-        if (isMobile) {
-          // Horizontal scroll for mobile/bottom list
+        const isHorizontal = list.scrollWidth > list.clientWidth;
+        if (isHorizontal) {
           const targetLeft = el.offsetLeft - (list.clientWidth / 2 - el.clientWidth / 2);
           list.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
         } else {
-          // Vertical scroll for desktop/sidebar list
           const targetTop = el.offsetTop - (list.clientHeight / 2 - el.clientHeight / 2);
           list.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
         }
@@ -332,12 +330,15 @@ export default function MediaPreviewModal({
 
         {items.length > 0 && showThumbnails && (
           <>
-            <div className="hidden md:flex absolute right-36 top-1/2 -translate-y-1/2 flex-col items-center gap-3 z-20">
+            <div className="hidden md:flex absolute right-36 top-1/2 -translate-y-1/2 flex-row items-center gap-3 z-20">
               <button
                 className="p-2 cursor-pointer rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg"
                 onClick={() => {
-                  const el = listRef.current;
-                  if (el) el.scrollBy({ top: -300, behavior: 'smooth' });
+                  const currentIndex = items.findIndex((it) => it.url === current?.url);
+                  if (currentIndex > 0) {
+                    const prev = items[currentIndex - 1];
+                    setCurrent({ id: prev.id, url: prev.url, type: prev.type });
+                  }
                 }}
               >
                 <HiChevronUp className="w-5 h-5" />
@@ -345,8 +346,11 @@ export default function MediaPreviewModal({
               <button
                 className="p-2 cursor-pointer rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg"
                 onClick={() => {
-                  const el = listRef.current;
-                  if (el) el.scrollBy({ top: 300, behavior: 'smooth' });
+                  const currentIndex = items.findIndex((it) => it.url === current?.url);
+                  if (currentIndex < items.length - 1) {
+                    const next = items[currentIndex + 1];
+                    setCurrent({ id: next.id, url: next.url, type: next.type });
+                  }
                 }}
               >
                 <HiChevronDown className="w-5 h-5" />
