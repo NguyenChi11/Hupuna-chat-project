@@ -264,7 +264,6 @@ export default function ProfileByIdPage() {
               </div>
             )}
 
-            {/* Edit Cover Button (Owner only) */}
             {isOwner && !isUploadingBackground && (
               <label className="absolute bottom-4 right-4 p-2 bg-black/30 backdrop-blur-md rounded-full text-white cursor-pointer hover:bg-black/40 transition-colors z-10">
                 <HiCamera className="w-5 h-5" />
@@ -273,7 +272,15 @@ export default function ProfileByIdPage() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => e.target.files?.[0] && openCropper(e.target.files[0], 'background')}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      openCropper(file, 'background');
+                    }
+                    try {
+                      e.target.value = '';
+                    } catch {}
+                  }}
                 />
               </label>
             )}
@@ -313,7 +320,6 @@ export default function ProfileByIdPage() {
                   </div>
                 )}
 
-                {/* Edit Avatar (Owner) */}
                 {isOwner && !isUploadingAvatar && (
                   <label className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer z-10">
                     <HiCamera className="w-8 h-8 text-white" />
@@ -322,7 +328,15 @@ export default function ProfileByIdPage() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => e.target.files?.[0] && openCropper(e.target.files[0], 'avatar')}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          openCropper(file, 'avatar');
+                        }
+                        try {
+                          e.target.value = '';
+                        } catch {}
+                      }}
                     />
                   </label>
                 )}

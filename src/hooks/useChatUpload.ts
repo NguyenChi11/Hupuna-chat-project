@@ -23,9 +23,7 @@ async function ensureServiceWorker() {
   if (typeof window === 'undefined') return null;
   if (!('serviceWorker' in navigator)) return null;
   if (!swReadyPromise) {
-    swReadyPromise = navigator.serviceWorker
-      .register('/sw-upload.js', { scope: '/' })
-      .then(() => navigator.serviceWorker.ready);
+    swReadyPromise = navigator.serviceWorker.ready;
   }
   const reg = await swReadyPromise.catch(() => null);
   if (reg && !swListenerAttached) {

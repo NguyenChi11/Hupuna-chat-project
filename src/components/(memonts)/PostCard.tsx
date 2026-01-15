@@ -421,14 +421,24 @@ export default function PostCard({ post, onLike }: { post: FeedPost; onLike: (id
                           multiple
                           accept="image/*,video/*"
                           className="hidden"
-                          onChange={(e) => handleAddMediaFiles(e.target.files)}
+                          onChange={(e) => {
+                            void handleAddMediaFiles(e.target.files);
+                            try {
+                              e.target.value = '';
+                            } catch {}
+                          }}
                         />
                         <input
                           ref={docAddRef}
                           type="file"
                           multiple
                           className="hidden"
-                          onChange={(e) => handleAddDocFiles(e.target.files)}
+                          onChange={(e) => {
+                            void handleAddDocFiles(e.target.files);
+                            try {
+                              e.target.value = '';
+                            } catch {}
+                          }}
                         />
                         {imagesOverride.length > 0 && (
                           <div>

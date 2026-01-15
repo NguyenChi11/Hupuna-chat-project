@@ -150,7 +150,17 @@ export default function CreateGroupModal({
                     ) : (
                       <HiCamera className="w-6 h-6 text-gray-500" />
                     )}
-                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        handleAvatarChange(e);
+                        try {
+                          e.target.value = '';
+                        } catch {}
+                      }}
+                    />
                   </label>
                 </div>
                 <div className="flex-1 relative border-b-2 focus-within:border-[#0068ff] border-gray-200 transition-colors pb-1">

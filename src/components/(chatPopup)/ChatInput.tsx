@@ -1677,15 +1677,6 @@ export default function ChatInput({
                   <label
                     className=" rounded-full cursor-pointer text-gray-500 hover:bg-gray-100 transition-all duration-300 active:scale-90"
                     aria-label="Gửi ảnh hoặc video"
-                    onClick={() => {
-                      // Delay đóng menu để input file kịp mở dialog
-                      setTimeout(() => {
-                        setShowMobileActions(false);
-                        try {
-                          window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
-                        } catch {}
-                      }, 300);
-                    }}
                   >
                     <ImageIconZalo className="w-11 h-11" />
                     <input
@@ -1696,6 +1687,10 @@ export default function ChatInput({
                         const files = e.target.files ? Array.from(e.target.files) : [];
                         files.forEach((f) => onSelectImage(f));
                         e.target.value = '';
+                        setShowMobileActions(false);
+                        try {
+                          window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                        } catch {}
                       }}
                       multiple
                     />

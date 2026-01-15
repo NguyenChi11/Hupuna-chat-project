@@ -130,7 +130,18 @@ export default function GroupAvatarSection({
           </svg>
         </button>
 
-        <input type="file" accept="image/*" ref={avatarInputRef} className="hidden" onChange={onChangeGroupAvatar} />
+        <input
+          type="file"
+          accept="image/*"
+          ref={avatarInputRef}
+          className="hidden"
+          onChange={(e) => {
+            onChangeGroupAvatar(e);
+            try {
+              e.target.value = '';
+            } catch {}
+          }}
+        />
       </div>
 
       {/* Tên nhóm + nút đổi tên */}

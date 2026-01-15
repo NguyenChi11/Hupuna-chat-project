@@ -214,14 +214,24 @@ export default function PostComposer({
               multiple
               accept="image/*,video/*"
               className="hidden"
-              onChange={(e) => handleMediaFiles(e.target.files)}
+              onChange={(e) => {
+                void handleMediaFiles(e.target.files);
+                try {
+                  e.target.value = '';
+                } catch {}
+              }}
             />
             <input
               ref={docRef}
               type="file"
               multiple
               className="hidden"
-              onChange={(e) => handleDocFiles(e.target.files)}
+              onChange={(e) => {
+                void handleDocFiles(e.target.files);
+                try {
+                  e.target.value = '';
+                } catch {}
+              }}
             />
 
             <button

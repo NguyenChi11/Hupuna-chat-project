@@ -42,7 +42,6 @@ export default function ProfileHeader({
       {/* Gradient Overlay - Tối dần xuống dưới, giúp tên + avatar nổi bật */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-      {/* Nút đổi ảnh bìa - Glassmorphism cực đẹp */}
       {mounted && isOwner && (
         <label className="absolute top-5 right-5 z-10 cursor-pointer group">
           <div className="px-2 py-3.5 bg-white/15 backdrop-blur-xl rounded-2xl border border-white/30 shadow-2xl hover:bg-white/25 transition-all duration-300 flex items-center gap-3 active:scale-95">
@@ -55,7 +54,15 @@ export default function ProfileHeader({
             type="file"
             accept="image/*"
             className="sr-only"
-            onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'background')}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                void handleUpload(file, 'background');
+              }
+              try {
+                e.target.value = '';
+              } catch {}
+            }}
             disabled={isUploadingBackground}
           />
         </label>
@@ -98,7 +105,15 @@ export default function ProfileHeader({
               type="file"
               accept="image/*"
               className="sr-only"
-              onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'avatar')}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  void handleUpload(file, 'avatar');
+                }
+                try {
+                  e.target.value = '';
+                } catch {}
+              }}
               disabled={isUploadingAvatar}
             />
           )}

@@ -49,7 +49,12 @@ export default function Header({
           type="file"
           accept="image/*"
           className="sr-only"
-          onChange={onSelectBackgroundFile}
+          onChange={(e) => {
+            onSelectBackgroundFile?.(e);
+            try {
+              e.target.value = '';
+            } catch {}
+          }}
           disabled={Boolean(isUploadingBackground)}
         />
       </label>
@@ -83,7 +88,18 @@ export default function Header({
             </div>
           )}
 
-          <input type="file" accept="image/*" className="sr-only" onChange={onSelectFile} disabled={isUploading} />
+          <input
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(e) => {
+              onSelectFile(e);
+              try {
+                e.target.value = '';
+              } catch {}
+            }}
+            disabled={isUploading}
+          />
         </label>
       </div>
     </div>
