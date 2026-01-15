@@ -309,7 +309,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
         // const p = pathnameRef.current;
         // const isChatPage = p === '/' || p === '/home' || p?.startsWith('/chat');
 
-        if (data.sender === String(currentUser._id)) return;
+        if (String(data.sender) === String(currentUser._id)) return;
 
         const soundEnabled =
           (currentUser as unknown as { notifications?: { soundEnabled?: boolean } })?.notifications?.soundEnabled !==

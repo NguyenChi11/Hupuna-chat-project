@@ -572,7 +572,7 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
         members?: (string | { _id: string })[];
         groupName?: string;
       }) => {
-        const isMyMsg = data.sender === currentUser._id;
+        const isMyMsg = String(data.sender) === String(currentUser._id);
         const activeChatId = selectedChatRef.current?._id || null;
 
         // 1. Xác định tên người gửi
@@ -660,11 +660,15 @@ export function useHomePage(config?: { onlyGroups?: boolean; onlyPersonal?: bool
             let displaySenderName = senderName;
             if (!isMyMsg) {
               const currentGroup = prev[index];
-              const senderMember = currentGroup.members?.find((m: import('@/types/Group').GroupMemberSchema | import('@/types/Group').MemberInfo | string) => {
-                const mId =
-                  typeof m === 'object' && m && '_id' in m ? String((m as import('@/types/Group').GroupMemberSchema)._id) : String(m);
-                return mId === String(data.sender);
-              });
+              const senderMember = currentGroup.members?.find(
+                (m: import('@/types/Group').GroupMemberSchema | import('@/types/Group').MemberInfo | string) => {
+                  const mId =
+                    typeof m === 'object' && m && '_id' in m
+                      ? String((m as import('@/types/Group').GroupMemberSchema)._id)
+                      : String(m);
+                  return mId === String(data.sender);
+                },
+              );
               // Kiểm tra nickname trong member
               if (senderMember && typeof senderMember === 'object') {
                 const sm = senderMember as { _id: string; nickname?: string };
