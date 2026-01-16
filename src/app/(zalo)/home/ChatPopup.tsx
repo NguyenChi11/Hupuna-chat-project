@@ -78,6 +78,7 @@ interface ChatWindowProps {
   onBackFromChat?: () => void;
   groups: GroupConversation[];
   socket?: Socket | null;
+  embedCompact?: boolean;
 }
 
 declare global {
@@ -138,6 +139,7 @@ export default function ChatWindow({
   onBackFromChat,
   groups,
   socket,
+  embedCompact = false,
 }: ChatWindowProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -2864,6 +2866,7 @@ export default function ChatWindow({
             onVoiceCall={handleVoiceCall}
             onVideoCall={handleVideoCall}
             isMobile={isMobile}
+            embedCompact={embedCompact}
             isSearchActive={isMobile && showSearchSidebar}
             initialKeyword={roomSearchKeyword || null}
             onSearchTermChange={setMobileSearchTerm}

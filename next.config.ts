@@ -3,6 +3,17 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
   // Các cấu hình khác giữ nguyên ở đây nếu có
+  headers: async () => [
+    {
+      source: '/chat-iframe',
+      headers: [
+        {
+          key: 'Content-Security-Policy',
+          value: "frame-ancestors *",
+        },
+      ],
+    },
+  ],
   images: {
     localPatterns: [
       {

@@ -6,6 +6,7 @@ import 'react-advanced-cropper/dist/style.css';
 import { ToastProvider } from '../components/base/toast';
 import OneSignalScript from '@/components/OneSignalScript';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
+// import Script from 'next/script';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

@@ -36,8 +36,10 @@ const MenuWidget: React.FC<{ title?: string }> = ({ title = 'Chat' }) => {
 
   const closeWidget = () => {
     try {
-      window.parent?.postMessage('HUPUNA_WIDGET_CLOSE', window.location.origin);
-      window.parent?.postMessage({ type: 'HUPUNA_WIDGET_CLOSE' }, window.location.origin);
+      window.parent?.postMessage('HUPUNA_WIDGET_CLOSE', '*');
+      window.parent?.postMessage({ type: 'HUPUNA_WIDGET_CLOSE' }, '*');
+      const parentAny = window.parent as unknown as { HupunaChatWidget?: { close?: () => void } };
+      parentAny?.HupunaChatWidget?.close?.();
     } catch {}
     setOpen(false);
   };

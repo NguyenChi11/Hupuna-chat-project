@@ -41,6 +41,7 @@ interface ChatHeaderProps {
   onSearchFocus?: () => void;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
   onCloseSearch?: () => void;
+  embedCompact?: boolean;
 }
 
 export default function ChatHeader({
@@ -64,12 +65,30 @@ export default function ChatHeader({
   onSearchTermChange,
   onSearchFocus,
   searchInputRef,
+  embedCompact = false,
 }: ChatHeaderProps) {
   const [imgError, setImgError] = useState(false);
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const hasAutoSearchedRef = useRef(false);
   const lastInitialKeywordRef = useRef<string | null>(null);
   const manualCloseRef = useRef(false);
+  const [showActions, setShowActions] = useState(false);
+  const moreBtnRef = useRef<HTMLButtonElement | null>(null);
+  const actionsRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const t = e.target as Node | null;
+      if (!t) return;
+      if (showActions) {
+        if (actionsRef.current && actionsRef.current.contains(t)) return;
+        if (moreBtnRef.current && moreBtnRef.current.contains(t)) return;
+        setShowActions(false);
+      }
+    };
+    document.addEventListener('mousedown', handler, true);
+    return () => document.removeEventListener('mousedown', handler, true);
+  }, [showActions]);
 
   useEffect(() => {
     setImgError(false);
@@ -162,7 +181,7 @@ export default function ChatHeader({
 
   // Desktop/Normal header
   return (
-    <div className="flex items-center cursor-pointer justify-between px-2 bg-blue-400  md:bg-white border-b border-gray-200 shadow-sm">
+    <div className="flex items-center cursor-pointer justify-between px-2 bg-blue-400  md:bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
       {/* Left: Back + Avatar + Tên */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {/* Nút Back (mobile only) */}
@@ -218,7 +237,7 @@ export default function ChatHeader({
           onClick={onTogglePopup}
           className=" cursor-pointer text-left md:hover:bg-gray-50 rounded-xl px-3 py-2 -ml-2 transition-colors"
         >
-          <h1 className="font-semibold text-white md:text-gray-900 truncate w-[150px] md:w-full md:max-w-[300px] text-base">
+          <h1 className="font-semibold text-white md:text-gray-900 truncate w-[180px] md:w-full md:max-w-[360px] text-base">
             {chatName}
           </h1>
           <p className="text-xs text-white md:text-gray-500 flex items-center gap-1 mt-0.5">
@@ -236,7 +255,7 @@ export default function ChatHeader({
 
       <div className="flex items-center gap-1">
         <>
-          {typeof onVoiceCall === 'function' && !isGroup && (
+          {!embedCompact && typeof onVoiceCall === 'function' && !isGroup && (
             <button
               onClick={onVoiceCall}
               className="p-2 rounded-full cursor-pointer transition-all duration-200 hover:bg-gray-600 md:hover:bg-gray-100 text-white md:text-gray-600"
@@ -245,7 +264,7 @@ export default function ChatHeader({
               <CiPhone className="w-5 h-5" />
             </button>
           )}
-          {typeof onVideoCall === 'function' && (
+          {!embedCompact && typeof onVideoCall === 'function' && (
             <button
               onClick={onVideoCall}
               className="p-2 rounded-full cursor-pointer transition-all duration-200 hover:bg-gray-600 md:hover:bg-gray-100 text-white md:text-gray-600"
@@ -257,31 +276,36 @@ export default function ChatHeader({
         </>
 
         {/* Nút tìm kiếm - Mobile: Toggle inline search, Desktop: Toggle sidebar */}
-        <button
-          onClick={() => {
-            if (isMobile) {
-              // Mobile: Toggle inline search
-              if (onToggleSearchSidebar) onToggleSearchSidebar();
-            } else {
-              // Desktop: Toggle sidebar
-              if (showPopup) onTogglePopup();
-              if (onToggleSearchSidebar) onToggleSearchSidebar();
-            }
-          }}
-          className={`
-            p-2 rounded-full text-white md:text-gray-600 cursor-pointer transition-all duration-200
-            ${showSearchSidebar || isSearchActive ? 'bg-blue-100 text-blue-600 shadow-sm' : 'hover:bg-gray-600 md:hover:bg-gray-100 text-gray-600'}
-          `}
-          title="Tìm kiếm tin nhắn"
-        >
-          <CiSearch className="w-5 h-5" />
-        </button>
+        {!embedCompact && (
+          <button
+            onClick={() => {
+              if (isMobile) {
+                if (onToggleSearchSidebar) onToggleSearchSidebar();
+              } else {
+                if (showPopup) onTogglePopup();
+                if (onToggleSearchSidebar) onToggleSearchSidebar();
+              }
+            }}
+            className={`
+              p-2 rounded-full text-white md:text-gray-600 cursor-pointer transition-all duration-200
+              ${showSearchSidebar || isSearchActive ? 'bg-blue-100 text-blue-600 shadow-sm' : 'hover:bg-gray-600 md:hover:bg-gray-100 text-gray-600'}
+            `}
+            title="Tìm kiếm tin nhắn"
+          >
+            <CiSearch className="w-5 h-5" />
+          </button>
+        )}
 
         {/* Nút More */}
         <button
+          ref={moreBtnRef}
           onClick={() => {
-            if (showSearchSidebar) onToggleSearchSidebar();
-            onTogglePopup();
+            if (embedCompact) {
+              setShowActions((prev) => !prev);
+            } else {
+              if (showSearchSidebar) onToggleSearchSidebar();
+              onTogglePopup();
+            }
           }}
           className={`
             p-2 rounded-full text-white md:text-gray-600 cursor-pointer transition-all duration-200 relative
@@ -293,6 +317,52 @@ export default function ChatHeader({
           {/* Chấm tròn khi popup đang mở */}
           {showPopup && <div className="absolute top-0 right-0 w-2 h-2 bg-blue-600 rounded-full" />}
         </button>
+        {embedCompact && showActions && (
+          <div
+            ref={actionsRef}
+            className="absolute top-full right-2 mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden"
+          >
+            {!isGroup && typeof onVoiceCall === 'function' && (
+              <button
+                onClick={() => {
+                  setShowActions(false);
+                  onVoiceCall?.();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-gray-700"
+              >
+                <CiPhone className="w-5 h-5" />
+                <span>Gọi thoại</span>
+              </button>
+            )}
+            {typeof onVideoCall === 'function' && (
+              <button
+                onClick={() => {
+                  setShowActions(false);
+                  onVideoCall?.();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-gray-700"
+              >
+                <CiVideoOn className="w-5 h-5" />
+                <span>Gọi video</span>
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setShowActions(false);
+                if (isMobile) {
+                  onToggleSearchSidebar?.();
+                } else {
+                  if (showPopup) onTogglePopup();
+                  onToggleSearchSidebar?.();
+                }
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-gray-700"
+            >
+              <CiSearch className="w-5 h-5" />
+              <span>Tìm kiếm</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

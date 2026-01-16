@@ -1,21 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 (() => {
   const init = async () => {
+    const DRAG_ENABLED = false;
+    const FIXED_WIDTH = 360;
+    const FIXED_HEIGHT = 540;
     // Tránh chạy 2 lần hoặc trong iframe chat
     if (document.getElementById('hupuna-chat-widget-container')) return;
     if (window.location.pathname.startsWith('/chat-iframe')) return;
 
-    try {
-      const res = await fetch('/api/users/me', { credentials: 'include' });
-      const me = await res.json();
-      if (!(me && me.success)) return;
-    } catch {
-      try {
-        const raw = typeof window !== 'undefined' ? localStorage.getItem('info_user') : null;
-        const u = raw ? JSON.parse(raw) : null;
-        if (!(u && (u._id || u.username))) return;
-      } catch {}
-    }
+    // Không bắt buộc đăng nhập để hiển thị widget
+    // Nếu có thông tin người dùng thì sẽ gửi INIT cho iframe ở bên dưới
 
     // Tìm script để lấy data-src, data-title
     let scriptEl = document.currentScript;
@@ -54,14 +48,12 @@
     // Wrapper iframe (widget chat)
     const iframeWrap = document.createElement('div');
     Object.assign(iframeWrap.style, {
-      width: '25rem',
-      maxWidth: 'calc(100vw - 48px)',
-      height: '38.75rem',
-      maxHeight: 'calc(100vh - 6.25rem)',
+      width: `${FIXED_WIDTH}px`,
+      height: `${FIXED_HEIGHT}px`,
       position: 'relative',
       borderRadius: '1.5rem',
       overflow: 'hidden',
-      boxShadow: '0 1.5625rem 3.75rem rgba(0, 0, 0, 0.3)',
+      boxShadow: '0 1.25rem 2.5rem rgba(0, 0, 0, 0.25)',
       border: '1px solid rgba(0, 0, 0, 0.1)',
       background: '#fff',
       display: 'none',
@@ -77,20 +69,39 @@
     iframe.allow = 'clipboard-write; microphone; camera';
     iframe.style = 'border:none; width:100%; height:100%; display:block;';
     iframeWrap.appendChild(iframe);
-    const dragHandle = document.createElement('div');
-    dragHandle.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 4.5rem;
-      right: 4.5rem;
-      width: auto;
-      height: 2.5rem;
-      background: linear-gradient(180deg, rgba(15,23,42,0.28), rgba(15,23,42,0));
-      cursor: move;
-      z-index: 20;
-      pointer-events: auto;
-    `;
-    iframeWrap.appendChild(dragHandle);
+    iframe.addEventListener('load', () => {
+      try {
+        const targetOrigin = new URL(iframeSrc).origin;
+        let u = null;
+        try {
+          const raw = localStorage.getItem('info_user');
+          u = raw ? JSON.parse(raw) : null;
+        } catch {}
+        const payload = {
+          type: 'HUPUNA_WIDGET_INIT',
+          site: window.location.origin,
+          user: u && (u._id || u.username) ? { _id: u._id, username: u.username, name: u.name, email: u.email } : null,
+        };
+        iframe.contentWindow && iframe.contentWindow.postMessage(payload, targetOrigin);
+      } catch {}
+    });
+    let dragHandle = null;
+    if (DRAG_ENABLED) {
+      dragHandle = document.createElement('div');
+      dragHandle.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 2rem;
+        background: transparent;
+        cursor: move;
+        z-index: 5;
+        pointer-events: auto;
+      `;
+      iframeWrap.appendChild(dragHandle);
+    }
 
     // Nút mở chat với container relative
     const btnWrap = document.createElement('div');
@@ -108,8 +119,10 @@
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Mở trò chuyện với Hupuna');
     btn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 1024 1024" fill="currentColor" aria-hidden="true">
+        <path fill="currentColor" fill-opacity=".3" d="M775.3 248.9a369.62 369.62 0 0 0-119-80A370.2 370.2 0 0 0 512.1 140h-1.7c-99.7.4-193 39.4-262.8 109.9-69.9 70.5-108 164.1-107.6 263.8.3 60.3 15.3 120.2 43.5 173.1l4.5 8.4V836h140.8l8.4 4.5c52.9 28.2 112.8 43.2 173.1 43.5h1.7c99 0 192-38.2 262.1-107.6 70.4-69.8 109.5-163.1 110.1-262.7.2-50.6-9.5-99.6-28.9-145.8a370.15 370.15 0 0 0-80-119zM312 560a48.01 48.01 0 0 1 0-96 48.01 48.01 0 0 1 0 96zm200 0a48.01 48.01 0 0 1 0-96 48.01 48.01 0 0 1 0 96zm200 0a48.01 48.01 0 0 1 0-96 48.01 48.01 0 0 1 0 96z"/>
+        <path fill="currentColor" d="M664 512a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm-400 0a48 48 0 1 0 96 0 48 48 0 1 0-96 0z"/>
+        <path fill="currentColor" d="M925.2 338.4c-22.6-53.7-55-101.9-96.3-143.3a444.35 444.35 0 0 0-143.3-96.3C630.6 75.7 572.2 64 512 64h-2c-60.6.3-119.3 12.3-174.5 35.9a445.35 445.35 0 0 0-142 96.5c-40.9 41.3-73 89.3-95.2 142.8-23 55.4-34.6 114.3-34.3 174.9A449.4 449.4 0 0 0 112 714v152a46 46 0 0 0 46 46h152.1A449.4 449.4 0 0 0 510 960h2.1c59.9 0 118-11.6 172.7-34.3a444.48 444.48 0 0 0 142.8-95.2c41.3-40.9 73.8-88.7 96.5-142 23.6-55.2 35.6-113.9 35.9-174.5.3-60.9-11.5-120-34.8-175.6zm-151.1 438C704 845.8 611 884 512 884h-1.7c-60.3-.3-120.2-15.3-173.1-43.5l-8.4-4.5H188V695.2l-4.5-8.4C155.3 633.9 140.3 574 140 513.7c-.4-99.7 37.7-193.3 107.6-263.8 69.8-70.5 163.1-109.5 262.8-109.9h1.7c50 0 98.5 9.7 144.2 28.9 44.6 18.7 84.6 45.6 119 80 34.3 34.3 61.3 74.4 80 119 19.4 46.2 29.1 95.2 28.9 145.8-.6 99.6-39.7 192.9-110.1 262.7z"/>
       </svg>`;
 
     Object.assign(btn.style, {
@@ -220,14 +233,15 @@
     const margin = 12;
     let isOpen = false;
     const clamp = (x, min, max) => Math.min(Math.max(x, min), max);
-    const getWidgetWidth = () => Math.min(400, window.innerWidth - 48);
-    const getWidgetHeight = () => Math.min(620, window.innerHeight - 100);
+    const getWidgetWidth = () => FIXED_WIDTH;
+    const getWidgetHeight = () => FIXED_HEIGHT;
     const updateAlign = () => {
       const left = parseFloat(container.style.left || '0');
       const rightSpace = window.innerWidth - left;
       container.style.alignItems = rightSpace < left ? 'flex-end' : 'flex-start';
     };
     const ensureInside = (opened) => {
+      if (!DRAG_ENABLED) return;
       const btnRect = btn.getBoundingClientRect();
       const contentWidth = opened ? getWidgetWidth() : btnRect.width;
       const maxLeft = window.innerWidth - contentWidth - margin;
@@ -241,26 +255,28 @@
       container.style.top = `${newTop}px`;
       updateAlign();
     };
-    (() => {
-      const cs = getComputedStyle(container);
-      const btnRect = btn.getBoundingClientRect();
-      let initLeft = window.innerWidth - parseFloat(cs.right || '20') - btnRect.width;
-      let initTop = window.innerHeight - parseFloat(cs.bottom || '70') - btnRect.height;
-      try {
-        const saved = JSON.parse(localStorage.getItem('HUPUNA_WIDGET_POS') || 'null');
-        if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
-          initLeft = saved.left;
-          initTop = saved.top;
-        }
-      } catch {}
-      initLeft = clamp(initLeft, margin, window.innerWidth - btnRect.width - margin);
-      initTop = clamp(initTop, margin, window.innerHeight - btnRect.height - margin);
-      container.style.left = `${initLeft}px`;
-      container.style.top = `${initTop}px`;
-      container.style.bottom = '';
-      container.style.right = '';
-      updateAlign();
-    })();
+    if (DRAG_ENABLED) {
+      (() => {
+        const cs = getComputedStyle(container);
+        const btnRect = btn.getBoundingClientRect();
+        let initLeft = window.innerWidth - parseFloat(cs.right || '20') - btnRect.width;
+        let initTop = window.innerHeight - parseFloat(cs.bottom || '70') - btnRect.height;
+        try {
+          const saved = JSON.parse(localStorage.getItem('HUPUNA_WIDGET_POS') || 'null');
+          if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+            initLeft = saved.left;
+            initTop = saved.top;
+          }
+        } catch {}
+        initLeft = clamp(initLeft, margin, window.innerWidth - btnRect.width - margin);
+        initTop = clamp(initTop, margin, window.innerHeight - btnRect.height - margin);
+        container.style.left = `${initLeft}px`;
+        container.style.top = `${initTop}px`;
+        container.style.bottom = '';
+        container.style.right = '';
+        updateAlign();
+      })();
+    }
 
     let dragging = false;
     let moved = false;
@@ -268,74 +284,76 @@
     let dragStartY = 0;
     let origLeft = 0;
     let origTop = 0;
-    btn.addEventListener('pointerdown', (e) => {
-      dragging = true;
-      moved = false;
-      dragStartX = e.clientX;
-      dragStartY = e.clientY;
-      origLeft = parseFloat(container.style.left || '0');
-      origTop = parseFloat(container.style.top || '0');
-      try {
-        btn.setPointerCapture(e.pointerId);
-      } catch {}
-      container.style.transition = 'none';
-      btn.style.transition = 'none';
-    });
-    window.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
-      const dx = e.clientX - dragStartX;
-      const dy = e.clientY - dragStartY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-      const btnRect = btn.getBoundingClientRect();
-      const maxLeft = window.innerWidth - btnRect.width - margin;
-      const maxTop = window.innerHeight - btnRect.height - margin;
-      const newLeft = clamp(origLeft + dx, margin, maxLeft);
-      const newTop = clamp(origTop + dy, margin, maxTop);
-      container.style.left = `${newLeft}px`;
-      container.style.top = `${newTop}px`;
-      updateAlign();
-    });
-    window.addEventListener('pointerup', (e) => {
-      if (!dragging) return;
-      dragging = false;
-      try {
-        btn.releasePointerCapture(e.pointerId);
-      } catch {}
-      container.style.transition = '';
-      btn.style.transition = '';
-      const btnRect = btn.getBoundingClientRect();
-      const w = btnRect.width;
-      const h = btnRect.height;
-      const leftPos = parseFloat(container.style.left || '0');
-      const topPos = parseFloat(container.style.top || '0');
-      const L = margin;
-      const R = window.innerWidth - w - margin;
-      const T = margin;
-      const B = window.innerHeight - h - margin;
-      const corners = [
-        { left: L, top: T },
-        { left: R, top: T },
-        { left: L, top: B },
-        { left: R, top: B },
-      ];
-      let best = corners[0];
-      let bestDist = Infinity;
-      for (const c of corners) {
-        const dx = leftPos - c.left;
-        const dy = topPos - c.top;
-        const d = dx * dx + dy * dy;
-        if (d < bestDist) {
-          bestDist = d;
-          best = c;
+    if (DRAG_ENABLED) {
+      btn.addEventListener('pointerdown', (e) => {
+        dragging = true;
+        moved = false;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        origLeft = parseFloat(container.style.left || '0');
+        origTop = parseFloat(container.style.top || '0');
+        try {
+          btn.setPointerCapture(e.pointerId);
+        } catch {}
+        container.style.transition = 'none';
+        btn.style.transition = 'none';
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+        const btnRect = btn.getBoundingClientRect();
+        const maxLeft = window.innerWidth - btnRect.width - margin;
+        const maxTop = window.innerHeight - btnRect.height - margin;
+        const newLeft = clamp(origLeft + dx, margin, maxLeft);
+        const newTop = clamp(origTop + dy, margin, maxTop);
+        container.style.left = `${newLeft}px`;
+        container.style.top = `${newTop}px`;
+        updateAlign();
+      });
+      window.addEventListener('pointerup', (e) => {
+        if (!dragging) return;
+        dragging = false;
+        try {
+          btn.releasePointerCapture(e.pointerId);
+        } catch {}
+        container.style.transition = '';
+        btn.style.transition = '';
+        const btnRect = btn.getBoundingClientRect();
+        const w = btnRect.width;
+        const h = btnRect.height;
+        const leftPos = parseFloat(container.style.left || '0');
+        const topPos = parseFloat(container.style.top || '0');
+        const L = margin;
+        const R = window.innerWidth - w - margin;
+        const T = margin;
+        const B = window.innerHeight - h - margin;
+        const corners = [
+          { left: L, top: T },
+          { left: R, top: T },
+          { left: L, top: B },
+          { left: R, top: B },
+        ];
+        let best = corners[0];
+        let bestDist = Infinity;
+        for (const c of corners) {
+          const dx = leftPos - c.left;
+          const dy = topPos - c.top;
+          const d = dx * dx + dy * dy;
+          if (d < bestDist) {
+            bestDist = d;
+            best = c;
+          }
         }
-      }
-      container.style.left = `${best.left}px`;
-      container.style.top = `${best.top}px`;
-      updateAlign();
-      try {
-        localStorage.setItem('HUPUNA_WIDGET_POS', JSON.stringify({ left: best.left, top: best.top }));
-      } catch {}
-    });
+        container.style.left = `${best.left}px`;
+        container.style.top = `${best.top}px`;
+        updateAlign();
+        try {
+          localStorage.setItem('HUPUNA_WIDGET_POS', JSON.stringify({ left: best.left, top: best.top }));
+        } catch {}
+      });
+    }
     btn.addEventListener('click', (e) => {
       if (moved) {
         e.preventDefault();
@@ -343,22 +361,24 @@
       }
       open();
     });
-    window.addEventListener('resize', () => ensureInside(isOpen));
+    if (DRAG_ENABLED) window.addEventListener('resize', () => ensureInside(isOpen));
 
     // Hàm mở/đóng mượt mà
     const open = () => {
       isOpen = true;
-      try {
-        const savedOpen = JSON.parse(localStorage.getItem('HUPUNA_WIDGET_POS_OPEN') || 'null');
-        if (savedOpen && typeof savedOpen.left === 'number' && typeof savedOpen.top === 'number') {
-          const maxLeft = window.innerWidth - getWidgetWidth() - margin;
-          const maxTop = window.innerHeight - getWidgetHeight() - margin;
-          container.style.left = `${clamp(savedOpen.left, margin, maxLeft)}px`;
-          container.style.top = `${clamp(savedOpen.top, margin, maxTop)}px`;
-          updateAlign();
-        }
-      } catch {}
-      ensureInside(true);
+      if (DRAG_ENABLED) {
+        try {
+          const savedOpen = JSON.parse(localStorage.getItem('HUPUNA_WIDGET_POS_OPEN') || 'null');
+          if (savedOpen && typeof savedOpen.left === 'number' && typeof savedOpen.top === 'number') {
+            const maxLeft = window.innerWidth - getWidgetWidth() - margin;
+            const maxTop = window.innerHeight - getWidgetHeight() - margin;
+            container.style.left = `${clamp(savedOpen.left, margin, maxLeft)}px`;
+            container.style.top = `${clamp(savedOpen.top, margin, maxTop)}px`;
+            updateAlign();
+          }
+        } catch {}
+        ensureInside(true);
+      }
       iframeWrap.style.display = 'block';
       setTimeout(() => {
         iframeWrap.style.transform = 'translateY(0)';
@@ -375,38 +395,40 @@
       iframeWrap.style.transform = 'translateY(20px)';
       iframeWrap.style.opacity = '0';
       setTimeout(() => (iframeWrap.style.display = 'none'), 400);
-      const btnRect2 = btn.getBoundingClientRect();
-      const w2 = btnRect2.width;
-      const h2 = btnRect2.height;
-      const leftPos2 = parseFloat(container.style.left || '0');
-      const topPos2 = parseFloat(container.style.top || '0');
-      const L2 = margin;
-      const R2 = window.innerWidth - w2 - margin;
-      const T2 = margin;
-      const B2 = window.innerHeight - h2 - margin;
-      const corners2 = [
-        { left: L2, top: T2 },
-        { left: R2, top: T2 },
-        { left: L2, top: B2 },
-        { left: R2, top: B2 },
-      ];
-      let best2 = corners2[0];
-      let bestDist2 = Infinity;
-      for (const c of corners2) {
-        const dx2 = leftPos2 - c.left;
-        const dy2 = topPos2 - c.top;
-        const d2 = dx2 * dx2 + dy2 * dy2;
-        if (d2 < bestDist2) {
-          bestDist2 = d2;
-          best2 = c;
+      if (DRAG_ENABLED) {
+        const btnRect2 = btn.getBoundingClientRect();
+        const w2 = btnRect2.width;
+        const h2 = btnRect2.height;
+        const leftPos2 = parseFloat(container.style.left || '0');
+        const topPos2 = parseFloat(container.style.top || '0');
+        const L2 = margin;
+        const R2 = window.innerWidth - w2 - margin;
+        const T2 = margin;
+        const B2 = window.innerHeight - h2 - margin;
+        const corners2 = [
+          { left: L2, top: T2 },
+          { left: R2, top: T2 },
+          { left: L2, top: B2 },
+          { left: R2, top: B2 },
+        ];
+        let best2 = corners2[0];
+        let bestDist2 = Infinity;
+        for (const c of corners2) {
+          const dx2 = leftPos2 - c.left;
+          const dy2 = topPos2 - c.top;
+          const d2 = dx2 * dx2 + dy2 * dy2;
+          if (d2 < bestDist2) {
+            bestDist2 = d2;
+            best2 = c;
+          }
         }
+        container.style.left = `${best2.left}px`;
+        container.style.top = `${best2.top}px`;
+        updateAlign();
+        try {
+          localStorage.setItem('HUPUNA_WIDGET_POS', JSON.stringify({ left: best2.left, top: best2.top }));
+        } catch {}
       }
-      container.style.left = `${best2.left}px`;
-      container.style.top = `${best2.top}px`;
-      updateAlign();
-      try {
-        localStorage.setItem('HUPUNA_WIDGET_POS', JSON.stringify({ left: best2.left, top: best2.top }));
-      } catch {}
       btnWrap.style.display = 'block';
       setTimeout(() => {
         btnWrap.style.opacity = '1';
@@ -463,50 +485,52 @@
     let openStartY = 0;
     let openOrigLeft = 0;
     let openOrigTop = 0;
-    dragHandle.addEventListener('pointerdown', (e) => {
-      draggingOpen = true;
-      movedOpen = false;
-      openStartX = e.clientX;
-      openStartY = e.clientY;
-      openOrigLeft = parseFloat(container.style.left || '0');
-      openOrigTop = parseFloat(container.style.top || '0');
-      try {
-        dragHandle.setPointerCapture(e.pointerId);
-      } catch {}
-      container.style.transition = 'none';
-      iframeWrap.style.transition = 'none';
-    });
-    window.addEventListener('pointermove', (e) => {
-      if (!draggingOpen) return;
-      const dx = e.clientX - openStartX;
-      const dy = e.clientY - openStartY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) movedOpen = true;
-      const maxLeft = window.innerWidth - getWidgetWidth() - margin;
-      const maxTop = window.innerHeight - getWidgetHeight() - margin;
-      const newLeft = clamp(openOrigLeft + dx, margin, maxLeft);
-      const newTop = clamp(openOrigTop + dy, margin, maxTop);
-      container.style.left = `${newLeft}px`;
-      container.style.top = `${newTop}px`;
-      updateAlign();
-    });
-    window.addEventListener('pointerup', (e) => {
-      if (!draggingOpen) return;
-      draggingOpen = false;
-      try {
-        dragHandle.releasePointerCapture(e.pointerId);
-      } catch {}
-      container.style.transition = '';
-      iframeWrap.style.transition = '';
-      try {
-        localStorage.setItem(
-          'HUPUNA_WIDGET_POS_OPEN',
-          JSON.stringify({
-            left: parseFloat(container.style.left || '0'),
-            top: parseFloat(container.style.top || '0'),
-          }),
-        );
-      } catch {}
-    });
+    if (DRAG_ENABLED && dragHandle) {
+      dragHandle.addEventListener('pointerdown', (e) => {
+        draggingOpen = true;
+        movedOpen = false;
+        openStartX = e.clientX;
+        openStartY = e.clientY;
+        openOrigLeft = parseFloat(container.style.left || '0');
+        openOrigTop = parseFloat(container.style.top || '0');
+        try {
+          dragHandle.setPointerCapture(e.pointerId);
+        } catch {}
+        container.style.transition = 'none';
+        iframeWrap.style.transition = 'none';
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!draggingOpen) return;
+        const dx = e.clientX - openStartX;
+        const dy = e.clientY - openStartY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) movedOpen = true;
+        const maxLeft = window.innerWidth - getWidgetWidth() - margin;
+        const maxTop = window.innerHeight - getWidgetHeight() - margin;
+        const newLeft = clamp(openOrigLeft + dx, margin, maxLeft);
+        const newTop = clamp(openOrigTop + dy, margin, maxTop);
+        container.style.left = `${newLeft}px`;
+        container.style.top = `${newTop}px`;
+        updateAlign();
+      });
+      window.addEventListener('pointerup', (e) => {
+        if (!draggingOpen) return;
+        draggingOpen = false;
+        try {
+          dragHandle.releasePointerCapture(e.pointerId);
+        } catch {}
+        container.style.transition = '';
+        iframeWrap.style.transition = '';
+        try {
+          localStorage.setItem(
+            'HUPUNA_WIDGET_POS_OPEN',
+            JSON.stringify({
+              left: parseFloat(container.style.left || '0'),
+              top: parseFloat(container.style.top || '0'),
+            }),
+          );
+        } catch {}
+      });
+    }
 
     // Public API
     window.HupunaChatWidget = {

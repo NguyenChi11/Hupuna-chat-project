@@ -49,6 +49,52 @@ export default function ChatIframe() {
   }, [groups, allUsers, currentUser]);
 
   useEffect(() => {
+    if (isLoading) return;
+    if (currentUser && currentUser._id) return;
+    try {
+      window.parent?.postMessage({ type: 'HUPUNA_SSO_REQUEST' }, '*');
+    } catch {}
+  }, [isLoading, currentUser]);
+
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      try {
+        const data = e.data as {
+          type?: string;
+          site?: string;
+          user?: { _id?: string; username?: string; name?: string; email?: string } | null;
+          token?: string;
+        };
+        if (!data) return;
+        if (data.type === 'HUPUNA_WIDGET_INIT') {
+          if (data.site && typeof data.site === 'string') {
+            try {
+              sessionStorage.setItem('HUPUNA_EMBED_SITE', data.site);
+            } catch {}
+          }
+          if (data.user && (data.user._id || data.user.username)) {
+            try {
+              sessionStorage.setItem('HUPUNA_EMBED_USER', JSON.stringify(data.user));
+            } catch {}
+          }
+          return;
+        }
+        if (data.type === 'HUPUNA_SSO_TOKEN' && typeof data.token === 'string' && data.token) {
+          const nextUrl = '/chat-iframe';
+          const u = new URL('/api/sso/consume', window.location.origin);
+          u.searchParams.set('token', data.token);
+          u.searchParams.set('next', nextUrl);
+          try {
+            window.location.replace(u.toString());
+          } catch {}
+        }
+      } catch {}
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  useEffect(() => {
     if (!currentUser || !currentUser._id) return;
     const socket = (socketRef.current = io(resolveSocketUrl(), {
       transports: ['websocket'],
@@ -123,7 +169,7 @@ export default function ChatIframe() {
 
   return (
     <div className="w-full h-full flex flex-col bg-white">
-      <MenuWidget title="Chat Hupuna" />
+      {!selectedChat && <MenuWidget title="Chat Hupuna" />}
       <div className="flex-1 overflow-hidden">
         {!selectedChat ? (
           <Sidebar
@@ -151,6 +197,7 @@ export default function ChatIframe() {
             onBackFromChat={() => setSelectedChat(null)}
             groups={groups}
             socket={socketRef.current}
+            embedCompact={true}
           />
         )}
       </div>

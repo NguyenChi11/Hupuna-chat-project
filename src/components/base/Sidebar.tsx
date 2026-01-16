@@ -881,7 +881,7 @@ export default function Sidebar({
       )}
 
       {/* Chat List */}
-      <div className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-to-b from-white/80 to-gray-50/80 custom-scrollbar pt-2">
+      <div className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-to-b from-white/80 to-gray-50/80 custom-scrollbar pt-2 mb-16">
         {isSearchActive ? (
           <SearchResults
             activeTab={activeTab}
