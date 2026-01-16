@@ -25,6 +25,7 @@ import {
   HiShieldCheck,
   HiTrash,
   HiCheck,
+  HiChevronLeft,
 } from 'react-icons/hi2';
 import {
   CiCircleMore,
@@ -518,6 +519,8 @@ export default function ChatInput({
   const flashFoldersMenuRef = useRef<HTMLDivElement | null>(null);
   const flashFoldersMenuBtnRef = useRef<HTMLButtonElement | null>(null);
   const [flashScope, setFlashScope] = useState<'user' | 'global'>('user');
+  const [showMobileFlashMenu, setShowMobileFlashMenu] = useState(false);
+  const [mobileFlashStep, setMobileFlashStep] = useState<'folders' | 'entries'>('folders');
   const [flashLoading, setFlashLoading] = useState(false);
   const [activePreviewFolderId, setActivePreviewFolderId] = useState<string | null>(null);
   const [flashEntries, setFlashEntries] = useState<
@@ -1663,7 +1666,7 @@ export default function ChatInput({
                             checkContent();
                           }
                           (e.att || []).forEach((a) => {
-                            const url = a.dataUrl || '';
+                            const url = (a as { url?: string; dataUrl?: string }).url || a.dataUrl || '';
                             if (!url) return;
                             onAttachFromFolder({
                               url,
@@ -1871,6 +1874,205 @@ export default function ChatInput({
         </div>
       )}
 
+      {showMobileFlashMenu && (
+        <div className="fixed inset-0 z-[60] md:hidden flex flex-col bg-white">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <button
+              onClick={() => {
+                if (mobileFlashStep === 'entries') {
+                  setMobileFlashStep('folders');
+                } else {
+                  setShowMobileFlashMenu(false);
+                }
+              }}
+              className="p-2 rounded-full cursor-pointer hover:bg-white"
+              aria-label="Quay lại"
+            >
+              <HiChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="text-sm font-semibold text-gray-800">
+              {mobileFlashStep === 'folders' ? 'Chọn chủ đề' : selectedFlashFolder?.name || 'Chủ đề'}
+            </div>
+            <button
+              onClick={() => setShowMobileFlashMenu(false)}
+              className="p-2 rounded-full cursor-pointer hover:bg-white"
+              aria-label="Đóng"
+            >
+              <HiX className="w-5 h-5" />
+            </button>
+          </div>
+          {mobileFlashStep === 'folders' ? (
+            <div className="flex-1 overflow-y-auto">
+              <div className="px-4 pt-4">
+                <button
+                  onClick={() => router.push('/flash-message')}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-indigo-600 transition-colors duration-200"
+                >
+                  Trang flash message
+                </button>
+                <div className="mt-3 flex items-center rounded-lg bg-gray-50 p-1 gap-1">
+                  <button
+                    onClick={async () => {
+                      setFlashScope('user');
+                      await fetchFlashFolders('user');
+                    }}
+                    className={`flex-1 px-3 py-1.5 rounded-md text-sm ${
+                      flashScope === 'user'
+                        ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
+                        : 'text-gray-700 hover:bg-white'
+                    }`}
+                  >
+                    User
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setFlashScope('global');
+                      await fetchFlashFolders('global');
+                    }}
+                    className={`flex-1 px-3 py-1.5 rounded-md text-sm ${
+                      flashScope === 'global'
+                        ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
+                        : 'text-gray-700 hover:bg-white'
+                    }`}
+                  >
+                    Global
+                  </button>
+                </div>
+              </div>
+              <div className="px-4 pb-4">
+                <div className="mt-3">
+                  <div className="max-h-[70vh] overflow-y-auto border border-gray-100 rounded-lg p-2">
+                    {flashLoading ? (
+                      <div className="px-3 py-4 text-center text-sm text-gray-500">Đang tải...</div>
+                    ) : flashFolders.length === 0 ? (
+                      <div className="px-3 py-6 text-center text-sm text-gray-500">Chưa có thư mục</div>
+                    ) : (
+                      <div>
+                        {flashFolders.map((f) => (
+                          <button
+                            key={`${flashScope}:${f.id}`}
+                            onClick={async () => {
+                              setSelectedFlashFolder(f);
+                              setActivePreviewFolderId(f.id);
+                              await fetchFlashEntries(flashScope, f.id);
+                              try {
+                                localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
+                              } catch {}
+                              setMobileFlashStep('entries');
+                            }}
+                            className={`w-full text-left px-3 py-2 text-[15px] transition flex items-center gap-3 rounded-md ${
+                              activePreviewFolderId === f.id
+                                ? 'bg-indigo-50 text-indigo-700'
+                                : 'text-gray-800 hover:bg-gray-50'
+                            }`}
+                          >
+                            <HiFolder className="w-5 h-5 text-indigo-600" />
+                            <span className="truncate flex-1">{f.name}</span>
+                            {selectedFlashFolder?.id === f.id && <HiCheck className="w-5 h-5 text-indigo-600" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto">
+              <div className="px-4 pt-4 pb-4">
+                {flashEntriesLoading ? (
+                  <div className="px-3 py-4 text-center text-sm text-gray-500">Đang tải...</div>
+                ) : flashEntries.length === 0 ? (
+                  <div className="px-3 py-6 text-center text-sm text-gray-500">Chưa có nội dung</div>
+                ) : (
+                  <div className="space-y-1 border border-gray-100 rounded-lg p-2">
+                    {flashEntries.map((e) => (
+                      <button
+                        key={e.key}
+                        className="w-full text-left px-2 py-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                        onClick={() => {
+                          const el = editableRef.current;
+                          if (el) {
+                            try {
+                              const prev = String(el.innerText || '');
+                              const value = String(e.value || '');
+                              el.innerText = prev.trim() ? `${prev}\n${value}` : value;
+                              const range = document.createRange();
+                              range.selectNodeContents(el);
+                              range.collapse(false);
+                              const sel = window.getSelection();
+                              sel?.removeAllRanges();
+                              sel?.addRange(range);
+                            } catch {}
+                            onInputEditable();
+                            checkContent();
+                          }
+                          (e.att || []).forEach((a) => {
+                            const url = (a as { url?: string; dataUrl?: string }).url || a.dataUrl || '';
+                            if (!url) return;
+                            onAttachFromFolder({
+                              url,
+                              type: a.type,
+                              fileName: a.name,
+                            });
+                          });
+                          setShowMobileFlashMenu(false);
+                          setShowMoreActionsMenu(false);
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <HiDocumentText className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm font-medium text-gray-800">{e.key}</span>
+                        </div>
+                        <div className="flex items-center gap-1 justify-between">
+                          <div className="mt-1 text-xs text-gray-600 line-clamp-2">{e.value}</div>
+                          {(e.att || []).length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {(e.att || []).map((a, idx) => {
+                                const sizeKb = a.size ? Math.round(a.size / 1024) : null;
+                                return (
+                                  <div key={`${e.key}-${idx}`} className="flex items-center gap-2">
+                                    {a.type === 'image' && (
+                                      <div className="relative w-12 h-12 rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden">
+                                        {a.dataUrl ? (
+                                          <Image
+                                            width={48}
+                                            height={48}
+                                            src={a.dataUrl}
+                                            alt=""
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : null}
+                                      </div>
+                                    )}
+                                    {a.type === 'video' && (
+                                      <div className="relative w-12 h-12  rounded-md border border-slate-200 shadow-sm bg-black overflow-hidden">
+                                        {a.dataUrl ? (
+                                          <Image
+                                            width={28}
+                                            height={16}
+                                            src={a.dataUrl}
+                                            alt={a.name}
+                                            className="w-full h-full object-cover opacity-80"
+                                          />
+                                        ) : null}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       {/* Input Area + Send Button */}
       {showRichText ? (
         <div className="flex-1 h-64 min-h-[16rem] mb-2">
@@ -2409,7 +2611,15 @@ export default function ChatInput({
           </button>
           <button
             onClick={() => {
-              showToast({ type: 'info', message: 'Chức năng đang hoàn thiện' });
+              (async () => {
+                setShowMobileActions(false);
+                try {
+                  window.dispatchEvent(new CustomEvent('mobileActionsToggle', { detail: { open: false } }));
+                } catch {}
+                setMobileFlashStep('folders');
+                setShowMobileFlashMenu(true);
+                await fetchFlashFolders(flashScope);
+              })();
             }}
             className="group relative cursor-pointer flex flex-col items-center"
             aria-label="Chat nhanh"

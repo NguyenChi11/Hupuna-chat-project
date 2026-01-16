@@ -573,9 +573,9 @@ export default function FlashMessagePage() {
                   {activeFolder && (
                     <button
                       onClick={handleOpenCreateModal}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium rounded-xl shadow-sm transition"
+                      className="flex items-center gap-2 px-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium rounded-xl shadow-sm transition"
                     >
-                      <HiPlus className="w-4 h-4" />
+                      {/* <HiPlus className="w-4 h-4" /> */}
                       Tạo mới
                     </button>
                   )}

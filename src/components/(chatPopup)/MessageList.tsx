@@ -2866,8 +2866,12 @@ export default function MessageList({
                               {/* VIDEO – FIX SIZE MOBILE */}
                               {isVideo && msg.fileUrl && !isRecalled && (
                                 <div
-                                  className="relative rounded-[0.25rem] overflow-hidden cursor-pointer shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black select-none lg:select-auto"
-                                  onClick={() => !isUploading && onOpenMedia(String(msg.fileUrl!), 'video')}
+                                  className="relative rounded-[0.25rem] overflow-hidden shadow-lg max-w-[70vw] sm:max-w-[18rem] aspect-video bg-black select-none lg:select-auto"
+                                  onClick={() => {
+                                    if (!isUploading && !isMobile) {
+                                      onOpenMedia(String(msg.fileUrl!), 'video');
+                                    }
+                                  }}
                                   style={{ WebkitTouchCallout: 'none' }}
                                 >
                                   <video
@@ -2879,7 +2883,7 @@ export default function MessageList({
                                   ></video>
 
                                   {/* play overlay */}
-                                  <div className="absolute inset-0 flex items-center justify-center opacity-100">
+                                  <div className="absolute inset-0 flex items-center justify-center opacity-100 pointer-events-none">
                                     <div className="w-12 h-12 bg-white/80 rounded-full flex items-center justify-center shadow">
                                       <HiPlay className="w-7 h-7 text-blue-600 ml-1" />
                                     </div>
