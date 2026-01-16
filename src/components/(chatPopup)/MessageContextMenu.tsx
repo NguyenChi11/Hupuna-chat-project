@@ -15,6 +15,7 @@ import {
   FaRepeat,
   FaReply,
   FaTrashCan,
+  FaEye,
 } from 'react-icons/fa6';
 import { FaShare } from 'react-icons/fa';
 
@@ -251,6 +252,24 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           <span className="flex gap-4 items-center">
             <FaRegPenToSquare className="w-5 h-5" />
             <span className="text-[1rem]">Chỉnh sửa</span>
+          </span>
+        </MenuItem>
+      )}
+
+      {!isRecalled && msg.editedAt && msg.originalContent && (
+        <MenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            try {
+              document.dispatchEvent(new CustomEvent('toggleOriginalMessage', { detail: { id: msg._id } }));
+            } catch {}
+            onClose();
+          }}
+        >
+          <span className="flex gap-4 items-center">
+            <FaEye className="w-5 h-5" />
+            <span className="text-[1rem]">Xem lại tin nhắn cũ</span>
           </span>
         </MenuItem>
       )}

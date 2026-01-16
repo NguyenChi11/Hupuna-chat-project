@@ -332,6 +332,27 @@ export default function MessageList({
     if (!contextMenu?.visible) setMobileCollapsedId(null);
   }, [contextMenu]);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const id = (e as CustomEvent<{ id: string }>).detail?.id;
+        if (typeof id === 'string' && id) {
+          setExpandedOriginalId((prev) => (prev === id ? null : id));
+          const el = document.getElementById(`msg-${id}`);
+          if (el) {
+            try {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+            } catch {}
+          }
+        }
+      } catch {}
+    };
+    document.addEventListener('toggleOriginalMessage', handler as EventListener);
+    return () => {
+      document.removeEventListener('toggleOriginalMessage', handler as EventListener);
+    };
+  }, []);
+
   const formatTimestamp = (ts: number) => {
     const d = new Date(ts);
     const now = new Date();
