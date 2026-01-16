@@ -1,4 +1,4 @@
-  import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/components/(mongodb)/connectToDatabase';
 import { fingerprintFromHeaders, getSession } from '@/lib/session';
 import { verifyJWT } from '@/lib/auth';
@@ -10,7 +10,13 @@ const COLLECTION_USER = 'FlashMessagesUser';
 const COLLECTION_GLOBAL = 'FlashMessagesGlobal';
 
 type Scope = 'user' | 'global';
-type Attachment = { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string };
+type Attachment = {
+  type: 'image' | 'video' | 'file';
+  name: string;
+  size: number;
+  dataUrl?: string;
+  url?: string;
+};
 type Entry = { key: string; value: string; att?: Attachment[] };
 type FlashFolderDoc = {
   _id?: ObjectId | string;
@@ -88,11 +94,10 @@ export async function POST(req: NextRequest) {
     switch (body.action) {
       case 'listFolders': {
         const filter =
-          scope === 'user' ? ({ ownerId: String(currentUserId) } as Record<string, unknown>) : ({} as Record<string, unknown>);
-        const folders = await collection
-          .find(filter)
-          .sort({ updatedAt: -1, createdAt: -1 })
-          .toArray();
+          scope === 'user'
+            ? ({ ownerId: String(currentUserId) } as Record<string, unknown>)
+            : ({} as Record<string, unknown>);
+        const folders = await collection.find(filter).sort({ updatedAt: -1, createdAt: -1 }).toArray();
         return NextResponse.json({ success: true, data: folders.map((f) => ({ ...f, _id: String(f._id || '') })) });
       }
       case 'createFolder': {

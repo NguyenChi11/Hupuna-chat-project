@@ -9,7 +9,7 @@ type Folder = { id: string; name: string };
 type Entry = {
   key: string;
   value: string;
-  att?: { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string }[];
+  att?: { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string; url?: string }[];
 };
 
 const keyFolders = (scope: Scope) => (scope === 'user' ? 'flashMsg:user:folders' : 'flashMsg:global:folders');
@@ -32,7 +32,7 @@ export default function FlashMessagePage() {
   const [modalKey, setModalKey] = useState('');
   const [modalValue, setModalValue] = useState('');
   const [modalFiles, setModalFiles] = useState<
-    { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string }[]
+    { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string; url?: string }[]
   >([]);
   const [accountName, setAccountName] = useState('');
   const [accountAvatar, setAccountAvatar] = useState('');
@@ -311,7 +311,7 @@ export default function FlashMessagePage() {
   };
   const handleModalFilesChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const files = Array.from(e.target.files || []);
-    const out: { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string }[] = [];
+    const out: { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string; url?: string }[] = [];
     for (const f of files) {
       const kind = f.type.startsWith('image') ? 'image' : f.type.startsWith('video') ? 'video' : 'file';
       let dataUrl: string | undefined;
@@ -376,7 +376,22 @@ export default function FlashMessagePage() {
           });
         } catch {}
       }
-      out.push({ type: kind, name: f.name, size: f.size, dataUrl });
+      let uploadedUrl: string | undefined;
+      try {
+        const formData = new FormData();
+        formData.append('file', f);
+        formData.append('title', f.name);
+        formData.append('folderName', 'ChatFlash');
+        formData.append('roomId', 'flash');
+        formData.append('type', kind);
+        const uploadId = `flash_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const res = await fetch(`/api/upload?uploadId=${uploadId}`, { method: 'POST', body: formData });
+        const json = await res.json();
+        if (json?.success && json.link) {
+          uploadedUrl = String(json.link);
+        }
+      } catch {}
+      out.push({ type: kind, name: f.name, size: f.size, dataUrl, url: uploadedUrl });
     }
     setModalFiles(out);
   };

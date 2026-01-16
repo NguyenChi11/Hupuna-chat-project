@@ -3137,13 +3137,24 @@ export default function ChatWindow({
                 try {
                   const res = await fetch(remoteUrl);
                   const blob = await res.blob();
-                  const mime =
-                    blob.type ||
-                    (att.type === 'image'
-                      ? 'image/jpeg'
+                  const ext = String(name).split('.').pop()?.toLowerCase() || '';
+                  const mimeByExt =
+                    att.type === 'image'
+                      ? ext === 'png'
+                        ? 'image/png'
+                        : ext === 'webp'
+                          ? 'image/webp'
+                          : 'image/jpeg'
                       : att.type === 'video'
-                        ? 'video/mp4'
-                        : 'application/octet-stream');
+                        ? ext === 'webm'
+                          ? 'video/webm'
+                          : ext === 'mov'
+                            ? 'video/quicktime'
+                            : ext === 'mkv'
+                              ? 'video/x-matroska'
+                              : 'video/mp4'
+                        : 'application/octet-stream';
+                  const mime = blob.type || mimeByExt;
                   const realFile = new File([blob], name, { type: mime });
                   const previewUrl = URL.createObjectURL(blob);
                   setAttachments((prev) => {

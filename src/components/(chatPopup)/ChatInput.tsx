@@ -969,7 +969,13 @@ export default function ChatInput({
             (e: {
               key?: string;
               value?: string;
-              att?: { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string }[];
+              att?: {
+                type: 'image' | 'video' | 'file';
+                name: string;
+                size: number;
+                dataUrl?: string;
+                url?: string;
+              }[];
             }) => ({
               key: String(e.key || ''),
               value: String(e.value || ''),
@@ -1280,7 +1286,14 @@ export default function ChatInput({
                 {att.type === 'image' ? (
                   <Image src={att.previewUrl} alt="" fill sizes="80px" className="object-cover" unoptimized priority />
                 ) : att.type === 'video' ? (
-                  <video src={att.previewUrl} className="w-full h-full object-cover" muted playsInline />
+                  <video
+                    src={att.previewUrl}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                    controls
+                    preload="metadata"
+                  ></video>
                 ) : (
                   <div className=" rounded-xl bg-gray-50 hover:bg-gray-100 transition-all duration-200 group cursor-pointer border border-gray-200 hover:border-blue-300">
                     <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 text-white shadow-lg">
@@ -1510,7 +1523,69 @@ export default function ChatInput({
                 <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-lg p-2">
                   <div className="space-y-1">
                     {flashEntries.map((e) => (
-                      <div key={e.key} className="px-2 py-1 rounded-md hover:bg-gray-50">
+                      <div
+                        key={e.key}
+                        className="px-2 py-1 rounded-md hover:bg-gray-50 cursor-pointer"
+                        onMouseDown={(ev) => {
+                          ev.preventDefault();
+                          const el = editableRef.current;
+                          if (el) {
+                            try {
+                              const prev = String(el.innerText || '');
+                              const value = String(e.value || '');
+                              el.innerText = prev.trim() ? `${prev}\n${value}` : value;
+                              const range = document.createRange();
+                              range.selectNodeContents(el);
+                              range.collapse(false);
+                              const sel = window.getSelection();
+                              sel?.removeAllRanges();
+                              sel?.addRange(range);
+                            } catch {}
+                            onInputEditable();
+                            checkContent();
+                          }
+                          (e.att || []).forEach((a) => {
+                            const url = (a as { url?: string; dataUrl?: string }).url || a.dataUrl || '';
+                            if (!url) return;
+                            onAttachFromFolder({
+                              url,
+                              type: a.type,
+                              fileName: a.name,
+                            });
+                          });
+                          setShowFlashFoldersMenu(false);
+                          setShowMoreActionsMenu(false);
+                        }}
+                        onClick={() => {
+                          const el = editableRef.current;
+                          if (el) {
+                            try {
+                              const prev = String(el.innerText || '');
+                              const value = String(e.value || '');
+                              el.innerText = prev.trim() ? `${prev}\n${value}` : value;
+                              const range = document.createRange();
+                              range.selectNodeContents(el);
+                              range.collapse(false);
+                              const sel = window.getSelection();
+                              sel?.removeAllRanges();
+                              sel?.addRange(range);
+                            } catch {}
+                            onInputEditable();
+                            checkContent();
+                          }
+                          (e.att || []).forEach((a) => {
+                            const url = a.dataUrl || '';
+                            if (!url) return;
+                            onAttachFromFolder({
+                              url,
+                              type: a.type,
+                              fileName: a.name,
+                            });
+                          });
+                          setShowFlashFoldersMenu(false);
+                          setShowMoreActionsMenu(false);
+                        }}
+                      >
                         <div className="flex items-center gap-2">
                           <HiDocumentText className="w-4 h-4 text-gray-500" />
                           <span className="text-sm font-medium text-gray-800">{e.key}</span>

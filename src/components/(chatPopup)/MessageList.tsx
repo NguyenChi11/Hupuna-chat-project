@@ -841,9 +841,10 @@ export default function MessageList({
                                           <video
                                             src={getProxyUrl(url)}
                                             className="w-full h-full object-cover"
+                                            controls
                                             playsInline
                                             preload="metadata"
-                                          />
+                                          ></video>
 
                                           {!up && (
                                             <div className="absolute inset-0 flex items-center justify-center opacity-100">
@@ -2320,9 +2321,10 @@ export default function MessageList({
                                               src={getProxyUrl(url)}
                                               className="w-full h-full object-cover"
                                               muted
+                                              controls
                                               playsInline
                                               preload="metadata"
-                                            />
+                                            ></video>
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                               <div className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center">
                                                 <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-gray-800">
@@ -2871,9 +2873,10 @@ export default function MessageList({
                                   <video
                                     src={getProxyUrl(msg.fileUrl)}
                                     className="w-full h-full object-cover m-[0.125rem]"
+                                    controls
                                     playsInline
                                     preload="metadata"
-                                  />
+                                  ></video>
 
                                   {/* play overlay */}
                                   <div className="absolute inset-0 flex items-center justify-center opacity-100">
