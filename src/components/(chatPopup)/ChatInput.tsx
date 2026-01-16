@@ -488,6 +488,11 @@ export default function ChatInput({
   const [slashOpen, setSlashOpen] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
   const [slashSelectedIndex, setSlashSelectedIndex] = useState<number>(0);
+  const slashItemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [hashtagOpen, setHashtagOpen] = useState(false);
+  const [hashtagQuery, setHashtagQuery] = useState('');
+  const [hashtagSelectedIndex, setHashtagSelectedIndex] = useState<number>(0);
+  const hashtagItemRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [showFolderDashboard, setShowFolderDashboard] = useState(false);
   const [pendingSaveMessage, setPendingSaveMessage] = useState<{
     roomId: string;
@@ -519,7 +524,7 @@ export default function ChatInput({
     Array<{
       key: string;
       value: string;
-      att?: { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string }[];
+      att?: { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string; url?: string }[];
     }>
   >([]);
   const [flashEntriesLoading, setFlashEntriesLoading] = useState(false);
@@ -938,16 +943,28 @@ export default function ChatInput({
       });
       const data = await res.json();
       const rows = Array.isArray(data?.data) ? data.data : [];
-      setFlashFolders(
-        rows
-          .filter((f: unknown) => f && typeof f === 'object')
-          .map((f: { _id?: string; name?: string }) => ({ id: String(f._id || ''), name: String(f.name || '') })),
-      );
+      const mapped = rows
+        .filter((f: unknown) => f && typeof f === 'object')
+        .map((f: { _id?: string; name?: string }) => ({ id: String(f._id || ''), name: String(f.name || '') }));
+      setFlashFolders(mapped);
+      return mapped;
     } catch {
       setFlashFolders([]);
+      return [];
     } finally {
       setFlashLoading(false);
     }
+  };
+
+  const ensureFoldersLoaded = async () => {
+    const current = await fetchFlashFolders(flashScope);
+    if (current.length === 0) {
+      const alt = flashScope === 'user' ? 'global' : 'user';
+      setFlashScope(alt);
+      const next = await fetchFlashFolders(alt);
+      return next;
+    }
+    return current;
   };
 
   const fetchFlashEntries = async (scope: 'user' | 'global', folderId: string) => {
@@ -962,33 +979,45 @@ export default function ChatInput({
       });
       const data = await res.json();
       const entries = Array.isArray(data?.data) ? data.data : [];
-      setFlashEntries(
-        entries
-          .filter((e: unknown) => e && typeof e === 'object')
-          .map(
-            (e: {
-              key?: string;
-              value?: string;
-              att?: {
-                type: 'image' | 'video' | 'file';
-                name: string;
-                size: number;
-                dataUrl?: string;
-                url?: string;
-              }[];
-            }) => ({
-              key: String(e.key || ''),
-              value: String(e.value || ''),
-              att: Array.isArray(e.att) ? e.att : [],
-            }),
-          ),
-      );
+      const mapped = entries
+        .filter((e: unknown) => e && typeof e === 'object')
+        .map(
+          (e: {
+            key?: string;
+            value?: string;
+            att?: {
+              type: 'image' | 'video' | 'file';
+              name: string;
+              size: number;
+              dataUrl?: string;
+              url?: string;
+            }[];
+          }) => ({
+            key: String(e.key || ''),
+            value: String(e.value || ''),
+            att: Array.isArray(e.att) ? e.att : [],
+          }),
+        );
+      setFlashEntries(mapped);
+      setKvItems(mapped.map((x: { key: string; value: string }) => ({ key: x.key, value: x.value })));
     } catch {
       setFlashEntries([]);
+      setKvItems([]);
     } finally {
       setFlashEntriesLoading(false);
     }
   };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`chatFlashActiveFolder:${roomId}`);
+      const f = raw ? JSON.parse(raw) : null;
+      if (f && f.id && f.name) {
+        setSelectedFlashFolder(f);
+        fetchFlashEntries(flashScope, f.id);
+      }
+    } catch {}
+  }, []);
 
   const checkContent = () => {
     if (editableRef.current) {
@@ -1238,12 +1267,66 @@ export default function ChatInput({
   };
   const updateSlashState = () => {
     const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
-    const m = text.match(/\/\s*([\w-]*)$/);
-    const q = m ? m[1] : '';
-    setSlashQuery(q);
-    const shouldOpen = /\//.test(text);
-    setSlashOpen(shouldOpen);
+    const mSlash = text.match(/\/\s*([\w-]*)$/);
+    const qSlash = mSlash ? mSlash[1] : '';
+    setSlashQuery(qSlash);
+    const openSlash = /\/\s*[\w-]*$/.test(text);
+    setSlashOpen(openSlash);
+
+    const mHash = text.match(/#\s*([\w-]*)$/);
+    const qHash = mHash ? mHash[1] : '';
+    setHashtagQuery(qHash);
+    const openHash = /#\s*[\w-]*$/.test(text);
+    setHashtagOpen(openHash);
+    if (openHash && flashFolders.length === 0) {
+      void ensureFoldersLoaded();
+    }
+    if (openSlash) {
+      if (kvItems.length === 0) {
+        if (selectedFlashFolder?.id) {
+          fetchFlashEntries(flashScope, selectedFlashFolder.id);
+        } else if (flashFolders.length > 0) {
+          const f = flashFolders[0];
+          setSelectedFlashFolder(f);
+          try {
+            localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
+          } catch {}
+          fetchFlashEntries(flashScope, f.id);
+        } else {
+          void ensureFoldersLoaded().then((arr) => {
+            if (arr.length > 0) {
+              const f = arr[0];
+              setSelectedFlashFolder(f);
+              try {
+                localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
+              } catch {}
+              fetchFlashEntries(flashScope, f.id);
+            }
+          });
+        }
+      }
+    }
   };
+
+  useEffect(() => {
+    // Arrow lên/xuống chỉ đổi mục chọn, không cuộn khung gợi ý
+    // Giữ nguyên hiệu ứng highlight, commit bằng Enter/click
+  }, [slashSelectedIndex, slashOpen]);
+
+  useEffect(() => {
+    // Arrow lên/xuống chỉ đổi mục chọn, không cuộn khung gợi ý
+    // Giữ nguyên hiệu ứng highlight, commit bằng Enter/click
+  }, [hashtagSelectedIndex, hashtagOpen]);
+
+  useEffect(() => {
+    setSlashSelectedIndex(0);
+    slashItemRefs.current = [];
+  }, [slashQuery]);
+
+  useEffect(() => {
+    setHashtagSelectedIndex(0);
+    hashtagItemRefs.current = [];
+  }, [hashtagQuery]);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
@@ -1286,14 +1369,20 @@ export default function ChatInput({
                 {att.type === 'image' ? (
                   <Image src={att.previewUrl} alt="" fill sizes="80px" className="object-cover" unoptimized priority />
                 ) : att.type === 'video' ? (
-                  <video
-                    src={att.previewUrl}
-                    className="w-full h-full object-cover"
-                    muted
-                    playsInline
-                    controls
-                    preload="metadata"
-                  ></video>
+                  <video className="w-full h-full object-cover" muted playsInline controls preload="metadata">
+                    <source
+                      src={att.previewUrl}
+                      type={
+                        att.fileName?.toLowerCase().endsWith('.webm')
+                          ? 'video/webm'
+                          : att.fileName?.toLowerCase().endsWith('.mov')
+                            ? 'video/quicktime'
+                            : att.fileName?.toLowerCase().endsWith('.mkv')
+                              ? 'video/x-matroska'
+                              : 'video/mp4'
+                      }
+                    />
+                  </video>
                 ) : (
                   <div className=" rounded-xl bg-gray-50 hover:bg-gray-100 transition-all duration-200 group cursor-pointer border border-gray-200 hover:border-blue-300">
                     <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 text-white shadow-lg">
@@ -1900,12 +1989,26 @@ export default function ChatInput({
                   if (slashOpen && suggestions.length > 0) {
                     if (e.key === 'ArrowDown') {
                       e.preventDefault();
-                      setSlashSelectedIndex((prev) => (prev + 1) % suggestions.length);
+                      setSlashSelectedIndex((prev) => {
+                        const next = (prev + 1) % suggestions.length;
+                        try {
+                          const el = slashItemRefs.current[next];
+                          if (el) el.scrollIntoView({ block: 'nearest' });
+                        } catch {}
+                        return next;
+                      });
                       return;
                     }
                     if (e.key === 'ArrowUp') {
                       e.preventDefault();
-                      setSlashSelectedIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+                      setSlashSelectedIndex((prev) => {
+                        const next = (prev - 1 + suggestions.length) % suggestions.length;
+                        try {
+                          const el = slashItemRefs.current[next];
+                          if (el) el.scrollIntoView({ block: 'nearest' });
+                        } catch {}
+                        return next;
+                      });
                       return;
                     }
                     if (e.key === 'Enter') {
@@ -1922,6 +2025,14 @@ export default function ChatInput({
                           sel?.removeAllRanges();
                           sel?.addRange(range);
                         } catch {}
+                        const entry = flashEntries.find((e) => e.key === chosen.key);
+                        if (entry && Array.isArray(entry.att)) {
+                          entry.att.forEach((a) => {
+                            const url = a.dataUrl || '';
+                            if (!url) return;
+                            onAttachFromFolder({ url, type: a.type, fileName: a.name });
+                          });
+                        }
                         setSlashOpen(false);
                         setSlashSelectedIndex(0);
                         onInputEditable();
@@ -1933,6 +2044,68 @@ export default function ChatInput({
                       setSlashOpen(false);
                       setSlashSelectedIndex(0);
                       return;
+                    }
+                  }
+                  if (hashtagOpen && flashFolders.length > 0) {
+                    const topics = flashFolders.filter((f) =>
+                      f.name.toLowerCase().startsWith((hashtagQuery || '').toLowerCase()),
+                    );
+                    if (topics.length > 0) {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        setHashtagSelectedIndex((prev) => {
+                          const next = (prev + 1) % topics.length;
+                          try {
+                            const el = hashtagItemRefs.current[next];
+                            if (el) el.scrollIntoView({ block: 'nearest' });
+                          } catch {}
+                          return next;
+                        });
+                        return;
+                      }
+                      if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        setHashtagSelectedIndex((prev) => {
+                          const next = (prev - 1 + topics.length) % topics.length;
+                          try {
+                            const el = hashtagItemRefs.current[next];
+                            if (el) el.scrollIntoView({ block: 'nearest' });
+                          } catch {}
+                          return next;
+                        });
+                        return;
+                      }
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const chosen = topics[Math.max(0, Math.min(hashtagSelectedIndex, topics.length - 1))];
+                        if (chosen && editableRef.current) {
+                          const replaced = text.replace(/#\s*[\w-]*$/, '');
+                          editableRef.current.innerText = replaced;
+                          try {
+                            const range = document.createRange();
+                            range.selectNodeContents(editableRef.current);
+                            range.collapse(false);
+                            const sel = window.getSelection();
+                            sel?.removeAllRanges();
+                            sel?.addRange(range);
+                          } catch {}
+                          setHashtagOpen(false);
+                          setHashtagSelectedIndex(0);
+                          setSelectedFlashFolder(chosen);
+                          try {
+                            localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(chosen));
+                          } catch {}
+                          fetchFlashEntries(flashScope, chosen.id);
+                          onInputEditable();
+                          return;
+                        }
+                      }
+                      if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setHashtagOpen(false);
+                        setHashtagSelectedIndex(0);
+                        return;
+                      }
                     }
                   }
                   // if (e.key === 'Enter' && !e.shiftKey && isUploading) {
@@ -2577,20 +2750,153 @@ export default function ChatInput({
       `}</style>
 
       {slashOpen && kvItems.length > 0 && (
-        <div className="absolute left-4 bottom-20 z-40 w-64 bg-white rounded-xl shadow-xl border border-gray-200">
-          <div className="px-3 py-2 border-b text-xs text-gray-500">Gợi ý Chat nhanh</div>
-          <div className="max-h-48 overflow-y-auto">
+        <div
+          onMouseDown={(e) => e.preventDefault()}
+          className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-2xl border border-gray-200 max-h-60 overflow-hidden z-50"
+        >
+          <div className="p-2 border-b bg-gray-50">
+            <p className="text-xs text-gray-600 font-medium">Chọn câu chat nhanh</p>
+          </div>
+          <div className="max-h-48 overflow-y-auto custom-scrollbar">
             {kvItems
               .filter((it) => it.key.toLowerCase().startsWith((slashQuery || '').toLowerCase()))
-              .map((it, idx) => (
-                <button
-                  key={it.key}
+              .map((it, index) => {
+                const entry = flashEntries.find((e) => e.key === it.key);
+                const atts = Array.isArray(entry?.att) ? entry?.att.slice(0, 3) : [];
+                return (
+                  <div
+                    role="button"
+                    ref={(el) => {
+                      slashItemRefs.current[index] = el;
+                    }}
+                    key={it.key}
+                    onClick={() => {
+                      if (!editableRef.current) return;
+                      editableRef.current.focus();
+                      try {
+                        const text = String(editableRef.current.innerText || '');
+                        const replaced = text.replace(/\/\s*[\w-]*$/, it.value);
+                        editableRef.current.innerText = replaced;
+                        const range = document.createRange();
+                        range.selectNodeContents(editableRef.current);
+                        range.collapse(false);
+                        const sel = window.getSelection();
+                        sel?.removeAllRanges();
+                        sel?.addRange(range);
+                        if (Array.isArray(entry?.att)) {
+                          entry?.att.forEach((a) => {
+                            const url = a.url || a.dataUrl || '';
+                            if (!url) return;
+                            onAttachFromFolder({ url, type: a.type, fileName: a.name });
+                          });
+                        }
+                        setSlashOpen(false);
+                        setSlashSelectedIndex(0);
+                        onInputEditable();
+                      } catch {}
+                    }}
+                    className={`w-full flex cursor-pointer items-center gap-3 p-3 hover:bg-blue-50 transition-colors ${
+                      index === slashSelectedIndex ? 'bg-blue-100' : ''
+                    }`}
+                    tabIndex={-1}
+                  >
+                    <div className="text-left flex-1 min-w-0">
+                      <p className="font-medium text-gray-800 text-sm truncate">/{it.key}</p>
+                      <div className="flex items-center gap-1 justify-between">
+                        <p className="text-xs text-gray-500 truncate">{it.value}</p>
+                        {atts.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {atts.map((a, i) => (
+                              <div key={i} className="w-10 h-10 rounded-md overflow-hidden border border-gray-200">
+                                {a.type === 'image' ? (
+                                  a.dataUrl ? (
+                                    <Image
+                                      src={a.dataUrl}
+                                      alt={a.name}
+                                      width={40}
+                                      height={40}
+                                      className="w-full h-full object-cover"
+                                      unoptimized
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-md border border-gray-200 bg-gray-100 flex items-center justify-center">
+                                      <HiPhoto className="w-5 h-5 text-indigo-600" />
+                                    </div>
+                                  )
+                                ) : a.type === 'video' ? (
+                                  <div className="relative w-10 h-10 rounded-md border border-slate-200 shadow-sm bg-black overflow-hidden">
+                                    {a.dataUrl ? (
+                                      <Image
+                                        width={28}
+                                        height={16}
+                                        src={a.dataUrl}
+                                        alt={a.name}
+                                        className="w-full h-full object-cover opacity-80"
+                                      />
+                                    ) : null}
+                                  </div>
+                                ) : (
+                                  (() => {
+                                    const sizeKb = a.size ? Math.round(a.size / 1024) : null;
+                                    return (
+                                      <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-gray-200">
+                                        <CiFileOn className="w-4 h-4 text-gray-600" />
+                                        <span className="text-xs text-gray-700 truncate max-w-[8rem]">{a.name}</span>
+                                        {sizeKb ? <span className="text-[10px] text-gray-400">{sizeKb}KB</span> : null}
+                                      </div>
+                                    );
+                                  })()
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {index === slashSelectedIndex && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="w-5 h-5 text-blue-500"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+      {hashtagOpen && flashFolders.length > 0 && (
+        <div
+          onMouseDown={(e) => e.preventDefault()}
+          className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-2xl border border-gray-200 max-h-60 overflow-hidden z-50"
+        >
+          <div className="p-2 border-b bg-gray-50">
+            <p className="text-xs text-gray-600 font-medium">Chọn chủ đề</p>
+          </div>
+          <div className="max-h-48 overflow-y-auto custom-scrollbar">
+            {flashFolders
+              .filter((f) => f.name.toLowerCase().startsWith((hashtagQuery || '').toLowerCase()))
+              .map((f, index) => (
+                <div
+                  role="button"
+                  ref={(el) => {
+                    hashtagItemRefs.current[index] = el;
+                  }}
+                  key={f.id}
                   onClick={() => {
                     if (!editableRef.current) return;
                     editableRef.current.focus();
                     try {
                       const text = String(editableRef.current.innerText || '');
-                      const replaced = text.replace(/\/\s*[\w-]*$/, it.value);
+                      const replaced = text.replace(/#\s*[\w-]*$/, '');
                       editableRef.current.innerText = replaced;
                       const range = document.createRange();
                       range.selectNodeContents(editableRef.current);
@@ -2598,16 +2904,39 @@ export default function ChatInput({
                       const sel = window.getSelection();
                       sel?.removeAllRanges();
                       sel?.addRange(range);
-                      setSlashOpen(false);
-                      setSlashSelectedIndex(0);
+                      setHashtagOpen(false);
+                      setHashtagSelectedIndex(0);
+                      setSelectedFlashFolder(f);
+                      try {
+                        localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
+                      } catch {}
+                      fetchFlashEntries(flashScope, f.id);
                       onInputEditable();
                     } catch {}
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 ${idx === slashSelectedIndex ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}
+                  className={`w-full flex cursor-pointer items-center gap-3 p-3 hover:bg-blue-50 transition-colors ${
+                    index === hashtagSelectedIndex ? 'bg-blue-100' : ''
+                  }`}
+                  tabIndex={-1}
                 >
-                  <span className="text-indigo-600">/{it.key}</span>
-                  <span className="text-gray-500 truncate">{it.value}</span>
-                </button>
+                  <div className="text-left flex-1 min-w-0">
+                    <p className="font-medium text-gray-800 text-sm truncate">#{f.name}</p>
+                  </div>
+                  {index === hashtagSelectedIndex && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="w-5 h-5 text-blue-500"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </div>
               ))}
           </div>
         </div>
