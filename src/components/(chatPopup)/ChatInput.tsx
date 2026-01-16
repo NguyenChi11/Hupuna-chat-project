@@ -47,7 +47,6 @@ import ICIcon1 from '@/components/svg/ICIcon1';
 import ImageIconZalo from '@/components/svg/ICIconImageZalo';
 import MicIcon from '@/components/svg/MicIcon';
 import IconFile from '@/components/svg/IConFile';
-import ICFolder from '@/components/svg/ICFolder';
 import { AiTwotoneLike } from 'react-icons/ai';
 import CreatePollModal from './components/CreatePollModal';
 import CreateNoteModal from './components/CreateNoteModal';
@@ -62,6 +61,7 @@ import { useToast } from '@/components/base/toast';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { accentAwareIncludes, getProxyUrl, normalizeNoAccent } from '@/utils/utils';
 import { IoFlashOutline } from 'react-icons/io5';
+import { useRouter as useNextRouter } from 'next/navigation';
 
 interface ChatInputProps {
   socket?: Socket | null;
@@ -85,6 +85,70 @@ interface ChatInputProps {
   isUploading?: boolean;
   uploadingCount?: number;
   overallUploadPercent?: number;
+}
+
+function VideoThumb({ src }: { src: string }) {
+  const [thumb, setThumb] = useState<string>('');
+  useEffect(() => {
+    let mounted = true;
+    const v = document.createElement('video');
+    v.src = src;
+    v.crossOrigin = 'anonymous';
+    v.preload = 'metadata';
+    v.muted = true;
+    v.playsInline = true;
+    const handleLoaded = () => {
+      try {
+        const w = 48;
+        const h = 48;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        const vw = v.videoWidth || w;
+        const vh = v.videoHeight || h;
+        const ratio = Math.min(w / vw, h / vh);
+        const sw = vw * ratio;
+        const sh = vh * ratio;
+        const dx = (w - sw) / 2;
+        const dy = (h - sh) / 2;
+        ctx?.clearRect(0, 0, w, h);
+        if (ctx) {
+          ctx.fillStyle = '#f3f4f6';
+          ctx.fillRect(0, 0, w, h);
+        }
+        ctx?.drawImage(v, dx, dy, sw, sh);
+        const url = canvas.toDataURL('image/png');
+        if (mounted) setThumb(url);
+      } catch {}
+    };
+    v.addEventListener('loadeddata', handleLoaded);
+    v.load();
+    return () => {
+      mounted = false;
+      v.removeEventListener('loadeddata', handleLoaded);
+      try {
+        v.pause();
+      } catch {}
+    };
+  }, [src]);
+  return (
+    <div className="relative w-12 h-12  rounded-md border border-slate-200 shadow-sm bg-black overflow-hidden">
+      {thumb ? (
+        <Image width={28} height={16} src={thumb} alt="video" className="w-full h-full object-cover opacity-80" />
+      ) : (
+        <video
+          src={src}
+          muted
+          autoPlay
+          loop
+          playsInline
+          preload="metadata"
+          className="w-full h-full object-cover opacity-80"
+        />
+      )}
+    </div>
+  );
 }
 
 export default function ChatInput({
@@ -137,7 +201,7 @@ export default function ChatInput({
     return String(u ?? '');
   };
   const roomId = isGroup ? getId(selectedChat) : [getId(currentUser), getId(selectedChat)].sort().join('_');
-
+  const router = useNextRouter();
   const [showCreatePoll, setShowCreatePoll] = useState(false);
   const [showCreateReminder, setShowCreateReminder] = useState(false); // Renamed from showCreateNote for clarity (old logic was reminder)
   const [showCreateNote, setShowCreateNote] = useState(false); // New dedicated Note modal
@@ -445,6 +509,20 @@ export default function ChatInput({
   const [showMoreActionsMenu, setShowMoreActionsMenu] = useState(false);
   const moreActionsMenuRef = useRef<HTMLDivElement | null>(null);
   const moreActionsMenuBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [showFlashFoldersMenu, setShowFlashFoldersMenu] = useState(false);
+  const flashFoldersMenuRef = useRef<HTMLDivElement | null>(null);
+  const flashFoldersMenuBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [flashScope, setFlashScope] = useState<'user' | 'global'>('user');
+  const [flashLoading, setFlashLoading] = useState(false);
+  const [activePreviewFolderId, setActivePreviewFolderId] = useState<string | null>(null);
+  const [flashEntries, setFlashEntries] = useState<
+    Array<{
+      key: string;
+      value: string;
+      att?: { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string }[];
+    }>
+  >([]);
+  const [flashEntriesLoading, setFlashEntriesLoading] = useState(false);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
   const [showContactCardModal, setShowContactCardModal] = useState(false);
@@ -830,6 +908,81 @@ export default function ChatInput({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [showMoreActionsMenu]);
+
+  useEffect(() => {
+    if (!showFlashFoldersMenu) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (flashFoldersMenuRef.current && flashFoldersMenuRef.current.contains(target)) return;
+      if (flashFoldersMenuBtnRef.current && flashFoldersMenuBtnRef.current.contains(target)) return;
+      setShowFlashFoldersMenu(false);
+    };
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setShowFlashFoldersMenu(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showFlashFoldersMenu]);
+
+  const fetchFlashFolders = async (scope: 'user' | 'global') => {
+    setFlashLoading(true);
+    try {
+      const res = await fetch('/api/flash-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'listFolders', scope }),
+      });
+      const data = await res.json();
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      setFlashFolders(
+        rows
+          .filter((f: unknown) => f && typeof f === 'object')
+          .map((f: { _id?: string; name?: string }) => ({ id: String(f._id || ''), name: String(f.name || '') })),
+      );
+    } catch {
+      setFlashFolders([]);
+    } finally {
+      setFlashLoading(false);
+    }
+  };
+
+  const fetchFlashEntries = async (scope: 'user' | 'global', folderId: string) => {
+    if (!folderId) return;
+    setFlashEntriesLoading(true);
+    setFlashEntries([]);
+    try {
+      const res = await fetch('/api/flash-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'listEntries', scope, folderId }),
+      });
+      const data = await res.json();
+      const entries = Array.isArray(data?.data) ? data.data : [];
+      setFlashEntries(
+        entries
+          .filter((e: unknown) => e && typeof e === 'object')
+          .map(
+            (e: {
+              key?: string;
+              value?: string;
+              att?: { type: 'image' | 'video' | 'file'; name: string; size: number; dataUrl?: string }[];
+            }) => ({
+              key: String(e.key || ''),
+              value: String(e.value || ''),
+              att: Array.isArray(e.att) ? e.att : [],
+            }),
+          ),
+      );
+    } catch {
+      setFlashEntries([]);
+    } finally {
+      setFlashEntriesLoading(false);
+    }
+  };
 
   const checkContent = () => {
     if (editableRef.current) {
@@ -1233,13 +1386,200 @@ export default function ChatInput({
         >
           <CiEdit className="w-6 h-6" />
         </button>
-        <button
-          onClick={handleShowUpdatingPopup}
-          className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${isListening ? 'text-red-500 bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}
-          aria-label="Gửi Zalo"
-        >
-          <IoFlashOutline className="w-[1.375rem] h-[1.375rem]" />
-        </button>
+        <div className="relative">
+          <button
+            ref={flashFoldersMenuBtnRef}
+            onClick={async () => {
+              const next = !showFlashFoldersMenu;
+              setShowFlashFoldersMenu(next);
+              if (next) {
+                await fetchFlashFolders(flashScope);
+              }
+            }}
+            className={`rounded-lg p-1 cursor-pointer transition-all duration-200 ${
+              showFlashFoldersMenu
+                ? 'text-blue-600 bg-blue-50'
+                : isListening
+                  ? 'text-red-500 bg-red-50'
+                  : 'text-gray-700 hover:bg-gray-100'
+            }`}
+            aria-label="Flash Message"
+            aria-haspopup="menu"
+            aria-expanded={showFlashFoldersMenu}
+          >
+            <IoFlashOutline className="w-[1.375rem] h-[1.375rem]" />
+          </button>
+
+          {showFlashFoldersMenu && (
+            <div
+              ref={flashFoldersMenuRef}
+              role="menu"
+              className="absolute right-[calc(50%_-_9rem)] max-h-[20rem] bottom-full mb-2 w-[18rem] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-bottom-right"
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <div className="px-3 pt-3">
+                <button
+                  onClick={() => router.push('/flash-message')}
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-indigo-600 transition-colors duration-200 group"
+                >
+                  Trang flash message
+                </button>
+                <div className="flex items-center rounded-lg bg-gray-50 p-1 gap-1">
+                  <button
+                    onClick={async () => {
+                      setFlashScope('user');
+                      await fetchFlashFolders('user');
+                    }}
+                    className={`flex-1 px-3 py-1.5 rounded-md text-sm ${
+                      flashScope === 'user'
+                        ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
+                        : 'text-gray-700 hover:bg-white'
+                    }`}
+                  >
+                    User
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setFlashScope('global');
+                      await fetchFlashFolders('global');
+                    }}
+                    className={`flex-1 px-3 py-1.5 rounded-md text-sm ${
+                      flashScope === 'global'
+                        ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
+                        : 'text-gray-700 hover:bg-white'
+                    }`}
+                  >
+                    Global
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-3 pb-3">
+                <div className="mt-2">
+                  <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-lg p-2">
+                    {flashLoading ? (
+                      <div className="px-3 py-4 text-center text-sm text-gray-500">Đang tải...</div>
+                    ) : flashFolders.length === 0 ? (
+                      <div className="px-3 py-6 text-center text-sm text-gray-500">Chưa có thư mục</div>
+                    ) : (
+                      <div>
+                        {flashFolders.map((f) => (
+                          <button
+                            key={`${flashScope}:${f.id}`}
+                            onMouseEnter={async () => {
+                              setActivePreviewFolderId(f.id);
+                              await fetchFlashEntries(flashScope, f.id);
+                            }}
+                            onFocus={async () => {
+                              setActivePreviewFolderId(f.id);
+                              await fetchFlashEntries(flashScope, f.id);
+                            }}
+                            onClick={async () => {
+                              setSelectedFlashFolder(f);
+                              setActivePreviewFolderId(f.id);
+                              await fetchFlashEntries(flashScope, f.id);
+                              try {
+                                localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
+                              } catch {}
+                            }}
+                            className={`w-full text-left px-3 py-2 text-[15px] transition flex items-center gap-3 rounded-md ${
+                              activePreviewFolderId === f.id
+                                ? 'bg-indigo-50 text-indigo-700'
+                                : 'text-gray-800 hover:bg-gray-50'
+                            }`}
+                          >
+                            <HiFolder className="w-5 h-5 text-indigo-600" />
+                            <span className="truncate flex-1">{f.name}</span>
+                            {selectedFlashFolder?.id === f.id && <HiCheck className="w-5 h-5 text-indigo-600" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {showFlashFoldersMenu && !flashEntriesLoading && flashEntries.length > 0 && (
+            <div
+              role="dialog"
+              className="absolute left-[10rem] max-h-[20rem] bottom-full mb-2 w-[18rem] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-bottom-right"
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <div className="px-3 pt-3 pb-3">
+                <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-lg p-2">
+                  <div className="space-y-1">
+                    {flashEntries.map((e) => (
+                      <div key={e.key} className="px-2 py-1 rounded-md hover:bg-gray-50">
+                        <div className="flex items-center gap-2">
+                          <HiDocumentText className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm font-medium text-gray-800">{e.key}</span>
+                        </div>
+                        <div className="flex items-center gap-1 justify-between">
+                          <div className="mt-1 text-xs text-gray-600 line-clamp-2 max-w-[12rem]">{e.value}</div>
+                          {(e.att || []).length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {(e.att || []).map((a, idx) => {
+                                const sizeKb = a.size ? Math.round(a.size / 1024) : null;
+                                if (a.type === 'image') {
+                                  return a.dataUrl ? (
+                                    <Image
+                                      key={`${e.key}-att-${idx}`}
+                                      src={a.dataUrl}
+                                      alt={a.name}
+                                      width={40}
+                                      height={40}
+                                      className="rounded-md border w-12 h-12 object-cover"
+                                    />
+                                  ) : (
+                                    <div
+                                      key={`${e.key}-att-${idx}`}
+                                      className="w-12 h-12 rounded-md border border-gray-200 bg-gray-100 flex items-center justify-center"
+                                    >
+                                      <HiPhoto className="w-5 h-5 text-indigo-600" />
+                                    </div>
+                                  );
+                                }
+                                if (a.type === 'video') {
+                                  return (
+                                    <div
+                                      key={`${e.key}-att-${idx}`}
+                                      className="relative w-12 h-12  rounded-md border border-slate-200 shadow-sm bg-black overflow-hidden"
+                                    >
+                                      {a.dataUrl ? (
+                                        <Image
+                                          width={28}
+                                          height={16}
+                                          src={a.dataUrl}
+                                          alt={a.name}
+                                          className="w-full h-full object-cover opacity-80"
+                                        />
+                                      ) : null}
+                                    </div>
+                                  );
+                                }
+                                return (
+                                  <div
+                                    key={`${e.key}-att-${idx}`}
+                                    className="flex items-center gap-1 px-2 py-1 rounded-md border border-gray-200"
+                                  >
+                                    <CiFileOn className="w-4 h-4 text-gray-600" />
+                                    <span className="text-xs text-gray-700 truncate max-w-[8rem]">{a.name}</span>
+                                    {sizeKb ? <span className="text-[10px] text-gray-400">{sizeKb}KB</span> : null}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="relative">
           <button
             ref={moreActionsMenuBtnRef}
