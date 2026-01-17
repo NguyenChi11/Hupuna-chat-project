@@ -484,7 +484,14 @@ export default function ChatInput({
 
   const [showFlashPicker, setShowFlashPicker] = useState(false);
   const [flashFolders, setFlashFolders] = useState<Array<{ id: string; name: string }>>([]);
-  const [selectedFlashFolder, setSelectedFlashFolder] = useState<{ id: string; name: string } | null>(null);
+  const [allFlashFolders, setAllFlashFolders] = useState<Array<{ id: string; name: string; scope: 'user' | 'global' }>>(
+    [],
+  );
+  const [selectedFlashFolder, setSelectedFlashFolder] = useState<{
+    id: string;
+    name: string;
+    scope?: 'user' | 'global';
+  } | null>(null);
   const [kvItems, setKvItems] = useState<Array<{ key: string; value: string }>>([]);
   const [slashOpen, setSlashOpen] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
@@ -970,6 +977,41 @@ export default function ChatInput({
     return current;
   };
 
+  const fetchFoldersRaw = async (scope: 'user' | 'global') => {
+    try {
+      const res = await fetch('/api/flash-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'listFolders', scope }),
+      });
+      const data = await res.json();
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      const mapped: Array<{ id: string; name: string; scope: 'user' | 'global' }> = rows
+        .filter((f: unknown) => f && typeof f === 'object')
+        .map((f: { _id?: string; name?: string }) => ({
+          id: String(f._id || ''),
+          name: String(f.name || ''),
+          scope,
+        }));
+      return mapped;
+    } catch {
+      return [];
+    }
+  };
+
+  const ensureAllFoldersLoaded = async () => {
+    try {
+      const us = await fetchFoldersRaw('user');
+      const gl = await fetchFoldersRaw('global');
+      const combined = [...us, ...gl];
+      setAllFlashFolders(combined);
+      return combined;
+    } catch {
+      setAllFlashFolders([]);
+      return [];
+    }
+  };
+
   const fetchFlashEntries = async (scope: 'user' | 'global', folderId: string) => {
     if (!folderId) return;
     setFlashEntriesLoading(true);
@@ -1017,7 +1059,12 @@ export default function ChatInput({
       const f = raw ? JSON.parse(raw) : null;
       if (f && f.id && f.name) {
         setSelectedFlashFolder(f);
-        fetchFlashEntries(flashScope, f.id);
+        if (f.scope === 'user' || f.scope === 'global') {
+          setFlashScope(f.scope);
+          fetchFlashEntries(f.scope, f.id);
+        } else {
+          fetchFlashEntries(flashScope, f.id);
+        }
       }
     } catch {}
   }, []);
@@ -1270,19 +1317,22 @@ export default function ChatInput({
   };
   const updateSlashState = () => {
     const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
-    const mSlash = text.match(/\/\s*([\w-]*)$/);
+    const mSlash = text.match(/\/\s*([\p{L}\p{M}\d_-]*)$/u);
     const qSlash = mSlash ? mSlash[1] : '';
     setSlashQuery(qSlash);
-    const openSlash = /\/\s*[\w-]*$/.test(text);
+    const openSlash = Boolean(mSlash);
     setSlashOpen(openSlash);
 
-    const mHash = text.match(/#\s*([\w-]*)$/);
+    const mHash = text.match(/#\s*([\p{L}\p{M}\d_-]*)$/u);
     const qHash = mHash ? mHash[1] : '';
     setHashtagQuery(qHash);
-    const openHash = /#\s*[\w-]*$/.test(text);
+    const openHash = Boolean(mHash);
     setHashtagOpen(openHash);
     if (openHash && flashFolders.length === 0) {
       void ensureFoldersLoaded();
+    }
+    if (openHash && allFlashFolders.length === 0) {
+      void ensureAllFoldersLoaded();
     }
     if (openSlash) {
       if (kvItems.length === 0) {
@@ -1292,7 +1342,7 @@ export default function ChatInput({
           const f = flashFolders[0];
           setSelectedFlashFolder(f);
           try {
-            localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
+            localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify({ ...f, scope: flashScope }));
           } catch {}
           fetchFlashEntries(flashScope, f.id);
         } else {
@@ -1301,7 +1351,7 @@ export default function ChatInput({
               const f = arr[0];
               setSelectedFlashFolder(f);
               try {
-                localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
+                localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify({ ...f, scope: flashScope }));
               } catch {}
               fetchFlashEntries(flashScope, f.id);
             }
@@ -1525,9 +1575,17 @@ export default function ChatInput({
               <div className="px-3 pt-3">
                 <button
                   onClick={() => router.push('/flash-message')}
-                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-indigo-600 transition-colors duration-200 group"
+                  className="p-2 border border-gray-200 rounded-lg cursor-pointer mb-2 group inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors duration-200"
                 >
                   Trang flash message
+                  <svg
+                    className="h-4 w-4 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
                 <div className="flex items-center rounded-lg bg-gray-50 p-1 gap-1">
                   <button
@@ -1535,7 +1593,7 @@ export default function ChatInput({
                       setFlashScope('user');
                       await fetchFlashFolders('user');
                     }}
-                    className={`flex-1 px-3 py-1.5 rounded-md text-sm ${
+                    className={`flex-1 px-3 py-1.5 rounded-md text-sm cursor-pointer ${
                       flashScope === 'user'
                         ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
                         : 'text-gray-700 hover:bg-white'
@@ -1548,7 +1606,7 @@ export default function ChatInput({
                       setFlashScope('global');
                       await fetchFlashFolders('global');
                     }}
-                    className={`flex-1 px-3 py-1.5 rounded-md text-sm ${
+                    className={`flex-1 px-3 py-1.5 rounded-md text-sm cursor-pointer ${
                       flashScope === 'global'
                         ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
                         : 'text-gray-700 hover:bg-white'
@@ -1561,7 +1619,7 @@ export default function ChatInput({
 
               <div className="px-3 pb-3">
                 <div className="mt-2">
-                  <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-lg p-2">
+                  <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-lg p-2 custom-scrollbar">
                     {flashLoading ? (
                       <div className="px-3 py-4 text-center text-sm text-gray-500">Đang tải...</div>
                     ) : flashFolders.length === 0 ? (
@@ -1586,8 +1644,13 @@ export default function ChatInput({
                               try {
                                 localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
                               } catch {}
+                              try {
+                                const scopeLabel =
+                                  flashScope === 'user' ? ' (User)' : flashScope === 'global' ? ' (Global)' : '';
+                                showToast({ type: 'success', message: `Đã chọn chủ đề: ${f.name}${scopeLabel}` });
+                              } catch {}
                             }}
-                            className={`w-full text-left px-3 py-2 text-[15px] transition flex items-center gap-3 rounded-md ${
+                            className={`w-full text-left px-3 py-2 text-[15px] transition flex items-center gap-3 rounded-md cursor-pointer ${
                               activePreviewFolderId === f.id
                                 ? 'bg-indigo-50 text-indigo-700'
                                 : 'text-gray-800 hover:bg-gray-50'
@@ -1612,12 +1675,12 @@ export default function ChatInput({
               onMouseDown={(e) => e.preventDefault()}
             >
               <div className="px-3 pt-3 pb-3">
-                <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-lg p-2">
+                <div className="max-h-64 overflow-y-auto border border-gray-100 rounded-lg p-2 custom-scrollbar">
                   <div className="space-y-1">
                     {flashEntries.map((e) => (
                       <div
                         key={e.key}
-                        className="px-2 py-1 rounded-md hover:bg-gray-50 cursor-pointer"
+                        className="group px-3 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 active:scale-[0.99]"
                         onMouseDown={(ev) => {
                           ev.preventDefault();
                           const el = editableRef.current;
@@ -1679,13 +1742,13 @@ export default function ChatInput({
                         }}
                       >
                         <div className="flex items-center gap-2">
-                          <HiDocumentText className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm font-medium text-gray-800">{e.key}</span>
+                          <HiDocumentText className="w-4 h-4 text-indigo-500 group-hover:text-indigo-600 transition-colors" />
+                          <span className="text-sm font-medium text-gray-800 group-hover:text-gray-900">{e.key}</span>
                         </div>
-                        <div className="flex items-center gap-1 justify-between">
-                          <div className="mt-1 text-xs text-gray-600 line-clamp-2 max-w-[12rem]">{e.value}</div>
+                        <div className="mt-1 flex items-center justify-between gap-3 ">
+                          <div className="text-sm text-gray-700 line-clamp-3 max-w-[14rem]">{e.value}</div>
                           {(e.att || []).length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-2">
+                            <div className="mt-1">
                               {(e.att || []).map((a, idx) => {
                                 const sizeKb = a.size ? Math.round(a.size / 1024) : null;
                                 if (a.type === 'image') {
@@ -1696,12 +1759,12 @@ export default function ChatInput({
                                       alt={a.name}
                                       width={40}
                                       height={40}
-                                      className="rounded-md border w-12 h-12 object-cover"
+                                      className="rounded-md border w-12 h-12 object-cover shadow-sm ring-1 ring-gray-200 group-hover:ring-indigo-200"
                                     />
                                   ) : (
                                     <div
                                       key={`${e.key}-att-${idx}`}
-                                      className="w-12 h-12 rounded-md border border-gray-200 bg-gray-100 flex items-center justify-center"
+                                      className="w-12 h-12 rounded-md border border-gray-200 bg-gray-100 flex items-center justify-center shadow-sm"
                                     >
                                       <HiPhoto className="w-5 h-5 text-indigo-600" />
                                     </div>
@@ -1711,7 +1774,7 @@ export default function ChatInput({
                                   return (
                                     <div
                                       key={`${e.key}-att-${idx}`}
-                                      className="relative w-12 h-12  rounded-md border border-slate-200 shadow-sm bg-black overflow-hidden"
+                                      className="relative w-12 h-12 rounded-md border border-slate-200 shadow-sm bg-black overflow-hidden ring-1 ring-gray-200"
                                     >
                                       {a.dataUrl ? (
                                         <Image
@@ -1728,7 +1791,7 @@ export default function ChatInput({
                                 return (
                                   <div
                                     key={`${e.key}-att-${idx}`}
-                                    className="flex items-center gap-1 px-2 py-1 rounded-md border border-gray-200"
+                                    className="flex items-center gap-1 px-2 py-1 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors shadow-sm"
                                   >
                                     <CiFileOn className="w-4 h-4 text-gray-600" />
                                     <span className="text-xs text-gray-700 truncate max-w-[8rem]">{a.name}</span>
@@ -1875,8 +1938,8 @@ export default function ChatInput({
       )}
 
       {showMobileFlashMenu && (
-        <div className="fixed inset-0 z-[60] md:hidden flex flex-col bg-white">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+        <div className="fixed inset-0 z-[60] lg:hidden flex flex-col bg-white/95 backdrop-blur-sm">
+          <div className="sticky top-0 flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white shadow-sm">
             <button
               onClick={() => {
                 if (mobileFlashStep === 'entries') {
@@ -1885,17 +1948,17 @@ export default function ChatInput({
                   setShowMobileFlashMenu(false);
                 }
               }}
-              className="p-2 rounded-full cursor-pointer hover:bg-white"
+              className="p-3 rounded-full cursor-pointer hover:bg-gray-100 active:scale-95 transition"
               aria-label="Quay lại"
             >
               <HiChevronLeft className="w-5 h-5" />
             </button>
-            <div className="text-sm font-semibold text-gray-800">
+            <div className="text-base font-semibold text-gray-900">
               {mobileFlashStep === 'folders' ? 'Chọn chủ đề' : selectedFlashFolder?.name || 'Chủ đề'}
             </div>
             <button
               onClick={() => setShowMobileFlashMenu(false)}
-              className="p-2 rounded-full cursor-pointer hover:bg-white"
+              className="p-3 rounded-full cursor-pointer hover:bg-gray-100 active:scale-95 transition"
               aria-label="Đóng"
             >
               <HiX className="w-5 h-5" />
@@ -1906,20 +1969,28 @@ export default function ChatInput({
               <div className="px-4 pt-4">
                 <button
                   onClick={() => router.push('/flash-message')}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-indigo-600 transition-colors duration-200"
+                  className="p-2 border border-gray-200 rounded-lg cursor-pointer mb-2 group inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors duration-200"
                 >
                   Trang flash message
+                  <svg
+                    className="h-4 w-4 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
-                <div className="mt-3 flex items-center rounded-lg bg-gray-50 p-1 gap-1">
+                <div className="mt-4 flex items-center rounded-full bg-gray-100 p-1.5 gap-1 shadow-inner">
                   <button
                     onClick={async () => {
                       setFlashScope('user');
                       await fetchFlashFolders('user');
                     }}
-                    className={`flex-1 px-3 py-1.5 rounded-md text-sm ${
+                    className={`flex-1 px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
                       flashScope === 'user'
-                        ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
-                        : 'text-gray-700 hover:bg-white'
+                        ? 'bg-white text-indigo-600 shadow-sm border border-gray-200 ring-1 ring-indigo-200'
+                        : 'text-gray-700 hover:bg-white hover:border hover:border-gray-200'
                     }`}
                   >
                     User
@@ -1929,10 +2000,10 @@ export default function ChatInput({
                       setFlashScope('global');
                       await fetchFlashFolders('global');
                     }}
-                    className={`flex-1 px-3 py-1.5 rounded-md text-sm ${
+                    className={`flex-1 px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
                       flashScope === 'global'
-                        ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
-                        : 'text-gray-700 hover:bg-white'
+                        ? 'bg-white text-indigo-600 shadow-sm border border-gray-200 ring-1 ring-indigo-200'
+                        : 'text-gray-700 hover:bg-white hover:border hover:border-gray-200'
                     }`}
                   >
                     Global
@@ -1941,7 +2012,7 @@ export default function ChatInput({
               </div>
               <div className="px-4 pb-4">
                 <div className="mt-3">
-                  <div className="max-h-[70vh] overflow-y-auto border border-gray-100 rounded-lg p-2">
+                  <div className="max-h-[70vh] overflow-y-auto border border-gray-100 rounded-xl p-2 bg-white">
                     {flashLoading ? (
                       <div className="px-3 py-4 text-center text-sm text-gray-500">Đang tải...</div>
                     ) : flashFolders.length === 0 ? (
@@ -1959,16 +2030,23 @@ export default function ChatInput({
                                 localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
                               } catch {}
                               setMobileFlashStep('entries');
+                              try {
+                                const scopeLabel =
+                                  flashScope === 'user' ? ' (User)' : flashScope === 'global' ? ' (Global)' : '';
+                                showToast({ type: 'success', message: `Đã chọn chủ đề: ${f.name}${scopeLabel}` });
+                              } catch {}
                             }}
-                            className={`w-full text-left px-3 py-2 text-[15px] transition flex items-center gap-3 rounded-md ${
+                            className={`group w-full text-left px-4 py-3 text-[15px] transition flex items-center gap-3 rounded-lg border border-transparent hover:border-gray-200 active:scale-[0.99] cursor-pointer ${
                               activePreviewFolderId === f.id
-                                ? 'bg-indigo-50 text-indigo-700'
-                                : 'text-gray-800 hover:bg-gray-50'
+                                ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                : 'bg-white text-gray-900 hover:bg-gray-50'
                             }`}
                           >
-                            <HiFolder className="w-5 h-5 text-indigo-600" />
-                            <span className="truncate flex-1">{f.name}</span>
-                            {selectedFlashFolder?.id === f.id && <HiCheck className="w-5 h-5 text-indigo-600" />}
+                            <HiFolder className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" />
+                            <span className="truncate flex-1 font-medium">{f.name}</span>
+                            {selectedFlashFolder?.id === f.id && (
+                              <HiCheck className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" />
+                            )}
                           </button>
                         ))}
                       </div>
@@ -1985,11 +2063,11 @@ export default function ChatInput({
                 ) : flashEntries.length === 0 ? (
                   <div className="px-3 py-6 text-center text-sm text-gray-500">Chưa có nội dung</div>
                 ) : (
-                  <div className="space-y-1 border border-gray-100 rounded-lg p-2">
+                  <div className="space-y-2 border border-gray-100 rounded-xl p-2 bg-white">
                     {flashEntries.map((e) => (
                       <button
                         key={e.key}
-                        className="w-full text-left px-2 py-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                        className="group w-full text-left px-3 py-2.5 rounded-lg bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 active:scale-[0.99]"
                         onClick={() => {
                           const el = editableRef.current;
                           if (el) {
@@ -2021,19 +2099,19 @@ export default function ChatInput({
                         }}
                       >
                         <div className="flex items-center gap-2">
-                          <HiDocumentText className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm font-medium text-gray-800">{e.key}</span>
+                          <HiDocumentText className="w-4 h-4 text-indigo-500 group-hover:text-indigo-600 transition-colors" />
+                          <span className="text-sm font-semibold text-gray-900 group-hover:text-gray-900">{e.key}</span>
                         </div>
-                        <div className="flex items-center gap-1 justify-between">
-                          <div className="mt-1 text-xs text-gray-600 line-clamp-2">{e.value}</div>
+                        <div className="mt-1 flex items-center justify-between gap-3 ">
+                          <div className="text-sm text-gray-700 line-clamp-3">{e.value}</div>
                           {(e.att || []).length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-2">
+                            <div className="mt-2  gap-2">
                               {(e.att || []).map((a, idx) => {
                                 const sizeKb = a.size ? Math.round(a.size / 1024) : null;
                                 return (
                                   <div key={`${e.key}-${idx}`} className="flex items-center gap-2">
                                     {a.type === 'image' && (
-                                      <div className="relative w-12 h-12 rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden">
+                                      <div className="relative w-12 h-12 rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden ring-1 ring-gray-200">
                                         {a.dataUrl ? (
                                           <Image
                                             width={48}
@@ -2046,7 +2124,7 @@ export default function ChatInput({
                                       </div>
                                     )}
                                     {a.type === 'video' && (
-                                      <div className="relative w-12 h-12  rounded-md border border-slate-200 shadow-sm bg-black overflow-hidden">
+                                      <div className="relative w-12 h-12 rounded-md border border-slate-200 shadow-sm bg-black overflow-hidden ring-1 ring-gray-200">
                                         {a.dataUrl ? (
                                           <Image
                                             width={28}
@@ -2184,9 +2262,11 @@ export default function ChatInput({
                     return;
                   }
                   const text = editableRef.current ? String(editableRef.current.innerText || '') : '';
-                  const suggestions = kvItems.filter((it) =>
-                    it.key.toLowerCase().startsWith((slashQuery || '').toLowerCase()),
-                  );
+                  const suggestions = kvItems.filter((it) => {
+                    const nk = normalizeNoAccent(String(it.key || '').normalize('NFC'));
+                    const nq = normalizeNoAccent(String(slashQuery || '').normalize('NFC'));
+                    return nk.startsWith(nq);
+                  });
 
                   if (slashOpen && suggestions.length > 0) {
                     if (e.key === 'ArrowDown') {
@@ -2217,7 +2297,7 @@ export default function ChatInput({
                       e.preventDefault();
                       const chosen = suggestions[Math.max(0, Math.min(slashSelectedIndex, suggestions.length - 1))];
                       if (chosen && editableRef.current) {
-                        const replaced = text.replace(/\/\s*[\w-]*$/, chosen.value);
+                        const replaced = text.replace(/\/\s*([\p{L}\p{M}\d_-]*)$/u, chosen.value);
                         editableRef.current.innerText = replaced;
                         try {
                           const range = document.createRange();
@@ -2248,10 +2328,13 @@ export default function ChatInput({
                       return;
                     }
                   }
-                  if (hashtagOpen && flashFolders.length > 0) {
-                    const topics = flashFolders.filter((f) =>
-                      f.name.toLowerCase().startsWith((hashtagQuery || '').toLowerCase()),
-                    );
+                  if (hashtagOpen && (allFlashFolders.length > 0 || flashFolders.length > 0)) {
+                    const source = allFlashFolders.length > 0 ? allFlashFolders : flashFolders;
+                    const topics = source.filter((f) => {
+                      const nf = normalizeNoAccent(String(f.name || '').normalize('NFC'));
+                      const nq = normalizeNoAccent(String(hashtagQuery || '').normalize('NFC'));
+                      return nf.startsWith(nq);
+                    });
                     if (topics.length > 0) {
                       if (e.key === 'ArrowDown') {
                         e.preventDefault();
@@ -2279,9 +2362,13 @@ export default function ChatInput({
                       }
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        const chosen = topics[Math.max(0, Math.min(hashtagSelectedIndex, topics.length - 1))];
+                        const chosen = topics[Math.max(0, Math.min(hashtagSelectedIndex, topics.length - 1))] as {
+                          id: string;
+                          name: string;
+                          scope?: 'user' | 'global';
+                        };
                         if (chosen && editableRef.current) {
-                          const replaced = text.replace(/#\s*[\w-]*$/, '');
+                          const replaced = text.replace(/#\s*([\p{L}\p{M}\d_-]*)$/u, '');
                           editableRef.current.innerText = replaced;
                           try {
                             const range = document.createRange();
@@ -2297,7 +2384,20 @@ export default function ChatInput({
                           try {
                             localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(chosen));
                           } catch {}
-                          fetchFlashEntries(flashScope, chosen.id);
+                          if (chosen.scope === 'user' || chosen.scope === 'global') {
+                            setFlashScope(chosen.scope);
+                            fetchFlashEntries(chosen.scope, chosen.id);
+                          } else {
+                            fetchFlashEntries(flashScope, chosen.id);
+                          }
+                          try {
+                            const scopeLabel =
+                              chosen.scope === 'user' ? ' (User)' : chosen.scope === 'global' ? ' (Global)' : '';
+                            showToast({
+                              type: 'success',
+                              message: `Đã chọn chủ đề: ${chosen.name}${scopeLabel}`,
+                            });
+                          } catch {}
                           onInputEditable();
                           return;
                         }
@@ -2969,7 +3069,11 @@ export default function ChatInput({
           </div>
           <div className="max-h-48 overflow-y-auto custom-scrollbar">
             {kvItems
-              .filter((it) => it.key.toLowerCase().startsWith((slashQuery || '').toLowerCase()))
+              .filter((it) => {
+                const nk = normalizeNoAccent(String(it.key || '').normalize('NFC'));
+                const nq = normalizeNoAccent(String(slashQuery || '').normalize('NFC'));
+                return nk.startsWith(nq);
+              })
               .map((it, index) => {
                 const entry = flashEntries.find((e) => e.key === it.key);
                 const atts = Array.isArray(entry?.att) ? entry?.att.slice(0, 3) : [];
@@ -2985,7 +3089,7 @@ export default function ChatInput({
                       editableRef.current.focus();
                       try {
                         const text = String(editableRef.current.innerText || '');
-                        const replaced = text.replace(/\/\s*[\w-]*$/, it.value);
+                        const replaced = text.replace(/\/\s*([\p{L}\p{M}\d_-]*)$/u, it.value);
                         editableRef.current.innerText = replaced;
                         const range = document.createRange();
                         range.selectNodeContents(editableRef.current);
@@ -3092,21 +3196,25 @@ export default function ChatInput({
             <p className="text-xs text-gray-600 font-medium">Chọn chủ đề</p>
           </div>
           <div className="max-h-48 overflow-y-auto custom-scrollbar">
-            {flashFolders
-              .filter((f) => f.name.toLowerCase().startsWith((hashtagQuery || '').toLowerCase()))
+            {(allFlashFolders.length > 0 ? allFlashFolders : flashFolders)
+              .filter((f) => {
+                const nf = normalizeNoAccent(String(f.name || '').normalize('NFC'));
+                const nq = normalizeNoAccent(String(hashtagQuery || '').normalize('NFC'));
+                return nf.startsWith(nq);
+              })
               .map((f, index) => (
                 <div
                   role="button"
                   ref={(el) => {
                     hashtagItemRefs.current[index] = el;
                   }}
-                  key={f.id}
+                  key={(f as { id: string }).id}
                   onClick={() => {
                     if (!editableRef.current) return;
                     editableRef.current.focus();
                     try {
                       const text = String(editableRef.current.innerText || '');
-                      const replaced = text.replace(/#\s*[\w-]*$/, '');
+                      const replaced = text.replace(/#\s*([\p{L}\p{M}\d_-]*)$/u, '');
                       editableRef.current.innerText = replaced;
                       const range = document.createRange();
                       range.selectNodeContents(editableRef.current);
@@ -3116,11 +3224,29 @@ export default function ChatInput({
                       sel?.addRange(range);
                       setHashtagOpen(false);
                       setHashtagSelectedIndex(0);
-                      setSelectedFlashFolder(f);
+                      setSelectedFlashFolder(f as { id: string; name: string; scope?: 'user' | 'global' });
                       try {
                         localStorage.setItem(`chatFlashActiveFolder:${roomId}`, JSON.stringify(f));
                       } catch {}
-                      fetchFlashEntries(flashScope, f.id);
+                      const sc = (f as { scope?: 'user' | 'global' }).scope;
+                      if (sc === 'user' || sc === 'global') {
+                        setFlashScope(sc);
+                        fetchFlashEntries(sc, (f as { id: string }).id);
+                      } else {
+                        fetchFlashEntries(flashScope, (f as { id: string }).id);
+                      }
+                      try {
+                        const scopeLabel =
+                          (f as { scope?: 'user' | 'global' }).scope === 'user'
+                            ? ' (User)'
+                            : (f as { scope?: 'user' | 'global' }).scope === 'global'
+                              ? ' (Global)'
+                              : '';
+                        showToast({
+                          type: 'success',
+                          message: `Đã chọn chủ đề: ${(f as { name: string }).name}${scopeLabel}`,
+                        });
+                      } catch {}
                       onInputEditable();
                     } catch {}
                   }}
@@ -3130,8 +3256,13 @@ export default function ChatInput({
                   tabIndex={-1}
                 >
                   <div className="text-left flex-1 min-w-0">
-                    <p className="font-medium text-gray-800 text-sm truncate">#{f.name}</p>
+                    <p className="font-medium text-gray-800 text-sm truncate">#{(f as { name: string }).name}</p>
                   </div>
+                  {'scope' in (f as object) && (
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                      {(f as { scope?: 'user' | 'global' }).scope === 'user' ? 'User' : 'Global'}
+                    </span>
+                  )}
                   {index === hashtagSelectedIndex && (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
