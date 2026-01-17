@@ -92,6 +92,7 @@ function ContactCardBubble({
   const name = String(contact?.name || 'Người dùng');
   const username = String(contact?.username || '');
   const avatar = String(contact?.avatar || '');
+  const isAuthed = !!String(currentUserId || '').trim();
 
   const profilePath = useMemo(() => {
     const slug = String(username || contactId || '').trim();
@@ -210,22 +211,24 @@ function ContactCardBubble({
         </div>
       </div>
 
-      <div className="border-t border-gray-100 bg-gray-50 grid grid-cols-2">
-        <button
-          onClick={handleVoiceCall}
-          className="cursor-pointer flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 active:scale-[0.99] transition"
-        >
-          <HiPhone className="w-4 h-4 text-blue-600" />
-          Gọi điện
-        </button>
-        <button
-          onClick={handleOpenChat}
-          className="cursor-pointer flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 active:scale-[0.99] transition border-l border-gray-200"
-        >
-          <HiChatBubbleLeftRight className="w-4 h-4 text-emerald-600" />
-          Nhắn tin
-        </button>
-      </div>
+      {isAuthed && (
+        <div className="border-t border-gray-100 bg-gray-50 grid grid-cols-2">
+          <button
+            onClick={handleVoiceCall}
+            className="cursor-pointer flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 active:scale-[0.99] transition"
+          >
+            <HiPhone className="w-4 h-4 text-blue-600" />
+            Gọi điện
+          </button>
+          <button
+            onClick={handleOpenChat}
+            className="cursor-pointer flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 active:scale-[0.99] transition border-l border-gray-200"
+          >
+            <HiChatBubbleLeftRight className="w-4 h-4 text-emerald-600" />
+            Nhắn tin
+          </button>
+        </div>
+      )}
     </div>
   );
 }

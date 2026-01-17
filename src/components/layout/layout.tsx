@@ -245,7 +245,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
           return await orig(input, init);
         }
       } catch {}
-      if (pathname !== '/login') router.push('/login');
+      if (pathname !== '/login' && !pathname.startsWith('/profile')) router.push('/login');
       return res;
     };
     window.fetch = wrapped;
@@ -255,7 +255,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   }, [router, pathname]);
 
   useEffect(() => {
-    if (checked && !isAuthed && pathname !== '/login') {
+    if (checked && !isAuthed && pathname !== '/login' && !pathname.startsWith('/profile')) {
       router.push('/login');
     }
   }, [checked, isAuthed, pathname, router]);
@@ -1138,7 +1138,7 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
   // Bỏ lưu trạng thái call theo room trong localStorage cho 1-1
 
   return (
-    <div className="flex h-screen w-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 overflow-hidden">
+    <div className="flex flex-col h-screen w-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 overflow-hidden">
       {/* Sidebar Desktop */}
       {isAuthed && (
         <div className="hidden md:block">
@@ -1148,39 +1148,22 @@ const LayoutBase = ({ children }: { children: React.ReactNode }) => {
 
       {/* Trang chưa đăng nhập – Sang trọng như Zalo Premium */}
       {!isAuthed && checked && isProfilePage && (
-        <div className="w-1/3 flex items-center justify-center p-6">
-          <div className="absolute " />
+        <div className="w-full flex items-center justify-center p-6">
           <div className="relative z-10 w-full max-w-md">
-            <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
-              <div className="p-10 text-center">
-                <div className="w-28 h-28 mx-auto mb-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
-                  <HiSparkles className="w-16 h-16 text-white" />
-                </div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-                  Hupuna
-                </h1>
-                <p className="text-xl text-gray-700 mb-10 leading-relaxed">Chào mừng bạn đến với thế hệ chat mới</p>
+            <div className="space-y-4 flex w-full gap-2 items-center justify-center">
+              <button
+                onClick={() => router.push('/login')}
+                className="w-full m-0 cursor-pointer py-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-lg rounded-2xl shadow-xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-3"
+              >
+                Đăng nhập ngay
+              </button>
 
-                <div className="space-y-4">
-                  <button
-                    onClick={() => router.push('/login')}
-                    className="w-full cursor-pointer py-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-lg rounded-2xl shadow-xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-3"
-                  >
-                    <HiUserCircle className="w-7 h-7" />
-                    Đăng nhập ngay
-                  </button>
-
-                  <button
-                    onClick={() => router.push('/login?mode=register')}
-                    className="w-full cursor-pointer py-5 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold text-lg rounded-2xl shadow-lg transition-all duration-300 active:scale-95 flex items-center justify-center gap-3"
-                  >
-                    <HiSparkles className="w-7 h-7" />
-                    Tạo tài khoản mới
-                  </button>
-                </div>
-
-                <p className="mt-8 text-sm text-gray-500">Bắt đầu hành trình kết nối không giới hạn</p>
-              </div>
+              <button
+                onClick={() => router.push('/login?mode=register')}
+                className="w-full cursor-pointer py-5 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold text-lg rounded-2xl shadow-lg transition-all duration-300 active:scale-95 flex items-center justify-center gap-3"
+              >
+                Tạo tài khoản mới
+              </button>
             </div>
           </div>
         </div>
